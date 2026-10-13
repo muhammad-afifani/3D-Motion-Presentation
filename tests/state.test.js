@@ -82,3 +82,48 @@ describe('derive', () => {
     expect(b.pistonPos).toBe(a.pistonPos);
   });
 });
+
+describe('Scene 1: sinkronisasi kurva P-V/P-θ dengan titik berjalan', () => {
+  for (const engine of ['diesel', 'gas']) {
+    const state = defaultState(engine);
+    const sim = runSim(state);
+
+    it(`${engine}: titik frame berada di kurva siklus pada setiap sampel θ`, () => {
+      const c = derive(state, sim).curve;
+      expect(c.n).toBe(1440);
+      for (let i = 0; i < c.n; i += 7) {
+        const f = derive({ ...state, theta: c.theta[i] }, sim);
+        expect(f.V).toBe(c.V[i]);
+        expect(f.P).toBe(c.P[i]);
+        expect(f.curve).toBe(c); // cache: objek kurva sama selama sim sama
+      }
+    });
+
+    it(`${engine}: luas poligon fase tertutup = W kotor cylinderSim`, () => {
+      const c = derive(state, sim).curve;
+      let A = 0;
+      for (let i = c.iClosed0; i < c.iClosed1; i++) A += 0.5 * (c.P[i] + c.P[i + 1]) * (c.V[i + 1] - c.V[i]);
+      expect(Math.abs(A - sim.Wgross) / sim.Wgross).toBeLessThan(1e-9);
+    });
+
+    it(`${engine}: nilai visual dalam rentang`, () => {
+      for (let th = -360; th < 360; th += 3.7) {
+        const f = derive({ ...state, theta: th }, sim);
+        expect(f.dxbNorm).toBeGreaterThanOrEqual(0);
+        expect(f.dxbNorm).toBeLessThanOrEqual(1);
+        expect(f.valveIn).toBeGreaterThanOrEqual(0);
+        expect(f.valveEx).toBeGreaterThanOrEqual(0);
+        expect(f.valveIn * f.valveEx).toBe(0); // tidak terbuka bersamaan (tanpa overlap di model)
+        for (const v of f.gasRGB) { expect(v).toBeGreaterThanOrEqual(0); expect(v).toBeLessThanOrEqual(1); }
+      }
+    });
+  }
+
+  it('parameter dari slider masuk ke simulasi (r lebih tinggi → Pmax & η naik)', () => {
+    const s = defaultState('diesel');
+    const a = derive(s, runSim(s)), b = derive({ ...s, r: 20 }, runSim({ ...s, r: 20 }));
+    expect(b.summary.Pmax).toBeGreaterThan(a.summary.Pmax);
+    expect(b.eta.ind).toBeGreaterThan(a.eta.ind);
+    expect(b.geom.Vc).toBeLessThan(a.geom.Vc);
+  });
+});

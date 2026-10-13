@@ -13,12 +13,13 @@ import { ENGINES, RPM_VISUAL } from '../model/presets.js';
  * @property {number} theta    sudut engkol saat ini (°), −360…+360
  * @property {number} rpmVisual rpm animasi (slow-motion)
  * @property {boolean} playing
+ * @property {boolean} frozen   beku: waktu berhenti walau playing
  */
 
 /** State default untuk satu jenis mesin (nilai dari preset thermo.js). */
 export function defaultState(engine = 'diesel') {
   const p = ENGINES[engine].params;
-  return { engine, r: p.r, phi: p.phi, theta0: p.theta0, theta: -360, rpmVisual: RPM_VISUAL.default, playing: true };
+  return { engine, r: p.r, phi: p.phi, theta0: p.theta0, theta: -360, rpmVisual: RPM_VISUAL.default, playing: true, frozen: false };
 }
 
 /**
@@ -49,4 +50,15 @@ export function createStore(initial) {
     /** Kembali ke default; `override` opsional (mis. pertahankan pilihan mesin). */
     reset(override = {}) { set({ ...initial, ...override }); },
   };
+}
+
+/** Patch "reset parameter" (tombol R): kembali ke preset mesin aktif, θ dan mesin tetap. */
+export function resetPatch(s) {
+  const d = defaultState(s.engine);
+  return { r: d.r, phi: d.phi, theta0: d.theta0, rpmVisual: d.rpmVisual, frozen: false };
+}
+
+/** Patch ganti mesin: parameter ke preset mesin baru; θ dan status animasi dipertahankan. */
+export function engineSwitchPatch(s, engine) {
+  return { ...defaultState(engine), theta: s.theta, rpmVisual: s.rpmVisual, playing: s.playing, frozen: s.frozen };
 }

@@ -7,14 +7,17 @@
   </head>
   <body>
     <header class="topbar">
-      <div class="brand">Engine &amp; Turbine Emission Lab</div>
-      <div id="model-badge"></div>
+      <div class="topbar__left">
+        <div class="brand">Engine &amp; Turbine Emission Lab</div>
+        <div class="scene-tag num" id="scene-tag"></div>
+      </div>
+      <h1 class="key-message" id="key-message"></h1>
+      <div class="topbar__right">
+        <div id="model-badge"></div>
+      </div>
     </header>
-    <main id="app" class="m1">
-      <h1>Fondasi (M1)</h1>
-      <p>Alur data: <code>store.set → derive() → frame</code>. Isi frame pada θ saat ini:</p>
-      <pre id="frame-dump" class="num"></pre>
-    </main>
+    <main id="app"></main>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script type="module" src="./src/main.js"></script>
   </body>
 </html>
