@@ -1,0 +1,84 @@
+// Tes store + derive: alur satu arah dan konsistensi state di frame.
+import { describe, it, expect, vi } from 'vitest';
+import { createStore, defaultState } from '../src/state/store.js';
+import { derive, runSim, simKey, hydrateSim } from '../src/state/derive.js';
+import { ENGINE_PRESETS } from '../src/model/thermo.js';
+
+describe('store', () => {
+  it('set memanggil subscriber hanya bila ada perubahan', () => {
+    const s = createStore({ a: 1, b: 2 });
+    const fn = vi.fn();
+    s.subscribe(fn);
+    s.set({ a: 1 });
+    expect(fn).not.toHaveBeenCalled();
+    s.set({ a: 3 });
+    expect(fn).toHaveBeenCalledTimes(1);
+    expect(fn.mock.calls[0][2]).toEqual(['a']);
+    expect(s.get()).toEqual({ a: 3, b: 2 });
+  });
+  it('reset kembali ke nilai awal; unsubscribe berfungsi', () => {
+    const s = createStore({ a: 1 });
+    const fn = vi.fn();
+    const off = s.subscribe(fn);
+    s.set({ a: 5 });
+    s.reset();
+    expect(s.get().a).toBe(1);
+    off();
+    s.set({ a: 9 });
+    expect(fn).toHaveBeenCalledTimes(2);
+  });
+  it('defaultState membaca preset thermo.js', () => {
+    const d = defaultState('gas');
+    expect(d.r).toBe(ENGINE_PRESETS.gas.r);
+    expect(d.theta0).toBe(ENGINE_PRESETS.gas.theta0);
+  });
+});
+
+describe('derive', () => {
+  const state = defaultState('diesel');
+  const sim = runSim(state);
+
+  it('perubahan θ tidak mengubah kunci simulasi', () => {
+    expect(simKey({ ...state, theta: 42 })).toBe(simKey(state));
+    expect(simKey({ ...state, r: 17 })).not.toBe(simKey(state));
+  });
+
+  it('frame memuat field minimal spesifikasi', () => {
+    const f = derive({ ...state, theta: 10 }, sim);
+    for (const k of ['theta', 'V', 'P', 'T', 's', 'xb', 'phase', 'pistonPos', 'Tflame', 'phi', 'NOx', 'CO', 'CO2', 'PM', 'eta', 'power', 'load', 'N']) {
+      expect(f).toHaveProperty(k);
+    }
+  });
+
+  it('posisi piston dan V di frame berasal dari geometri yang sama pada tiap θ', () => {
+    for (let th = -360; th < 360; th += 7.3) {
+      const f = derive({ ...state, theta: th }, sim);
+      expect(f.pistonPos).toBeCloseTo(sim.geo.pistonPos(th), 12);
+      expect(f.V).toBeCloseTo(sim.geo.V(th), 12);
+      expect(f.V).toBeCloseTo(f.geom.Vc + f.geom.A * f.pistonPos, 12);
+    }
+  });
+
+  it('P di fase tertutup sama dengan array simulasi', () => {
+    const i = 300; // indeks sembarang di fase tertutup
+    const f = derive({ ...state, theta: sim.th[i] }, sim);
+    expect(f.P).toBeCloseTo(sim.P[i], 6);
+    expect(f.T).toBeCloseTo(sim.T[i], 9);
+  });
+
+  it('ringkasan frame sama dengan hasil cylinderSim', () => {
+    const f = derive(state, sim);
+    expect(f.summary.Pmax).toBe(sim.Pmax);
+    expect(f.eta.brake).toBe(sim.etaBrake);
+    expect(f.summary.bsfc).toBe(sim.bsfc);
+  });
+
+  it('hydrateSim memulihkan geo setelah serialisasi (jalur Web Worker)', () => {
+    const { geo, ...packed } = sim;
+    const clone = hydrateSim(structuredClone(packed));
+    const a = derive({ ...state, theta: 12.25 }, sim);
+    const b = derive({ ...state, theta: 12.25 }, clone);
+    expect(b.P).toBe(a.P);
+    expect(b.pistonPos).toBe(a.pistonPos);
+  });
+});

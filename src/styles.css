@@ -1,0 +1,47 @@
+:root {
+  --bg-0: #0b0f16;
+  --bg-1: #111826;
+  --bg-2: #182133;
+  --line: #26324a;
+  --text: #e6ebf3;
+  --muted: #8b97ad;
+  --accent-hot: #ff9a3c;
+  --accent-cold: #4fb3ff;
+  --ok: #3ccf7a;
+  --fail: #ff4d6d;
+  /* warna spesies (konsisten semua scene) */
+  --sp-nox: #ff8c1a;
+  --sp-co: #e0307a;
+  --sp-co2: #7f93ad;
+  --sp-ch4: #3cbf6a;
+  --sp-pm: #4a4f57;
+  --font-ui: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-num: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  background: radial-gradient(ellipse at 30% 0%, #16203a 0%, var(--bg-0) 60%) fixed;
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 15px;
+}
+.num, .tabular { font-variant-numeric: tabular-nums; font-family: var(--font-num); }
+
+.topbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 8px 16px; border-bottom: 1px solid var(--line); background: rgba(11, 15, 22, 0.8);
+}
+.brand { font-weight: 600; letter-spacing: 0.02em; color: var(--muted); }
+
+.badge {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px;
+  font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; cursor: help;
+}
+.badge::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.badge--ok { color: var(--ok); background: rgba(60, 207, 122, 0.12); border: 1px solid rgba(60, 207, 122, 0.4); }
+.badge--fail { color: var(--fail); background: rgba(255, 77, 109, 0.12); border: 1px solid rgba(255, 77, 109, 0.4); }
+
+.m1 { padding: 24px; }
+.m1 pre { background: var(--bg-1); border: 1px solid var(--line); padding: 12px; border-radius: 8px; max-width: 720px; }

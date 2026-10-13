@@ -48,7 +48,7 @@ Alur data satu arah: `UI control → store.set → derive() → frame → { rig 
 - Jawab dan beri ringkasan dalam bahasa Indonesia yang singkat.
 
 ## Status milestone (perbarui setelah tiap milestone selesai)
-- [ ] M1 Fondasi (Vite, store, derive, golden test, lencana "Model OK")
+- [x] M1 Fondasi (Vite, store, derive, golden test, lencana "Model OK")
 - [ ] M2 Piston + P-V (Scene 1)
 - [ ] M3 Siklus & waterfall (Scene 2), pembakaran (Scene 3)
 - [ ] M4 NOx (Scene 4), panel kalibrasi, panel asumsi
