@@ -2,7 +2,7 @@
  * store.js — store reaktif kecil, sumber kebenaran tunggal untuk parameter UI.
  * Alur: UI control → store.set → derive() → frame → { rig 3D, chart, HUD }.
  */
-import { ENGINES, RPM_VISUAL } from '../model/presets.js';
+import { ENGINES, RPM_VISUAL, CYCLES } from '../model/presets.js';
 
 /**
  * @typedef {Object} AppState
@@ -83,4 +83,44 @@ export const scrubPatch = (s, theta) => (s.frozen ? {} : { theta, playing: false
 export function tickPatch(s, dt) {
   if (!s.playing || s.frozen) return {};
   return { theta: ((((s.theta + 6 * s.rpmVisual * dt + 360) % 720) + 720) % 720) - 360 };
+}
+
+// ── Scene 2 (siklus) — key terpisah dari Scene 1 agar slider tidak saling memengaruhi ──
+
+/** Default parameter siklus untuk satu jenis (input golden test). */
+export function cycleDefaults(kind = 'otto') {
+  const d = CYCLES[kind].defaults;
+  return {
+    cKind: kind,
+    cR: d.r ?? CYCLES.otto.defaults.r,
+    cRc: d.rc ?? CYCLES.diesel.defaults.rc,
+    cRp: d.rp ?? CYCLES.dual.defaults.rp,
+    cRpB: d.rpB ?? CYCLES.brayton.defaults.rpB,
+    cT3: d.T3 ?? CYCLES.brayton.defaults.T3,
+  };
+}
+
+/** State awal Scene 2 (mode Ideal, Otto). */
+export const cycleInitialState = () => ({ ...cycleDefaults('otto'), cMode: 'ideal' });
+
+/** Rentang r untuk jenis + mode: mode Real memakai rentang mesin nyata pembanding. */
+export function cycleRRange(kind, mode) {
+  const c = CYCLES[kind];
+  if (!c.engine || mode !== 'real') return c.ranges.r;
+  return ENGINES[c.engine].ranges.r;
+}
+
+const clampTo = (v, r) => Math.min(r.max, Math.max(r.min, v));
+
+/** Patch ganti jenis siklus: parameter ke default jenis tsb (mode dipertahankan, r di-clamp). */
+export function cycleKindPatch(s, kind) {
+  const d = cycleDefaults(kind);
+  const rr = cycleRRange(kind, s.cMode);
+  return rr ? { ...d, cR: clampTo(d.cR, rr) } : d;
+}
+
+/** Patch toggle Ideal ↔ Real: r di-clamp ke rentang mode baru. */
+export function cycleModePatch(s, mode) {
+  const rr = cycleRRange(s.cKind, mode);
+  return rr ? { cMode: mode, cR: clampTo(s.cR, rr) } : { cMode: mode };
 }

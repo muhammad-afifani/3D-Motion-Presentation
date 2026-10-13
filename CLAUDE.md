@@ -50,7 +50,9 @@ Alur data satu arah: `UI control → store.set → derive() → frame → { rig 
 ## Status milestone (perbarui setelah tiap milestone selesai)
 - [x] M1 Fondasi (Vite, store, derive, golden test, lencana "Model OK")
 - [x] M2 Piston + P-V (Scene 1)
-- [ ] M3 Siklus & waterfall (Scene 2), pembakaran (Scene 3)
+- [x] M2a Verifikasi rig piston, pisah jeda (Spasi) / beku (F)
+- [x] M3a Siklus ideal vs real + waterfall (Scene 2)
+- [ ] M3b Pembakaran (Scene 3)
 - [ ] M4 NOx (Scene 4), panel kalibrasi, panel asumsi
 - [ ] M5 Turbin (Scene 5), kompresor gas (Scene 7)
 - [ ] M6 Part-load (Scene 6), scene terpenting

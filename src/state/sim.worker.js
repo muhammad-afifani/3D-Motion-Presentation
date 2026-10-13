@@ -1,15 +1,19 @@
 /**
- * sim.worker.js — menjalankan cylinderSim di luar thread UI.
- * `geo` (berisi fungsi) dibuang sebelum dikirim; dibangun ulang via hydrateSim di thread utama.
+ * sim.worker.js — menjalankan perhitungan berat thermo.js di luar thread UI.
+ * Job: 'cylinderSim' (geo berisi fungsi → dibuang, dibangun ulang via hydrateSim) dan 'lossWaterfall'.
  */
-import { cylinderSim } from '../model/thermo.js';
+import { cylinderSim, lossWaterfall } from '../model/thermo.js';
 
 self.onmessage = (e) => {
-  const { id, params } = e.data;
+  const { id, job = 'cylinderSim', params } = e.data;
   try {
+    if (job === 'lossWaterfall') {
+      self.postMessage({ id, result: lossWaterfall(params.kind, params.over, params.opts) });
+      return;
+    }
     const { geo, ...packed } = cylinderSim(params);
     const transfer = [packed.th, packed.V, packed.P, packed.T, packed.xb].map((a) => a.buffer);
-    self.postMessage({ id, sim: packed }, transfer);
+    self.postMessage({ id, result: packed }, transfer);
   } catch (err) {
     self.postMessage({ id, error: String(err) });
   }

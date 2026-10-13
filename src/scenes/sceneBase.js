@@ -13,6 +13,7 @@
  * @property {HTMLElement} root
  * @property {ReturnType<typeof import('../state/store.js').createStore>} store
  * @property {(msg:string)=>void} toast
+ * @property {(msg:string)=>void} [setMessage]  ganti pesan kunci (mis. berisi angka dari model)
  *
  * @typedef {Object} SceneInstance
  * @property {() => void} mount

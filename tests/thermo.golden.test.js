@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest';
 import {
   otto, diesel, dual, braytonIdeal, braytonReal, braytonDerated, co2Specific,
   cylinderSim, ENGINE_PRESETS, noxThermal, twinShaft, gasCompressor, selfTest,
+  lossWaterfall, simStates,
 } from '../src/model/thermo.js';
 
 /** |got − want| ≤ tol */
@@ -72,6 +73,36 @@ describe('Emisi & turbin', () => {
     near(g.headKJ, 172, 1);
     near(g.power / 1e6, 4.31, 0.03);
   });
+});
+
+describe('Waterfall (lossWaterfall)', () => {
+  const pct = (wf) => wf.map((x) => x.eta * 100);
+  const nearAll = (got, want) => { expect(got.length).toBe(want.length); got.forEach((g, i) => near(g, want[i], 0.1)); };
+  // window 'full' (default, fase tertutup ±180°) — golden lama dipertahankan
+  it('full: diesel 67,0 → 62,3 → 58,3 → 50,6 → 44,9 %', () => nearAll(pct(lossWaterfall('diesel')), [67.0, 62.3, 58.3, 50.6, 44.9]));
+  it('full: gas 61,7 → 56,6 → 53,9 → 47,1 → 43,1 %', () => nearAll(pct(lossWaterfall('gas')), [61.7, 56.6, 53.9, 47.1, 43.1]));
+  // window 'preset' (IVC/EVO preset) — dipakai Scene 2, langkah terakhir = η rem HUD
+  it('preset: diesel 67,0 → 61,7 → 57,5 → 49,9 → 44,1 %', () => nearAll(pct(lossWaterfall('diesel', {}, { window: 'preset' })), [67.0, 61.7, 57.5, 49.9, 44.1]));
+  it('preset: gas 61,7 → 55,8 → 53,1 → 46,4 → 42,3 %', () => nearAll(pct(lossWaterfall('gas', {}, { window: 'preset' })), [61.7, 55.8, 53.1, 46.4, 42.3]));
+  it('preset: langkah terakhir = η rem cylinderSim preset', () => {
+    for (const k of ['diesel', 'gas']) {
+      const wf = lossWaterfall(k, {}, { window: 'preset' });
+      near(wf[wf.length - 1].eta, cylinderSim(ENGINE_PRESETS[k]).etaBrake, 1e-12);
+    }
+  });
+});
+
+describe('simStates (entropi cylinderSim untuk T-s real)', () => {
+  for (const [k, sEvo] of [['diesel', 854.5], ['gas', 1014.3]]) {
+    it(`${k}: kompresi adiabatik Δs ≈ 0; s(EVO) − s(IVC) = ${sEvo} J/(kg·K)`, () => {
+      const sim = cylinderSim(ENGINE_PRESETS[k]);
+      const { v, s } = simStates(sim);
+      const i0 = sim.th.findIndex((t) => t >= sim.params.theta0);
+      for (let i = 0; i < i0; i++) expect(Math.abs(s[i])).toBeLessThan(1e-3);
+      near(s[s.length - 1], sEvo, 1);
+      near(v[0], sim.V[0] / sim.mass, 1e-15);
+    });
+  }
 });
 
 describe('selfTest', () => {

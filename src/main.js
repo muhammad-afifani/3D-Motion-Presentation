@@ -5,16 +5,17 @@
 import './styles.css';
 import { mountModelBadge } from './ui/modelBadge.js';
 import { installTooltips } from './ui/tooltip.js';
-import { createStore, defaultState, resetPatch, engineSwitchPatch, togglePlayPatch, toggleFreezePatch } from './state/store.js';
+import { createStore, defaultState, resetPatch, engineSwitchPatch, togglePlayPatch, toggleFreezePatch, cycleInitialState } from './state/store.js';
 
 const SCENES = [
   { id: 'piston', number: 1, load: () => import('./scenes/piston.js') },
+  { id: 'cycles', number: 2, load: () => import('./scenes/cycles.js') },
 ];
 
 mountModelBadge(document.getElementById('model-badge'));
 installTooltips();
 
-const store = createStore(defaultState('diesel'));
+const store = createStore({ ...defaultState('diesel'), ...cycleInitialState() });
 const app = document.getElementById('app');
 const toastEl = document.getElementById('toast');
 let toastTimer = 0;
@@ -37,12 +38,13 @@ async function goTo(i) {
     const mod = await SCENES[i].load();
     current?.dispose();
     app.replaceChildren();
-    current = mod.createScene({ root: app, store, toast });
+    const msgEl = document.getElementById('key-message');
+    document.getElementById('scene-tag').textContent = `Scene ${mod.meta.number} · ${mod.meta.title}`;
+    msgEl.textContent = mod.meta.message;
+    document.title = `${mod.meta.title} · Engine & Turbine Emission Lab`;
+    current = mod.createScene({ root: app, store, toast, setMessage: (t) => { msgEl.textContent = t; } });
     current.mount();
     index = i;
-    document.getElementById('scene-tag').textContent = `Scene ${mod.meta.number} · ${mod.meta.title}`;
-    document.getElementById('key-message').textContent = mod.meta.message;
-    document.title = `${mod.meta.title} · Engine & Turbine Emission Lab`;
   } finally {
     loading = false;
   }
