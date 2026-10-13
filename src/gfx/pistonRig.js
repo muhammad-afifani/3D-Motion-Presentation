@@ -10,8 +10,8 @@ import { createMaterials } from './materials.js';
 const DEG = Math.PI / 180;
 const CUT_START = 90 * DEG;   // jendela cutaway menghadap kamera (−60°…+90°, diukur dari +Z ke +X)
 const CUT_LEN = 210 * DEG;    // bagian dinding yang tetap ada
-const HP = 0.11;              // tinggi kompresi piston (pin → crown), visual
-const VALVE_MAX = 0.016;      // angkat katup maksimum (m), visual
+export const HP = 0.11;       // tinggi kompresi piston (pin → crown), visual
+export const VALVE_MAX = 0.016; // angkat katup maksimum (m), visual
 
 /** Sektor cincin (dinding terpotong) setinggi `h`, dasar di y=0. Sudut θ ala three (dari +Z ke +X). */
 function annularSector(rIn, rOut, thStart, thLen, h, segs = 48) {
@@ -91,6 +91,7 @@ export function createPistonRig() {
     const pin = mesh(new THREE.CylinderGeometry(0.042, 0.042, 0.11, 32), mat.steel);
     pin.rotation.x = Math.PI / 2;
     pin.position.y = a;
+    pin.name = 'crankpin';
     crank.add(pin);
     // pipi engkol: lengan ke crankpin + counterweight berbentuk sektor di sisi berlawanan
     const web = new THREE.Shape();
@@ -122,6 +123,7 @@ export function createPistonRig() {
     const smallEnd = mesh(new THREE.CylinderGeometry(0.034, 0.034, 0.04, 24), mat.steel);
     smallEnd.rotation.x = Math.PI / 2;
     smallEnd.position.y = l;
+    smallEnd.name = 'smallEnd';
     rod.add(shank, bigEnd, smallEnd);
     anchors.rod = new THREE.Object3D();
     anchors.rod.position.y = l * 0.45;
@@ -238,6 +240,8 @@ export function createPistonRig() {
     group: root,
     anchors,
     materials: mat,
+    /** Bagian rig untuk verifikasi (tes); hanya untuk dibaca. */
+    get parts() { return { crank, rod, piston, valves, gas, dims }; },
     /** @param {any} f frame */
     update(f) {
       const g = f.geom;

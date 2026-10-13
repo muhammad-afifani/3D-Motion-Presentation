@@ -127,3 +127,32 @@ describe('Scene 1: sinkronisasi kurva P-V/P-θ dengan titik berjalan', () => {
     expect(b.geom.Vc).toBeLessThan(a.geom.Vc);
   });
 });
+
+describe('jeda (Spasi) vs beku (F)', () => {
+  it('jeda menghentikan waktu tetapi θ masih bisa digeser', async () => {
+    const { togglePlayPatch, tickPatch, scrubPatch } = await import('../src/state/store.js');
+    const s = { ...defaultState('diesel'), theta: 10 };
+    const paused = { ...s, ...togglePlayPatch(s) };
+    expect(paused.playing).toBe(false);
+    expect(tickPatch(paused, 1)).toEqual({});
+    expect(scrubPatch(paused, 42)).toEqual({ theta: 42, playing: false });
+  });
+  it('beku mengunci θ: waktu, slider θ, dan Spasi diabaikan; lepas beku kembali berputar', async () => {
+    const { toggleFreezePatch, togglePlayPatch, tickPatch, scrubPatch, resetPatch } = await import('../src/state/store.js');
+    const s = { ...defaultState('diesel'), theta: 10 };
+    const frozen = { ...s, ...toggleFreezePatch(s) };
+    expect(frozen.frozen).toBe(true);
+    expect(tickPatch(frozen, 1)).toEqual({});
+    expect(scrubPatch(frozen, 42)).toEqual({});
+    expect(togglePlayPatch(frozen)).toEqual({});
+    expect(resetPatch(frozen)).not.toHaveProperty('frozen'); // reset parameter tidak melepas beku
+    const thawed = { ...frozen, ...toggleFreezePatch(frozen) };
+    expect(thawed.playing).toBe(true);
+    expect(tickPatch(thawed, 0.5).theta).toBeCloseTo(10 + 6 * s.rpmVisual * 0.5, 9);
+  });
+  it('tickPatch membungkus θ ke [−360, 360)', async () => {
+    const { tickPatch } = await import('../src/state/store.js');
+    const s = { ...defaultState('diesel'), theta: 359, rpmVisual: 10 };
+    expect(tickPatch(s, 0.1).theta).toBeCloseTo(-355, 9);
+  });
+});

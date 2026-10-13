@@ -27,6 +27,3 @@ export function html(str) {
   t.innerHTML = str.trim();
   return /** @type {HTMLElement} */ (t.content.firstElementChild);
 }
-
-/** Bungkus sudut ke [−360, 360). */
-export const wrapTheta = (th) => ((((th + 360) % 720) + 720) % 720) - 360;

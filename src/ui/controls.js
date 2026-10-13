@@ -35,6 +35,8 @@ export function slider(o) {
     /** Sinkron dari store tanpa memicu onInput. */
     set(v) { if (Number(input.value) !== v) input.value = String(v); show(v); },
     setRange,
+    /** Kunci/lepas slider (mis. θ saat beku). */
+    setLocked(on) { input.disabled = !!on; el.classList.toggle('is-locked', !!on); },
   };
 }
 
@@ -72,5 +74,9 @@ export function button(o) {
   const setLabel = (label) => { b.innerHTML = `${label}${o.key ? ` <kbd>${o.key}</kbd>` : ''}`; };
   setLabel(o.label);
   b.addEventListener('click', o.onClick);
-  return { el: b, setLabel, setOn(on) { b.classList.toggle('is-on', !!on); b.setAttribute('aria-pressed', String(!!on)); } };
+  return {
+    el: b, setLabel,
+    setOn(on) { b.classList.toggle('is-on', !!on); b.setAttribute('aria-pressed', String(!!on)); },
+    setDisabled(on) { b.disabled = !!on; },
+  };
 }

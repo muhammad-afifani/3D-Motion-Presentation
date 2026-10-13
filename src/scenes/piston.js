@@ -4,8 +4,8 @@
  *       { rig 3D, P-V, P-θ, HUD, legenda, rumus }.
  */
 import * as THREE from 'three';
-import { html, wrapTheta } from './sceneBase.js';
-import { resetPatch, engineSwitchPatch } from '../state/store.js';
+import { html } from './sceneBase.js';
+import { resetPatch, engineSwitchPatch, togglePlayPatch, toggleFreezePatch, scrubPatch, tickPatch } from '../state/store.js';
 import { derive, SIM_KEYS } from '../state/derive.js';
 import { createSimClient } from '../state/simClient.js';
 import { ENGINES, RPM_VISUAL } from '../model/presets.js';
@@ -112,9 +112,9 @@ export function createScene(ctx) {
     ctl.phi = slider({ label: 'Rasio ekuivalen φ', ...R.phi, value: s.phi, digits: 2, tip: 'φ = (bahan bakar/udara) ÷ stoikiometrik. φ < 1 = miskin (lean).', onInput: (v) => store.set({ phi: v }) });
     ctl.theta0 = slider({ label: 'Awal pembakaran θ₀', ...R.theta0, value: s.theta0, format: signedDeg, tip: 'Timing injeksi (diesel) / percikan busi (gas). Negatif = sebelum TDC.', onInput: (v) => store.set({ theta0: v }) });
     ctl.rpm = slider({ label: 'Kecepatan animasi', ...RPM_VISUAL, value: s.rpmVisual, digits: 0, unit: 'rpm visual', tip: 'Hanya kecepatan tampilan (slow-motion). N mesin di model tetap.', onInput: (v) => store.set({ rpmVisual: v }) });
-    ctl.theta = slider({ label: 'Sudut engkol θ', min: -360, max: 360, step: 0.5, value: s.theta, format: signedDeg, tip: 'Geser untuk menjeda dan memeriksa satu sudut. 0° = TDC pembakaran.', onInput: (v) => store.set({ theta: v, playing: false }) });
-    ctl.play = button({ label: 'Jeda', key: 'Spasi', onClick: () => store.set({ playing: !store.get().playing }) });
-    ctl.freeze = button({ label: 'Beku', key: 'F', tip: 'Bekukan waktu (θ tetap) untuk menunjuk satu state', onClick: () => store.set({ frozen: !store.get().frozen }) });
+    ctl.theta = slider({ label: 'Sudut engkol θ', min: -360, max: 360, step: 0.5, value: s.theta, format: signedDeg, tip: 'Geser untuk menjeda dan memeriksa satu sudut. 0° = TDC pembakaran. Terkunci saat beku (F).', onInput: (v) => store.set(scrubPatch(store.get(), v)) });
+    ctl.play = button({ label: 'Jeda', key: 'Spasi', tip: 'Jeda/putar animasi. Saat jeda, θ masih bisa digeser.', onClick: () => store.set(togglePlayPatch(store.get())) });
+    ctl.freeze = button({ label: 'Beku', key: 'F', tip: 'Bekukan state: waktu berhenti dan θ terkunci untuk menunjuk satu titik. Tekan lagi untuk melepas.', onClick: () => store.set(toggleFreezePatch(store.get())) });
     ctl.reset = button({ label: 'Reset', key: 'R', tip: 'Kembalikan parameter ke preset mesin', onClick: resetParams });
     ctl.labels = button({ label: 'Label', key: 'L', tip: 'Tampilkan/sembunyikan label komponen 3D', onClick: toggleLabels });
     ctl.labels.setOn(true);
@@ -138,7 +138,10 @@ export function createScene(ctx) {
     if (changed.includes('playing') || changed.includes('frozen')) {
       ctl.play.setLabel(s.playing ? 'Jeda' : 'Putar');
       ctl.play.setOn(!s.playing);
+      ctl.play.setDisabled(s.frozen);
+      ctl.freeze.setLabel(s.frozen ? 'Lepas beku' : 'Beku');
       ctl.freeze.setOn(s.frozen);
+      ctl.theta.setLocked(s.frozen);
     }
   }
 
@@ -238,7 +241,7 @@ export function createScene(ctx) {
 
     const status = [];
     status.push(`Slow-motion ×${fmt(f.slowMo, 3)} · ${fmt(f.rpmVisual, 0)} rpm visual (mesin ${fmt(f.N, 0)} rpm)`);
-    if (s.frozen) status.push('<span class="pill pill--freeze">BEKU</span>');
+    if (s.frozen) status.push(`<span class="pill pill--freeze">BEKU · θ = ${signedDeg(f.theta)}</span>`);
     else if (!s.playing) status.push('<span class="pill">JEDA</span>');
     const st = q('.overlay--status');
     const h = status.join(' ');
@@ -298,7 +301,7 @@ export function createScene(ctx) {
     /** @param {number} dt detik */
     update(dt) {
       const s0 = store.get();
-      if (s0.playing && !s0.frozen) store.set({ theta: wrapTheta(s0.theta + 6 * s0.rpmVisual * dt) });
+      store.set(tickPatch(store.get(), dt));
       const s = store.get();
       if (!sim) return;
       const f = derive(s, sim);

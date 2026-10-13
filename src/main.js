@@ -5,7 +5,7 @@
 import './styles.css';
 import { mountModelBadge } from './ui/modelBadge.js';
 import { installTooltips } from './ui/tooltip.js';
-import { createStore, defaultState, resetPatch, engineSwitchPatch } from './state/store.js';
+import { createStore, defaultState, resetPatch, engineSwitchPatch, togglePlayPatch, toggleFreezePatch } from './state/store.js';
 
 const SCENES = [
   { id: 'piston', number: 1, load: () => import('./scenes/piston.js') },
@@ -58,9 +58,10 @@ window.addEventListener('keydown', (e) => {
     case ' ':
       e.preventDefault();
       /** @type {HTMLElement} */ (document.activeElement)?.blur?.();
-      store.set({ playing: !s.playing });
+      if (s.frozen) toast('Sedang beku: tekan F untuk melepas');
+      store.set(togglePlayPatch(s));
       break;
-    case 'f': case 'F': store.set({ frozen: !s.frozen }); break;
+    case 'f': case 'F': store.set(toggleFreezePatch(s)); break;
     case 'r': case 'R': store.set(resetPatch(s)); toast('Parameter dikembalikan ke preset'); break;
     case '1': case '2': {
       const engine = e.key === '1' ? 'diesel' : 'gas';
