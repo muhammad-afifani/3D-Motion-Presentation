@@ -150,9 +150,9 @@ describe('Scene 3: jendela fokus & bloom (state)', () => {
     expect(focusWindow('turbine')).toBeNull();
   });
   it('tombol B: Auto → Nyala → Mati → Auto', () => {
-    let s = { fBloom: 'auto' };
+    let s = { bloomMode: 'auto' };
     const seq = [];
-    for (let i = 0; i < 3; i++) { s = { ...s, ...bloomCyclePatch(s) }; seq.push(s.fBloom); }
+    for (let i = 0; i < 3; i++) { s = { ...s, ...bloomCyclePatch(s) }; seq.push(s.bloomMode); }
     expect(seq).toEqual(['on', 'off', 'auto']);
   });
 });

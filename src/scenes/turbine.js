@@ -174,7 +174,7 @@ export function createScene(ctx) {
       pv = createCycleChart(q('.gt-pv'), 'pv', { onHover: (i) => ts.highlight(i) });
       legend = createTempLegend(q('.overlay--legend'));
       try {
-        gfx = createRenderer(q('.view3d'), { camPos: CAM.generator.pos, target: CAM.generator.target, bloom: false });
+        gfx = createRenderer(q('.view3d'), { camPos: CAM.generator.pos, target: CAM.generator.target });
         gfx.controls.maxDistance = 12;
         rigs.generator = createGasTurbineRig({ config: 'single', compressorStages: GT_STAGES.compressor, turbineStages: GT_STAGES.turbine });
         rigs.compressorDrive = createGasTurbineRig({ config: 'twin', compressorStages: GT_STAGES.compressor, turbineStages: GT_STAGES.ggTurbine, ptStages: GT_STAGES.powerTurbine });

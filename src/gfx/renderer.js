@@ -39,11 +39,23 @@ export function gpuName(renderer) {
 }
 /** true bila rendering software (SwiftShader / llvmpipe / software rasterizer): fps bukan fps GPU. */
 export const isSoftwareGpu = (name) => (name == null ? null : /swiftshader|llvmpipe|software|softpipe|basic render/i.test(name));
-const basePixelRatio = () => Math.min(globalThis.devicePixelRatio || 1, 1.5);
+/** Tampilan global dari pengontrol kualitas (gfx/quality.js): batas pixel ratio + bloom. */
+const display = { pixelRatioCap: null, bloom: false };
+let exportScale = null;
+const basePixelRatio = () => exportScale ?? Math.min(globalThis.devicePixelRatio || 1, 1.5, display.pixelRatioCap ?? Infinity);
 
-/** Snapshot: set pixel ratio semua renderer aktif ke `k` (null = kembali ke normal). */
+/** Snapshot: set pixel ratio semua renderer aktif ke `k` (null = kembali ke pixel ratio kualitas saat ini). */
 export function setRendererExportScale(k = null) {
-  for (const r of ACTIVE) r.setScale(k ?? basePixelRatio());
+  exportScale = k;
+  for (const r of ACTIVE) r.setScale(basePixelRatio());
+}
+
+/** Kualitas: batas pixel ratio (null = normal) dan bloom global; berlaku untuk semua renderer aktif & berikutnya. */
+export function setRendererDisplay({ pixelRatioCap = null, bloom = false } = {}) {
+  const prChanged = pixelRatioCap !== display.pixelRatioCap;
+  display.pixelRatioCap = pixelRatioCap;
+  display.bloom = !!bloom;
+  if (prChanged) for (const r of ACTIVE) r.setScale(basePixelRatio());
 }
 
 let webglOk = null;
@@ -62,9 +74,10 @@ export function webglAvailable() {
 
 /**
  * @param {HTMLElement} container
- * @param {{fov?:number, camPos?:[number,number,number], target?:[number,number,number], bloom?:boolean}} [opts]
+ * Bloom mengikuti pengaturan global (setRendererDisplay); composer dibuat lazy saat bloom pertama kali menyala.
+ * @param {{fov?:number, camPos?:[number,number,number], target?:[number,number,number], allowBloom?:boolean}} [opts]
  */
-export function createRenderer(container, { fov = 35, camPos = [1, 0.8, 1.6], target = [0, 0.5, 0], bloom = true } = {}) {
+export function createRenderer(container, { fov = 35, camPos = [1, 0.8, 1.6], target = [0, 0.5, 0], allowBloom = true } = {}) {
   if (!webglAvailable()) throw new Error('WebGL2 tidak tersedia');
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
   renderer.setPixelRatio(basePixelRatio());
@@ -104,8 +117,8 @@ export function createRenderer(container, { fov = 35, camPos = [1, 0.8, 1.6], ta
   rim.position.set(-2, 1.2, -1.5);
   scene.add(key, rim, new THREE.HemisphereLight(0x8899bb, 0x10131a, 0.35));
 
-  const composer = bloom ? createComposer(renderer, scene, camera) : null;
-  let bloomOn = !!composer;
+  let composer = null;
+  const bloomOn = () => allowBloom && display.bloom;
 
   function resize() {
     const w = Math.max(1, container.clientWidth), h = Math.max(1, container.clientHeight);
@@ -119,7 +132,7 @@ export function createRenderer(container, { fov = 35, camPos = [1, 0.8, 1.6], ta
   const ro = new ResizeObserver(resize);
   ro.observe(container);
   resize();
-  const entry = { renderer, bloomActive: () => !!composer && bloomOn, setScale(k) { renderer.setPixelRatio(k); composer?.setPixelRatio(k); resize(); } };
+  const entry = { renderer, bloomActive: bloomOn, setScale(k) { renderer.setPixelRatio(k); composer?.setPixelRatio(k); resize(); } };
   ACTIVE.add(entry);
 
   return {
@@ -127,11 +140,16 @@ export function createRenderer(container, { fov = 35, camPos = [1, 0.8, 1.6], ta
     render() {
       controls.update();
       renderer.info.reset();
-      if (composer && bloomOn) composer.render(); else renderer.render(scene, camera);
+      if (bloomOn()) {
+        if (!composer) {
+          composer = createComposer(renderer, scene, camera);
+          composer.setPixelRatio(renderer.getPixelRatio());
+          composer.setSize(Math.max(1, container.clientWidth), Math.max(1, container.clientHeight));
+        }
+        composer.render();
+      } else renderer.render(scene, camera);
     },
-    /** Nyalakan/matikan bloom (hanya berlaku bila dibuat dengan bloom: true). */
-    setBloom(on) { bloomOn = !!on && !!composer; },
-    get bloomOn() { return bloomOn; },
+    get bloomOn() { return bloomOn(); },
     dispose() {
       ACTIVE.delete(entry);
       ro.disconnect();

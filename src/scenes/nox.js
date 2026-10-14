@@ -309,7 +309,7 @@ export function createScene(ctx) {
       buildCalibration();
       q('.overlay--legend').append(q('.nox-species'));
       try {
-        gfx = createRenderer(q('.view3d'), { camPos: [0.5, 0.8, 0.86], target: [-0.02, 0.69, 0], bloom: false });
+        gfx = createRenderer(q('.view3d'), { camPos: [0.5, 0.8, 0.86], target: [-0.02, 0.69, 0] });
         rig = createNoxRig();
         gfx.scene.add(rig.group);
       } catch (err) {

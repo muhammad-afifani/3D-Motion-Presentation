@@ -7,6 +7,7 @@
  * Gerak partikel murni visual (tidak ada perhitungan model di sini).
  */
 import * as THREE from 'three';
+import { particleScale } from './quality.js';
 import { createPistonRig, HP } from './pistonRig.js';
 import { SPECIES_COLORS } from './species.js';
 
@@ -96,7 +97,7 @@ export function createNoxRig({ capacity = NO_CAPACITY, random = Math.random } = 
 
       // partikel NO
       if (dt > 0) {
-        carry += f.no.spawn * SPAWN_PER_DEG * Math.max(0, dTheta);
+        carry += f.no.spawn * SPAWN_PER_DEG * Math.max(0, dTheta) * particleScale(); // kualitas: hanya jumlah partikel visual
         const n = Math.floor(carry);
         carry -= n;
         if (n > 0 && b.visible) spawn(n, R, rad, uC);

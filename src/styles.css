@@ -295,7 +295,8 @@ kbd {
   font: 700 13px var(--font-ui); writing-mode: vertical-rl; letter-spacing: 0.04em;
 }
 .calib-flag { margin-right: 8px; align-self: center; }
-.calib-flag[hidden] { display: none; }
+.calib-flag[hidden], .quality-flag[hidden] { display: none; }
+.quality-flag { cursor: pointer; align-self: center; min-height: 32px; }
 .pill--flag { color: var(--accent-hot); border-color: var(--accent-hot); }
 .cal-panel__head { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 15px; }
 .cal-panel h4 { margin: 12px 0 6px; font-size: 13px; color: var(--accent-cold); }

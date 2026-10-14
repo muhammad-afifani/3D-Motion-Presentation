@@ -6,10 +6,13 @@
 import { STR } from './strings.js';
 import { fmt, sci } from './format.js';
 import { deriveAssumptions } from '../state/deriveAssumptions.js';
-import { basisPatch, basisResetPatch } from '../state/store.js';
+import { basisPatch, basisResetPatch, displayPatch, QUALITY_ORDER, BLOOM_ORDER } from '../state/store.js';
+import { QUALITY_TUNING, TIER_MAX, displayState } from '../gfx/quality.js';
+import { rendererStats } from '../gfx/renderer.js';
 
 const A = STR.assumptions, C = STR.common;
-const WATCH = ['emRefO2', 'emTrefC', 'calEngine', 'calDln'];
+const WATCH = ['emRefO2', 'emTrefC', 'calEngine', 'calDln', 'quality', 'bloomMode', 'qTier'];
+const D = A.display;
 
 /** Judul grafik per kunci CHART_LEVELS (dari strings.js, tidak ada teks baru). */
 export const CHART_TITLES = {
@@ -51,6 +54,16 @@ export function createAssumptionsPanel(store, parent = document.body, saved = nu
       <div class="asm__head"><h2>${A.title}</h2><button type="button" class="btn btn--sm" data-close>${A.close} <kbd>${A.keys}</kbd></button></div>
       <p class="asm__intro">${A.intro}</p>
       <div class="asm__grid">
+        <section data-section="display" style="grid-column: 1 / -1">
+          <h3>${D.title} <kbd>${D.keys}</kbd></h3>
+          <div class="asm-basis">
+            <div class="ctl ctl--seg"><span class="ctl__label">${D.quality}</span><div class="seg" data-quality></div></div>
+            <div class="ctl ctl--seg"><span class="ctl__label">${D.bloom}</span><div class="seg" data-bloom></div></div>
+          </div>
+          <div class="asm-active" data-v="display"></div>
+          <div class="asm__intro"><b>${D.visualOnly}</b></div>
+          <div class="asm__intro">${D.autoNote(QUALITY_TUNING.downFps, QUALITY_TUNING.upFps, QUALITY_TUNING.downSec, QUALITY_TUNING.upSec)} ${D.bloomNote}</div>
+        </section>
         <section>
           <h3>${A.basis.title}</h3>
           <div class="asm-basis">
@@ -96,6 +109,17 @@ export function createAssumptionsPanel(store, parent = document.body, saved = nu
     q('[data-vol]').appendChild(b);
     return [T, b];
   });
+  const segBtns = (sel, order, labels, key) => order.map((v) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'seg__btn';
+    b.textContent = labels[v];
+    b.addEventListener('click', () => store.set(displayPatch({ [key]: v })));
+    q(sel).appendChild(b);
+    return [v, b];
+  });
+  const qBtns = segBtns('[data-quality]', QUALITY_ORDER, D.qualityOpts, 'quality');
+  const bBtns = segBtns('[data-bloom]', BLOOM_ORDER, D.bloomOpts, 'bloomMode');
   o2.addEventListener('change', () => {
     const patch = basisPatch({ refO2: String(o2.value).replace(',', '.') });
     if (Object.keys(patch).length) store.set(patch);
@@ -108,7 +132,12 @@ export function createAssumptionsPanel(store, parent = document.body, saved = nu
   el.addEventListener('click', (e) => { if (e.target === el) setOpen(false); });
 
   function render() {
-    const d = deriveAssumptions(store.get());
+    const st = store.get();
+    for (const [v, btn] of qBtns) { btn.classList.toggle('is-on', v === st.quality); btn.setAttribute('aria-pressed', String(v === st.quality)); }
+    for (const [v, btn] of bBtns) { btn.classList.toggle('is-on', v === st.bloomMode); btn.setAttribute('aria-pressed', String(v === st.bloomMode)); }
+    const ds = displayState();
+    V('display').textContent = D.status(ds.tier, TIER_MAX, rendererStats().pixelRatio, ds.bloom, ds.particles);
+    const d = deriveAssumptions(st);
     const b = d.basis, basisTxt = C.basis.full(b.refO2, b.TrefC);
     if (document.activeElement !== o2) o2.value = String(b.refO2);
     for (const [T, btn] of volBtns) { btn.classList.toggle('is-on', T === b.TrefC); btn.setAttribute('aria-pressed', String(T === b.TrefC)); }
@@ -140,6 +169,8 @@ export function createAssumptionsPanel(store, parent = document.body, saved = nu
     get open() { return !el.hidden; },
     setOpen,
     toggle() { setOpen(el.hidden); },
+    /** Buka panel dan gulir ke satu bagian (mis. 'display' dari pill Quality reduced). */
+    openSection(name) { setOpen(true); q(`[data-section="${name}"]`)?.scrollIntoView({ block: 'start' }); },
     render,
     dispose() { unsub(); window.removeEventListener('keydown', onKey, true); el.remove(); },
   };

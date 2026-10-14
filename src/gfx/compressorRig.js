@@ -8,6 +8,7 @@
  */
 import * as THREE from 'three';
 import { createMaterials } from './materials.js';
+import { particleScale } from './quality.js';
 
 const CUT0 = 0.55 * Math.PI, CUT_LEN = 1.45 * Math.PI;  // jendela cutaway menghadap kamera (+Z)
 export const N_BLADES = 14;
@@ -133,7 +134,9 @@ export function createCompressorRig({ particles = N_PARTICLES, random = Math.ran
     update(f, dt = 0) {
       rotor.rotation.x = f.rotor.angle;
       const speed = 0.12 * f.flowVis * dt;
-      for (let i = 0; i < P.length; i++) {
+      const n = Math.max(1, Math.round(P.length * particleScale())); // kualitas: hanya jumlah partikel visual
+      pts.count = n;
+      for (let i = 0; i < n; i++) {
         const it = P[i];
         it.u = (it.u + speed) % 1;
         pathPoint(it.u, it.j, v);
