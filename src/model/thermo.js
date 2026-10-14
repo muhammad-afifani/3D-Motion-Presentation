@@ -627,9 +627,13 @@ export function retardSweep(kind = 'diesel', thetas = [-8, -6, -4, -2, 0, 2, 4],
   });
 }
 
-/** Waterfall: dari batas ideal ke efisiensi rem (5 langkah). Nilai = η kumulatif. */
-export function lossWaterfall(kind = 'diesel', over = {}) {
-  const base = { ...ENGINE_PRESETS[kind], ...over, nox: false, ivc: -180, evo: 180 };
+/**
+ * Waterfall: dari batas ideal ke efisiensi rem (5 langkah). Nilai = η kumulatif.
+ * window: 'full' (default) = fase tertutup penuh ±180°; 'preset' = IVC/EVO preset (±150°),
+ * sehingga langkah terakhir sama dengan η rem cylinderSim preset (HUD Scene 1).
+ */
+export function lossWaterfall(kind = 'diesel', over = {}, { window = 'full' } = {}) {
+  const base = { ...ENGINE_PRESETS[kind], ...over, nox: false, ...(window === 'full' ? { ivc: -180, evo: 180 } : {}) };
   const eta0 = 1 - 1 / Math.pow(base.r, K_AIR - 1);
   const s1 = cylinderSim({ ...base, theta0: -1, dur: 2, premixFrac: 0, lossFrac: 0, combEff: 1 });
   const s2 = cylinderSim({ ...base, lossFrac: 0, combEff: 1 });
@@ -642,6 +646,22 @@ export function lossWaterfall(kind = 'diesel', over = {}) {
     { label: 'Friksi mekanis (efisiensi rem)', eta: s3.etaBrake },
   ];
   return steps.map((s, i) => ({ ...s, delta: i ? s.eta - steps[i - 1].eta : 0 }));
+}
+
+/**
+ * Volume spesifik & entropi sepanjang hasil cylinderSim (untuk diagram T-s real).
+ * v = V/m; s − s(IVC) = ∫cv(T)/T dT + R·ln(v/v_ivc), memakai cvOfT yang sama dengan simulasi
+ * (cv = CV_AIR + 0,115·(T−300) → ∫cv/T dT = (CV_AIR − 34,5)·ln(T/T0) + 0,115·(T−T0)).
+ * Kompresi adiabatik → Δs ≈ 0; pembakaran menaikkan s. Acuan s = 0 di IVC.
+ */
+export function simStates(sim) {
+  const n = sim.th.length, v = new Float64Array(n), s = new Float64Array(n);
+  const T0 = sim.T[0], v0 = sim.V[0] / sim.mass, a = CV_AIR - 0.115 * 300;
+  for (let i = 0; i < n; i++) {
+    v[i] = sim.V[i] / sim.mass;
+    s[i] = a * Math.log(sim.T[i] / T0) + 0.115 * (sim.T[i] - T0) + R_AIR * Math.log(v[i] / v0);
+  }
+  return { v, s };
 }
 
 // ───────────────────── Gas exchange & sampling untuk animasi ─────────────────────
