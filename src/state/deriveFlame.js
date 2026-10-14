@@ -63,15 +63,15 @@ export function focusWindow(mode) {
 
 /** Entri bar perbandingan suhu nyala zona reaksi (mode aktif memakai slider). */
 function comparison(s, Tin) {
-  const row = (mode, label, phi) => {
+  const row = (mode, phi) => {
     const m = FLAME_MODES[mode];
     const tin = s.fMode === mode ? Tin : modelTin(mode);
-    return { mode, label, phi, Tin: tin, T: flameTemperature(phi, tin, m.fuel), color: flameColor(phi), active: s.fMode === mode };
+    return { mode, phi, Tin: tin, T: flameTemperature(phi, tin, m.fuel), color: flameColor(phi), active: s.fMode === mode };
   };
   return [
-    row('diesel', 'Diesel: zona φ lokal', s.fMode === 'diesel' ? s.fPhiLocal : FLAME_MODES.diesel.phiLocal),
-    row('gas', 'Gas lean-burn (homogen)', s.fMode === 'gas' ? s.fPhi : FLAME_MODES.gas.phi),
-    row('turbine', 'Turbin: zona premix', s.fMode === 'turbine' ? s.fPhi : FLAME_MODES.turbine.phi),
+    row('diesel', s.fMode === 'diesel' ? s.fPhiLocal : FLAME_MODES.diesel.phiLocal),
+    row('gas', s.fMode === 'gas' ? s.fPhi : FLAME_MODES.gas.phi),
+    row('turbine', s.fMode === 'turbine' ? s.fPhi : FLAME_MODES.turbine.phi),
   ];
 }
 
@@ -88,9 +88,10 @@ export function deriveFlame(s, { sim = null } = {}) {
   const curve = flameCurve(Tin, fuel);
   const curve300 = flameCurve(300, fuel);
 
-  const main = { label: mode === 'diesel' ? 'φ global (seandainya homogen)' : mode === 'turbine' ? 'φ zona premix' : 'φ campuran (homogen)', phi, T: flameTemperature(phi, Tin, fuel) };
+  // labelKey → teks di ui/strings.js (scene3.points)
+  const main = { labelKey: mode === 'diesel' ? 'phiGlobalHypo' : mode === 'turbine' ? 'phiPremix' : 'phiMixture', phi, T: flameTemperature(phi, Tin, fuel) };
   const points = [main];
-  if (phiLocal != null) points.push({ label: 'φ lokal (zona nyala)', phi: phiLocal, T: flameTemperature(phiLocal, Tin, fuel), local: true });
+  if (phiLocal != null) points.push({ labelKey: 'phiLocal', phi: phiLocal, T: flameTemperature(phiLocal, Tin, fuel), local: true });
   // T nyala yang benar-benar terjadi di zona reaksi: diesel = φ lokal; lainnya = φ campuran
   const zone = points[points.length - 1];
 
@@ -98,14 +99,13 @@ export function deriveFlame(s, { sim = null } = {}) {
     mode, fuel, theta: s.theta, Tin, TinModel: Tmodel, TinManual: s.fTin != null,
     phi, phiLocal, curve, curve300, points,
     Tflame: zone.T, // suhu nyala adiabatik saat terbakar (bukan suhu puncak zona terbakar Scene 4)
-    TflameLabel: 'suhu nyala adiabatik saat terbakar',
     dTlocal: phiLocal != null ? zone.T - main.T : null,
     preheatGain: (main.T - flameTemperature(phi, 300, fuel)) / (Tin - 300 || 1),
     color: flameColor(phi),
     coreColor: flameColor(zone.phi),
     outerColor: flameColor(phi),
     bars: comparison(s, Tin),
-    modelLevel: 'Semi-empiris',
+    modelLevel: 'semiEmpirical',
     focus: focusWindow(mode),
   };
 

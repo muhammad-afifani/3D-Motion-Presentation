@@ -191,7 +191,7 @@ kbd {
 .ctl--slider input { grid-column: 1 / -1; }
 .ctl__label { font-size: 12px; color: var(--muted); white-space: nowrap; }
 .ctl__value { font-size: 13px; text-align: right; white-space: nowrap; }
-.ctl.is-locked .ctl__label::after { content: ' (terkunci)'; color: #9fd8ff; }
+.ctl.is-locked .ctl__label::after { content: ' ' attr(data-locked); color: #9fd8ff; }
 .ctl.is-locked .ctl__value { color: #9fd8ff; }
 input[type='range']:disabled { cursor: not-allowed; opacity: 0.55; }
 .btn:disabled { opacity: 0.45; cursor: not-allowed; }

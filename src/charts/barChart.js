@@ -7,7 +7,7 @@ import { fmt } from '../ui/format.js';
 const rgb = (c) => (typeof c === 'string' ? c : `rgb(${c.map((v) => Math.round(v * 255)).join(',')})`);
 
 /** @param {HTMLElement} container */
-export function createBarChart(container, { title, modelLevel = 'Semi-empiris', unit = '', xLabel = '', digits = 0, labelWidth = 190 } = {}) {
+export function createBarChart(container, { title, modelLevel = 'semiEmpirical', unit = '', xLabel = '', digits = 0, labelWidth = 190 } = {}) {
   const base = createChartBase(container, { title, modelLevel, pad: { l: labelWidth, r: 70, t: 54, b: 40 } });
   let key = '';
   return {

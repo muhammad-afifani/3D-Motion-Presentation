@@ -5,26 +5,23 @@
  * Konversi satuan hanya di sini: P → bar, s → kJ/(kg·K).
  */
 import { createChartBase, makeScale, niceTicks, drawAxes, CHART_FONT } from './chartBase.js';
-import { fmt } from '../ui/format.js';
+import { STR } from '../ui/strings.js';
+
+const S = STR.charts.cycle;
 
 const AXES = {
-  pv: { x: 'v', y: 'P', xLabel: 'Volume spesifik v [m³/kg]', yLabel: 'Tekanan P [bar]', title: 'Diagram P-v' },
-  ts: { x: 's', y: 'T', xLabel: 'Entropi s − s₁ [kJ/(kg·K)]', yLabel: 'Suhu T [K]', title: 'Diagram T-s' },
+  pv: { x: 'v', y: 'P', ...S.pv },
+  ts: { x: 's', y: 'T', ...S.ts },
 };
 const conv = { v: (x) => x, P: (x) => x / 1e5, T: (x) => x, s: (x) => x / 1e3 };
 
-/** Warna per jenis proses (kompresi dingin → pemanasan panas → ekspansi → buang). */
-function procColor(pr, i, n) {
-  if (pr.type === 'closing') return 'rgba(120,170,230,0.6)';
-  if (pr.type === 'real') return '#ffb15c';
-  if (i === 0) return '#7cc4ff';                   // kompresi
-  if (i === n - 1) return '#5fd0c7';               // pelepasan panas
-  if (/pembakaran|pemanasan|injeksi/.test(pr.name)) return '#ff7a3c';
-  return '#ffcc66';                                 // ekspansi
-}
+/** Warna per peran proses (kompresi dingin → pemanasan panas → ekspansi → buang); peran dari derive. */
+const ROLE_COLOR = {
+  closing: 'rgba(120,170,230,0.6)', real: '#ffb15c', compression: '#7cc4ff', rejection: '#5fd0c7', heat: '#ff7a3c', expansion: '#ffcc66',
+};
 
-export const stateInfo = (st) =>
-  `State ${st.label}${st.note ? ` (${st.note})` : ''}\nT = ${fmt(st.T, 0)} K\nP = ${fmt(st.P / 1e5, 2)} bar\nv = ${fmt(st.v, 4)} m³/kg\ns − s₁ = ${fmt(st.s / 1e3, 3)} kJ/(kg·K)`;
+/** Teks tooltip state (catatan titik acuan real dari STR.scene2.refNotes). */
+export const stateInfo = (st) => S.stateInfo(st.label, st.noteKey ? STR.scene2.refNotes[st.noteKey] : '', st.T, st.P, st.v, st.s);
 
 /**
  * @param {HTMLElement} container
@@ -33,8 +30,7 @@ export const stateInfo = (st) =>
  */
 export function createCycleChart(container, which, { onHover } = {}) {
   const ax = AXES[which];
-  const base = createChartBase(container, { title: ax.title, modelLevel: 'Ideal', pad: { l: 58, r: 18, t: 58, b: 40 } });
-  const levelEl = base.root.querySelector('.chart__level');
+  const base = createChartBase(container, { title: ax.title, modelLevel: 'ideal', pad: { l: 58, r: 18, t: 58, b: 40 } });
   const tip = document.createElement('div');
   tip.className = 'chart__tip num';
   tip.hidden = true;
@@ -76,7 +72,7 @@ export function createCycleChart(container, which, { onHover } = {}) {
       ctx.restore();
     };
     for (const pr of data.ghost ?? []) stroke(pr, 'rgba(230,235,243,0.35)', 1.5, [5, 4]);
-    data.procs.forEach((pr, i) => stroke(pr, procColor(pr, i, data.procs.length), pr.type === 'closing' ? 1.5 : 2.5, pr.type === 'closing' ? [4, 4] : []));
+    data.procs.forEach((pr) => stroke(pr, ROLE_COLOR[pr.role], pr.role === 'closing' ? 1.5 : 2.5, pr.role === 'closing' ? [4, 4] : []));
 
     // titik state berlabel
     ctx.font = `600 ${CHART_FONT}`;
@@ -93,9 +89,9 @@ export function createCycleChart(container, which, { onHover } = {}) {
     });
 
     const legend = [];
-    if (data.ghost) legend.push('<span class="sw sw--line" style="background:rgba(230,235,243,0.5)"></span>pembanding ideal (garis putus)');
-    if (data.procs.some((p) => p.type === 'closing')) legend.push('<span class="sw sw--line" style="background:rgba(120,170,230,0.8)"></span>EVO→IVC: pertukaran gas tidak digambar');
-    base.setCaption(legend.join(' · ') || 'Arahkan kursor ke titik state untuk melihat T, P, v, s');
+    if (data.ghost) legend.push(`<span class="sw sw--line" style="background:rgba(230,235,243,0.5)"></span>${S.ghost}`);
+    if (data.procs.some((p) => p.role === 'closing')) legend.push(`<span class="sw sw--line" style="background:rgba(120,170,230,0.8)"></span>${S.closing}`);
+    base.setCaption(legend.join(' · ') || S.hoverHint);
   }
 
   function showTip(i) {
@@ -139,7 +135,7 @@ export function createCycleChart(container, which, { onHover } = {}) {
       if (key !== lastKey || f.ghost !== data?.ghost || base.dirty) {
         lastKey = key;
         data = { procs: f.procs, ghost: f.ghost, states: f.states };
-        if (levelEl.textContent !== f.modelLevel) levelEl.textContent = f.modelLevel;
+        base.setLevel(f.modelLevel);
         if (hover != null && hover >= f.states.length) hover = null;
         drawStatic();
         showTip(hover);

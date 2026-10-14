@@ -127,6 +127,6 @@ export function derive(state, sim) {
       hc: geo.Vc / geo.A, // tinggi ruang bakar setara (m)
     },
     curve,
-    modelLevel: 'Semi-empiris',
+    modelLevel: 'semiEmpirical', // kunci → teks di ui/strings.js
   };
 }

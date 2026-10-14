@@ -8,6 +8,7 @@ import { deriveFlame, flameSimParams, phiGrid, focusWindow } from '../src/state/
 import { cycleCurve } from '../src/state/derive.js';
 import { createPerfGuard } from '../src/gfx/perfGuard.js';
 import { createCanCombustor, createChamberCloseup } from '../src/gfx/combustorRig.js';
+import { STR } from '../src/ui/strings.js';
 
 const base = { ...flameInitialState(), theta: 0, rpmVisual: 20, playing: true, frozen: false };
 const st = (mode, extra = {}) => ({ ...base, ...flameDefaults(mode), ...extra });
@@ -76,15 +77,20 @@ describe('Scene 3: suhu masuk dari model dan label', () => {
     expect(f.TinManual).toBe(true);
     near(f.Tflame, flameTemperature(f.phi, 600, 'gas'), 1e-12);
   });
-  it('diesel: T nyala zona = φ lokal, ΔT > 0, label "suhu nyala adiabatik saat terbakar"', () => {
+  it('diesel: T nyala zona = φ lokal, ΔT > 0; label & tooltip menegaskan "saat terbakar" (bukan suhu puncak Scene 4)', () => {
     const f = deriveFlame(st('diesel'));
     near(f.Tflame, flameTemperature(FLAME_MODES.diesel.phiLocal, f.Tin, 'diesel'), 1e-12);
     expect(f.dTlocal).toBeGreaterThan(300);
-    expect(f.TflameLabel).toBe('suhu nyala adiabatik saat terbakar');
+    expect(STR.scene3.hud.tflame.label).toBe('Adiabatic flame temperature');
+    expect(STR.scene3.hud.tflame.tip(true)).toMatch(/SAAT campuran terbakar, BUKAN suhu puncak zona terbakar \(itu di Scene 4\)/);
+    expect(STR.scene3.overlay.tflameLabel).toBe('Suhu nyala adiabatik saat terbakar:');
   });
   it('turbin: titik berlabel φ zona premix; φ keseluruhan ≈ 0,34 dari model', () => {
     const f = deriveFlame(st('turbine'));
-    expect(f.points[0].label).toBe('φ zona premix');
+    expect(f.points[0].labelKey).toBe('phiPremix');
+    expect(STR.scene3.points.phiPremix).toBe('Premix-zone φ');
+    expect(STR.scene3.phiLabel.turbine).toBe('Premix-zone φ');
+    expect(STR.scene3.notes.premix(1500, f.phiOverall)).toMatch(/bukan φ keseluruhan \(T₃ 1\.500 K ≈ 0,34\)/);
     near(f.phiOverall, 0.34, 0.005);
     near(f.T3, 1500, 1e-9);
   });

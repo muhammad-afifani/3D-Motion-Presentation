@@ -5,6 +5,7 @@
  */
 import { createChartBase, makeScale, niceTicks, drawAxes, CHART_FONT, CHART_FONT_NUM } from './chartBase.js';
 import { fmt } from '../ui/format.js';
+import { STR } from '../ui/strings.js';
 
 const STEP_MS = 650;
 const DROP_MS = 420;
@@ -24,10 +25,8 @@ function wrap(ctx, text, w) {
 }
 
 /** @param {HTMLElement} container */
-export function createWaterfall(container, { title = 'Waterfall efisiensi' } = {}) {
-  const base = createChartBase(container, { title, modelLevel: 'Semi-empiris', pad: { l: 52, r: 16, t: 50, b: 46 } });
-  const levelEl = base.root.querySelector('.chart__level');
-  const titleEl = base.root.querySelector('.chart__title');
+export function createWaterfall(container, { title = STR.charts.waterfall.title } = {}) {
+  const base = createChartBase(container, { title, modelLevel: 'semiEmpirical', pad: { l: 52, r: 16, t: 50, b: 46 } });
   let steps = null, t0 = performance.now(), lastSteps = null;
 
   function draw(now) {
@@ -38,7 +37,7 @@ export function createWaterfall(container, { title = 'Waterfall efisiensi' } = {
     const sx = makeScale(0, steps.length, box.pad.l, box.w - box.pad.r);
     const yMax = Math.min(1, Math.ceil((steps[0].eta * 100 + 8) / 10) / 10);
     const sy = makeScale(0, yMax * 100, box.h - box.pad.b, box.pad.t);
-    drawAxes(ctx, box, sx, sy, { xTicks: [], yTicks: niceTicks(0, yMax * 100, 4), xLabel: '', yLabel: 'η [%]' });
+    drawAxes(ctx, box, sx, sy, { xTicks: [], yTicks: niceTicks(0, yMax * 100, 4), xLabel: '', yLabel: STR.charts.waterfall.yLabel });
     const bw = (sx(1) - sx(0)) * 0.62;
     steps.forEach((st, i) => {
       const age = now - t0 - i * STEP_MS;
@@ -90,10 +89,10 @@ export function createWaterfall(container, { title = 'Waterfall efisiensi' } = {
   }
 
   return {
-    /** @param {{label:string, eta:number, delta:number}[]|null} s @param {{title?:string, level?:string, caption?:string}} [o] */
+    /** @param {{label:string, eta:number, delta:number}[]|null} s @param {{title?:string, level?:'ideal'|'real'|'semiEmpirical'|'siteData', caption?:string}} [o] */
     setData(s, o = {}) {
-      if (o.title && titleEl.textContent !== o.title) titleEl.textContent = o.title;
-      if (o.level && levelEl.textContent !== o.level) levelEl.textContent = o.level;
+      if (o.title) base.setTitle(o.title);
+      if (o.level) base.setLevel(o.level);
       if (o.caption != null) base.setCaption(o.caption);
       if (s === lastSteps) return;
       const changedShape = !steps || !s || s.length !== steps.length || s[0]?.label !== steps[0]?.label;
