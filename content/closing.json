@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "points": [
+    "Suhu nyala menentukan NOx secara eksponensial.",
+    "Tiap mesin punya jendela operasi sendiri, dan jendela turbin kompresor bergerak mengikuti proses.",
+    "Baku mutu yang efektif perlu memperhitungkan tipe mesin, rentang beban, dan dampak GHG."
+  ],
+  "options": [
+    { "id": "by-type", "text": "Baku mutu dibedakan menurut tipe penggerak (generator vs mechanical drive)." },
+    { "id": "load-range", "text": "Batas dengan rentang beban yang berlaku (bukan hanya base load) dan basis rata-rata waktu." },
+    { "id": "inventory", "text": "Evaluasi NOx dan GHG bersama sebagai satu inventaris." },
+    { "id": "cems", "text": "Pemantauan kontinu (CEMS) di unit variabel untuk membangun data." }
+  ]
+}

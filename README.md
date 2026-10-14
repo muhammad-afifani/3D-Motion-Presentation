@@ -35,6 +35,22 @@ python3 -m http.server 8080 -d dist   # lalu buka http://localhost:8080/
 
 Catatan: membuka `dist/index.html` langsung dengan klik dua kali (`file://`) **tidak** bisa, karena browser memblokir ES module dan Web Worker dari `file://`. Selalu pakai server statis lokal seperti di atas.
 
+
+## Konten presenter (Scene 10–11)
+
+Teks kartu pengendali emisi (Scene 10) dan penutup (Scene 11) **bukan hasil model**; isinya ada di:
+
+- `content/controls.json`: kartu DLN / lean premix, lean-burn, EGR, water/steam injection, SCR, oxidation catalyst, DPF. Tiap kartu berisi `lowers`, `raises`, `efficiency`, `operation`, `appliesTo` (`diesel` / `gas` / `turbine`), dan `relatedScenes`.
+- `content/closing.json`: tiga poin ringkasan (`points`) dan opsi arah diskusi (`options`).
+
+> **Periksa semua teks kartu sebelum dipakai.** Isi awal diambil dari `docs/ALUR_SLIDE_presentasi.md` dan sengaja kualitatif: tanpa angka emisi/termodinamika, tanpa nama vendor, merek, atau tipe. Besaran yang bergantung pada unit ditulis sebagai "perlu data unit".
+
+**Mengedit tanpa build ulang.** Saat build, kedua file disalin ke `dist/content/`. Edit `dist/content/controls.json` atau `dist/content/closing.json` dengan editor teks, simpan, lalu reload halaman di browser (Ctrl+R / Ctrl+Shift+R). Untuk mengubah isi bawaan secara permanen, edit `content/*.json` di repo lalu build ulang.
+
+- JSON yang **rusak atau skemanya salah** tidak membuat aplikasi crash: aplikasi memakai isi bawaan dan menampilkan banner galat yang menyebut nama file dan bidang yang salah.
+- Bila file **tidak bisa diambil** (mis. 404), aplikasi memakai isi bawaan tanpa banner.
+- Halaman harus dibuka lewat **server statis** (`npm run preview:offline`, `npx serve dist`, `python3 -m http.server -d dist`), bukan dengan membuka `index.html` langsung (`file://`). Di `file://` aplikasi tidak berjalan (ES module dan Web Worker), dan konten tidak bisa di-fetch.
+
 ## Pintasan saat presentasi
 
 `→`/`←` pindah scene · `Spasi` Play/Pause · `F` Freeze · `R` Reset · `1`–`4` pilih mesin/siklus · `L` label 3D (Scene 1) · `I` Ideal/Real (Scene 2) · `W` replay waterfall (Scene 2) · `B` Bloom (Scene 3) · `C` panel Calibration (Scene 4, 6) · `1`/`2` strategi IGV / Fuel-only (Scene 6) · `1`/`2`/`3` panel A/B/C (Scene 9) · `H` panel asumsi + basis O₂/volume (semua scene)
