@@ -92,6 +92,9 @@ Alur cerita: **mesinnya apa → energi jadi kerja dan panas → suhu menentukan 
 - **Pesan kunci:** Turbin kompresor mengikuti proses, bukan sebaliknya.
 - **Rumus:** `H_p = (Z·R·T₁/m)·(r_p^m − 1)`, `m = (k−1)/(k·η_p)`; `Q ∝ N`, `H ∝ N²`, `P ∝ N³`.
 - **Angka demo (suction 20 bar, discharge 60 bar, T₁ 308 K, MW 18, 20 kg/s):** head ≈ **172 kJ/kg**, daya ≈ **4,3 MW**, T discharge ≈ 412 K. Head turun ke 80% → kecepatan ≈ **89%** dari desain; kecepatan 90% → daya tinggal **73%**.
+- **Rangkaian kompresor → turbin (demo case, ṁ = 20 kg/s; dari model `compressorTrain`):**
+  - Titik desain: daya kompresor **4,31 MW** → beban turbin **65,5%**, suhu nyala **1821 K**.
+  - Psuc turun ke 18 bar: speed yang dibutuhkan **105,5%**, beban turbin **72,8%**, suhu nyala **1834 K**.
 - **Naskah:** "Tekanan sumur turun sedikit, kecepatan power turbine ikut berubah, dan seluruh kondisi di combustor ikut bergeser."
 
 ## S8 · Emisi gabungan: diesel vs gas vs turbin (3 menit)
