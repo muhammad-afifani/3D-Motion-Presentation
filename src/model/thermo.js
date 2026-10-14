@@ -552,9 +552,11 @@ export function burnedComposition(phi, fuel = 'gas') {
 }
 
 const kpNO = (T) => Math.exp(1.49 - 10861 / T);                 // ½N2+½O2→NO (aprox.)
+/** Konstanta Zeldovich (Heywood): d[NO]/dt ≈ A/√T · exp(−Ea/T) · [O₂]^½ [N₂]. Diekspor untuk panel asumsi. */
+export const ZELDOVICH = Object.freeze({ A: 6e16, Ea: 69090 });
 const zeldovichK0 = (T, P, xO2, xN2) => {                       // laju per mol campuran (1/s)
   const C = (P / (R_UNIV * T)) * 1e-6;                          // mol/cm3
-  return (6e16 / Math.sqrt(T)) * Math.exp(-69090 / T) * Math.sqrt(xO2 * C) * xN2;
+  return (ZELDOVICH.A / Math.sqrt(T)) * Math.exp(-ZELDOVICH.Ea / T) * Math.sqrt(xO2 * C) * xN2;
 };
 
 /**
@@ -602,6 +604,15 @@ export const correctToRefO2 = (C, O2meas, O2ref) => C * ((20.9 - O2ref) / (20.9 
 /** Volume molar (m³/kmol) pada Tref (K), 1 atm. 273,15 → "Nm³"; 298,15 → basis 25 °C. */
 export const molarVolume = (Tref = 273.15) => 22.414 * (Tref / 273.15);
 export const ppmToMgNm3 = (ppm, MWspecies, Tref = 273.15) => (ppm * MWspecies) / molarVolume(Tref);
+/**
+ * Angka emisi pada basis tampilan: ppmvd dari O₂ acuan refFrom ke refO2 (correctToRefO2),
+ * lalu mg/Nm³ sebagai spesies MW pada basis volume TrefK (ppmToMgNm3). Dry basis tetap.
+ * Contoh golden (docs/ALUR_SLIDE): 25 ppm NOx @15% O₂ → 51,3 mg/Nm³ (0 °C; 2,05 per ppm), 47,0 (25 °C; 1,88).
+ */
+export function emissionAtBasis({ ppm, refFrom = 15, refO2 = 15, TrefK = 273.15, MWspecies = MW.NO2 }) {
+  const ppmB = correctToRefO2(ppm, refFrom, refO2);
+  return { ppm: ppmB, mgNm3: ppmToMgNm3(ppmB, MWspecies, TrefK), refO2, TrefK };
+}
 export const massRateKgH = (C_mgNm3, Q_Nm3h) => C_mgNm3 * Q_Nm3h * 1e-6;
 /** Aliran flue gas (Nm³/h, 0 °C) dari laju massa udara+bahan bakar (kg/s); ρ ≈ 1,30 kg/Nm³. */
 export const exhaustFlowNm3h = (mAir, mFuel) => ((mAir + mFuel) * 3600) / 1.30;

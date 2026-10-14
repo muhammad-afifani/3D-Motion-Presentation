@@ -1,12 +1,13 @@
 /**
  * main.js — boot: lencana model, store global, scene manager (lazy), keyboard, loop animasi.
- * Pintasan: ←/→ scene · Spasi play/pause · F beku · R reset · 1/2 pilih mesin · L label.
+ * Pintasan: ←/→ scene · Spasi play/pause · F beku · R reset · 1/2 pilih mesin · L label · H panel asumsi.
  */
 import './styles.css';
 import { mountModelBadge } from './ui/modelBadge.js';
 import { installTooltips } from './ui/tooltip.js';
+import { createAssumptionsPanel } from './ui/assumptions.js';
 import { STR } from './ui/strings.js';
-import { createStore, defaultState, resetPatch, engineSwitchPatch, togglePlayPatch, toggleFreezePatch, cycleInitialState, flameInitialState, gtInitialState, noxInitialState } from './state/store.js';
+import { createStore, defaultState, resetPatch, engineSwitchPatch, togglePlayPatch, toggleFreezePatch, cycleInitialState, flameInitialState, gtInitialState, noxInitialState, basisInitialState, calibInitialState } from './state/store.js';
 
 const SCENES = [
   { id: 'piston', number: 1, load: () => import('./scenes/piston.js') },
@@ -20,7 +21,8 @@ document.querySelector('.brand').textContent = STR.app.brand;
 mountModelBadge(document.getElementById('model-badge'));
 installTooltips();
 
-const store = createStore({ ...defaultState('diesel'), ...cycleInitialState(), ...flameInitialState(), ...noxInitialState(), ...gtInitialState() });
+const store = createStore({ ...defaultState('diesel'), ...cycleInitialState(), ...flameInitialState(), ...noxInitialState(), ...gtInitialState(), ...basisInitialState(), ...calibInitialState() });
+const assumptions = createAssumptionsPanel(store);
 const app = document.getElementById('app');
 const toastEl = document.getElementById('toast');
 let toastTimer = 0;
@@ -77,7 +79,7 @@ window.addEventListener('keydown', (e) => {
       break;
     }
     case '3': case '4': toast(STR.app.toast.turbine); break;
-    case 'h': toast(STR.app.toast.assumptions); break;
+    case 'h': assumptions.toggle(); break;
     case 'p': toast(STR.app.toast.presenter); break;
     case 'ArrowRight': goTo(index + 1); break;
     case 'ArrowLeft': goTo(index - 1); break;

@@ -5,10 +5,12 @@
  */
 import * as THREE from 'three';
 import { html } from './sceneBase.js';
-import { togglePlayPatch, toggleFreezePatch, scrubPatch, tickWindowPatch, noxDefaults } from '../state/store.js';
+import { togglePlayPatch, toggleFreezePatch, scrubPatch, tickWindowPatch, noxDefaults, calibResetPatch } from '../state/store.js';
 import { deriveNox, noxSimParams, noxSimKey, noxSweepParams, noxSweepKey, noxKeyNumbers, NOX_SIM_KEYS } from '../state/deriveNox.js';
 import { createSimClient } from '../state/simClient.js';
-import { NOX_TIMING, NOX_WINDOW, RPM_VISUAL } from '../model/presets.js';
+import { createEngineCalibrator, dlnCalibration } from '../state/calibration.js';
+import { createCalibrationPanel } from '../ui/calibrationPanel.js';
+import { NOX_TIMING, NOX_WINDOW, RPM_VISUAL, NOX_CALIB_DEFAULTS } from '../model/presets.js';
 import { createRenderer } from '../gfx/renderer.js';
 import { createNoxRig } from '../gfx/noxRig.js';
 import { SPECIES_COLORS } from '../gfx/species.js';
@@ -29,20 +31,22 @@ const LABEL_KEYS = ['burned', 'no', 'piston', 'top'];
 const rgbCss = (c) => `rgb(${c.map((v) => Math.round(v * 255)).join(',')})`;
 const CHART_PAD = { l: 60, r: 18, t: 74, b: 40 };
 
-function hudItems(f) {
+/** Item HUD Scene 4 (diekspor untuk tes). Basis emisi lengkap di bawah setiap ppm / mg/Nm³. */
+export function hudItems(f) {
   const diesel = f.engine === 'diesel';
-  const TrefC = f.NOx.Tref - 273.15;
+  const basis = C.basis.full(f.NOx.refO2, f.NOx.TrefC);
+  const flag = f.NOx.basisDefault ? undefined : C.basis.flag;
   const items = [
     { id: 'timing', label: H.timing.label(diesel), unit: U.atdc, value: (x) => plusDeg(x.theta0), tip: H.timing.tip },
     { id: 'tb', label: H.tbPeak.label, unit: U.K, value: (x) => fmt(x.TbPeak, 0), tip: H.tbPeak.tip },
     { id: 'noxg', label: H.noxG.label, unit: U.gkWh, value: (x) => fmt(x.NOx.gkWh, 2), tip: H.noxG.tip },
-    { id: 'noxppm', label: H.noxPpm.label, unit: H.noxPpm.unit(f.NOx.refO2, TrefC), value: (x) => fmt(x.NOx.ppm, 0), tip: H.noxPpm.tip },
-    { id: 'noxmg', label: H.noxMg.label, unit: H.noxMg.unit(f.NOx.refO2, TrefC), value: (x) => fmt(x.NOx.mgNm3, 0), tip: H.noxMg.tip },
+    { id: 'noxppm', label: H.noxPpm.label, unit: H.noxPpm.unit, sub: basis, flag, value: (x) => fmt(x.NOx.ppm, 0), tip: H.noxPpm.tip },
+    { id: 'noxmg', label: H.noxMg.label, unit: H.noxMg.unit, sub: basis, flag, value: (x) => fmt(x.NOx.mgNm3, 0), tip: H.noxMg.tip },
     { id: 'eta', label: H.eta.label, unit: U.pct, value: (x) => pct(x.eta.brake, 1), tip: H.eta.tip },
     { id: 'co2', label: H.co2.label, unit: U.gkWh, value: (x) => fmt(x.CO2.gkWh, 0), tip: H.co2.tip },
   ];
   // faktor kalibrasi tampil di HUD bila ≠ 1 (CLAUDE.md → Aturan model)
-  if (f.calib !== 1) items.push({ id: 'calib', label: H.calib.label, unit: '', value: (x) => H.calib.value(x.calib), tip: H.calib.tip });
+  if (f.calib !== 1) items.push({ id: 'calib', label: H.calib.label, unit: '', sub: H.calib.sub(f.calib === f.calibDefault), value: (x) => H.calib.value(x.calib), tip: H.calib.tip });
   return items;
 }
 
@@ -52,7 +56,7 @@ export function createScene(ctx) {
   const disposers = [];
   let el, gfx = null, rig = null, legend, hud = null, hudKey = '';
   let tradeChart, arrChart;
-  let sim = null, sweep = null;
+  let sim = null, sweep = null, sweepKey = null, cal = null, calib = null;
   let tradeKey = null, arrKey = null;
   let showLabels = true;
   let lastEngine = '';
@@ -61,7 +65,7 @@ export function createScene(ctx) {
   const v3 = new THREE.Vector3();
 
   const simClient = createSimClient((r) => { sim = r; }, { paramsOf: noxSimParams, keyOf: noxSimKey });
-  const sweepClient = createSimClient((r) => { sweep = r; }, { job: 'retardSweep', debounceMs: 0, paramsOf: noxSweepParams, keyOf: noxSweepKey });
+  const sweepClient = createSimClient((r, key) => { sweep = r; sweepKey = key; }, { job: 'retardSweep', debounceMs: 0, paramsOf: noxSweepParams, keyOf: noxSweepKey });
 
   const q = (sel) => el.querySelector(sel);
   const cache = new Map();
@@ -121,12 +125,13 @@ export function createScene(ctx) {
     ctl.reset = button({ label: C.reset, key: 'R', tip: S.tips.reset, onClick: () => resetTiming() });
     ctl.labels = button({ label: C.labels, key: 'L', tip: S.tips.labels, onClick: toggleLabels });
     ctl.labels.setOn(true);
+    ctl.calib = button({ label: S.calib.button, key: S.calib.key, tip: S.calib.tip, onClick: () => toggleCalib() });
     const g1 = html('<div class="ctl-group"></div>');
     g1.append(ctl.engine.el, ctl.timing.el);
     const g2 = html('<div class="ctl-group"></div>');
     g2.append(ctl.theta.el, ctl.rpm.el);
     const g3 = html('<div class="ctl-group ctl-group--buttons"></div>');
-    g3.append(ctl.play.el, ctl.freeze.el, ctl.reset.el, ctl.labels.el);
+    g3.append(ctl.calib.el, ctl.play.el, ctl.freeze.el, ctl.reset.el, ctl.labels.el);
     q('.scene__controls').append(g1, g2, g3);
   }
 
@@ -134,6 +139,35 @@ export function createScene(ctx) {
     if (engine !== store.get().nEngine) store.set(noxDefaults(engine));
   }
   function resetTiming() { store.set(noxDefaults(store.get().nEngine)); }
+  function toggleCalib(on = !cal.open) {
+    cal.setOpen(on);
+    ctl.calib.setOn(on);
+  }
+  function calibView(s) {
+    return {
+      calEngine: s.calEngine, calDln: s.calDln, defaults: NOX_CALIB_DEFAULTS, literature: NOX_CALIB_DEFAULTS.literature,
+      basisText: C.basis.full(s.emRefO2, s.emTrefC),
+    };
+  }
+  function buildCalibration() {
+    calib = createEngineCalibrator(store, (kind, r) => cal.setStatus(kind, r.converged ? S.calib.doneEngine(r.NOx_gkWh, r.iterations) : S.calib.notConverged));
+    cal = createCalibrationPanel(q('.scene__view'), {
+      onApplyEngine: (kind, target) => { if (calib.apply(kind, target)) cal.setStatus(kind, S.calib.computing); },
+      onApplyDln: (target) => {
+        const r = dlnCalibration(target, store.get().emRefO2);
+        if (!r) return;
+        store.set(r.patch);
+        cal.setStatus('dln', S.calib.doneDln(r.result.NOx_ppm, r.result.Tflame));
+      },
+      onReset: () => {
+        store.set(calibResetPatch());
+        for (const k of ['diesel', 'gas', 'dln']) cal.setStatus(k, '');
+        ctx.toast?.(S.calib.resetDone);
+      },
+      onClose: () => toggleCalib(false),
+    });
+    cal.update(calibView(store.get()));
+  }
   function toggleLabels() {
     showLabels = !showLabels;
     ctl.labels.setOn(showLabels);
@@ -160,11 +194,11 @@ export function createScene(ctx) {
 
   // ── HUD ──
   function updateHud(f) {
-    const key = `${f.engine}|${f.NOx.refO2}|${f.NOx.Tref}|${f.calib !== 1}`;
+    const key = `${f.engine}|${f.NOx.refO2}|${f.NOx.TrefC}|${f.calib}|${f.calDln}`;
     if (key !== hudKey) {
       hud?.dispose();
       hudKey = key;
-      hud = createHud(q('.scene__hud'), hudItems(f), { level: C.level.semiEmpirical, note: H.note });
+      hud = createHud(q('.scene__hud'), hudItems(f), { level: C.level.semiEmpirical, note: H.note(f.calib, f.calDln) });
     }
     hud.update(f);
   }
@@ -271,6 +305,7 @@ export function createScene(ctx) {
       tradeChart = createXYChart(q('.chart-slot--main'), { title: S.tradeoff.title, modelLevel: 'semiEmpirical', xLabel: S.tradeoff.xLabel, yLabel: S.tradeoff.yLabel, color: SPECIES_COLORS.NOx, pad: CHART_PAD });
       arrChart = createXYChart(q('.chart-slot--sub'), { title: S.arrhenius.title, modelLevel: 'semiEmpirical', xLabel: S.arrhenius.xLabel, yLabel: S.arrhenius.yLabel(noxKeyNumbers().Tref), logY: true, color: '#e6ebf3', pad: CHART_PAD });
       legend = createTempLegend(q('.overlay--legend'), { title: S.tempLegend });
+      buildCalibration();
       q('.overlay--legend').append(q('.nox-species'));
       try {
         gfx = createRenderer(q('.view3d'), { camPos: [0.5, 0.8, 0.86], target: [-0.02, 0.69, 0], bloom: false });
@@ -288,7 +323,8 @@ export function createScene(ctx) {
       ctx.setMessage?.(S.messageWithNumbers(kn.ratio100, kn.Tref));
       disposers.push(store.subscribe((s, prev, changed) => {
         if (changed.some((k) => NOX_SIM_KEYS.includes(k))) simClient.request(s);
-        if (changed.includes('nEngine')) sweepClient.request(s);
+        if (changed.includes('nEngine') || changed.includes('calEngine')) sweepClient.request(s);
+        if (['calEngine', 'calDln', 'emRefO2', 'emTrefC'].some((k) => changed.includes(k))) cal.update(calibView(s));
         syncControls(s, changed);
       }));
       syncControls(s0, ['nEngine', 'playing', 'frozen']);
@@ -299,7 +335,7 @@ export function createScene(ctx) {
       store.set(tickWindowPatch(store.get(), dt, NOX_WINDOW.lo, NOX_WINDOW.hi));
       const s = store.get();
       if (!sim) return;
-      const f = deriveNox(s, sim, sweep);
+      const f = deriveNox(s, sim, sweepKey === noxSweepKey(s) ? sweep : null);
       const running = s.playing && !s.frozen;
       const dTheta = running && s.theta >= th0 ? s.theta - th0 : 0;
       ctl.theta.set(Math.min(NOX_WINDOW.hi, Math.max(NOX_WINDOW.lo, f.theta)));
@@ -319,12 +355,15 @@ export function createScene(ctx) {
       if (KEYS_ENGINE[k]) { setEngine(KEYS_ENGINE[k]); return true; }
       if (k === 'r') { resetTiming(); ctx.toast?.(STR.app.toast.reset); return true; }
       if (k === 'l') { toggleLabels(); return true; }
+      if (k === 'c') { toggleCalib(); return true; }
       return false;
     },
     dispose() {
       for (const d of disposers.splice(0)) d();
       simClient.dispose();
       sweepClient.dispose();
+      calib?.dispose();
+      cal?.dispose();
       if (rig) { gfx.scene.remove(rig.group); rig.dispose(); }
       gfx?.dispose();
       tradeChart?.dispose(); arrChart?.dispose(); legend?.dispose(); hud?.dispose();

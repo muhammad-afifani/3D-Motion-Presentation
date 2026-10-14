@@ -4,7 +4,7 @@
  * Nilai parameter engine diambil langsung dari ENGINE_PRESETS di thermo.js (tidak disalin),
  * supaya hanya ada satu sumber angka. File ini hanya menambah rentang kontrol; label tampilan ada di ui/strings.js.
  */
-import { ENGINE_PRESETS } from './thermo.js';
+import { ENGINE_PRESETS, ENGINE_NOX_CALIB, calibrateDLN } from './thermo.js';
 
 /**
  * @typedef {{min:number, max:number, step:number}} Range
@@ -107,3 +107,20 @@ export const NOX_ARRHENIUS = { Tmin: 1500, Tmax: 3100, Tref: 1800, engineBand: [
 
 /** Jendela animasi Scene 4 (° ATDC): kompresi akhir → EVO, tempat zona terbakar ada. */
 export const NOX_WINDOW = { lo: -60, hi: 150 };
+
+/**
+ * Basis tampilan emisi (global, diubah di panel H). Default: 15% O₂, 0 °C (Nm³), gas kering, sebagai NO₂.
+ * Konversi lewat emissionAtBasis() di thermo.js.
+ */
+export const EMISSION_BASIS = { refO2: { min: 3, max: 20, step: 0.5, default: 15 }, TrefC: { options: [0, 25], default: 0 }, examplePpm15: 25 };
+
+/**
+ * Kalibrasi NOx default + target literatur yang dipakai untuk menurunkannya (BUKAN data unit/vendor).
+ * Engine: ENGINE_NOX_CALIB (diesel ≈ 11, gas lean-burn ≈ 2,5 g/kWh tanpa kontrol).
+ * DLN: calibrateDLN() → 15 ppmvd @15% O₂ di titik desain braytonReal.
+ */
+export const NOX_CALIB_DEFAULTS = Object.freeze({
+  engine: Object.freeze({ diesel: ENGINE_NOX_CALIB, gas: ENGINE_NOX_CALIB }),
+  dln: calibrateDLN().calib,
+  literature: Object.freeze({ engine: Object.freeze({ diesel: 11, gas: 2.5 }), dlnPpm: 15, dlnRefO2: 15 }),
+});

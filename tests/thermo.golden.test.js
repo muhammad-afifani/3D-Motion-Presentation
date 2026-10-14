@@ -6,7 +6,7 @@ import {
   lossWaterfall, simStates, flameTemperature, qinPerKgAir, phiFromQinPerKgAir,
   compressorStages, turbineStages, twinShaftCycle,
   zeldovichRate, noxRateRatio, zeldovichCurve, calibrateDLN, calibrateEngineNOx, ENGINE_NOX_CALIB,
-  retardSweep, noxCoTradeoff,
+  retardSweep, noxCoTradeoff, emissionAtBasis, ZELDOVICH, MW,
 } from '../src/model/thermo.js';
 
 /** |got − want| ≤ tol */
@@ -221,6 +221,34 @@ describe('NOx (Scene 4)', () => {
     const [g0, g1] = retardSweep('gas', [-14, -6]);
     near(g0.NOx_gkWh, 2.57, 0.05);
     near(g1.NOx_gkWh, 0.74, 0.05);
+  });
+});
+
+describe('Basis emisi (M4b)', () => {
+  it('25 ppm @15% O₂ → 51,3 mg/Nm³ (0 °C, 2,05/ppm) dan 47,0 (25 °C, 1,88/ppm) sebagai NO₂', () => {
+    const a = emissionAtBasis({ ppm: 25 });
+    near(a.ppm, 25, 1e-12);
+    near(a.mgNm3, 51.3, 0.1);
+    near(a.mgNm3 / 25, 2.05, 0.005);
+    const b = emissionAtBasis({ ppm: 25, TrefK: 298.15 });
+    near(b.mgNm3, 47.0, 0.1);
+    near(b.mgNm3 / 25, 1.88, 0.005);
+  });
+  it('koreksi O₂: 15% → 3% = ×(20,9−3)/(20,9−15); 15% → 20% = ×0,9/5,9; bolak-balik kembali', () => {
+    near(emissionAtBasis({ ppm: 100, refO2: 3 }).ppm, 100 * 17.9 / 5.9, 1e-9);
+    near(emissionAtBasis({ ppm: 100, refO2: 20 }).ppm, 100 * 0.9 / 5.9, 1e-9);
+    const x = emissionAtBasis({ ppm: 100, refO2: 5 }).ppm;
+    near(emissionAtBasis({ ppm: x, refFrom: 5, refO2: 15 }).ppm, 100, 1e-9);
+  });
+  it('sama dengan cylinderSim({refO2}) (toDryRef pada O₂ acuan lain)', () => {
+    const s15 = cylinderSim(ENGINE_PRESETS.diesel), s5 = cylinderSim({ ...ENGINE_PRESETS.diesel, refO2: 5 });
+    near(emissionAtBasis({ ppm: s15.NOx_ppmvd_ref, refO2: 5 }).ppm / s5.NOx_ppmvd_ref, 1, 1e-9);
+    near(emissionAtBasis({ ppm: s15.NOx_ppmvd_ref }).mgNm3, s15.NOx_mgNm3_ref, 1e-9);
+    expect(MW.NO2).toBe(46.005);
+  });
+  it('konstanta Zeldovich yang diekspor = yang dipakai (rasio 1900/1800 tetap 7,1)', () => {
+    expect(ZELDOVICH).toEqual({ A: 6e16, Ea: 69090 });
+    near(noxRateRatio(1800), 7.1, 0.2);
   });
 });
 

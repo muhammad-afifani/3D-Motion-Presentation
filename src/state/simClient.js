@@ -3,7 +3,7 @@
  * debounce (80 ms) saat slider digeser. Jatuh ke jalur sinkron bila Worker tidak tersedia/gagal.
  * Hasil lama (stale) dibuang.
  */
-import { cylinderSim, lossWaterfall, retardSweep } from '../model/thermo.js';
+import { cylinderSim, lossWaterfall, retardSweep, calibrateEngineNOx } from '../model/thermo.js';
 import { simParams, simKey, hydrateSim } from './derive.js';
 
 /** Jalur sinkron + pemulihan hasil Worker per job. */
@@ -11,11 +11,12 @@ const JOBS = {
   cylinderSim: { run: (p) => cylinderSim(p), hydrate: hydrateSim },
   lossWaterfall: { run: (p) => lossWaterfall(p.kind, p.over, p.opts), hydrate: (r) => r },
   retardSweep: { run: (p) => retardSweep(p.kind, p.thetas, p.over), hydrate: (r) => r },
+  calibrateEngineNOx: { run: (p) => calibrateEngineNOx(p.kind, p.target, p.over, { calib0: p.calib0 }), hydrate: (r) => r },
 };
 
 /**
  * @param {(result: any, key: string) => void} onResult
- * @param {{debounceMs?: number, job?: 'cylinderSim'|'lossWaterfall'|'retardSweep',
+ * @param {{debounceMs?: number, job?: 'cylinderSim'|'lossWaterfall'|'retardSweep'|'calibrateEngineNOx',
  *   paramsOf?: (state:any) => any, keyOf?: (state:any) => string}} [opts]
  */
 export function createSimClient(onResult, { debounceMs = 80, job = 'cylinderSim', paramsOf = simParams, keyOf = simKey } = {}) {

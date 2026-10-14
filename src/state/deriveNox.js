@@ -3,23 +3,30 @@
  * Semua angka dari thermo.js: cylinderSim (TbTrace/noTrace, NOx_*), retardSweep, zeldovichCurve, noxRateRatio.
  * Nilai visual (warna, ukuran gelembung, laju partikel) disiapkan di sini; rig/chart/HUD hanya membaca frame.
  */
-import { zeldovichCurve, noxRateRatio, tempToRGB, logNorm } from '../model/thermo.js';
-import { ENGINES, NOX_TIMING, NOX_ARRHENIUS } from '../model/presets.js';
+import { zeldovichCurve, noxRateRatio, tempToRGB, logNorm, emissionAtBasis, MW } from '../model/thermo.js';
+import { ENGINES, NOX_TIMING, NOX_ARRHENIUS, NOX_CALIB_DEFAULTS } from '../model/presets.js';
+import { isDefaultBasis } from './store.js';
 import { derive } from './derive.js';
 
-/** Kunci state yang memicu cylinderSim ulang (Worker, debounce 80 ms). */
-export const NOX_SIM_KEYS = ['nEngine', 'nTheta0'];
+/** Kunci state yang memicu cylinderSim ulang (Worker, debounce 80 ms). Basis emisi TIDAK (konversi saja). */
+export const NOX_SIM_KEYS = ['nEngine', 'nTheta0', 'calEngine'];
 
 /** Skala warna suhu Scene 4: lebih lebar dari Scene 1 (2600 K) agar zona terbakar 2200–3000 K terbedakan. */
 export const NOX_TEMP_SCALE = { min: 300, max: 3000 };
 
-/** Parameter cylinderSim Scene 4: preset engine (sama dengan retardSweep) + timing dari slider. */
-export const noxSimParams = (s) => ({ ...ENGINES[s.nEngine].params, theta0: s.nTheta0 });
-export const noxSimKey = (s) => NOX_SIM_KEYS.map((k) => s[k]).join('|');
+/** Faktor kalibrasi NOx engine aktif (store global; default ENGINE_NOX_CALIB). */
+export const engineCalib = (s) => s.calEngine?.[s.nEngine] ?? NOX_CALIB_DEFAULTS.engine[s.nEngine];
 
-/** Parameter retardSweep: semua langkah slider timing (preset yang sama, over kosong). */
-export const noxSweepParams = (s) => ({ kind: s.nEngine, thetas: NOX_TIMING[s.nEngine].sweep, over: {} });
-export const noxSweepKey = (s) => s.nEngine;
+/** Parameter cylinderSim Scene 4: preset engine (sama dengan retardSweep) + timing dari slider + kalibrasi. */
+export const noxSimParams = (s) => ({ ...ENGINES[s.nEngine].params, theta0: s.nTheta0, calib: engineCalib(s) });
+export const noxSimKey = (s) => `${s.nEngine}|${s.nTheta0}|${engineCalib(s)}`;
+
+/** Parameter retardSweep: semua langkah slider timing (preset yang sama, kalibrasi yang sama). */
+export const noxSweepParams = (s) => ({ kind: s.nEngine, thetas: NOX_TIMING[s.nEngine].sweep, over: { calib: engineCalib(s) } });
+export const noxSweepKey = (s) => `${s.nEngine}|${engineCalib(s)}`;
+
+/** Basis tampilan aktif (store global). */
+export const emissionBasis = (s) => ({ refO2: s.emRefO2 ?? 15, TrefC: s.emTrefC ?? 0, isDefault: isDefaultBasis({ emRefO2: s.emRefO2 ?? 15, emTrefC: s.emTrefC ?? 0 }) });
 
 let curveMemo = null;
 /** Kurva Arrhenius (laju Zeldovich relatif terhadap Tref), dihitung sekali. */
@@ -78,6 +85,10 @@ export function deriveNox(s, sim, sweep) {
 
   const A = NOX_ARRHENIUS;
   const TbPeak = sim.TburnedMax;
+  // ppmvd & mg/Nm³ (sebagai NO₂, kering) pada basis tampilan aktif — konversi di thermo.js
+  const basis = emissionBasis(s);
+  const refFrom = sim.params.refO2 ?? 15;
+  const noxAtBasis = emissionAtBasis({ ppm: sim.NOx_ppmvd_ref, refFrom, refO2: basis.refO2, TrefK: 273.15 + basis.TrefC, MWspecies: MW.NO2 });
 
   return {
     ...base,
@@ -90,8 +101,10 @@ export function deriveNox(s, sim, sweep) {
     burned: { visible: burning, T: Tb, rgb: burning ? rgb(Tb) : [0, 0, 0], xb: base.xb, radius: Math.cbrt(Math.max(0, base.xb)) },
     no: { frac: noFrac, rate, spawn },
     TbPeak,
-    NOx: { gkWh: sim.NOx_gkWh, ppm: sim.NOx_ppmvd_ref, mgNm3: sim.NOx_mgNm3_ref, refO2: sim.params.refO2 ?? 15, Tref: 273.15, calib: sim.params.calib ?? 1 },
+    NOx: { gkWh: sim.NOx_gkWh, ...noxAtBasis, TrefC: basis.TrefC, basisDefault: basis.isDefault, ppmSim: sim.NOx_ppmvd_ref, refO2Sim: refFrom, calib: sim.params.calib ?? 1 },
     calib: sim.params.calib ?? 1,
+    calibDefault: NOX_CALIB_DEFAULTS.engine[s.nEngine],
+    calDln: s.calDln ?? NOX_CALIB_DEFAULTS.dln,
     tradeoff: sw ? {
       eta: sw.map((p) => p.etaBrake), nox: sw.map((p) => p.NOx_gkWh), theta0: sw.map((p) => p.theta0),
       preset: preset && { eta: preset.etaBrake, nox: preset.NOx_gkWh, theta0: preset.theta0 },

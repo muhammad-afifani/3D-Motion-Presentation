@@ -3,16 +3,20 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import * as THREE from 'three';
-import { cylinderSim, retardSweep, tempToRGB, noxRateRatio, zeldovichRate, ENGINE_PRESETS, ENGINE_NOX_CALIB } from '../src/model/thermo.js';
-import { NOX_TIMING, NOX_ARRHENIUS } from '../src/model/presets.js';
-import { noxDefaults, noxInitialState } from '../src/state/store.js';
-import { deriveNox, noxSimParams, noxSweepParams, noxKeyNumbers, NOX_TEMP_SCALE } from '../src/state/deriveNox.js';
+import { cylinderSim, retardSweep, tempToRGB, noxRateRatio, zeldovichRate, ENGINE_PRESETS, ENGINE_NOX_CALIB, emissionAtBasis, calibrateEngineNOx, calibrateDLN, flameTemperature, MW } from '../src/model/thermo.js';
+import { NOX_TIMING, NOX_ARRHENIUS, NOX_CALIB_DEFAULTS } from '../src/model/presets.js';
+import { noxDefaults, noxInitialState, basisInitialState, calibInitialState, basisPatch, basisResetPatch, calibEnginePatch, calibResetPatch, createStore } from '../src/state/store.js';
+import { deriveNox, noxSimParams, noxSweepParams, noxKeyNumbers, noxSimKey, noxSweepKey, NOX_TEMP_SCALE } from '../src/state/deriveNox.js';
+import { createEngineCalibrator, dlnCalibration } from '../src/state/calibration.js';
+import { deriveAssumptions, CHART_LEVELS } from '../src/state/deriveAssumptions.js';
+import { CHART_TITLES } from '../src/ui/assumptions.js';
+import { hudItems } from '../src/scenes/nox.js';
 import { createSimClient } from '../src/state/simClient.js';
 import { createNoxRig } from '../src/gfx/noxRig.js';
 import { STR } from '../src/ui/strings.js';
 
 const near = (got, want, tol) => expect(Math.abs(got - want), `got ${got}, want ${want}`).toBeLessThanOrEqual(tol);
-const st = (engine, extra = {}) => ({ ...noxDefaults(engine), theta: 10, rpmVisual: 20, playing: true, frozen: false, ...extra });
+const st = (engine, extra = {}) => ({ ...noxDefaults(engine), ...basisInitialState(), ...calibInitialState(), theta: 10, rpmVisual: 20, playing: true, frozen: false, ...extra });
 const run = (s) => cylinderSim(noxSimParams(s));
 const sweepOf = (s) => { const p = noxSweepParams(s); return retardSweep(p.kind, p.thetas, p.over); };
 
@@ -30,8 +34,8 @@ describe('Scene 4: angka dari model', () => {
     near(d.NOx.gkWh, 10.7, 0.5); near(d.eta.brake, 0.441, 0.005);
     near(g.NOx.gkWh, 2.6, 0.2); near(g.eta.brake, 0.423, 0.005);
     expect(d.calib).toBe(ENGINE_NOX_CALIB);
-    expect(d.NOx.refO2).toBe(15); expect(d.NOx.Tref).toBe(273.15);
-    expect(d.NOx.ppm).toBe(SIMS.diesel.NOx_ppmvd_ref); expect(d.NOx.mgNm3).toBe(SIMS.diesel.NOx_mgNm3_ref);
+    expect(d.NOx.refO2).toBe(15); expect(d.NOx.TrefC).toBe(0); expect(d.NOx.basisDefault).toBe(true);
+    near(d.NOx.ppm, SIMS.diesel.NOx_ppmvd_ref, 1e-9); near(d.NOx.mgNm3, SIMS.diesel.NOx_mgNm3_ref, 1e-9);
     expect(d.TbPeak).toBe(SIMS.diesel.TburnedMax);
     expect(d.modelLevel).toBe('semiEmpirical');
   });
@@ -190,12 +194,144 @@ describe('Scene 4: istilah, label indikatif, basis O₂ & volume', () => {
   it('semua label NOx berlabel indikatif; ppm & mg/Nm³ menampilkan basis O₂ dan volume', () => {
     for (const k of ['noxG', 'noxPpm', 'noxMg']) expect(H[k].label).toMatch(/indikatif/);
     expect(STR.scene4.tradeoff.yLabel).toMatch(/indikatif/);
-    expect(H.noxPpm.unit(15, 0)).toBe('ppmvd @15% O₂ · 0 °C');
-    expect(H.noxMg.unit(15, 0)).toBe('mg/Nm³ @15% O₂ · 0 °C');
+    expect(H.noxPpm.unit).toBe('ppmvd');
+    expect(H.noxMg.unit).toBe('mg/Nm³');
+    expect(STR.common.basis.full(15, 0)).toBe('sebagai NO₂, dry (ppmvd), @ 15 % O₂, 0 °C');
+    expect(STR.common.basis.full(3.5, 25)).toBe('sebagai NO₂, dry (ppmvd), @ 3,5 % O₂, 25 °C');
     expect(H.calib.value(0.17)).toBe('×0,17');
   });
   it('Scene 5: label model pada angka derating', () => {
     expect(STR.scene5.hud.derateModel).toEqual({ generator: 'Generator · braytonDerated', compressorDrive: 'Compressor drive · twinShaft' });
     expect(readFileSync(new URL('../src/scenes/turbine.js', import.meta.url), 'utf8')).toMatch(/model: H\.derateModel\[cfg\]/);
+  });
+});
+
+// ───────────────────────────── M4b ─────────────────────────────
+const hudVal = (f, id) => hudItems(f).find((x) => x.id === id);
+
+describe('M4b: basis O₂ & volume (global, panel H)', () => {
+  it('default 15 % O₂, 0 °C; patch: O₂ di-clamp 3–20 %, volume hanya 0/25 °C, input tak valid diabaikan', () => {
+    expect(basisInitialState()).toEqual({ emRefO2: 15, emTrefC: 0 });
+    expect(basisPatch({ refO2: 2 })).toEqual({ emRefO2: 3 });
+    expect(basisPatch({ refO2: 25 })).toEqual({ emRefO2: 20 });
+    expect(basisPatch({ refO2: '7.5' })).toEqual({ emRefO2: 7.5 });
+    expect(basisPatch({ refO2: 'abc' })).toEqual({});
+    expect(basisPatch({ TrefC: 25 })).toEqual({ emTrefC: 25 });
+    expect(basisPatch({ TrefC: 10 })).toEqual({});
+    expect(basisResetPatch()).toEqual(basisInitialState());
+  });
+  for (const [refO2, TrefC] of [[3, 0], [20, 25], [5, 25]]) {
+    it(`basis ${refO2} % O₂ · ${TrefC} °C: ppm & mg/Nm³ = emissionAtBasis(thermo.js); tidak mengubah g/kWh; HUD menandai non-default`, () => {
+      const s = st('diesel', { emRefO2: refO2, emTrefC: TrefC });
+      const f = deriveNox(s, SIMS.diesel, SWEEPS.diesel);
+      const want = emissionAtBasis({ ppm: SIMS.diesel.NOx_ppmvd_ref, refFrom: 15, refO2, TrefK: 273.15 + TrefC, MWspecies: MW.NO2 });
+      near(f.NOx.ppm, want.ppm, 1e-9);
+      near(f.NOx.mgNm3, want.mgNm3, 1e-9);
+      expect(f.NOx.gkWh).toBe(SIMS.diesel.NOx_gkWh);
+      expect(f.NOx.basisDefault).toBe(false);
+      for (const id of ['noxppm', 'noxmg']) {
+        const it2 = hudVal(f, id);
+        expect(it2.sub).toBe(STR.common.basis.full(refO2, TrefC));
+        expect(it2.flag).toBe(STR.common.basis.flag);
+      }
+      if (refO2 === 3) expect(f.NOx.ppm / SIMS.diesel.NOx_ppmvd_ref).toBeCloseTo(17.9 / 5.9, 9);
+      if (refO2 === 20) expect(f.NOx.ppm / SIMS.diesel.NOx_ppmvd_ref).toBeCloseTo(0.9 / 5.9, 9);
+    });
+  }
+  it('basis default: tanpa penanda; ppm tile tetap memuat basis lengkap', () => {
+    const f = deriveNox(st('gas'), SIMS.gas, SWEEPS.gas);
+    expect(hudVal(f, 'noxppm').flag).toBeUndefined();
+    expect(hudVal(f, 'noxppm').sub).toBe('sebagai NO₂, dry (ppmvd), @ 15 % O₂, 0 °C');
+  });
+  it('basis tidak memicu cylinderSim ulang (kunci sim tidak berubah)', () => {
+    expect(noxSimKey(st('diesel', { emRefO2: 3 }))).toBe(noxSimKey(st('diesel')));
+  });
+});
+
+describe('M4b: kalibrasi NOx (panel Calibration, store global)', () => {
+  it('default: engine 0,17 (diesel & gas), DLN 14,33 (calibrateDLN → 15 ppmvd @15% O₂)', () => {
+    const c = calibInitialState();
+    expect(c.calEngine).toEqual({ diesel: ENGINE_NOX_CALIB, gas: ENGINE_NOX_CALIB });
+    near(c.calDln, 14.33, 0.005);
+    expect(NOX_CALIB_DEFAULTS.literature).toEqual({ engine: { diesel: 11, gas: 2.5 }, dlnPpm: 15, dlnRefO2: 15 });
+  });
+  it('faktor engine tersimpan per engine → sim & sapuan ulang, HUD "NOx calib" berubah; target tak valid ditolak', () => {
+    const store = createStore(st('diesel'));
+    const cal = createEngineCalibrator(store);
+    expect(cal.apply('diesel', 'x')).toBe(false);
+    expect(cal.apply('diesel', -1)).toBe(false);
+    cal.dispose();
+    const want = calibrateEngineNOx('diesel', 5, {}, { calib0: ENGINE_NOX_CALIB });
+    store.set(calibEnginePatch(store.get(), 'diesel', want.calib));
+    const s = store.get();
+    expect(s.calEngine.gas).toBe(ENGINE_NOX_CALIB); // engine lain tidak ikut
+    expect(noxSimKey(s)).not.toBe(noxSimKey(st('diesel')));
+    expect(noxSweepKey(s)).not.toBe(noxSweepKey(st('diesel')));
+    const sim = run(s);
+    const f = deriveNox(s, sim, sweepOf(s));
+    near(f.NOx.gkWh, 5, 0.01);
+    expect(hudVal(f, 'calib').value(f)).toBe(STR.scene4.hud.calib.value(want.calib));
+    expect(hudVal(f, 'calib').sub).toBe(STR.scene4.hud.calib.sub(false));
+    expect(f.tradeoff.nox[f.tradeoff.theta0.indexOf(ENGINE_PRESETS.diesel.theta0)]).toBe(f.current.nox);
+  });
+  it('createEngineCalibrator: hasil Worker/sinkron disimpan ke store dan memanggil onDone', async () => {
+    const store = createStore(st('gas'));
+    const cal = await new Promise((resolve) => {
+      const c = createEngineCalibrator(store, (k, r) => resolve({ k, r }));
+      c.apply('gas', 1.5);
+    });
+    expect(cal.k).toBe('gas');
+    expect(cal.r.converged).toBe(true);
+    near(cal.r.NOx_gkWh, 1.5, 0.01);
+    expect(store.get().calEngine.gas).toBe(cal.r.calib);
+    expect(store.get().calEngine.diesel).toBe(ENGINE_NOX_CALIB);
+  });
+  it('Apply DLN: target ppmvd @ basis O₂ aktif → calibrateDLN; Reset mengembalikan 0,17 dan 14,33', () => {
+    const r20 = dlnCalibration(20, 15);
+    near(r20.result.NOx_ppm, 20, 0.01);
+    expect(r20.patch.calDln).toBeGreaterThan(NOX_CALIB_DEFAULTS.dln);
+    near(dlnCalibration(15, 15).patch.calDln, NOX_CALIB_DEFAULTS.dln, 1e-6);
+    // target pada basis 3 % O₂: sama dengan calibrateDLN({refO2: 3})
+    near(dlnCalibration(15, 3).patch.calDln, calibrateDLN({ targetPpm: 15, refO2: 3 }).calib, 1e-12);
+    expect(dlnCalibration(0, 15)).toBeNull();
+    const store = createStore(st('diesel'));
+    store.set({ ...r20.patch, ...calibEnginePatch(store.get(), 'diesel', 0.3) });
+    const f1 = deriveNox(store.get(), run(store.get()), null);
+    expect(f1.calDln).toBe(r20.patch.calDln);
+    store.set(calibResetPatch());
+    const s = store.get();
+    expect(s.calEngine).toEqual({ diesel: 0.17, gas: 0.17 });
+    near(s.calDln, 14.33, 0.005);
+    const f2 = deriveNox(s, run(s), SWEEPS.diesel);
+    expect(hudVal(f2, 'calib').value(f2)).toBe('×0,17');
+    expect(hudVal(f2, 'calib').sub).toBe(STR.scene4.hud.calib.sub(true));
+    expect(STR.scene4.hud.note(0.17, 14.33)).toMatch(/×0,17 · DLN ×14,33/);
+    expect(STR.scene4.calib.note).toMatch(/nilai tipikal literatur, bukan data unit atau vendor/);
+  });
+});
+
+describe('M4b: panel asumsi (data dari store / thermo.js)', () => {
+  it('nilai langsung dari store: basis, kalibrasi, contoh konversi (25 ppm @15% → 51,3 mg/Nm³ pada 0 °C)', () => {
+    const d = deriveAssumptions(st('diesel'));
+    expect(d.basis).toMatchObject({ refO2: 15, TrefC: 0, isDefault: true });
+    near(d.example.mgNm3, 51.3, 0.1);
+    const d2 = deriveAssumptions(st('diesel', { emRefO2: 3, emTrefC: 25, calDln: 20 }));
+    expect(d2.basis.isDefault).toBe(false);
+    near(d2.example.ppm, 25 * 17.9 / 5.9, 1e-9);
+    expect(d2.calib.dln).toBe(20);
+    expect(d2.zeldovich).toEqual({ A: 6e16, Ea: 69090 });
+  });
+  it('tabel flame T = flameTemperature (T_in 300 K); setiap grafik punya judul & tingkat model', () => {
+    const d = deriveAssumptions(st('gas'));
+    for (const r of d.flame.rows) { expect(r.gas).toBe(flameTemperature(r.phi, 300, 'gas')); expect(r.diesel).toBe(flameTemperature(r.phi, 300, 'diesel')); }
+    for (const x of CHART_LEVELS) {
+      expect(typeof CHART_TITLES[x.chart]()).toBe('string');
+      for (const k of x.levels) expect(STR.common.level[k]).toBeTruthy();
+    }
+  });
+  it('isi teks: Zeldovich, air-standard/Wiebe, fixed premix fuel split, bukan data unit/vendor, ±100 K', () => {
+    const A = STR.assumptions;
+    const all = JSON.stringify(A) + A.zeldovich.formula('6×10¹⁶', '69.090');
+    for (const re of [/air-standard/, /Wiebe/, /Fixed premix fuel split/, /bukan data unit\/vendor/i, /±100 K/, /exp\(−69\.090\/T\)/]) expect(all).toMatch(re);
   });
 });

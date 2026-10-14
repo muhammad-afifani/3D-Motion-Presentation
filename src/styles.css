@@ -187,6 +187,48 @@ kbd {
 .nox-species .sw { border-radius: 50%; width: 10px; }
 .ro-tb { pointer-events: auto; cursor: help; text-decoration: underline dotted; }
 
+/* panel Calibration (Scene 4) */
+.cal-panel {
+  position: absolute; right: 12px; top: 12px; bottom: 12px; z-index: 5; width: min(380px, calc(100% - 24px)); overflow: auto;
+  padding: 12px 14px; border-radius: 12px; background: rgba(11, 15, 22, 0.95); border: 1px solid var(--accent-cold); font-size: 13px;
+}
+.cal-panel[hidden] { display: none; }
+.cal-panel__head { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 15px; }
+.cal-panel h4 { margin: 12px 0 6px; font-size: 13px; color: var(--accent-cold); }
+.cal-note { margin: 8px 0; color: var(--muted); font-size: 12px; line-height: 1.4; }
+.cal-row { padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; margin-bottom: 8px; display: grid; gap: 4px; }
+.cal-row__head { display: flex; justify-content: space-between; }
+.cal-row__dim { color: var(--muted); font-size: 12px; }
+.cal-basis { color: var(--text); }
+.cal-factor { font-weight: 700; color: var(--accent-hot); }
+.cal-input { display: grid; gap: 2px; font-size: 12px; color: var(--muted); }
+.cal-input input, .asm-input input { font: inherit; font-size: 14px; color: var(--text); background: var(--bg-2); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; min-height: 36px; width: 100%; box-sizing: border-box; }
+.cal-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.cal-actions--end { justify-content: flex-end; margin-top: 4px; }
+.cal-status { font-size: 12px; color: #9fd8ff; }
+.btn--sm { min-height: 36px; padding: 0 10px; font-size: 13px; }
+
+/* panel asumsi (H) */
+.asm { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; background: rgba(5, 8, 12, 0.6); }
+.asm[hidden] { display: none; }
+.asm__box { width: min(980px, calc(100vw - 32px)); max-height: calc(100vh - 48px); overflow: auto; padding: 16px 20px; border-radius: 14px; background: var(--bg-1); border: 1px solid var(--line); box-shadow: 0 20px 60px rgba(0,0,0,0.6); font-size: 13px; line-height: 1.45; }
+.asm__head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.asm__head h2 { margin: 0; font-size: 18px; }
+.asm__intro { color: var(--muted); margin: 6px 0 10px; }
+.asm__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.asm section { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+.asm h3 { margin: 0 0 6px; font-size: 14px; color: var(--accent-cold); }
+.asm ul { margin: 0; padding-left: 18px; }
+.asm table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.asm th, .asm td { text-align: left; padding: 2px 6px; border-bottom: 1px solid var(--line); }
+.asm th { color: var(--muted); font-weight: 600; }
+.asm-basis { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+.asm-input { display: grid; gap: 2px; color: var(--muted); font-size: 12px; width: 140px; }
+.asm-active { margin-top: 6px; font-weight: 600; }
+.asm-active.is-flag { color: var(--accent-hot); }
+.asm .f-line { white-space: normal; font-family: var(--font-num); }
+@media (max-width: 1100px) { .asm__grid { grid-template-columns: 1fr; } }
+
 /* ── chart ── */
 .chart-slot { min-height: 0; }
 .chart { position: relative; height: 100%; border-radius: 12px; background: var(--bg-1); border: 1px solid var(--line); overflow: hidden; }
@@ -240,6 +282,9 @@ button:focus-visible, input:focus-visible, .hud__item:focus-visible { outline: 2
 .hud__label { font-size: 12px; color: var(--muted); }
 .hud__value { font-size: clamp(18px, 1.5vw, 28px); font-weight: 700; white-space: nowrap; }
 .hud__value .u { font-size: 0.5em; color: var(--muted); margin-left: 5px; font-weight: 500; }
+.hud__sub { font-size: 10.5px; line-height: 1.25; color: var(--muted); }
+.hud__flag { display: inline-block; margin-top: 3px; font-size: 10.5px; font-weight: 700; color: #1a0d00; background: var(--accent-hot); border-radius: 999px; padding: 0 7px; }
+.hud__item.is-flag { border-color: var(--accent-hot); }
 .hud__model { font-size: 10.5px; line-height: 1.25; color: var(--accent-cold); font-family: var(--font-num); overflow-wrap: anywhere; }
 .hud__note { font-size: 11px; color: var(--muted); line-height: 1.4; align-self: center; }
 .hud__note .level { display: inline-block; margin-right: 6px; font-weight: 600; color: var(--text); border: 1px solid var(--line); border-radius: 999px; padding: 0 7px; }
