@@ -7,7 +7,7 @@ import { mountModelBadge } from './ui/modelBadge.js';
 import { installTooltips } from './ui/tooltip.js';
 import { createAssumptionsPanel } from './ui/assumptions.js';
 import { STR } from './ui/strings.js';
-import { createStore, defaultState, resetPatch, engineSwitchPatch, togglePlayPatch, toggleFreezePatch, cycleInitialState, flameInitialState, gtInitialState, noxInitialState, basisInitialState, calibInitialState } from './state/store.js';
+import { createStore, defaultState, resetPatch, engineSwitchPatch, togglePlayPatch, toggleFreezePatch, cycleInitialState, flameInitialState, gtInitialState, noxInitialState, basisInitialState, calibInitialState, limitsInitialState, loadInitialState } from './state/store.js';
 
 const SCENES = [
   { id: 'piston', number: 1, load: () => import('./scenes/piston.js') },
@@ -21,7 +21,7 @@ document.querySelector('.brand').textContent = STR.app.brand;
 mountModelBadge(document.getElementById('model-badge'));
 installTooltips();
 
-const store = createStore({ ...defaultState('diesel'), ...cycleInitialState(), ...flameInitialState(), ...noxInitialState(), ...gtInitialState(), ...basisInitialState(), ...calibInitialState() });
+const store = createStore({ ...defaultState('diesel'), ...cycleInitialState(), ...flameInitialState(), ...noxInitialState(), ...gtInitialState(), ...basisInitialState(), ...calibInitialState(), ...limitsInitialState(), ...loadInitialState() });
 const assumptions = createAssumptionsPanel(store);
 const app = document.getElementById('app');
 const toastEl = document.getElementById('toast');

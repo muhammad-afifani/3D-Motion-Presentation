@@ -119,8 +119,29 @@ export const EMISSION_BASIS = { refO2: { min: 3, max: 20, step: 0.5, default: 15
  * Engine: ENGINE_NOX_CALIB (diesel ≈ 11, gas lean-burn ≈ 2,5 g/kWh tanpa kontrol).
  * DLN: calibrateDLN() → 15 ppmvd @15% O₂ di titik desain braytonReal.
  */
+/**
+ * Scene 6 — part-load. Desain dalam kunci fungsi thermo.js (dari GAS_TURBINES, satu sumber angka):
+ *   single → braytonReal / singleShaftLoad; twin → twinShaft / twinShaftForLoad.
+ */
+const GG = GAS_TURBINES.generator, GC = GAS_TURBINES.compressorDrive;
+export const LOAD_DESIGNS = Object.freeze({
+  single: Object.freeze({ ...GG.design, mdot: GG.mdot }),
+  twin: Object.freeze({ rpDesign: GC.design.rp, T3: GC.design.T3, etaC: GC.design.etaC, etaGG: GC.design.etaGG, etaPT: GC.design.etaPT, mdotDesign: GC.mdot }),
+});
+/** Slider beban (%): langkah 1 % → kurva loadSweep memuat setiap posisi slider. */
+export const LOAD_RANGE = { min: 40, max: 100, step: 1 };
+export const LOAD_LOADS = steps(LOAD_RANGE).reverse().map((p) => p / 100); // 1,00 … 0,40
+
+/**
+ * Kalibrasi NOx default + target literatur yang dipakai untuk menurunkannya (BUKAN data unit/vendor).
+ * Engine: ENGINE_NOX_CALIB (diesel ≈ 11, gas lean-burn ≈ 2,5 g/kWh tanpa kontrol).
+ * DLN: calibrateDLN() per konfigurasi → 15 ppmvd @15% O₂ di titik desain masing-masing (single / twin).
+ */
 export const NOX_CALIB_DEFAULTS = Object.freeze({
   engine: Object.freeze({ diesel: ENGINE_NOX_CALIB, gas: ENGINE_NOX_CALIB }),
-  dln: calibrateDLN().calib,
+  dln: Object.freeze({
+    single: calibrateDLN({ design: LOAD_DESIGNS.single }).calib,
+    twin: calibrateDLN({ mode: 'twin', design: LOAD_DESIGNS.twin }).calib,
+  }),
   literature: Object.freeze({ engine: Object.freeze({ diesel: 11, gas: 2.5 }), dlnPpm: 15, dlnRefO2: 15 }),
 });

@@ -2,7 +2,7 @@
  * store.js — store reaktif kecil, sumber kebenaran tunggal untuk parameter UI.
  * Alur: UI control → store.set → derive() → frame → { rig 3D, chart, HUD }.
  */
-import { ENGINES, RPM_VISUAL, CYCLES, FLAME_MODES, GAS_TURBINES, EMISSION_BASIS, NOX_CALIB_DEFAULTS } from '../model/presets.js';
+import { ENGINES, RPM_VISUAL, CYCLES, FLAME_MODES, GAS_TURBINES, EMISSION_BASIS, NOX_CALIB_DEFAULTS, LOAD_RANGE } from '../model/presets.js';
 
 /**
  * @typedef {Object} AppState
@@ -186,8 +186,27 @@ export function basisPatch({ refO2, TrefC } = {}) {
 export const basisResetPatch = () => basisInitialState();
 export const isDefaultBasis = (s) => s.emRefO2 === EMISSION_BASIS.refO2.default && s.emTrefC === EMISSION_BASIS.TrefC.default;
 
-/** Kalibrasi NOx global: faktor engine per jenis + faktor DLN (Scene 6 memakai calDln yang sama). */
-export const calibInitialState = () => ({ calEngine: { ...NOX_CALIB_DEFAULTS.engine }, calDln: NOX_CALIB_DEFAULTS.dln });
+/** Kalibrasi NOx global: faktor engine per jenis + faktor DLN per konfigurasi turbin (single / twin, Scene 6). */
+export const calibInitialState = () => ({ calEngine: { ...NOX_CALIB_DEFAULTS.engine }, calDln: { ...NOX_CALIB_DEFAULTS.dln } });
 export const calibEnginePatch = (s, engine, calib) => ({ calEngine: { ...s.calEngine, [engine]: calib } });
-export const calibDlnPatch = (calib) => ({ calDln: calib });
+/** @param {'single'|'twin'} cfg */
+export const calibDlnPatch = (s, cfg, calib) => ({ calDln: { ...s.calDln, [cfg]: calib } });
 export const calibResetPatch = () => calibInitialState();
+
+/**
+ * Batas emisi yang diisi presenter (ppm @ basis aktif). Default KOSONG (null): tidak ada angka baku mutu di kode.
+ * Dipakai jendela operasi Scene 6 dan M7.
+ */
+export const limitsInitialState = () => ({ limNOx: null, limCO: null });
+/** Patch batas: kosong / tidak valid / ≤ 0 → null. */
+export function limitsPatch({ nox, co } = {}) {
+  const v = (x) => { if (x == null || String(x).trim() === '') return null; const n = Number(String(x).replace(',', '.')); return Number.isFinite(n) && n > 0 ? n : null; };
+  const out = {};
+  if (nox !== undefined) out.limNOx = v(nox);
+  if (co !== undefined) out.limCO = v(co);
+  return out;
+}
+
+// ── Scene 6 (part-load) ──
+/** State awal Scene 6: beban 100 %, strategi single-shaft IGV. */
+export const loadInitialState = () => ({ lLoad: LOAD_RANGE.max, lStrategy: 'igv', lAux: 'flame' });
