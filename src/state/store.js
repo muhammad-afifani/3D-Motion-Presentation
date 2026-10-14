@@ -238,3 +238,11 @@ export const emisInitialState = () => ({ eSlip: 1 });
 export const policyInitialState = () => ({ pTab: 'A', pEngine: 'diesel', pTheta0: ENGINES.diesel.params.theta0, pPenalty: 3, limUnit: 'ppm' });
 /** Patch ganti engine panel A: timing ke preset engine tsb. */
 export const policyEnginePatch = (engine) => ({ pEngine: engine, pTheta0: ENGINES[engine].params.theta0 });
+
+// ── Scene 10–11 (konten presenter) ──
+/** Scene 10: filter mesin untuk menyorot kartu ('all' | 'diesel' | 'gas' | 'turbine'). */
+export const ctrlInitialState = () => ({ ctrlFilter: 'all' });
+/** Scene 11: opsi diskusi yang disembunyikan (id → false); default semua tampil; mode edit checkbox. */
+export const closingInitialState = () => ({ closingVisible: {}, closingEdit: false });
+export const isOptionVisible = (s, id) => s.closingVisible?.[id] !== false;
+export const closingTogglePatch = (s, id) => ({ closingVisible: { ...s.closingVisible, [id]: !isOptionVisible(s, id) } });

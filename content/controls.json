@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "cards": [
+    {
+      "id": "dln",
+      "name": "DLN / lean premix",
+      "lowers": ["NOx: suhu nyala zona premix dijaga rendah dan seragam"],
+      "raises": ["CO dan risiko ketidakstabilan nyala saat suhu nyala turun di part-load", "Jendela operasi menjadi sempit"],
+      "efficiency": "Tidak menambah konsumsi bahan bakar secara langsung; kendalanya ada pada rentang beban yang bisa dijalankan dengan emisi rendah.",
+      "operation": ["Perlu penjadwalan fuel split / IGV yang sesuai beban (jadwal OEM, tidak dimodelkan)", "Rentang beban efektif perlu data unit"],
+      "appliesTo": ["turbine"],
+      "relatedScenes": [6, 4]
+    },
+    {
+      "id": "leanburn",
+      "name": "Lean-burn",
+      "lowers": ["NOx: campuran homogen yang miskin menurunkan suhu nyala"],
+      "raises": ["Risiko misfire pada beban rendah", "Methane slip (CH₄ lolos tidak terbakar) menambah CO₂e"],
+      "efficiency": "Efisiensi tetap baik pada beban tinggi; methane slip menggerus keunggulan CO₂e (lihat Scene 8).",
+      "operation": ["Kontrol rasio udara-bahan bakar yang ketat", "Besaran methane slip perlu data unit"],
+      "appliesTo": ["gas"],
+      "relatedScenes": [8, 3]
+    },
+    {
+      "id": "egr",
+      "name": "EGR (exhaust gas recirculation)",
+      "lowers": ["NOx: gas buang yang disirkulasi ulang menurunkan suhu puncak zona terbakar"],
+      "raises": ["PM dan CO dapat naik", "Beban termal pada pendingin EGR"],
+      "efficiency": "Penalti efisiensi kecil sampai sedang; besarannya perlu data unit.",
+      "operation": ["Perlu pendingin EGR dan pengendalian laju resirkulasi", "Perawatan tambahan akibat deposit"],
+      "appliesTo": ["diesel", "gas"],
+      "relatedScenes": [4]
+    },
+    {
+      "id": "water",
+      "name": "Water / steam injection",
+      "lowers": ["NOx: air atau uap menyerap panas dan menurunkan suhu nyala"],
+      "raises": ["CO dapat naik", "Konsumsi air demineral"],
+      "efficiency": "Daya keluaran bisa naik, tetapi efisiensi umumnya turun; besarannya perlu data unit.",
+      "operation": ["Perlu pasokan air demineral dan pengolahannya", "Rasio air-bahan bakar perlu dijaga"],
+      "appliesTo": ["turbine"],
+      "relatedScenes": [3, 6]
+    },
+    {
+      "id": "scr",
+      "name": "SCR (selective catalytic reduction)",
+      "lowers": ["NOx di gas buang, setelah pembakaran; memutus trade-off dengan combustor"],
+      "raises": ["Amonia slip bila dosis tidak tepat", "Backpressure exhaust"],
+      "efficiency": "Penalti η kecil akibat backpressure; besaran perlu data unit/vendor.",
+      "operation": ["Perlu jendela suhu exhaust tertentu, besaran dari data unit", "Perlu reduktan (amonia/urea), ruang instalasi, dan sistem dosis"],
+      "appliesTo": ["diesel", "gas", "turbine"],
+      "relatedScenes": [9]
+    },
+    {
+      "id": "oxcat",
+      "name": "Oxidation catalyst",
+      "lowers": ["CO dan VOC di gas buang"],
+      "raises": ["Tidak menurunkan NOx", "Backpressure exhaust"],
+      "efficiency": "Penalti η kecil akibat backpressure; besaran perlu data unit.",
+      "operation": ["Perlu jendela suhu exhaust tertentu, besaran dari data unit", "Katalis sensitif terhadap kontaminan bahan bakar/pelumas"],
+      "appliesTo": ["diesel", "gas", "turbine"],
+      "relatedScenes": [6]
+    },
+    {
+      "id": "dpf",
+      "name": "DPF (diesel particulate filter)",
+      "lowers": ["Partikulat (PM) diesel"],
+      "raises": ["Backpressure exhaust yang naik seiring pembebanan filter"],
+      "efficiency": "Penalti η kecil, bertambah saat regenerasi; besaran perlu data unit.",
+      "operation": ["Perlu regenerasi filter (pasif atau aktif)", "Perawatan dan pembersihan abu berkala"],
+      "appliesTo": ["diesel"],
+      "relatedScenes": [8]
+    }
+  ]
+}

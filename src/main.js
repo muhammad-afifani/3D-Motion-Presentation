@@ -7,7 +7,7 @@ import { mountModelBadge } from './ui/modelBadge.js';
 import { installTooltips } from './ui/tooltip.js';
 import { createAssumptionsPanel } from './ui/assumptions.js';
 import { STR } from './ui/strings.js';
-import { createStore, defaultState, resetPatch, engineSwitchPatch, togglePlayPatch, toggleFreezePatch, cycleInitialState, flameInitialState, gtInitialState, noxInitialState, basisInitialState, calibInitialState, limitsInitialState, loadInitialState, compInitialState, emisInitialState, policyInitialState } from './state/store.js';
+import { createStore, defaultState, resetPatch, engineSwitchPatch, togglePlayPatch, toggleFreezePatch, cycleInitialState, flameInitialState, gtInitialState, noxInitialState, basisInitialState, calibInitialState, limitsInitialState, loadInitialState, compInitialState, emisInitialState, policyInitialState, ctrlInitialState, closingInitialState } from './state/store.js';
 
 const SCENES = [
   { id: 'piston', number: 1, load: () => import('./scenes/piston.js') },
@@ -19,13 +19,15 @@ const SCENES = [
   { id: 'compressor', number: 7, load: () => import('./scenes/compressor.js') },
   { id: 'emissions', number: 8, load: () => import('./scenes/emissions.js') },
   { id: 'policy', number: 9, load: () => import('./scenes/policy.js') },
+  { id: 'controls', number: 10, load: () => import('./scenes/controls.js') },
+  { id: 'closing', number: 11, load: () => import('./scenes/closing.js') },
 ];
 
 document.querySelector('.brand').textContent = STR.app.brand;
 mountModelBadge(document.getElementById('model-badge'));
 installTooltips();
 
-const store = createStore({ ...defaultState('diesel'), ...cycleInitialState(), ...flameInitialState(), ...noxInitialState(), ...gtInitialState(), ...basisInitialState(), ...calibInitialState(), ...limitsInitialState(), ...loadInitialState(), ...compInitialState(), ...emisInitialState(), ...policyInitialState() });
+const store = createStore({ ...defaultState('diesel'), ...cycleInitialState(), ...flameInitialState(), ...noxInitialState(), ...gtInitialState(), ...basisInitialState(), ...calibInitialState(), ...limitsInitialState(), ...loadInitialState(), ...compInitialState(), ...emisInitialState(), ...policyInitialState(), ...ctrlInitialState(), ...closingInitialState() });
 const assumptions = createAssumptionsPanel(store);
 const app = document.getElementById('app');
 const toastEl = document.getElementById('toast');
@@ -53,12 +55,19 @@ async function goTo(i) {
     document.getElementById('scene-tag').textContent = STR.app.sceneTag(mod.meta.number, mod.meta.title);
     msgEl.textContent = mod.meta.message;
     document.title = STR.app.docTitle(mod.meta.title);
-    current = mod.createScene({ root: app, store, toast, setMessage: (t) => { msgEl.textContent = t; } });
+    current = mod.createScene({ root: app, store, toast, setMessage: (t) => { msgEl.textContent = t; }, goToScene });
     current.mount();
     index = i;
   } finally {
     loading = false;
   }
+}
+
+/** Pindah ke scene bernomor n (dipakai tautan kartu Scene 10). */
+function goToScene(n) {
+  const i = SCENES.findIndex((x) => x.number === n);
+  if (i < 0) { toast(STR.app.toast.noScene); return; }
+  goTo(i);
 }
 
 window.addEventListener('keydown', (e) => {

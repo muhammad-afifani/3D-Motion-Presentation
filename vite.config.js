@@ -1,5 +1,32 @@
 import { execSync } from 'node:child_process';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 import { defineConfig } from 'vite';
+
+/**
+ * Konten presenter (content/*.json, Scene 10–11): disajikan apa adanya saat `npm run dev` dan disalin ke
+ * dist/content/ saat build, sehingga bisa diedit di dist/ tanpa build ulang. Fallback bawaan di-import dari
+ * file yang sama (src/state/content.js).
+ */
+export function contentPlugin(dir = resolve(process.cwd(), 'content')) {
+  const files = () => (existsSync(dir) ? readdirSync(dir).filter((f) => f.endsWith('.json')) : []);
+  return {
+    name: 'presenter-content',
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        const m = req.url?.match(/\/content\/([\w.-]+\.json)(?:\?.*)?$/);
+        const f = m && join(dir, m[1]);
+        if (!f || !existsSync(f)) return next();
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.setHeader('Cache-Control', 'no-store');
+        res.end(readFileSync(f));
+      });
+    },
+    generateBundle() {
+      for (const f of files()) this.emitFile({ type: 'asset', fileName: `content/${f}`, source: readFileSync(join(dir, f), 'utf8') });
+    },
+  };
+}
 
 /**
  * Nama repo GitHub untuk base path GitHub Pages (https://<owner>.github.io/<repo>/).
@@ -30,6 +57,7 @@ export default defineConfig(({ command, mode, isPreview }) => {
   }
   return {
     base,
+    plugins: [contentPlugin()],
     build: {
       target: 'es2020',
       chunkSizeWarningLimit: 900,
