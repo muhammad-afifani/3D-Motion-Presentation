@@ -23,6 +23,8 @@ export const CHART_TITLES = {
   s4trade: () => STR.scene4.tradeoff.title,
   s4arr: () => STR.scene4.arrhenius.title,
   s5cycle: () => `${STR.charts.cycle.ts.title}${A.levels.sep}${STR.charts.cycle.pv.title}`,
+  s6emis: () => STR.scene6.charts.emis.title,
+  s6aux: () => `${STR.scene6.charts.flame.title}${A.levels.sep}${STR.scene6.charts.eta.title}`,
 };
 
 const list = (items) => `<ul>${items.map((t) => `<li>${t}</li>`).join('')}</ul>`;
@@ -107,7 +109,7 @@ export function createAssumptionsPanel(store, parent = document.body) {
     const c = d.calib, L = c.literature;
     V('calib').innerHTML = row(A.calib.head, 'th')
       + ['diesel', 'gas'].map((k) => row([A.calib.rows[k], A.calib.factor(c.engine[k]), A.calib.factor(c.defaults.engine[k]), A.calib.targetEngine(L.engine[k])])).join('')
-      + row([A.calib.rows.dln, A.calib.factor(c.dln), A.calib.factor(c.defaults.dln), A.calib.targetDln(L.dlnPpm, L.dlnRefO2)]);
+      + ['single', 'twin'].map((k) => row([A.calib.rows[k], A.calib.factor(c.dln[k]), A.calib.factor(c.defaults.dln[k]), A.calib.targetDln(L.dlnPpm, L.dlnRefO2)])).join('');
     V('flame').innerHTML = row(A.flame.head, 'th') + d.flame.rows.map((r) => row([fmt(r.phi, 1), fmt(r.gas, 0), fmt(r.diesel, 0)])).join('');
     V('flameNote').textContent = A.flame.note(d.flame.Tin);
     V('levels').innerHTML = row(A.levels.head, 'th')

@@ -17,10 +17,10 @@ export const CHART_COLORS = {
 
 /**
  * @param {HTMLElement} container
- * @param {{title:string, modelLevel:'ideal'|'real'|'semiEmpirical'|'siteData', pad?:{l:number,r:number,t:number,b:number}}} opts
- *   modelLevel = kunci; teks label diambil dari STR.common.level.
+ * @param {{title:string, modelLevel:'ideal'|'real'|'semiEmpirical'|'siteData', pad?:{l:number,r:number,t:number,b:number}, indicative?:boolean}} opts
+ *   modelLevel = kunci; teks label diambil dari STR.common.level. indicative = tambahkan "· indikatif" di label pojok.
  */
-export function createChartBase(container, { title, modelLevel, pad = { l: 56, r: 16, t: 58, b: 40 } }) {
+export function createChartBase(container, { title, modelLevel, pad = { l: 56, r: 16, t: 58, b: 40 }, indicative = false }) {
   const root = document.createElement('div');
   root.className = 'chart';
   root.innerHTML = `
@@ -36,7 +36,8 @@ export function createChartBase(container, { title, modelLevel, pad = { l: 56, r
   const levelEl = root.querySelector('.chart__level');
   titleEl.textContent = title;
   levelEl.title = STR.common.levelTip;
-  levelEl.textContent = STR.common.level[modelLevel];
+  const levelText = (k) => (indicative ? `${STR.common.level[k]} · ${STR.common.indicative}` : STR.common.level[k]);
+  levelEl.textContent = levelText(modelLevel);
   const ctxS = cs.getContext('2d');
   const ctxD = cd.getContext('2d');
 
@@ -66,7 +67,7 @@ export function createChartBase(container, { title, modelLevel, pad = { l: 56, r
     setCaption(html) { if (caption.innerHTML !== html) caption.innerHTML = html; },
     setTitle(text) { if (titleEl.textContent !== text) titleEl.textContent = text; },
     /** @param {'ideal'|'real'|'semiEmpirical'|'siteData'} key */
-    setLevel(key) { const t = STR.common.level[key]; if (levelEl.textContent !== t) levelEl.textContent = t; },
+    setLevel(key) { const t = levelText(key); if (levelEl.textContent !== t) levelEl.textContent = t; },
     dispose() { ro.disconnect(); root.remove(); },
   };
 }

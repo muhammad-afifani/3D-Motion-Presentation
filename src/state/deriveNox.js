@@ -104,7 +104,7 @@ export function deriveNox(s, sim, sweep) {
     NOx: { gkWh: sim.NOx_gkWh, ...noxAtBasis, TrefC: basis.TrefC, basisDefault: basis.isDefault, ppmSim: sim.NOx_ppmvd_ref, refO2Sim: refFrom, calib: sim.params.calib ?? 1 },
     calib: sim.params.calib ?? 1,
     calibDefault: NOX_CALIB_DEFAULTS.engine[s.nEngine],
-    calDln: s.calDln ?? NOX_CALIB_DEFAULTS.dln,
+    calDln: s.calDln ?? NOX_CALIB_DEFAULTS.dln, // {single, twin}
     tradeoff: sw ? {
       eta: sw.map((p) => p.etaBrake), nox: sw.map((p) => p.NOx_gkWh), theta0: sw.map((p) => p.theta0),
       preset: preset && { eta: preset.etaBrake, nox: preset.NOx_gkWh, theta0: preset.theta0 },

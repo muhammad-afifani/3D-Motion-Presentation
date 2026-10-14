@@ -6,7 +6,7 @@ import {
   lossWaterfall, simStates, flameTemperature, qinPerKgAir, phiFromQinPerKgAir,
   compressorStages, turbineStages, twinShaftCycle,
   zeldovichRate, noxRateRatio, zeldovichCurve, calibrateDLN, calibrateEngineNOx, ENGINE_NOX_CALIB,
-  retardSweep, noxCoTradeoff, emissionAtBasis, ZELDOVICH, MW,
+  retardSweep, noxCoTradeoff, emissionAtBasis, ZELDOVICH, MW, loadSweep,
 } from '../src/model/thermo.js';
 
 /** |got − want| ≤ tol */
@@ -249,6 +249,39 @@ describe('Basis emisi (M4b)', () => {
   it('konstanta Zeldovich yang diekspor = yang dipakai (rasio 1900/1800 tetap 7,1)', () => {
     expect(ZELDOVICH).toEqual({ A: 6e16, Ea: 69090 });
     near(noxRateRatio(1800), 7.1, 0.2);
+  });
+});
+
+describe('Part-load (Scene 6) — tabel S6 docs/ALUR_SLIDE (NOx 15 ppm @15% O₂ di desain, kalibrasi per konfigurasi)', () => {
+  const SINGLE = { rp: 15, T3: 1500, etaC: 0.87, etaT: 0.90, mdot: 20 };
+  const TWIN = { rpDesign: 20, T3: 1450, etaC: 0.86, etaGG: 0.89, etaPT: 0.90, mdotDesign: 20 };
+  const cS = calibrateDLN({ design: SINGLE });
+  const cT = calibrateDLN({ mode: 'twin', design: TWIN });
+  const at = (rows, L) => rows.find((r) => Math.abs(r.load - L) < 1e-9);
+  const L = [1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4];
+
+  it('calibrateDLN per konfigurasi: single ×14,33 (flame T 1830 K), twin ×4,38 (flame T 1883 K), keduanya 15 ppm di desain', () => {
+    near(cS.calib, 14.33, 0.01); near(cS.Tflame, 1830, 1); near(cS.NOx_ppm, 15, 0.01);
+    near(cT.calib, 4.38, 0.01); near(cT.Tflame, 1883, 1); near(cT.NOx_ppm, 15, 0.01);
+    near(calibrateDLN().calib, cS.calib, 1e-9); // default = single (perilaku lama tetap)
+  });
+  it('single-shaft IGV: 100–70 % flame T 1830 K tetap, NOx 15, CO 11,6, η 38 %; 60 %: 1693 K / 0,9 / 158 / 37 %; 50 %: 1554 K / 0,03 / 556 / 36 %', () => {
+    const r = loadSweep(SINGLE, L, { mode: 'single', calib: cS.calib });
+    for (const x of [1, 0.9, 0.8, 0.7]) { const p = at(r, x); near(p.Tflame, 1830, 1); near(p.NOx_ppm, 15, 0.01); near(p.CO_ppm, 11.6, 0.1); near(p.eta, 0.378, 0.002); }
+    near(at(r, 0.6).Tflame, 1693, 1); near(at(r, 0.6).NOx_ppm, 0.9, 0.05); near(at(r, 0.6).CO_ppm, 158, 1); near(at(r, 0.6).eta, 0.37, 0.002);
+    near(at(r, 0.5).Tflame, 1554, 1); near(at(r, 0.5).NOx_ppm, 0.03, 0.01); near(at(r, 0.5).CO_ppm, 556, 1); near(at(r, 0.5).eta, 0.359, 0.002);
+  });
+  it('single-shaft fuel-only: 90 % → 1734 K / 2,3 / 70; 80 % → 1638 K / 0,3 / 349', () => {
+    const r = loadSweep(SINGLE, L, { mode: 'fuelOnly', calib: cS.calib });
+    near(at(r, 0.9).Tflame, 1734, 1); near(at(r, 0.9).NOx_ppm, 2.3, 0.06); near(at(r, 0.9).CO_ppm, 70, 0.5);
+    near(at(r, 0.8).Tflame, 1638, 1); near(at(r, 0.8).NOx_ppm, 0.3, 0.04); near(at(r, 0.8).CO_ppm, 349, 1);
+  });
+  it('twin-shaft: 100 % 1883 K / 15 / 6,8 / 40 %; 70 % (N_GG 0,77) 1829 K / 3,9 / 11,7 / 36 %; 50 % (N_GG 0,62) 1795 K / 1,5 / 20,5 / 31 %', () => {
+    const r = loadSweep(TWIN, L, { mode: 'twin', calib: cT.calib });
+    near(at(r, 1).Tflame, 1883, 1); near(at(r, 1).NOx_ppm, 15, 0.01); near(at(r, 1).CO_ppm, 6.8, 0.1); near(at(r, 1).eta, 0.405, 0.002);
+    near(at(r, 0.7).Tflame, 1829, 1); near(at(r, 0.7).NOx_ppm, 3.9, 0.06); near(at(r, 0.7).CO_ppm, 11.7, 0.1); near(at(r, 0.7).eta, 0.357, 0.003); near(at(r, 0.7).N, 0.77, 0.005);
+    near(at(r, 0.5).Tflame, 1795, 1); near(at(r, 0.5).NOx_ppm, 1.5, 0.05); near(at(r, 0.5).CO_ppm, 20.5, 0.1); near(at(r, 0.5).eta, 0.312, 0.003); near(at(r, 0.5).N, 0.62, 0.005);
+    near(at(r, 1).Tflame - at(r, 0.5).Tflame, 88, 2); // ±90 K dari 100 % ke 50 %
   });
 });
 

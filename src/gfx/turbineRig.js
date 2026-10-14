@@ -25,9 +25,10 @@ const CUT_LEN = 1.4 * Math.PI;
 
 /**
  * @param {{config?: 'single'|'twin', compressorStages?: number, turbineStages?: number, ptStages?: number,
- *   bladesPerRow?: number, scale?: number}} [o]
+ *   bladesPerRow?: number, scale?: number, igv?: boolean}} [o]
+ *   igv = cincin inlet guide vane (statis, sudut dari frame.igv.angle rad; Scene 6 single-shaft)
  */
-export function createGasTurbineRig({ config = 'single', compressorStages = 10, turbineStages = 3, ptStages = 2, bladesPerRow = 22, scale = 1 } = {}) {
+export function createGasTurbineRig({ config = 'single', compressorStages = 10, turbineStages = 3, ptStages = 2, bladesPerRow = 22, scale = 1, igv = false } = {}) {
   const twin = config === 'twin';
   const mat = createMaterials();
   const geoms = [], mats = [];
@@ -122,6 +123,33 @@ export function createGasTurbineRig({ config = 'single', compressorStages = 10, 
   const turb = bladeRows(turbineStages, X.turb0 + 0.05, X.turb1 - 0.05, turbHub, turbTip, 0.08, -0.7, bladeMat, rotorGG);
   const pt = twin ? bladeRows(ptStages, X.pt0 + 0.05, X.pt1 - 0.05, ptHub, ptTip, 0.09, -0.7, bladeMat, rotorPT) : null;
 
+  // ── IGV (opsional): satu InstancedMesh vane statis di depan tahap 1; sudut diatur dari frame ──
+  let igvSet = null;
+  if (igv) {
+    const n = 20, x = X.comp0 - 0.08, rh = compHub(0), rt = compTip(0) + 0.02, span = rt - rh;
+    const geo = G(new THREE.BoxGeometry(0.08, 1, 0.007));
+    const mesh = new THREE.InstancedMesh(geo, M(new THREE.MeshStandardMaterial({ color: 0x9fb3c8, metalness: 0.7, roughness: 0.35 })), n);
+    mesh.name = 'igv';
+    root.add(mesh);
+    igvSet = { mesh, n, x, r: rh + span / 2, span, angle: NaN };
+    anchor('igv', x, rt + 0.12, 0.25);
+  }
+  function setIgv(angle) {
+    if (!igvSet || angle === igvSet.angle) return;
+    igvSet.angle = angle;
+    for (let b = 0; b < igvSet.n; b++) {
+      const a = (b / igvSet.n) * Math.PI * 2;
+      e.set(a, angle, 0);
+      q.setFromEuler(e);
+      pos.set(igvSet.x, igvSet.r * Math.cos(a), igvSet.r * Math.sin(a));
+      scl.set(1, igvSet.span, 1);
+      m4.compose(pos, q, scl);
+      igvSet.mesh.setMatrixAt(b, m4);
+    }
+    igvSet.mesh.instanceMatrix.needsUpdate = true;
+  }
+  setIgv(0);
+
   // ── combustor: pakai ulang can dari M3b, di atas poros ──
   const can = createCanCombustor({ radius: 0.13, length: X.comb1 - X.comb0, swirler: 'axial', vanes: 10 });
   can.group.position.set(X.comb0, 0.5, 0);
@@ -177,7 +205,7 @@ export function createGasTurbineRig({ config = 'single', compressorStages = 10, 
     group: root,
     anchors,
     config,
-    parts: { rotorGG, rotorPT, comp, turb, pt, can, casing, load },
+    get parts() { return { rotorGG, rotorPT, comp, turb, pt, can, casing, load, igv: igvSet }; },
     /** @param {TurbineFrame & {time?: number}} f */
     update(f) {
       paint(comp, f.stages.comp);
@@ -186,6 +214,7 @@ export function createGasTurbineRig({ config = 'single', compressorStages = 10, 
       rotorGG.rotation.x = f.rotor.angleGG;
       if (twin) rotorPT.rotation.x = f.rotor.anglePT;
       can.update({ intensity: f.flame.intensity, color: f.flame.color, core: f.flame.color, time: f.time ?? 0 });
+      if (igvSet && f.igv) setIgv(f.igv.angle);
     },
     /** Jumlah objek Mesh yang dirender (perkiraan draw call). */
     drawCalls() { let n = 0; root.traverse((o) => { if (o.isMesh && o.visible) n++; }); return n; },
@@ -193,7 +222,7 @@ export function createGasTurbineRig({ config = 'single', compressorStages = 10, 
       can.dispose();
       for (const g of geoms.splice(0)) g.dispose();
       for (const m of mats.splice(0)) m.dispose();
-      comp.mesh.dispose(); turb.mesh.dispose(); pt?.mesh.dispose();
+      comp.mesh.dispose(); turb.mesh.dispose(); pt?.mesh.dispose(); igvSet?.mesh.dispose();
       mat.dispose();
       root.clear();
     },

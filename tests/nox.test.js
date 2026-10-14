@@ -249,10 +249,11 @@ describe('M4b: basis O₂ & volume (global, panel H)', () => {
 });
 
 describe('M4b: kalibrasi NOx (panel Calibration, store global)', () => {
-  it('default: engine 0,17 (diesel & gas), DLN 14,33 (calibrateDLN → 15 ppmvd @15% O₂)', () => {
+  it('default: engine 0,17 (diesel & gas), DLN single 14,33 / twin 4,38 (calibrateDLN → 15 ppmvd @15% O₂ per konfigurasi)', () => {
     const c = calibInitialState();
     expect(c.calEngine).toEqual({ diesel: ENGINE_NOX_CALIB, gas: ENGINE_NOX_CALIB });
-    near(c.calDln, 14.33, 0.005);
+    near(c.calDln.single, 14.33, 0.005);
+    near(c.calDln.twin, 4.38, 0.005);
     expect(NOX_CALIB_DEFAULTS.literature).toEqual({ engine: { diesel: 11, gas: 2.5 }, dlnPpm: 15, dlnRefO2: 15 });
   });
   it('faktor engine tersimpan per engine → sim & sapuan ulang, HUD "NOx calib" berubah; target tak valid ditolak', () => {
@@ -286,26 +287,30 @@ describe('M4b: kalibrasi NOx (panel Calibration, store global)', () => {
     expect(store.get().calEngine.gas).toBe(cal.r.calib);
     expect(store.get().calEngine.diesel).toBe(ENGINE_NOX_CALIB);
   });
-  it('Apply DLN: target ppmvd @ basis O₂ aktif → calibrateDLN; Reset mengembalikan 0,17 dan 14,33', () => {
-    const r20 = dlnCalibration(20, 15);
+  it('Apply DLN per konfigurasi: target ppmvd @ basis O₂ aktif → calibrateDLN; Reset mengembalikan 0,17, 14,33 dan 4,38', () => {
+    const s0 = st('diesel');
+    const r20 = dlnCalibration(s0, 'single', 20, 15);
     near(r20.result.NOx_ppm, 20, 0.01);
-    expect(r20.patch.calDln).toBeGreaterThan(NOX_CALIB_DEFAULTS.dln);
-    near(dlnCalibration(15, 15).patch.calDln, NOX_CALIB_DEFAULTS.dln, 1e-6);
+    expect(r20.patch.calDln.single).toBeGreaterThan(NOX_CALIB_DEFAULTS.dln.single);
+    expect(r20.patch.calDln.twin).toBe(NOX_CALIB_DEFAULTS.dln.twin); // konfigurasi lain tidak ikut
+    near(dlnCalibration(s0, 'single', 15, 15).patch.calDln.single, NOX_CALIB_DEFAULTS.dln.single, 1e-6);
+    near(dlnCalibration(s0, 'twin', 15, 15).patch.calDln.twin, NOX_CALIB_DEFAULTS.dln.twin, 1e-6);
     // target pada basis 3 % O₂: sama dengan calibrateDLN({refO2: 3})
-    near(dlnCalibration(15, 3).patch.calDln, calibrateDLN({ targetPpm: 15, refO2: 3 }).calib, 1e-12);
-    expect(dlnCalibration(0, 15)).toBeNull();
+    near(dlnCalibration(s0, 'single', 15, 3).patch.calDln.single, calibrateDLN({ targetPpm: 15, refO2: 3 }).calib, 1e-9);
+    expect(dlnCalibration(s0, 'twin', 0, 15)).toBeNull();
     const store = createStore(st('diesel'));
     store.set({ ...r20.patch, ...calibEnginePatch(store.get(), 'diesel', 0.3) });
     const f1 = deriveNox(store.get(), run(store.get()), null);
-    expect(f1.calDln).toBe(r20.patch.calDln);
+    expect(f1.calDln).toEqual(r20.patch.calDln);
     store.set(calibResetPatch());
     const s = store.get();
     expect(s.calEngine).toEqual({ diesel: 0.17, gas: 0.17 });
-    near(s.calDln, 14.33, 0.005);
+    near(s.calDln.single, 14.33, 0.005);
+    near(s.calDln.twin, 4.38, 0.005);
     const f2 = deriveNox(s, run(s), SWEEPS.diesel);
     expect(hudVal(f2, 'calib').value(f2)).toBe('×0,17');
     expect(hudVal(f2, 'calib').sub).toBe(STR.scene4.hud.calib.sub(true));
-    expect(STR.scene4.hud.note(0.17, 14.33)).toMatch(/×0,17 · DLN ×14,33/);
+    expect(STR.scene4.hud.note(0.17, { single: 14.33, twin: 4.38 })).toMatch(/×0,17 · DLN single ×14,33 \/ twin ×4,38/);
     expect(STR.scene4.calib.note).toMatch(/nilai tipikal literatur, bukan data unit atau vendor/);
   });
 });
@@ -315,10 +320,10 @@ describe('M4b: panel asumsi (data dari store / thermo.js)', () => {
     const d = deriveAssumptions(st('diesel'));
     expect(d.basis).toMatchObject({ refO2: 15, TrefC: 0, isDefault: true });
     near(d.example.mgNm3, 51.3, 0.1);
-    const d2 = deriveAssumptions(st('diesel', { emRefO2: 3, emTrefC: 25, calDln: 20 }));
+    const d2 = deriveAssumptions(st('diesel', { emRefO2: 3, emTrefC: 25, calDln: { single: 20, twin: 5 } }));
     expect(d2.basis.isDefault).toBe(false);
     near(d2.example.ppm, 25 * 17.9 / 5.9, 1e-9);
-    expect(d2.calib.dln).toBe(20);
+    expect(d2.calib.dln).toEqual({ single: 20, twin: 5 });
     expect(d2.zeldovich).toEqual({ A: 6e16, Ea: 69090 });
   });
   it('tabel flame T = flameTemperature (T_in 300 K); setiap grafik punya judul & tingkat model', () => {

@@ -153,15 +153,15 @@ export function createScene(ctx) {
     calib = createEngineCalibrator(store, (kind, r) => cal.setStatus(kind, r.converged ? S.calib.doneEngine(r.NOx_gkWh, r.iterations) : S.calib.notConverged));
     cal = createCalibrationPanel(q('.scene__view'), {
       onApplyEngine: (kind, target) => { if (calib.apply(kind, target)) cal.setStatus(kind, S.calib.computing); },
-      onApplyDln: (target) => {
-        const r = dlnCalibration(target, store.get().emRefO2);
+      onApplyDln: (cfg, target) => {
+        const r = dlnCalibration(store.get(), cfg, target, store.get().emRefO2);
         if (!r) return;
         store.set(r.patch);
-        cal.setStatus('dln', S.calib.doneDln(r.result.NOx_ppm, r.result.Tflame));
+        cal.setStatus(`dln-${cfg}`, S.calib.doneDln(r.result.NOx_ppm, r.result.Tflame));
       },
       onReset: () => {
         store.set(calibResetPatch());
-        for (const k of ['diesel', 'gas', 'dln']) cal.setStatus(k, '');
+        for (const k of ['diesel', 'gas', 'dln-single', 'dln-twin']) cal.setStatus(k, '');
         ctx.toast?.(S.calib.resetDone);
       },
       onClose: () => toggleCalib(false),
@@ -194,7 +194,7 @@ export function createScene(ctx) {
 
   // ── HUD ──
   function updateHud(f) {
-    const key = `${f.engine}|${f.NOx.refO2}|${f.NOx.TrefC}|${f.calib}|${f.calDln}`;
+    const key = `${f.engine}|${f.NOx.refO2}|${f.NOx.TrefC}|${f.calib}|${f.calDln.single}|${f.calDln.twin}`;
     if (key !== hudKey) {
       hud?.dispose();
       hudKey = key;

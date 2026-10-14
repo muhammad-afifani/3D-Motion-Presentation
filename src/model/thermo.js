@@ -651,12 +651,14 @@ export function loadSweep(design, loads = [1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4], { m
 }
 
 /**
- * Faktor kalibrasi DLN: NOx di titik desain braytonReal(design) (φ zona premix = phiPzDesign) = targetPpm
+ * Faktor kalibrasi DLN: NOx di titik desain braytonReal(design) — atau twinShaft(design) bila mode 'twin' —
+ * (φ zona premix = phiPzDesign) = targetPpm
  * (ppmvd @refO2). Memakai calibrateTo + satu koreksi (tanh membuat sedikit tak linear).
  * Default 15 ppm @15% O₂ = nilai tipikal literatur, BUKAN data unit.
  */
-export function calibrateDLN({ targetPpm = 15, design = {}, phiPzDesign = 0.5, tauMs = 12, refO2 = 15 } = {}) {
-  const d = braytonReal(design);
+export function calibrateDLN({ targetPpm = 15, design = {}, phiPzDesign = 0.5, tauMs = 12, refO2 = 15, mode = 'single' } = {}) {
+  // mode 'twin': titik desain twinShaft (N_GG = 1) — kalibrasi per konfigurasi (Scene 6); 'single' = braytonReal
+  const d = mode === 'twin' ? twinShaft({ ...design, Ngg: 1 }) : braytonReal(design);
   const nox = (c) => dlnFromResult(d, d, { phiPzDesign, tauMs, refO2, calib: c }).NOx_ppm;
   let calib = calibrateTo(nox, targetPpm);
   calib *= calibrateTo((k) => nox(calib * k), targetPpm);

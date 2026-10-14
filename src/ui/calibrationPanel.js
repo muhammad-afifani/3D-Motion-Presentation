@@ -9,7 +9,7 @@ const T = STR.scene4.calib;
 
 /**
  * @param {HTMLElement} container
- * @param {{onApplyEngine:(kind:string, target:number)=>void, onApplyDln:(target:number)=>void, onReset:()=>void, onClose:()=>void}} cb
+ * @param {{onApplyEngine:(kind:string, target:number)=>void, onApplyDln:(cfg:'single'|'twin', target:number)=>void, onReset:()=>void, onClose:()=>void}} cb
  */
 export function createCalibrationPanel(container, cb) {
   const el = document.createElement('div');
@@ -26,6 +26,14 @@ export function createCalibrationPanel(container, cb) {
       <div class="cal-row__dim" data-v="lit-${k}"></div>
       <div class="cal-actions"><button type="button" class="btn btn--sm" data-apply="${k}">${T.apply}</button><span class="cal-status" data-v="s-${k}"></span></div>
     </div>`;
+  const dlnRow = (k) => `
+    <div class="cal-row">
+      <div class="cal-row__head"><b>${T.dlnRows[k]}</b><span class="cal-factor num" data-v="f-dln-${k}"></span></div>
+      <div class="cal-row__dim" data-v="d-dln-${k}"></div>
+      <label class="cal-input"><span>${T.targetDln}</span>
+        <input type="number" min="0.1" step="0.5" inputmode="decimal" data-in="dln-${k}" /></label>
+      <div class="cal-actions"><button type="button" class="btn btn--sm" data-apply="dln-${k}">${T.apply}</button><span class="cal-status" data-v="s-dln-${k}"></span></div>
+    </div>`;
   el.innerHTML = `
     <div class="cal-panel__head"><b>${T.title}</b><button type="button" class="btn btn--sm" data-close>${T.close} <kbd>${T.key}</kbd></button></div>
     <p class="cal-note">${T.note}</p>
@@ -33,15 +41,10 @@ export function createCalibrationPanel(container, cb) {
     ${engineRow('diesel')}
     ${engineRow('gas')}
     <h4>${T.dlnTitle}</h4>
-    <div class="cal-row">
-      <div class="cal-row__head"><b>${T.dlnShort}</b><span class="cal-factor num" data-v="f-dln"></span></div>
-      <div class="cal-row__dim" data-v="d-dln"></div>
-      <label class="cal-input"><span>${T.targetDln}</span>
-        <input type="number" min="0.1" step="0.5" inputmode="decimal" data-in="dln" /></label>
-      <div class="cal-row__dim cal-basis" data-v="basis"></div>
-      <div class="cal-actions"><button type="button" class="btn btn--sm" data-apply="dln">${T.apply}</button><span class="cal-status" data-v="s-dln"></span></div>
-      <div class="cal-row__dim">${T.usedBy}</div>
-    </div>
+    ${dlnRow('single')}
+    ${dlnRow('twin')}
+    <div class="cal-row__dim cal-basis" data-v="basis"></div>
+    <div class="cal-row__dim">${T.usedBy}</div>
     <div class="cal-actions cal-actions--end"><button type="button" class="btn btn--sm" data-reset>${T.reset}</button></div>`;
   container.appendChild(el);
 
@@ -57,7 +60,7 @@ export function createCalibrationPanel(container, cb) {
     return v;
   }
   for (const k of ['diesel', 'gas']) q(`[data-apply="${k}"]`).addEventListener('click', () => { const v = readTarget(k); if (v != null) cb.onApplyEngine(k, v); });
-  q('[data-apply="dln"]').addEventListener('click', () => { const v = readTarget('dln'); if (v != null) cb.onApplyDln(v); });
+  for (const k of ['single', 'twin']) q(`[data-apply="dln-${k}"]`).addEventListener('click', () => { const v = readTarget(`dln-${k}`); if (v != null) cb.onApplyDln(k, v); });
   q('[data-reset]').addEventListener('click', () => cb.onReset());
   q('[data-close]').addEventListener('click', () => cb.onClose());
   // panah/angka di input tidak boleh memicu pintasan scene
@@ -68,7 +71,7 @@ export function createCalibrationPanel(container, cb) {
     get open() { return !el.hidden; },
     setOpen(on) { el.hidden = !on; },
     /**
-     * @param {{calEngine:{diesel:number,gas:number}, calDln:number, defaults:{engine:{diesel:number,gas:number}, dln:number},
+     * @param {{calEngine:{diesel:number,gas:number}, calDln:{single:number,twin:number}, defaults:{engine:{diesel:number,gas:number}, dln:{single:number,twin:number}},
      *   literature:{engine:{diesel:number,gas:number}, dlnPpm:number, dlnRefO2:number}, basisText:string}} v
      */
     update(v) {
@@ -77,14 +80,17 @@ export function createCalibrationPanel(container, cb) {
         setText(V(`d-${k}`), T.defaultEngine(v.defaults.engine[k]));
         setText(V(`lit-${k}`), T.litEngine(v.literature.engine[k]));
       }
-      setText(V('f-dln'), `${T.factor} ×${fmt(v.calDln, 2)}`);
-      setText(V('d-dln'), T.defaultDln(v.defaults.dln, v.literature.dlnPpm, v.literature.dlnRefO2));
+      for (const k of ['single', 'twin']) {
+        setText(V(`f-dln-${k}`), `${T.factor} ×${fmt(v.calDln[k], 2)}`);
+        setText(V(`d-dln-${k}`), T.defaultDln(v.defaults.dln[k], v.literature.dlnPpm, v.literature.dlnRefO2));
+      }
       setText(V('basis'), v.basisText);
       if (!prefilled) {
         prefilled = true;
         input('diesel').value = String(v.literature.engine.diesel);
         input('gas').value = String(v.literature.engine.gas);
-        input('dln').value = String(v.literature.dlnPpm);
+        input('dln-single').value = String(v.literature.dlnPpm);
+        input('dln-twin').value = String(v.literature.dlnPpm);
       }
     },
     setStatus(k, text) { setText(V(`s-${k}`), text); },

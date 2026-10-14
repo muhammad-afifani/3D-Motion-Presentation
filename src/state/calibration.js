@@ -6,13 +6,17 @@
 import { calibrateDLN } from '../model/thermo.js';
 import { createSimClient } from './simClient.js';
 import { calibEnginePatch, calibDlnPatch } from './store.js';
+import { LOAD_DESIGNS } from '../model/presets.js';
 
-/** Hitung faktor DLN untuk target ppmvd @ refO2 (basis aktif) di titik desain → patch store + hasil. */
-export function dlnCalibration(targetPpm, refO2) {
+/**
+ * Faktor DLN untuk target ppmvd @ refO2 (basis aktif) di titik desain konfigurasi cfg → patch store + hasil.
+ * @param {any} s state store (calDln) · @param {'single'|'twin'} cfg
+ */
+export function dlnCalibration(s, cfg, targetPpm, refO2) {
   const t = Number(targetPpm);
   if (!(t > 0)) return null;
-  const result = calibrateDLN({ targetPpm: t, refO2 });
-  return { patch: calibDlnPatch(result.calib), result };
+  const result = calibrateDLN({ targetPpm: t, refO2, mode: cfg, design: LOAD_DESIGNS[cfg] });
+  return { patch: calibDlnPatch(s, cfg, result.calib), result };
 }
 
 /**
