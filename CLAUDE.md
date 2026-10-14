@@ -65,7 +65,8 @@ Alur data satu arah: `UI control → store.set → derive() → frame → { rig 
 - [x] M5a Turbin gas (Scene 5): Generator (braytonReal) / Compressor drive (twinShaft)
 - [x] M5b Kompresor gas (Scene 7): gasCompressor, affinity what-if, suctionFlow, compressorTrain (beban compressor drive)
 - [x] M6 Part-load (Scene 6): single-shaft IGV/fuel-only vs twin-shaft, loadSweep, kalibrasi DLN per konfigurasi, batas presenter + jendela beban
-- [ ] M7 Emisi gabungan, kebijakan, pengendali, penutup (Scene 8–11)
+- [x] M7a Emisi gabungan (Scene 8) dan trade-off kebijakan (Scene 9): ppmToGkWh, methane slip, retardSweep, ghgPenalty, baku mutu seragam
+- [ ] M7b Pengendali emisi dan penutup (Scene 10–11)
 - [ ] M8 Finishing (transisi, mode presenter, ekspor PNG, performa, GitHub Pages)
 
 ## Golden test acuan (ringkas; tabel lengkap di `docs/PROMPT_simulasi_3D.md` bagian 12)

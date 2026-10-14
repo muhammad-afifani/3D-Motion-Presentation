@@ -224,6 +224,29 @@ kbd {
 .scene--comp .pl-hud .hud { grid-template-columns: repeat(6, minmax(0, 1fr)); }
 .scene--comp .ctl--slider { width: 210px; }
 
+/* ── Scene 8: emisi gabungan ── */
+.scene--emis { grid-template-rows: minmax(0, 1fr) minmax(0, 1fr) auto auto; }
+.scene--emis .scene__hud { grid-area: hud; }
+.scene--emis .hud { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+.scene--emis .hud__note { grid-column: 1 / -1; }
+.scene--emis .hud__value { font-size: clamp(15px, 1.2vw, 21px); white-space: normal; line-height: 1.15; }
+.scene--emis .chart__caption { white-space: normal; line-height: 1.35; }
+.emis-aux { display: flex; flex-direction: column; gap: 6px; min-height: 0; }
+.emis-aux__chart { flex: 1; min-height: 0; }
+.chart-note { font-size: 11.5px; color: var(--muted); line-height: 1.35; padding: 6px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg-1); }
+.label3d--muted { color: var(--muted); font-weight: 500; }
+
+/* ── Scene 9: trade-off kebijakan ── */
+.pol-card { padding: 20px 24px; display: flex; flex-direction: column; gap: 10px; overflow: auto; }
+.pol-title { margin: 0; font-size: clamp(18px, 1.6vw, 26px); line-height: 1.25; color: var(--text); }
+.pol-result { margin: 0; font-size: clamp(14px, 1.1vw, 18px); color: var(--accent-hot); font-weight: 600; line-height: 1.4; }
+.pol-note { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.4; }
+.pol-note:empty { display: none; }
+.pol-disclaimer { margin-top: auto; font-size: 12px; color: var(--text); line-height: 1.4; padding: 8px 10px; border: 1px solid var(--accent-cold); border-radius: 10px; background: rgba(79, 179, 255, 0.08); }
+.scene--policy .hud { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.scene--policy .hud__note { grid-column: 1 / -1; }
+.scene--policy .hud__value { font-size: clamp(15px, 1.2vw, 21px); white-space: normal; line-height: 1.15; }
+
 /* panel Calibration (Scene 4) */
 .cal-panel {
   position: absolute; right: 12px; top: 12px; bottom: 12px; z-index: 5; width: min(380px, calc(100% - 24px)); overflow: auto;

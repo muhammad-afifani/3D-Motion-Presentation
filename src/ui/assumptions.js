@@ -27,6 +27,8 @@ export const CHART_TITLES = {
   s6aux: () => `${STR.scene6.charts.flame.title}${A.levels.sep}${STR.scene6.charts.eta.title}`,
   s7hq: () => STR.scene7.charts.hq.title,
   s7pn: () => STR.scene7.charts.pn.title,
+  s8co2: () => STR.scene8.charts.co2.title,
+  s8nox: () => STR.scene8.charts.nox.title,
 };
 
 const list = (items) => `<ul>${items.map((t) => `<li>${t}</li>`).join('')}</ul>`;
@@ -67,6 +69,7 @@ export function createAssumptionsPanel(store, parent = document.body) {
         <section><h3>${A.engine.title}</h3>${list(A.engine.items)}</section>
         <section><h3>${A.turbine.title}</h3>${list(A.turbine.items)}</section>
         <section><h3>${A.compressor.title}</h3>${list(A.compressor.items)}</section>
+        <section><h3>${A.ghg.title}</h3>${list(A.ghg.items)}</section>
         <section><h3>${A.calib.title}</h3><table data-v="calib"></table><div class="asm__intro">${A.calib.notUnit}</div></section>
         <section><h3>${A.flame.title}</h3><table data-v="flame"></table><div class="asm__intro" data-v="flameNote"></div></section>
         <section style="grid-column: 1 / -1"><h3>${A.levels.title}</h3><table data-v="levels"></table></section>

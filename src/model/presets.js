@@ -162,3 +162,21 @@ export const GAS_COMPRESSOR = Object.freeze({
   minRatio: 1.05,          // Pdis ≥ 1,05·Psuc (kompresor, bukan ekspander)
   speedSweep: { min: 50, max: 110, step: 1 },
 });
+
+/**
+ * Scene 8 — emisi gabungan (titik preset/desain tiap mesin). Slider methane slip berlaku untuk gas engine & turbin.
+ * PM: KUALITATIF, tidak dimodelkan — tiga tingkat tetap untuk partikel 3D, bukan angka.
+ */
+export const EMIS = Object.freeze({
+  machines: Object.freeze(['diesel', 'gas', 'turbine']),
+  slip: Object.freeze({ min: 0, max: 3, step: 0.1, default: 1 }),
+  pmLevel: Object.freeze({ diesel: 'high', gas: 'low', turbine: 'veryLow' }),
+  pmParticles: Object.freeze({ high: 0.8, low: 0.25, veryLow: 0.07 }),
+});
+
+/** Scene 9 — trade-off kebijakan. Panel A memakai NOX_TIMING; panel B penalti bahan bakar (%); panel C kurva Scene 6. */
+export const POLICY = Object.freeze({
+  tabs: Object.freeze(['A', 'B', 'C']),
+  penalty: Object.freeze({ min: 0, max: 10, step: 0.5, default: 3 }),
+  limUnits: Object.freeze(['ppm', 'mg']),
+});

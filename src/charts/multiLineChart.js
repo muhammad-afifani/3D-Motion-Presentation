@@ -12,6 +12,7 @@ import { createChartBase, makeScale, niceTicks, logTicks, drawAxes, CHART_FONT, 
  * @property {[number, number]} xDomain   urutan = arah sumbu (boleh terbalik)
  * @property {[number, number]} yDomain
  * @property {number[]} [yTicks]
+ * @property {number[]} [xTicks]
  * @property {(v:number)=>string} [xFmt]
  * @property {(v:number)=>string} [yFmt]
  * @property {{x0:number,x1:number,color:string,label?:string}[]} [bands]
@@ -23,7 +24,7 @@ export function createMultiLineChart(container, { title, modelLevel, xLabel, yLa
   const base = createChartBase(container, { title, modelLevel, pad, indicative });
   /** @type {MultiData|null} */
   let data = null;
-  let sx = null, sy = null, yl = yLabel, logNow = logY;
+  let sx = null, sy = null, yl = yLabel, xl = xLabel, logNow = logY;
 
   function drawStatic() {
     const ctx = base.beginStatic();
@@ -46,9 +47,9 @@ export function createMultiLineChart(container, { title, modelLevel, xLabel, yLa
     ctx.restore();
 
     drawAxes(ctx, box, sx, sy, {
-      xTicks: niceTicks(xa, xb, 6),
+      xTicks: data.xTicks ?? niceTicks(xa, xb, 6),
       yTicks: data.yTicks ?? (logNow ? logTicks(...data.yDomain) : niceTicks(...data.yDomain, 4)),
-      xLabel, yLabel: yl, xFmt: data.xFmt, yFmt: data.yFmt,
+      xLabel: xl, yLabel: yl, xFmt: data.xFmt, yFmt: data.yFmt,
     });
 
     ctx.save();
@@ -85,6 +86,7 @@ export function createMultiLineChart(container, { title, modelLevel, xLabel, yLa
     /** @param {MultiData} d */
     setData(d) { data = d; drawStatic(); },
     setYLabel(t) { yl = t; },
+    setXLabel(t) { xl = t; },
     setLog(on) { logNow = !!on; },
     setTitle: base.setTitle,
     /** @param {{x:number,y:number,fill:string,ring?:string,guide?:boolean}[]} pts  guide=false → tanpa garis vertikal */

@@ -228,3 +228,13 @@ export function compPressurePatch(s, { Psuc, Pdis }) {
   const ps = Math.min(s.cPsuc, Math.max(R.Psuc.min, round(Math.floor((Pdis / k) * 2) / 2, R.Psuc.step)));
   return { cPdis: Pdis, cPsuc: ps };
 }
+
+// ── Scene 8 (emisi gabungan) ──
+/** State awal Scene 8: methane slip (%) gas engine & turbin. */
+export const emisInitialState = () => ({ eSlip: 1 });
+
+// ── Scene 9 (trade-off kebijakan) ──
+/** State awal Scene 9: tab A, diesel pada timing preset, penalti 3 %. Satuan input batas (global, dipakai M7b): ppm. */
+export const policyInitialState = () => ({ pTab: 'A', pEngine: 'diesel', pTheta0: ENGINES.diesel.params.theta0, pPenalty: 3, limUnit: 'ppm' });
+/** Patch ganti engine panel A: timing ke preset engine tsb. */
+export const policyEnginePatch = (engine) => ({ pEngine: engine, pTheta0: ENGINES[engine].params.theta0 });

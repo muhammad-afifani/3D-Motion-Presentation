@@ -35,6 +35,8 @@ export const STR = {
     basis: {
       full: (refO2, TrefC) => `sebagai NO₂, dry (ppmvd), @ ${fmt(refO2, Number.isInteger(refO2) ? 0 : 1)} % O₂, ${fmt(TrefC, 0)} °C`,
       fullCO: (refO2, TrefC) => `sebagai CO, dry (ppmvd), @ ${fmt(refO2, Number.isInteger(refO2) ? 0 : 1)} % O₂, ${fmt(TrefC, 0)} °C`,
+      fullMg: (refO2, TrefC) => `sebagai NO₂, dry, @ ${fmt(refO2, Number.isInteger(refO2) ? 0 : 1)} % O₂, ${fmt(TrefC, 0)} °C (mg/Nm³)`,
+      fullMgCO: (refO2, TrefC) => `sebagai CO, dry, @ ${fmt(refO2, Number.isInteger(refO2) ? 0 : 1)} % O₂, ${fmt(TrefC, 0)} °C (mg/Nm³)`,
       short: (refO2, TrefC) => `@ ${fmt(refO2, Number.isInteger(refO2) ? 0 : 1)} % O₂ dry, ${fmt(TrefC, 0)} °C`,
       flag: 'Non-default basis',
       flagTip: 'Basis tampilan diubah di panel asumsi (H). Default: 15 % O₂, 0 °C.',
@@ -554,6 +556,107 @@ export const STR = {
     tempLegend: 'Gas T [K]',
   },
 
+  // ─────────────────────────── Scene 8 — emisi gabungan ───────────────────────────
+  scene8: {
+    title: 'Emisi gabungan: diesel vs gas vs turbin',
+    message: 'Gas lebih bersih per kWh, tetapi methane slip bisa menghapus sebagian keunggulannya.',
+    messageNoSlip: (adv) => `Tanpa methane slip, CO₂ gas engine ${fmt(adv * 100, 0)} % lebih rendah dari diesel (model). Geser slider slip untuk melihat CO₂e.`,
+    messageSlip: (slip, inc, adv) =>
+      `Slip ${fmt(slip * 100, 1)} % menambah ${fmt(inc * 100, 1)} % CO₂e pada gas engine dan gas turbine; keunggulan CO₂e gas engine vs diesel tinggal ${fmt(adv * 100, 0)} % (model).`,
+    machines: { diesel: 'Diesel engine', gas: 'Gas engine (lean-burn)', turbine: 'Gas turbine (generator)' },
+    slip: 'Methane slip',
+    tips: {
+      slip: 'Fraksi bahan bakar gas yang lolos tidak terbakar (berlaku untuk gas engine dan gas turbine; diesel tidak). CO₂e = CO₂ + GWP·CH₄ (co2eWithSlip).',
+      reset: 'Kembalikan slip ke 1 %',
+    },
+    charts: {
+      co2: { title: 'CO₂ & CO₂e (g/kWh)', xLabel: 'g/kWh', caption: (cCo2, cCh4, gwp) => `<span class="sw" style="background:${cCo2}"></span>CO₂ (co2Specific) · <span class="sw" style="background:${cCh4}"></span>CH₄ slip × GWP ${fmt(gwp, 1)} (AR6, 100 tahun)` },
+      nox: { title: 'NOx (g/kWh, sebagai NO₂)', xLabel: 'g/kWh' },
+      sub: (eta, co2, ch4) => `η ${fmt(eta * 100, 1)} % · CO₂ ${fmt(co2, 0)}${ch4 > 0 ? ` + CH₄ ${fmt(ch4, 2)} g` : ''}`,
+      subTurbine: (ppm, basis) => `${fmt(ppm, 1)} ppmvd ${basis}`,
+      noxNote: (eng, gas, dln, litD, litG, litDln, ref) =>
+        `NOx dikalibrasi ke nilai tipikal literatur, bukan data unit atau vendor · engine ×${fmt(eng, 2)} (diesel) / ×${fmt(gas, 2)} (gas), target ≈ ${fmt(litD, 0)} / ${fmt(litG, 1)} g/kWh · DLN ×${fmt(dln, 2)}, target ${fmt(litDln, 0)} ppmvd @ ${fmt(ref, 0)} % O₂`,
+    },
+    pm: { label: 'PM', value: 'kualitatif', sub: 'kualitatif, tidak dimodelkan', levels: { high: 'tinggi', low: 'rendah', veryLow: 'sangat rendah' }, tip: 'Partikulat tidak dimodelkan. Partikel 3D abu gelap hanya menunjukkan tingkat kualitatif tetap: diesel tinggi, gas engine rendah, turbin sangat rendah.' },
+    hud: {
+      co2Diesel: { label: 'CO₂ · Diesel engine', tip: 'co2Specific(η rem preset cylinderSim, diesel). Tanpa slip.' },
+      co2eGas: { label: 'CO₂e · Gas engine', tip: 'co2eWithSlip(η rem preset, slip): CO₂ + GWP·CH₄.' },
+      co2eGt: { label: 'CO₂e · Gas turbine', tip: 'co2eWithSlip(η braytonReal desain, slip).' },
+      slip: { label: 'CH₄ slip', value: (slip, ch4) => `${fmt(slip * 100, 1)} % · ${fmt(ch4, 2)} g/kWh`, tip: 'Fraksi bahan bakar lolos; CH₄ g/kWh untuk gas engine.' },
+      inc: { label: 'Slip → CO₂e', value: (inc) => `+${fmt(inc * 100, 1)}`, tip: 'Kenaikan CO₂e akibat slip (sama untuk gas engine dan turbin karena tidak bergantung pada η).' },
+      gwp: { label: 'GWP CH₄', sub: 'AR6 · horizon 100 tahun · fosil', tip: 'Horizon waktu lain memberi hasil berbeda (lihat panel H).' },
+      calib: { label: 'NOx calib', value: (eng, dln) => `×${fmt(eng, 2)} / ×${fmt(dln, 2)}`, sub: 'engine (diesel) / DLN', tip: 'Faktor kalibrasi aktif. Target: engine ≈ 11 (diesel) / 2,5 (gas) g/kWh, DLN 15 ppmvd @ 15 % O₂. Bukan data unit/vendor.' },
+      note: 'NOx dikalibrasi ke nilai tipikal literatur, bukan data unit atau vendor. Indikatif. PM: kualitatif, tidak dimodelkan.',
+    },
+    labels3d: { diesel: 'Diesel engine', gas: 'Gas engine', turbine: 'Gas turbine', pm: 'PM: kualitatif, tidak dimodelkan' },
+    species: { NOx: 'NOx', CO2: 'CO₂', CH4: 'CH₄', PM: 'PM (kualitatif)' },
+  },
+
+  // ─────────────────────────── Scene 9 — trade-off kebijakan ───────────────────────────
+  scene9: {
+    title: 'Trade-off kebijakan: NOx vs CO vs GHG',
+    message: 'Menekan satu emisi hampir selalu menggeser yang lain.',
+    tab: 'Panel',
+    tabs: { A: 'A · Retard timing', B: 'B · Fuel penalty', C: 'C · Uniform limit' },
+    titles: { A: 'Retard timing: NOx turun, η turun, CO₂ naik', B: 'Penalti bahan bakar → CO₂ spesifik naik', C: 'Satu angka baku mutu, dua mesin dengan jendela operasi berbeda.' },
+    disclaimer: (basisNox, basisCo) => `Angka baku mutu diisi presenter, tidak ada di aplikasi. Basis: NOx ${basisNox}; CO ${basisCo}.`,
+    engines: { diesel: 'Diesel', gas: 'Gas lean-burn' },
+    engine: 'Engine',
+    timing: { diesel: 'Injection timing θ₀', gas: 'Spark timing θ₀' },
+    penalty: 'Fuel penalty',
+    unit: 'Limit unit',
+    units: { ppm: 'ppm @ basis', mg: 'mg/Nm³' },
+    unitLabel: { ppm: 'ppmvd', mg: 'mg/Nm³' },
+    limitLabels: { ppm: { nox: 'NOx limit [ppmvd]', co: 'CO limit [ppmvd]' }, mg: { nox: 'NOx limit [mg/Nm³, as NO₂]', co: 'CO limit [mg/Nm³]' } },
+    tips: {
+      tab: 'Panel A: retard timing (retardSweep). Panel B: penalti bahan bakar (ghgPenalty). Panel C: baku mutu seragam pada kurva part-load Scene 6.',
+      engine: 'Preset engine dari thermo.js (sama dengan Scene 1 dan 4).',
+      timing: 'Awal pembakaran θ₀ (° ATDC; negatif = sebelum TDC/BTDC). Ke kanan = retard.',
+      penalty: 'Tambahan bahan bakar akibat modifikasi demi NOx (%). CO₂ sebanding langsung dengan bahan bakar (ghgPenalty).',
+      unit: 'Satuan input batas: ppmvd pada basis O₂ aktif, atau mg/Nm³ pada basis O₂ & volume aktif (NOx sebagai NO₂, CO sebagai CO). Disimpan sebagai ppmvd.',
+      reset: 'Kembalikan panel ke kondisi awal (timing preset, penalti 3 %). Batas presenter tidak dihapus.',
+    },
+    A: {
+      main: { title: 'NOx vs timing', xLabel: 'θ₀ [° ATDC] (negatif = BTDC)', yLabel: 'NOx [g/kWh]' },
+      sub: { title: 'η rem & CO₂ vs timing (Δ % terhadap preset)', yLabel: 'Δ vs preset [%]', caption: (cEta, cCo2) => `<span class="sw sw--line" style="background:${cEta}"></span>η rem · <span class="sw sw--line" style="background:${cCo2}"></span>CO₂ (g/kWh) · retardSweep, indikatif` },
+      note: 'Methane slip tidak dimodelkan di panel ini, sehingga CO₂e sebenarnya lebih tinggi (lihat Scene 8).',
+      result: (engine, th, dN, dC) => `${engine}, θ₀ ${th > 0 ? '+' : th < 0 ? '−' : ''}${fmt(Math.abs(th), 0)}°: NOx ${dN >= 0 ? '+' : '−'}${fmt(Math.abs(dN), 1)} %, CO₂ ${dC >= 0 ? '+' : '−'}${fmt(Math.abs(dC), 1)} % terhadap preset (model).`,
+    },
+    B: {
+      main: { title: 'CO₂ spesifik vs fuel penalty', xLabel: 'Fuel penalty [%]', yLabel: 'CO₂ [g/kWh]' },
+      sub: { title: 'Δ CO₂ vs fuel penalty', yLabel: 'Δ CO₂ [g/kWh]', caption: 'Garis: diesel engine (abu), gas engine (biru), gas turbine (oranye) · ghgPenalty, indikatif' },
+      result: (p, a, b) => `Penalti ${fmt(p, 1)} %: CO₂ gas engine ${fmt(a, 0)} → ${fmt(b, 0)} g/kWh (+${fmt(p, 1)} %); CO₂ sebanding langsung dengan bahan bakar (model).`,
+    },
+    C: {
+      main: { title: 'NOx & CO vs load (Scene 6 curves)', xLabel: 'Load [%]' },
+      sub: { title: 'Load window per configuration', xLabel: 'Load [%]', yLabels: { single: 'Generator', twin: 'Compressor drive' } },
+      caption: (cNox, cCo, basisNox, basisCo, viol) => `<span class="sw sw--line" style="background:${cNox}"></span>NOx ${basisNox} · <span class="sw sw--line" style="background:${cCo}"></span>CO ${basisCo}<br />Garis penuh = Generator, putus-putus = Compressor drive${viol ? ' · arsir = beban yang melanggar batas CO' : ''}`,
+      prompt: 'Isi batas NOx dan CO (Limits, diisi presenter) untuk melihat jendela beban tiap konfigurasi.',
+      result: (single, twin) => `Hasil model pada batas yang diisi: jendela beban Generator = ${single}; Compressor drive = ${twin}.`,
+      strategy: (st) => `Generator strategy dari Scene 6: ${st === 'fuelOnly' ? 'Fuel-only' : 'IGV'}`,
+    },
+    messageA: (engine, th, dN, dC) => `Retard ${engine} ke θ₀ ${th > 0 ? '+' : th < 0 ? '−' : ''}${fmt(Math.abs(th), 0)}°: NOx ${dN >= 0 ? '+' : '−'}${fmt(Math.abs(dN), 0)} %, tetapi CO₂ ${dC >= 0 ? '+' : '−'}${fmt(Math.abs(dC), 1)} % (model). Methane slip tidak dimodelkan di panel ini.`,
+    messageB: (p, a, b) => `Penalti bahan bakar ${fmt(p, 1)} % menaikkan CO₂ spesifik ${fmt(p, 1)} %: gas engine ${fmt(a, 0)} → ${fmt(b, 0)} g/kWh (model).`,
+    messageC: 'Isi batas NOx dan CO untuk melihat jendela beban kedua konfigurasi pada satu angka baku mutu.',
+    messageCSet: (nox, co, unit, basis, single, twin) => `Satu batas (NOx ${fmt(nox, 1)}, CO ${fmt(co, 1)} ${unit} ${basis}): jendela beban Generator ${single}, Compressor drive ${twin} (model).`,
+    hud: {
+      noxA: { label: 'NOx · indikatif', tip: 'retardSweep → NOx_gkWh pada timing ini.' },
+      etaA: { label: 'Brake η', tip: 'retardSweep → η rem.' },
+      co2A: { label: 'CO₂', tip: 'retardSweep → CO₂ spesifik.' },
+      dNox: { label: 'Δ NOx vs preset', tip: 'Terhadap timing preset engine.' },
+      dCo2: { label: 'Δ CO₂ vs preset', tip: 'Terhadap timing preset engine.' },
+      penB: { label: 'Fuel penalty', tip: 'Input slider.' },
+      co2B: (m) => `CO₂ · ${m}`,
+      co2BTip: 'ghgPenalty: CO₂ setelah penalti (sebelum → sesudah).',
+      before: (a, b) => `${fmt(a, 0)} → ${fmt(b, 0)}`,
+      limN: { label: 'NOx limit', tip: 'Diisi presenter; basis di bawah angka.' },
+      limC: { label: 'CO limit', tip: 'Diisi presenter; basis di bawah angka.' },
+      winS: { label: 'Window · Generator', tip: 'Rentang beban yang memenuhi kedua batas (deriveLoad).' },
+      winT: { label: 'Window · Compressor drive', tip: 'Rentang beban yang memenuhi kedua batas (deriveLoad).' },
+      empty: 'kosong',
+    },
+  },
+
   // ─────────────────────────── panel asumsi (tombol H, semua scene) ───────────────────────────
   assumptions: {
     title: 'Model assumptions',
@@ -596,6 +699,15 @@ export const STR = {
         'CO DLN: bentuk kurva ilustratif; ganti dengan kurva OEM/CEMS bila ada. Anggapan: CO dari coDLN dinyatakan sebagai ppmvd @ 15 % O₂, lalu dikoreksi ke basis aktif dengan rumus yang sama seperti NOx.',
         'Jadwal fuel staging OEM tidak dimodelkan (fixed premix split). Perilaku nyata bisa lebih baik atau lebih buruk; besarnya perlu data OEM/CEMS unit.',
         'Part-load: single-shaft = IGV menahan T3 sampai ṁ minimum 70 %, lalu T3 turun (atau fuel-only tanpa IGV); twin-shaft = ṁ ∝ N_GG dengan jadwal T3 = 0,75 + 0,25·N_GG. Kecepatan power turbine tidak dimodelkan.',
+      ],
+    },
+    ghg: {
+      title: 'GHG & g/kWh (Scene 8–9)',
+      items: [
+        'ppmToGkWh: ppmvd @ O₂ acuan (default 15 %) × volume flue gas kering per kWh = bahan bakar per kWh (η keluaran) × F-factor kering stoikiometrik × 20,9/(20,9 − O₂ref). F: CH₄ 11,90 Nm³/kg, solar C₁₂H₂₃ 10,55 Nm³/kg (0 °C), udara kering, bahan bakar tanpa N/S/abu. Validasi silang dengan cylinderSim < 1 %.',
+        'GWP CH₄ = 29,8 (AR6, horizon 100 tahun, CH₄ fosil). Horizon waktu lain memberi hasil berbeda.',
+        'co2eWithSlip: CO₂ dihitung dari seluruh bahan bakar (karbon yang lolos sebagai CH₄ tidak dikurangkan), sehingga CO₂e sedikit konservatif.',
+        'CO₂ spesifik = faktor emisi bahan bakar × 3,6 / η (co2Specific). PM tidak dimodelkan (hanya kualitatif).',
       ],
     },
     compressor: {
