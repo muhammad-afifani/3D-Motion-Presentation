@@ -18,6 +18,7 @@ export function createComposer(renderer, scene, camera) {
     bloom,
     render: () => composer.render(),
     setSize: (w, h) => composer.setSize(w, h),
+    setPixelRatio: (k) => composer.setPixelRatio(k),
     dispose: () => composer.dispose(),
   };
 }

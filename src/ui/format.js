@@ -37,3 +37,10 @@ export function clock(ms) {
   const two = (x) => String(x).padStart(2, '0');
   return h ? `${h}:${two(m)}:${two(s)}` : `${two(m)}:${two(s)}`;
 }
+
+/** Tanggal + jam tampilan (id-ID): "14 Okt 2026, 08.30". */
+let dtf = null;
+export function dateTime(d) {
+  dtf ??= new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+  return dtf.format(d);
+}

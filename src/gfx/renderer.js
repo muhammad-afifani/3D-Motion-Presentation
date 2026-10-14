@@ -7,6 +7,15 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { createComposer } from './composer.js';
 
+/** Renderer aktif (untuk snapshot PNG 2×: skala piksel dinaikkan sementara). */
+const ACTIVE = new Set();
+const basePixelRatio = () => Math.min(globalThis.devicePixelRatio || 1, 1.5);
+
+/** Snapshot: set pixel ratio semua renderer aktif ke `k` (null = kembali ke normal). */
+export function setRendererExportScale(k = null) {
+  for (const r of ACTIVE) r.setScale(k ?? basePixelRatio());
+}
+
 export function webglAvailable() {
   try {
     const c = document.createElement('canvas');
@@ -23,7 +32,7 @@ export function webglAvailable() {
 export function createRenderer(container, { fov = 35, camPos = [1, 0.8, 1.6], target = [0, 0.5, 0], bloom = true } = {}) {
   if (!webglAvailable()) throw new Error('WebGL2 tidak tersedia');
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+  renderer.setPixelRatio(basePixelRatio());
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.0;
@@ -71,6 +80,8 @@ export function createRenderer(container, { fov = 35, camPos = [1, 0.8, 1.6], ta
   const ro = new ResizeObserver(resize);
   ro.observe(container);
   resize();
+  const entry = { setScale(k) { renderer.setPixelRatio(k); composer?.setPixelRatio(k); resize(); } };
+  ACTIVE.add(entry);
 
   return {
     THREE, renderer, scene, camera, controls,
@@ -82,6 +93,7 @@ export function createRenderer(container, { fov = 35, camPos = [1, 0.8, 1.6], ta
     setBloom(on) { bloomOn = !!on && !!composer; },
     get bloomOn() { return bloomOn; },
     dispose() {
+      ACTIVE.delete(entry);
       ro.disconnect();
       controls.dispose();
       composer?.dispose();

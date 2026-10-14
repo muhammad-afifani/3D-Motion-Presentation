@@ -67,7 +67,8 @@ Alur data satu arah: `UI control → store.set → derive() → frame → { rig 
 - [x] M6 Part-load (Scene 6): single-shaft IGV/fuel-only vs twin-shaft, loadSweep, kalibrasi DLN per konfigurasi, batas presenter + jendela beban
 - [x] M7a Emisi gabungan (Scene 8) dan trade-off kebijakan (Scene 9): ppmToGkWh, methane slip, retardSweep, ghgPenalty, baku mutu seragam
 - [x] M7b Pengendali emisi dan penutup (Scene 10–11)
-- [ ] M8 Finishing (transisi, mode presenter, ekspor PNG, performa, GitHub Pages)
+- [x] M8a Fitur presentasi: mode presenter (P, jendela kedua + BroadcastChannel, panel pengganti), content/presenter.json, snapshot PNG 2× tema gelap (S), persistensi ringan (localStorage), dock panel Calibration, Animation speed 0,1×–2× bersama
+- [ ] M8b Finishing: transisi kamera ringan, penurunan kualitas otomatis, bloom di seluruh aplikasi, uji dispose antar-scene, uji lintas browser, paket offline, cek akhir GitHub Pages; ekspor PNG tema terang (opsional); laser pointer/spotlight (opsional, di akhir)
 
 ## Golden test acuan (ringkas; tabel lengkap di `docs/PROMPT_simulasi_3D.md` bagian 12)
 Otto r=10 η 0,602 · Diesel r=18 rc=2 η 0,632 · Brayton ideal rp=15 η 0,539 · Brayton real η 0,378 · CO₂ gas η=0,35 → 577 g/kWh · preset diesel Pmax ≈ 116 bar, η rem 0,441 · preset gas Pmax ≈ 109 bar, η rem 0,423.

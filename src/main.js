@@ -1,6 +1,6 @@
 /**
  * main.js — boot: lencana model, store global, scene manager (lazy), keyboard, loop animasi.
- * Pintasan: ←/→ scene · Spasi play/pause · F beku · R reset · 1/2 pilih mesin · L label · H panel asumsi · P presenter.
+ * Pintasan: ←/→ scene · Spasi play/pause · F beku · R reset · 1/2 pilih mesin · L label · H panel asumsi · P presenter · S snapshot PNG.
  * Animation speed (state.animSpeed, 0,1×–2×) mengalikan dt animasi untuk semua scene; dt mentah ikut sebagai argumen kedua.
  * Persistensi ringan (state/persist.js): batas, satuan, basis, opsi Scene 11, scene awal; kalibrasi tidak disimpan.
  */
@@ -13,6 +13,7 @@ import { createPersistence } from './state/persist.js';
 import { SCENE_LIST } from './state/scenes.js';
 import { createPresenterMode } from './ui/presenterMode.js';
 import { button } from './ui/controls.js';
+import { takeSnapshot } from './ui/snapshot.js';
 import { STR } from './ui/strings.js';
 import { createStore, defaultState, resetPatch, engineSwitchPatch, togglePlayPatch, toggleFreezePatch, cycleInitialState, flameInitialState, gtInitialState, noxInitialState, basisInitialState, calibInitialState, limitsInitialState, loadInitialState, compInitialState, emisInitialState, policyInitialState, ctrlInitialState, closingInitialState, animInitialState } from './state/store.js';
 
@@ -67,7 +68,22 @@ const presenter = createPresenterMode({
 store.subscribe((s, prev, changed) => { if (changed.includes('playing') || changed.includes('frozen')) presenter.sync(); });
 const tools = document.createElement('div');
 tools.className = 'topbar__tools';
-tools.append(button({ label: STR.presenter.button, key: STR.presenter.key, tip: STR.presenter.buttonTip, onClick: () => presenter.toggle() }).el);
+let snapping = false;
+/** Tombol S: PNG 2× tampilan scene saat ini (tema gelap). */
+async function snapshot() {
+  if (snapping || index < 0) return;
+  snapping = true;
+  toast(STR.snapshot.busy);
+  try {
+    await takeSnapshot({ sceneNumber: SCENES[index].number, sceneTag: document.getElementById('scene-tag').textContent, toast });
+  } finally {
+    snapping = false;
+  }
+}
+tools.append(
+  button({ label: STR.snapshot.button, key: STR.snapshot.key, tip: STR.snapshot.buttonTip, onClick: () => snapshot() }).el,
+  button({ label: STR.presenter.button, key: STR.presenter.key, tip: STR.presenter.buttonTip, onClick: () => presenter.toggle() }).el,
+);
 document.querySelector('.topbar__right').prepend(tools);
 
 async function goTo(i) {
@@ -124,6 +140,7 @@ window.addEventListener('keydown', (e) => {
     case '3': case '4': toast(STR.app.toast.turbine); break;
     case 'h': assumptions.toggle(); break;
     case 'p': presenter.toggle(); break;
+    case 's': snapshot(); break;
     case 'ArrowRight': goTo(index + 1); break;
     case 'ArrowLeft': goTo(index - 1); break;
     default: return;

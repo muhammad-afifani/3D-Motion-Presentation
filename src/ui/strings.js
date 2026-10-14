@@ -706,6 +706,17 @@ export const STR = {
     },
   },
 
+  // ─────────────────────────── snapshot PNG (tombol S) ───────────────────────────
+  snapshot: {
+    button: 'Snapshot', key: 'S',
+    buttonTip: 'Simpan PNG tampilan scene ini (resolusi 2×, tema gelap): 3D, HUD, dan grafik. Panel H, panel presenter, dan toast tidak ikut.',
+    busy: 'Membuat snapshot…',
+    saved: (file) => `Snapshot disimpan: ${file}`,
+    canvasOnly: (file) => `Teks HUD dan judul gagal digabung ke gambar; yang disimpan hanya canvas (3D + grafik): ${file}`,
+    failed: 'Snapshot gagal dibuat (browser menolak ekspor gambar). Coba lagi, atau pakai tangkapan layar sistem.',
+    footer: (tag, when, canvasOnly) => `Engine & Turbine Emission Lab · ${tag} · ${when} · emisi indikatif, lihat label tingkat model di tiap grafik${canvasOnly ? ' · canvas saja (teks HUD tidak ikut)' : ''}`,
+  },
+
   // ─────────────────────────── mode presenter (tombol P; jendela kedua / panel di halaman) ───────────────────────────
   presenter: {
     button: 'Presenter', key: 'P',

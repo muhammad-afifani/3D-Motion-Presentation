@@ -47,7 +47,7 @@ kbd {
 
 /* ── top bar ── */
 .topbar {
-  flex: none; display: grid; grid-template-columns: minmax(250px, 0.9fr) minmax(0, 3fr) minmax(150px, 0.5fr); align-items: center; gap: 16px;
+  flex: none; display: grid; grid-template-columns: minmax(250px, 0.9fr) minmax(0, 3fr) auto; align-items: center; gap: 16px;
   padding: 10px 20px; border-bottom: 1px solid var(--line); background: rgba(11, 15, 22, 0.85);
 }
 .topbar__left { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
@@ -423,7 +423,8 @@ button:focus-visible, input:focus-visible, .hud__item:focus-visible { outline: 2
 }
 
 /* ── mode presenter (M8a): jendela presenter.html dan panel pengganti di halaman ── */
-.topbar__right { align-items: center; gap: 8px; }
+.topbar__right { align-items: center; gap: 8px; flex-wrap: nowrap; }
+.topbar__right #model-badge { white-space: nowrap; }
 .topbar__tools { display: flex; gap: 8px; }
 body.pres-page { display: block; height: auto; min-height: 100vh; overflow: auto; }
 .pres-page #presenter { padding: 16px; height: auto; }

@@ -15,6 +15,15 @@ export const CHART_COLORS = {
   title: '#e6ebf3',
 };
 
+/** Grafik aktif + skala ekspor (snapshot PNG 2×). null = devicePixelRatio normal (maks 2). */
+const BASES = new Set();
+let exportScale = null;
+/** Snapshot: gambar ulang semua grafik aktif pada skala `k` (null = kembali normal). */
+export function setChartExportScale(k = null) {
+  exportScale = k;
+  for (const b of BASES) b.resize();
+}
+
 /**
  * @param {HTMLElement} container
  * @param {{title:string, modelLevel:'ideal'|'real'|'semiEmpirical'|'siteData', pad?:{l:number,r:number,t:number,b:number}, indicative?:boolean}} opts
@@ -46,7 +55,7 @@ export function createChartBase(container, { title, modelLevel, pad = { l: 56, r
 
   function resize() {
     const r = root.getBoundingClientRect();
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const dpr = exportScale ?? Math.min(window.devicePixelRatio || 1, 2);
     const w = Math.max(50, Math.floor(r.width)), h = Math.max(50, Math.floor(r.height));
     if (w === box.w && h === box.h && dpr === box.dpr) return;
     Object.assign(box, { w, h, dpr, plotW: w - pad.l - pad.r, plotH: h - pad.t - pad.b });
@@ -56,6 +65,8 @@ export function createChartBase(container, { title, modelLevel, pad = { l: 56, r
   const ro = new ResizeObserver(resize);
   ro.observe(root);
   resize();
+  const entry = { resize };
+  BASES.add(entry);
 
   return {
     root, box, ctxS, ctxD, caption,
@@ -68,7 +79,7 @@ export function createChartBase(container, { title, modelLevel, pad = { l: 56, r
     setTitle(text) { if (titleEl.textContent !== text) titleEl.textContent = text; },
     /** @param {'ideal'|'real'|'semiEmpirical'|'siteData'} key */
     setLevel(key) { const t = levelText(key); if (levelEl.textContent !== t) levelEl.textContent = t; },
-    dispose() { ro.disconnect(); root.remove(); },
+    dispose() { BASES.delete(entry); ro.disconnect(); root.remove(); },
   };
 }
 
