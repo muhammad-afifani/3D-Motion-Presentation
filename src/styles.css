@@ -218,6 +218,12 @@ kbd {
 .scene--load .ctl-group { gap: 12px; }
 .scene--load .ctl--slider { width: 200px; }
 
+/* ── Scene 7: kompresor gas (memakai tata letak .scene--load) ── */
+.scene--comp .overlay--aff { z-index: 2; font-size: 13px; }
+.aff-level { font-size: 11px; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 0 6px; margin-left: 6px; }
+.scene--comp .pl-hud .hud { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.scene--comp .ctl--slider { width: 210px; }
+
 /* panel Calibration (Scene 4) */
 .cal-panel {
   position: absolute; right: 12px; top: 12px; bottom: 12px; z-index: 5; width: min(380px, calc(100% - 24px)); overflow: auto;
