@@ -1,6 +1,6 @@
 /**
  * main.js — boot: lencana model, store global, scene manager (lazy), keyboard, loop animasi.
- * Pintasan: ←/→ scene · Spasi play/pause · F beku · R reset · 1/2 pilih mesin · L label · H panel asumsi · P presenter · S snapshot PNG · Q Quality · B Bloom · Shift+D overlay debug.
+ * Pintasan: ←/→ scene · Spasi play/pause · F beku · R reset · 1/2 pilih mesin · L label · H panel asumsi · P presenter · S snapshot PNG · Q Quality · B Bloom · K laser pointer · Shift+K spotlight · Shift+D overlay debug.
  * Animation speed (state.animSpeed, 0,1×–2×) mengalikan dt animasi untuk semua scene; dt mentah ikut sebagai argumen kedua.
  * Persistensi ringan (state/persist.js): batas, satuan, basis, opsi Scene 11, scene awal; kalibrasi tidak disimpan.
  */
@@ -18,6 +18,7 @@ import { button } from './ui/controls.js';
 import { takeSnapshot } from './ui/snapshot.js';
 import { createDebugOverlay } from './ui/debugOverlay.js';
 import { fadeSwap } from './ui/transition.js';
+import { createPointerTools } from './ui/pointer.js';
 import { createFpsMeter } from './state/fpsMeter.js';
 import { rendererStats, disposeLog } from './gfx/renderer.js';
 import { STR } from './ui/strings.js';
@@ -141,6 +142,10 @@ function goToScene(n) {
   goTo(i);
 }
 
+// laser pointer / spotlight (K / Shift+K; Esc mematikan)
+const pointer = createPointerTools(document.body);
+window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && pointer.mode !== 'off') { pointer.set('off'); toast(STR.app.toast.pointer.off); } });
+
 // overlay debug (Shift+D) + kait uji (scripts/e2e): hanya membaca statistik
 const fpsMeter = createFpsMeter(1);
 const heapMB = () => (performance.memory ? performance.memory.usedJSHeapSize / 1048576 : null);
@@ -162,6 +167,7 @@ window.addEventListener('keydown', (e) => {
   const s = store.get();
   const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
   if (e.shiftKey && key === 'd') { debugOverlay.toggle(); return; }
+  if (key === 'k') { toast(STR.app.toast.pointer[pointer.toggle({ shift: e.shiftKey })]); return; }
   switch (key) {
     case ' ':
       e.preventDefault();

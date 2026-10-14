@@ -64,6 +64,7 @@ export const STR = {
       turbine: 'Turbin: Scene 5 (milestone M5)',
       savedReset: 'Pengaturan tersimpan dihapus; scene awal kembali ke Scene 1',
       quality: (label) => `Quality: ${label}`,
+      pointer: { off: 'Laser pointer dan spotlight dimatikan', laser: 'Laser pointer aktif (K atau Esc untuk mematikan)', spotlight: 'Spotlight aktif (Shift+K atau Esc untuk mematikan)' },
       bloom: (label) => `Bloom: ${label}`,
     },
     qualityFlag: 'Quality reduced (Auto)',

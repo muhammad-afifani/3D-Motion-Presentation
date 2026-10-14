@@ -120,6 +120,6 @@ Catatan: Safari membutuhkan versi dengan WebGL2 (Safari 15+); di mode privat Saf
 
 ## Pintasan saat presentasi
 
-`→`/`←` pindah scene · `Spasi` Play/Pause · `F` Freeze · `R` Reset · `P` mode presenter · `S` snapshot PNG · `Q` Quality · `B` Bloom (semua scene) · `Shift+D` overlay debug · `1`–`4` pilih mesin/siklus · `L` label 3D (Scene 1) · `I` Ideal/Real (Scene 2) · `W` replay waterfall (Scene 2) · `C` panel Calibration (Scene 4, 6; tombol Collapse melipatnya ke samping) · `1`/`2` strategi IGV / Fuel-only (Scene 6) · `1`/`2`/`3` panel A/B/C (Scene 9) · `E` edit opsi (Scene 11) · `H` panel asumsi + basis O₂/volume + Reset saved settings (semua scene)
+`→`/`←` pindah scene · `Spasi` Play/Pause · `F` Freeze · `R` Reset · `P` mode presenter · `S` snapshot PNG · `Q` Quality · `B` Bloom (semua scene) · `K` laser pointer · `Shift+K` spotlight (`Esc` mematikan) · `Shift+D` overlay debug · `1`–`4` pilih mesin/siklus · `L` label 3D (Scene 1) · `I` Ideal/Real (Scene 2) · `W` replay waterfall (Scene 2) · `C` panel Calibration (Scene 4, 6; tombol Collapse melipatnya ke samping) · `1`/`2` strategi IGV / Fuel-only (Scene 6) · `1`/`2`/`3` panel A/B/C (Scene 9) · `E` edit opsi (Scene 11) · `H` panel asumsi + basis O₂/volume + Reset saved settings (semua scene)
 
 **Animation speed** (0,1×–2×, 1× = 20 rpm visual) adalah satu kontrol bersama di semua scene beranimasi (Scene 1–8); hanya kecepatan tampilan, bukan putaran mesin di model.

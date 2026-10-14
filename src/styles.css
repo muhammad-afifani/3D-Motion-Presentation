@@ -471,3 +471,12 @@ body.pres-page { display: block; height: auto; min-height: 100vh; overflow: auto
 #app { transition: opacity 200ms ease-out; }
 #app.is-fading { opacity: 0; transition: opacity 150ms ease-in; }
 @media (prefers-reduced-motion: reduce) { #app, #app.is-fading { transition: none; } }
+
+/* laser pointer & spotlight (K / Shift+K, M8b) */
+.ptr { position: fixed; inset: 0; z-index: 70; pointer-events: none; --px: 50vw; --py: 50vh; }
+.ptr[hidden] { display: none; }
+.ptr__dot { display: none; position: absolute; left: var(--px); top: var(--py); width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%;
+  background: radial-gradient(circle, #fff 0 18%, #ff2a2a 35%, rgba(255, 42, 42, 0.35) 62%, transparent 72%); box-shadow: 0 0 18px 6px rgba(255, 42, 42, 0.55); }
+.ptr--laser .ptr__dot { display: block; }
+.ptr--spot { background: radial-gradient(circle at var(--px) var(--py), transparent 0 150px, rgba(0, 0, 0, 0.72) 210px); }
+body.is-laser, body.is-laser * { cursor: none !important; }
