@@ -6,19 +6,20 @@ import './styles.css';
 import { mountModelBadge } from './ui/modelBadge.js';
 import { installTooltips } from './ui/tooltip.js';
 import { STR } from './ui/strings.js';
-import { createStore, defaultState, resetPatch, engineSwitchPatch, togglePlayPatch, toggleFreezePatch, cycleInitialState, flameInitialState } from './state/store.js';
+import { createStore, defaultState, resetPatch, engineSwitchPatch, togglePlayPatch, toggleFreezePatch, cycleInitialState, flameInitialState, gtInitialState } from './state/store.js';
 
 const SCENES = [
   { id: 'piston', number: 1, load: () => import('./scenes/piston.js') },
   { id: 'cycles', number: 2, load: () => import('./scenes/cycles.js') },
   { id: 'combustion', number: 3, load: () => import('./scenes/combustion.js') },
+  { id: 'turbine', number: 5, load: () => import('./scenes/turbine.js') },
 ];
 
 document.querySelector('.brand').textContent = STR.app.brand;
 mountModelBadge(document.getElementById('model-badge'));
 installTooltips();
 
-const store = createStore({ ...defaultState('diesel'), ...cycleInitialState(), ...flameInitialState() });
+const store = createStore({ ...defaultState('diesel'), ...cycleInitialState(), ...flameInitialState(), ...gtInitialState() });
 const app = document.getElementById('app');
 const toastEl = document.getElementById('toast');
 let toastTimer = 0;

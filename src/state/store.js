@@ -2,7 +2,7 @@
  * store.js — store reaktif kecil, sumber kebenaran tunggal untuk parameter UI.
  * Alur: UI control → store.set → derive() → frame → { rig 3D, chart, HUD }.
  */
-import { ENGINES, RPM_VISUAL, CYCLES, FLAME_MODES } from '../model/presets.js';
+import { ENGINES, RPM_VISUAL, CYCLES, FLAME_MODES, GAS_TURBINES } from '../model/presets.js';
 
 /**
  * @typedef {Object} AppState
@@ -148,3 +148,18 @@ export function tickWindowPatch(s, dt, lo, hi) {
 const BLOOM_ORDER = ['auto', 'on', 'off'];
 /** Patch tombol B: Auto → Nyala → Mati → Auto. */
 export const bloomCyclePatch = (s) => ({ fBloom: BLOOM_ORDER[(BLOOM_ORDER.indexOf(s.fBloom) + 1) % BLOOM_ORDER.length] });
+
+// ── Scene 5 (turbin gas) ──
+
+/** Default parameter turbin gas per konfigurasi (nilai desain dari presets = default thermo.js). */
+export function gtDefaults(cfg = 'generator') {
+  const d = GAS_TURBINES[cfg].design;
+  return {
+    gCfg: cfg, gRp: d.rp, gT3: d.T3, gEtaC: d.etaC,
+    gEtaT: d.etaT ?? GAS_TURBINES.generator.design.etaT,
+    gEtaGG: d.etaGG ?? GAS_TURBINES.compressorDrive.design.etaGG,
+    gEtaPT: d.etaPT ?? GAS_TURBINES.compressorDrive.design.etaPT,
+  };
+}
+/** State awal Scene 5 (ambient ISO 15 °C). */
+export const gtInitialState = () => ({ ...gtDefaults('generator'), gTamb: 15 });

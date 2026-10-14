@@ -46,16 +46,22 @@ function procRole(type, i, n) {
   return type === 'isochoric' || type === 'isobaric' ? 'heat' : 'expansion';
 }
 
-/** cycle.sample() → polyline per proses dengan array v, P, T, s. */
-function procsFromCycle(cycle, n = SAMPLE_N) {
+/**
+ * cycle.sample() → polyline per proses dengan array v, P, T, s.
+ * `roles` opsional: peran eksplisit per proses (mis. combustor real bertipe 'polytropic' = 'heat').
+ */
+export function procsFromCycle(cycle, n = SAMPLE_N, roles = null) {
   const sampled = cycle.sample(n);
   return sampled.map((p, i) => {
     const m = p.pts.length;
     const v = new Float64Array(m), P = new Float64Array(m), T = new Float64Array(m), s = new Float64Array(m);
     p.pts.forEach((q, j) => { v[j] = q.v; P[j] = q.P; T[j] = q.T; s[j] = q.s; });
-    return { type: p.type, role: procRole(p.type, i, sampled.length), v, P, T, s };
+    return { type: p.type, role: roles?.[i] ?? procRole(p.type, i, sampled.length), v, P, T, s };
   });
 }
+
+/** Peran proses Brayton real (combustor ΔP bertipe 'polytropic' tetap = pemanasan). */
+export const BRAYTON_REAL_ROLES = ['compression', 'heat', 'expansion', 'rejection'];
 
 const stateList = (cycle) => cycle.states.map((st, i) => ({ label: String(i + 1), T: st.T, P: st.P, v: st.v, s: st.s }));
 
@@ -87,7 +93,7 @@ function idealPack(s, init, tag) {
 function braytonRealPack(s) {
   return cached(`br|${s.cRpB}|${s.cT3}`, () => {
     const cycle = braytonReal({ rp: s.cRpB, T3: s.cT3 });
-    return { cycle, procs: procsFromCycle(cycle), states: stateList(cycle) };
+    return { cycle, procs: procsFromCycle(cycle, SAMPLE_N, BRAYTON_REAL_ROLES), states: stateList(cycle) };
   });
 }
 
@@ -157,9 +163,9 @@ export function idealPistonPoint(procs, states, theta, geo) {
   return { proc: -1, j: 0, u: 0, v: st.v, P: st.P, T: st.T, s: st.s, stroke: 'exchange' };
 }
 
-/** Brayton: θ −360…360 dipetakan ke 4 proses (180° per proses), titik di sepanjang sampel proses. */
+/** Siklus turbin: θ −360…360 dibagi rata ke semua proses (4 proses → 180° per proses), titik di sampel proses. */
 export function braytonPoint(procs, theta) {
-  const u = clamp((theta + 360) / 180, 0, 3.999999);
+  const u = clamp(((theta + 360) / 720) * procs.length, 0, procs.length - 1e-6);
   const i = Math.floor(u), t = u - i;
   const pr = procs[i];
   const f = t * (pr.v.length - 1), j = Math.min(pr.v.length - 2, Math.floor(f));

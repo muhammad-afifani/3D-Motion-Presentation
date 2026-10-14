@@ -325,6 +325,68 @@ export function twinShaftForLoad(design, loadFrac, { t3Sched = 0.75 } = {}) {
   return { ...res, loadFrac, designPower: d.power };
 }
 
+/**
+ * Suhu per tahap kompresor aksial (visual warna bilah): rasio tekanan antara π_i = rp^(i/n) dimasukkan
+ * ke rumus T₂ braytonReal/twinShaft → tahap terakhir TEPAT T₂. Return [{T, PR}] untuk i = 1..n.
+ */
+export function compressorStages(T1, rp, etaC, n, k = K_AIR) {
+  const x = (k - 1) / k, out = [];
+  for (let i = 1; i <= n; i++) {
+    const pr = Math.pow(rp, i / n);
+    out.push({ T: T1 * (1 + (Math.pow(pr, x) - 1) / etaC), PR: pr });
+  }
+  return out;
+}
+
+/**
+ * Suhu per tahap turbin (visual): rasio ekspansi antara ε_i = er^(i/n) dimasukkan ke rumus ekspansi
+ * T = Tin·(1 − η·(1 − ε^(−x))) → tahap terakhir TEPAT T₄ (braytonReal) / T₄₅, T₅ (twinShaft).
+ * er = rasio ekspansi total turbin tsb (P_in/P_out). Return [{T, ER}] untuk i = 1..n.
+ */
+export function turbineStages(Tin, er, etaT, n, k = K_GAS) {
+  const x = (k - 1) / k, out = [];
+  for (let i = 1; i <= n; i++) {
+    const e = Math.pow(er, i / n);
+    out.push({ T: Tin * (1 - etaT * (1 - Math.pow(e, -x))), ER: e });
+  }
+  return out;
+}
+
+/**
+ * Siklus twin-shaft (gas generator + free power turbine) di atas twinShaft(): state 1, 2, 3, 4.5, 5
+ * (T, P, v, s) dan jalur proses (sample) untuk T-s / P-v, plus derating ambient.
+ * Ambient: T1/P1 berubah, ṁ ∝ (P1/101325)·(288,15/T1) pada Ngg tetap (analog braytonDerated).
+ * Pada TambC = 15 dan altitude 0, nilai identik dengan twinShaft(design).
+ */
+export function twinShaftCycle(design = {}, { TambC = 15, altitude = 0 } = {}) {
+  const iso = twinShaft({ ...design, T1: 288.15, P1: 101325 });
+  const T1 = TambC + 273.15, P1 = pressureAtAltitude(altitude);
+  const mdotDesign = (design.mdotDesign ?? 1) * (P1 / 101325) * (288.15 / T1);
+  const r = twinShaft({ ...design, T1, P1, mdotDesign });
+  const dp = design.dpComb ?? 0.04, P2 = P1 * r.rp, P3 = P2 * (1 - dp), P45 = r.rpt * P1;
+  const xa = (K_AIR - 1) / K_AIR;
+  const s1 = mkState(T1, P1, 0);
+  const s2 = mkState(r.T2, P2, CP_AIR * Math.log(r.T2 / T1) - R_AIR * Math.log(r.rp));
+  const s3 = mkState(r.T3, P3, s2.s + CP_GAS * Math.log(r.T3 / r.T2) - R_AIR * Math.log(P3 / P2));
+  const s45 = mkState(r.T45, P45, s3.s + CP_GAS * Math.log(r.T45 / r.T3) - R_AIR * Math.log(P45 / P3));
+  const s5 = mkState(r.T5, P1, s45.s + CP_GAS * Math.log(r.T5 / r.T45) - R_AIR * Math.log(P1 / P45));
+  const cyc = buildCycle([s1, s2, s3, s45, s5], [
+    { name: '1→2 kompresi real', type: 'polytropic', from: 0, to: 1, props: { cp: CP_AIR } },
+    { name: '2→3 combustor (ΔP)', type: 'polytropic', from: 1, to: 2, props: { cp: CP_GAS } },
+    { name: '3→4.5 turbin gas generator', type: 'polytropic', from: 2, to: 3, props: { cp: CP_GAS } },
+    { name: '4.5→5 power turbine', type: 'polytropic', from: 3, to: 4, props: { cp: CP_GAS } },
+    { name: '5→1 exhaust', type: 'isobaric', from: 4, to: 0, props: { cp: CP_GAS } },
+  ], {});
+  const wc = CP_AIR * (r.T2 - T1);
+  return {
+    ...cyc, ...r, P1, P2, P3, P45, epsGG: P3 / P45, wc, wnet: r.wpt,
+    backWorkRatio: wc / (wc + r.wpt), // kerja kompresor / kerja turbin total (GG + PT)
+    derate: r.power / iso.power, isoPower: iso.power,
+    perDegC: TambC !== 15 ? (1 - r.power / iso.power) / (TambC - 15) : NaN,
+    params: { ...design, T1, P1, mdotDesign, xa },
+  };
+}
+
 // ─────────────────────── Kompresor gas (mechanical drive) ───────────────────────
 
 /** Head & daya politropik. Psuc, Pdis dalam Pa; Tsuc K; MW kg/kmol; mdot kg/s. */
