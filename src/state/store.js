@@ -228,3 +228,7 @@ export function compPressurePatch(s, { Psuc, Pdis }) {
   const ps = Math.min(s.cPsuc, Math.max(R.Psuc.min, round(Math.floor((Pdis / k) * 2) / 2, R.Psuc.step)));
   return { cPdis: Pdis, cPsuc: ps };
 }
+
+// ── Scene 8 (emisi gabungan) ──
+/** State awal Scene 8: methane slip (%) gas engine & turbin. */
+export const emisInitialState = () => ({ eSlip: 1 });

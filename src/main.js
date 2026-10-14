@@ -7,7 +7,7 @@ import { mountModelBadge } from './ui/modelBadge.js';
 import { installTooltips } from './ui/tooltip.js';
 import { createAssumptionsPanel } from './ui/assumptions.js';
 import { STR } from './ui/strings.js';
-import { createStore, defaultState, resetPatch, engineSwitchPatch, togglePlayPatch, toggleFreezePatch, cycleInitialState, flameInitialState, gtInitialState, noxInitialState, basisInitialState, calibInitialState, limitsInitialState, loadInitialState, compInitialState } from './state/store.js';
+import { createStore, defaultState, resetPatch, engineSwitchPatch, togglePlayPatch, toggleFreezePatch, cycleInitialState, flameInitialState, gtInitialState, noxInitialState, basisInitialState, calibInitialState, limitsInitialState, loadInitialState, compInitialState, emisInitialState } from './state/store.js';
 
 const SCENES = [
   { id: 'piston', number: 1, load: () => import('./scenes/piston.js') },
@@ -17,13 +17,14 @@ const SCENES = [
   { id: 'turbine', number: 5, load: () => import('./scenes/turbine.js') },
   { id: 'partload', number: 6, load: () => import('./scenes/partload.js') },
   { id: 'compressor', number: 7, load: () => import('./scenes/compressor.js') },
+  { id: 'emissions', number: 8, load: () => import('./scenes/emissions.js') },
 ];
 
 document.querySelector('.brand').textContent = STR.app.brand;
 mountModelBadge(document.getElementById('model-badge'));
 installTooltips();
 
-const store = createStore({ ...defaultState('diesel'), ...cycleInitialState(), ...flameInitialState(), ...noxInitialState(), ...gtInitialState(), ...basisInitialState(), ...calibInitialState(), ...limitsInitialState(), ...loadInitialState(), ...compInitialState() });
+const store = createStore({ ...defaultState('diesel'), ...cycleInitialState(), ...flameInitialState(), ...noxInitialState(), ...gtInitialState(), ...basisInitialState(), ...calibInitialState(), ...limitsInitialState(), ...loadInitialState(), ...compInitialState(), ...emisInitialState() });
 const assumptions = createAssumptionsPanel(store);
 const app = document.getElementById('app');
 const toastEl = document.getElementById('toast');

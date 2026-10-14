@@ -25,6 +25,8 @@ export const CHART_LEVELS = [
   { scene: 6, chart: 's6aux', levels: ['semiEmpirical'] },
   { scene: 7, chart: 's7hq', levels: ['real', 'ideal'] },
   { scene: 7, chart: 's7pn', levels: ['ideal'] },
+  { scene: 8, chart: 's8co2', levels: ['semiEmpirical'] },
+  { scene: 8, chart: 's8nox', levels: ['semiEmpirical'] },
 ];
 
 let flameRows = null;

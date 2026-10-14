@@ -7,11 +7,15 @@ import { fmt } from '../ui/format.js';
 const rgb = (c) => (typeof c === 'string' ? c : `rgb(${c.map((v) => Math.round(v * 255)).join(',')})`);
 
 /** @param {HTMLElement} container */
-export function createBarChart(container, { title, modelLevel = 'semiEmpirical', unit = '', xLabel = '', digits = 0, labelWidth = 190 } = {}) {
-  const base = createChartBase(container, { title, modelLevel, pad: { l: labelWidth, r: 70, t: 54, b: 40 } });
+export function createBarChart(container, { title, modelLevel = 'semiEmpirical', unit = '', xLabel = '', digits = 0, labelWidth = 190, indicative = false, padTop = 54 } = {}) {
+  const base = createChartBase(container, { title, modelLevel, pad: { l: labelWidth, r: 70, t: padTop, b: 40 }, indicative });
   let key = '';
   return {
-    /** @param {{label:string, value:number, color:number[]|string, active?:boolean, sub?:string}[]} rows @param {{min?:number, max?:number, caption?:string}} [o] */
+    /**
+     * @param {{label:string, value:number, color:number[]|string, active?:boolean, sub?:string, stack?:{value:number,color:string}[]}[]} rows
+     *   stack (opsional) = segmen bertumpuk; jumlahnya = value (mis. CO₂ + kontribusi CH₄ = CO₂e)
+     * @param {{min?:number, max?:number, caption?:string}} [o]
+     */
     update(rows, o = {}) {
       const k = JSON.stringify(rows) + base.box.w + base.box.h;
       if (o.caption != null) base.setCaption(o.caption);
@@ -28,9 +32,14 @@ export function createBarChart(container, { title, modelLevel = 'semiEmpirical',
       const bh = (sy(1) - sy(0)) * 0.56;
       rows.forEach((r, i) => {
         const yc = sy(i + 0.5);
-        ctx.fillStyle = rgb(r.color);
         ctx.globalAlpha = r.active ? 1 : 0.55;
-        ctx.fillRect(sx(vmin), yc - bh / 2, sx(r.value) - sx(vmin), bh);
+        if (r.stack) {
+          let x0 = vmin;
+          for (const seg of r.stack) { ctx.fillStyle = rgb(seg.color); ctx.fillRect(sx(x0), yc - bh / 2, sx(x0 + seg.value) - sx(x0), bh); x0 += seg.value; }
+        } else {
+          ctx.fillStyle = rgb(r.color);
+          ctx.fillRect(sx(vmin), yc - bh / 2, sx(r.value) - sx(vmin), bh);
+        }
         ctx.globalAlpha = 1;
         if (r.active) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(sx(vmin), yc - bh / 2, sx(r.value) - sx(vmin), bh); }
         ctx.fillStyle = '#e6ebf3'; ctx.font = `${r.active ? '700 ' : ''}${CHART_FONT}`; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
