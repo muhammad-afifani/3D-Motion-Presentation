@@ -147,7 +147,10 @@ export function createRenderer(container, { fov = 35, camPos = [1, 0.8, 1.6], ta
           composer.setSize(Math.max(1, container.clientWidth), Math.max(1, container.clientHeight));
         }
         composer.render();
-      } else renderer.render(scene, camera);
+      } else {
+        if (composer) { composer.dispose(); composer = null; } // bloom mati (kualitas/pengaturan): lepas render target
+        renderer.render(scene, camera);
+      }
     },
     get bloomOn() { return bloomOn(); },
     dispose() {

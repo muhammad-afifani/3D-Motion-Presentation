@@ -189,7 +189,7 @@ Kode warna spesies (konsisten di semua scene, aman buta warna): NOx = oranye, CO
 
 1. **Label tingkat model** di pojok tiap grafik: `Ideal` / `Real (component efficiency)` / `Semi-empirical` / `Site data`.
 2. Semua korelasi emisi berlabel **"indikatif"**. Panel asumsi (`H`) mencantumkan: rumus Zeldovich, konstanta, asumsi fuel split tetap, faktor kalibrasi (`ENGINE_NOX_CALIB`, kalibrasi DLN) beserta nilai tipikal literatur yang dipakai sebagai target.
-3. **Faktor kalibrasi tampil di HUD** bila ≠ 1. Presenter dapat memasukkan data CEMS/OEM (CSV `Tflame,NOx,CO` atau `load,NOx,CO`) → diubah menjadi `lookup1D` dan menggantikan kurva model (badge berubah menjadi "Site data").
+3. **Faktor kalibrasi tampil di HUD** bila ≠ 1. *Pengembangan lanjutan (belum diimplementasikan):* presenter memasukkan data CEMS/OEM (CSV `Tflame,NOx,CO` atau `load,NOx,CO`) → diubah menjadi `lookup1D` dan menggantikan kurva model (badge berubah menjadi "Site data"). Saat ini data unit hanya bisa dipakai lewat panel Calibration (target NOx engine dan DLN); label "Site data" belum dipakai di grafik mana pun.
 4. Tidak ada klaim yang menyebut vendor, merek, atau tipe turbin tertentu.
 5. Basis koreksi O₂ dan basis volume (0 °C / 25 °C) selalu terlihat di samping angka mg/Nm³ atau ppm.
 
