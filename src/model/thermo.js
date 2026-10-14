@@ -570,6 +570,27 @@ export function noxThermal({ T, P, phi, fuel = 'gas', tau = 0.012, calib = 1, xO
   return { xNO, xEq, k0, ppmWet: xNO * 1e6 };
 }
 
+/**
+ * Laju awal pembentukan NO termal (Zeldovich, 1/s per mol campuran), calib = 1:
+ * d[NO]/dt ≈ 6×10¹⁶/√T · exp(−69.090/T) · [O₂]^½ [N₂]. Untuk grafik Arrhenius Scene 4.
+ */
+export function zeldovichRate({ T, P = 15e5, phi = 0.5, fuel = 'gas', xO2Floor = 0.01 }) {
+  const c = burnedComposition(phi, fuel);
+  return zeldovichK0(T, P, Math.max(c.xO2, xO2Floor), c.xN2);
+}
+/**
+ * Rasio laju Zeldovich pada T+dT terhadap T ("+100 K ≈ ×N"). Hanya bergantung pada T
+ * (P dan komposisi saling menghapus), jadi berlaku sama untuk engine dan turbin.
+ */
+export const noxRateRatio = (T, dT = 100, opts = {}) => zeldovichRate({ ...opts, T: T + dT }) / zeldovichRate({ ...opts, T });
+/** Kurva Arrhenius: laju relatif terhadap Tref (Tref → 1) pada Tmin…Tmax. */
+export function zeldovichCurve({ Tmin = 1600, Tmax = 3000, n = 70, Tref = 1800 } = {}) {
+  const r0 = zeldovichRate({ T: Tref });
+  const out = [];
+  for (let i = 0; i <= n; i++) { const T = Tmin + ((Tmax - Tmin) * i) / n; out.push({ T, rel: zeldovichRate({ T }) / r0 }); }
+  return out;
+}
+
 /** fraksi mol basah → ppmvd terkoreksi O2 acuan (default 15%). comp = burnedComposition(). */
 export function toDryRef(xWet, comp, refO2 = 15) {
   const dry = xWet / (1 - comp.xH2O);
@@ -618,6 +639,20 @@ export function loadSweep(design, loads = [1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4], { m
   });
 }
 
+/**
+ * Faktor kalibrasi DLN: NOx di titik desain braytonReal(design) (φ zona premix = phiPzDesign) = targetPpm
+ * (ppmvd @refO2). Memakai calibrateTo + satu koreksi (tanh membuat sedikit tak linear).
+ * Default 15 ppm @15% O₂ = nilai tipikal literatur, BUKAN data unit.
+ */
+export function calibrateDLN({ targetPpm = 15, design = {}, phiPzDesign = 0.5, tauMs = 12, refO2 = 15 } = {}) {
+  const d = braytonReal(design);
+  const nox = (c) => dlnFromResult(d, d, { phiPzDesign, tauMs, refO2, calib: c }).NOx_ppm;
+  let calib = calibrateTo(nox, targetPpm);
+  calib *= calibrateTo((k) => nox(calib * k), targetPpm);
+  const e = dlnFromResult(d, d, { phiPzDesign, tauMs, refO2, calib });
+  return { calib, NOx_ppm: e.NOx_ppm, Tflame: e.Tflame, T2: d.T2, P3: d.P3 ?? d.states[2].P, targetPpm, refO2 };
+}
+
 /** Sapuan suhu nyala → NOx & CO (slide trade-off). */
 export function noxCoTradeoff({ T2 = 700, P3 = 15e5, tauMs = 12, fuel = 'gas', calib = 1, Tmin = 1500, Tmax = 2000, n = 26 } = {}) {
   const out = [];
@@ -636,27 +671,33 @@ function engineNOx({ th, P, step, N, Pivc, Tivc, phi, phiLocal, fuel, mFuel, mas
   const xO2 = Math.max(comp.xO2, 0.01), xN2 = comp.xN2, n = th.length - 1;
   const dt = step / (6 * N);
   let nNO = 0, TbMax = 0;
+  // Jejak per θ (tambahan visual, tidak mengubah hasil): TbTrace[i] = suhu tertinggi di antara elemen
+  // zona terbakar pada θ[i] (0 = belum ada zona terbakar); noTrace[i] = NO kumulatif (kmol) pada θ[i].
+  const TbTrace = new Float64Array(n + 1), noTrace = new Float64Array(n + 1);
   let prev = burn(th[0]).x;
   for (let j = 0; j < n; j++) {
     const xNow = burn(th[j + 1]).x, w = xNow - prev; prev = xNow;
     if (w < 1e-7) continue;
     const Tu = Tivc * Math.pow(P[j] / Pivc, 0.2647);                      // campuran tak terbakar (k≈1,36)
     const Tb0 = flameTemperature(phiLocal, Tu, fuel);
+    const mBurned = w * mFuel * (1 + fu.AFRst / phiLocal);                 // kg
     let x = 0;
     for (let i = j; i < n; i++) {
       const Tb = Tb0 * Math.pow(P[i] / P[j], 0.219);                       // kompresi/ekspansi gas terbakar (k≈1,28)
       if (Tb > TbMax) TbMax = Tb;
+      if (Tb > TbTrace[i]) TbTrace[i] = Tb;
       const xe = kpNO(Tb) * Math.sqrt(xO2 * xN2);
       if (x < xe) { x += calib * zeldovichK0(Tb, P[i], xO2, xN2) * (1 - (x / xe) ** 2) * dt; if (x > xe) x = xe; }
+      noTrace[i + 1] += (x * mBurned) / comp.MW;
     }
-    const mBurned = w * mFuel * (1 + fu.AFRst / phiLocal);                 // kg
     nNO += (x * mBurned) / comp.MW;                                        // kmol-ish (kg / (kg/kmol))
   }
+  TbTrace[n] = TbTrace[n - 1];
   const compExh = burnedComposition(phi, fuel);
   const nExh = (mass + mFuel) / compExh.MW;
   const xExhWet = nNO / nExh;
   const NOx_ppmvd_ref = toDryRef(xExhWet, compExh, refO2);
-  return { TburnedMax: TbMax, NO_ppmWet: xExhWet * 1e6, NOx_ppmvd_ref, NOx_mgNm3_ref: ppmToMgNm3(NOx_ppmvd_ref, MW.NO2), nNOkmol: nNO };
+  return { TburnedMax: TbMax, NO_ppmWet: xExhWet * 1e6, NOx_ppmvd_ref, NOx_mgNm3_ref: ppmToMgNm3(NOx_ppmvd_ref, MW.NO2), nNOkmol: nNO, TbTrace, noTrace };
 }
 
 /**
@@ -696,6 +737,21 @@ export function retardSweep(kind = 'diesel', thetas = [-8, -6, -4, -2, 0, 2, 4],
     const s = cylinderSim({ ...ENGINE_PRESETS[kind], theta0: t0, ...over });
     return { theta0: t0, Pmax_bar: s.Pmax / 1e5, TburnedMax: s.TburnedMax, NOx_ppm: s.NOx_ppmvd_ref, NOx_gkWh: s.NOx_gkWh, etaBrake: s.etaBrake, bsfc: s.bsfc, co2_gkWh: s.co2_gkWh };
   });
+}
+
+/**
+ * Faktor kalibrasi NOx engine agar preset (+ over) menghasilkan targetGkWh (g/kWh).
+ * NOx TIDAK linear terhadap calib (dibatasi kesetimbangan NO: calib 1 → 23,7 g/kWh diesel, bukan 63),
+ * jadi calibrateTo diulang (iterasi titik tetap) sampai |galat| < tol relatif.
+ */
+export function calibrateEngineNOx(kind = 'diesel', targetGkWh, over = {}, { calib0 = ENGINE_NOX_CALIB, maxIter = 12, tol = 1e-3 } = {}) {
+  const nox = (c) => cylinderSim({ ...ENGINE_PRESETS[kind], ...over, calib: c }).NOx_gkWh;
+  let calib = calib0, got = nox(calib), iter = 0;
+  while (Math.abs(got / targetGkWh - 1) > tol && iter < maxIter) {
+    calib *= calibrateTo((k) => (k === 1 ? got : nox(calib * k)), targetGkWh);
+    got = nox(calib); iter++;
+  }
+  return { calib, NOx_gkWh: got, iterations: iter, converged: Math.abs(got / targetGkWh - 1) <= tol };
 }
 
 /**

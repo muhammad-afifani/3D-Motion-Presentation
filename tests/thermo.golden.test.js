@@ -5,6 +5,8 @@ import {
   cylinderSim, ENGINE_PRESETS, noxThermal, twinShaft, gasCompressor, selfTest,
   lossWaterfall, simStates, flameTemperature, qinPerKgAir, phiFromQinPerKgAir,
   compressorStages, turbineStages, twinShaftCycle,
+  zeldovichRate, noxRateRatio, zeldovichCurve, calibrateDLN, calibrateEngineNOx, ENGINE_NOX_CALIB,
+  retardSweep, noxCoTradeoff,
 } from '../src/model/thermo.js';
 
 /** |got − want| ≤ tol */
@@ -157,6 +159,68 @@ describe('Turbin gas (Scene 5)', () => {
     expect(c.derate).toBe(1);
     const h = twinShaftCycle({}, { TambC: 35 });
     near(h.derate, 0.844, 0.005); near(h.perDegC * 100, 0.78, 0.01);
+  });
+});
+
+describe('NOx (Scene 4)', () => {
+  const sd = cylinderSim(ENGINE_PRESETS.diesel);
+  const sg = cylinderSim(ENGINE_PRESETS.gas);
+
+  it('jejak TbTrace/noTrace tidak mengubah golden lama (10,7 / 2,6 g/kWh; 116 / 109 bar; η 0,441 / 0,423)', () => {
+    near(sd.NOx_gkWh, 10.7, 0.5); near(sg.NOx_gkWh, 2.6, 0.2);
+    near(sd.Pmax / 1e5, 116, 3); near(sg.Pmax / 1e5, 109, 3);
+    near(sd.etaBrake, 0.441, 0.005); near(sg.etaBrake, 0.423, 0.005);
+  });
+  it('max(TbTrace) = TburnedMax; noTrace monoton, ujungnya = nNOkmol', () => {
+    for (const s of [sd, sg]) {
+      expect(s.TbTrace.length).toBe(s.th.length);
+      near(Math.max(...s.TbTrace), s.TburnedMax, 1e-9);
+      near(s.noTrace[s.noTrace.length - 1] / s.nNOkmol, 1, 1e-12);
+      for (let i = 1; i < s.noTrace.length; i++) expect(s.noTrace[i]).toBeGreaterThanOrEqual(s.noTrace[i - 1] - 1e-30);
+      expect(s.noTrace[0]).toBe(0);
+    }
+  });
+  it('TbTrace = 0 sebelum pembakaran mulai (θ < θ0)', () => {
+    const i = sd.th.findIndex((t) => t >= ENGINE_PRESETS.diesel.theta0 - 1);
+    expect(sd.TbTrace[i - 1]).toBe(0);
+  });
+  it('zeldovichRate & noxRateRatio: 1900/1800 K = 7,1 (= rasio k0 noxThermal)', () => {
+    near(noxRateRatio(1800), 7.1, 0.2);
+    near(noxRateRatio(1800), noxThermal({ T: 1900, P: 15e5, phi: 0.5 }).k0 / noxThermal({ T: 1800, P: 15e5, phi: 0.5 }).k0, 1e-9);
+    // rasio hanya bergantung pada T (P dan φ saling menghapus)
+    near(noxRateRatio(1800, 100, { P: 120e5, phi: 0.95, fuel: 'diesel' }), noxRateRatio(1800), 1e-9);
+    expect(noxRateRatio(2700)).toBeLessThan(noxRateRatio(1800));
+    expect(zeldovichRate({ T: 2000 })).toBeGreaterThan(zeldovichRate({ T: 1900 }));
+  });
+  it('zeldovichCurve: rel = 1 pada Tref, naik monoton', () => {
+    const c = zeldovichCurve({ Tmin: 1600, Tmax: 3000, n: 14, Tref: 1800 });
+    near(c[2].rel, 1, 1e-12);
+    for (let i = 1; i < c.length; i++) expect(c[i].rel).toBeGreaterThan(c[i - 1].rel);
+  });
+  it('calibrateDLN: 15 ppm di desain (T flame 1830 K); 1800 K ≈ 8,5 ppm, 1900 K ≈ 52 ppm', () => {
+    const k = calibrateDLN();
+    near(k.NOx_ppm, 15, 0.01);
+    near(k.Tflame, 1830, 1);
+    near(k.calib, 14.33, 0.05);
+    const [a, b] = noxCoTradeoff({ T2: k.T2, P3: k.P3, calib: k.calib, Tmin: 1800, Tmax: 1900, n: 1 });
+    near(a.NOx_ppm, 8.5, 0.1);
+    near(b.NOx_ppm, 52.2, 0.5);
+  });
+  it('calibrateEngineNOx: target = NOx preset → ENGINE_NOX_CALIB; target lain tercapai', () => {
+    near(calibrateEngineNOx('diesel', sd.NOx_gkWh).calib, ENGINE_NOX_CALIB, 0.002);
+    near(calibrateEngineNOx('gas', sg.NOx_gkWh).calib, ENGINE_NOX_CALIB, 0.002);
+    const r = calibrateEngineNOx('diesel', 5);
+    expect(r.converged).toBe(true);
+    near(r.NOx_gkWh, 5, 0.01);
+    expect(r.calib).toBeLessThan(ENGINE_NOX_CALIB);
+  });
+  it('retardSweep diesel −4° → 0°: NOx −31%, CO₂ +3,0%; gas −14° → −6°: NOx 2,57 → 0,74', () => {
+    const [a, b] = retardSweep('diesel', [-4, 0]);
+    near((b.NOx_gkWh / a.NOx_gkWh - 1) * 100, -31, 1);
+    near((b.co2_gkWh / a.co2_gkWh - 1) * 100, 3.0, 0.2);
+    const [g0, g1] = retardSweep('gas', [-14, -6]);
+    near(g0.NOx_gkWh, 2.57, 0.05);
+    near(g1.NOx_gkWh, 0.74, 0.05);
   });
 });
 
