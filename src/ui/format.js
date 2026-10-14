@@ -30,3 +30,10 @@ export function sci(x, digits = 0) {
 const ESC = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' };
 /** Escape teks konten presenter sebelum disisipkan ke HTML. */
 export const escapeHtml = (t) => String(t).replace(/[&<>"]/g, (c) => ESC[c]);
+
+/** Jam timer presenter: 75 000 ms → "01:15"; ≥ 1 jam → "1:02:03". */
+export function clock(ms) {
+  const t = Math.max(0, Math.floor((ms ?? 0) / 1000)), h = Math.floor(t / 3600), m = Math.floor((t % 3600) / 60), s = t % 60;
+  const two = (x) => String(x).padStart(2, '0');
+  return h ? `${h}:${two(m)}:${two(s)}` : `${two(m)}:${two(s)}`;
+}

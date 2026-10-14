@@ -145,7 +145,10 @@ describe('build: dist/content identik dengan sumber (Pages & offline)', () => {
       } finally {
         if (prev === undefined) delete process.env.GITHUB_REPOSITORY; else process.env.GITHUB_REPOSITORY = prev;
       }
-      for (const f of ['controls.json', 'closing.json']) expect(readFileSync(join(out, 'content', f), 'utf8')).toBe(read(f));
+      for (const f of ['controls.json', 'closing.json', 'presenter.json']) expect(readFileSync(join(out, 'content', f), 'utf8')).toBe(read(f));
+      // jendela presenter (M8a): halaman kedua dengan base yang sama
+      const pres = readFileSync(join(out, 'presenter.html'), 'utf8');
+      expect(pres).toContain(`src="${c.base}assets/`);
       const html = readFileSync(join(out, 'index.html'), 'utf8');
       expect(html).toContain(`src="${c.base}assets/`);
       const js = readdirSync(join(out, 'assets')).filter((f) => f.endsWith('.js')).map((f) => readFileSync(join(out, 'assets', f), 'utf8')).join('\n');

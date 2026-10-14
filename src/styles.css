@@ -421,3 +421,34 @@ button:focus-visible, input:focus-visible, .hud__item:focus-visible { outline: 2
   .scene--flame { grid-template-columns: 1fr; grid-template-rows: 55vh 50vh auto 40vh auto; grid-template-areas: 'view' 'chart' 'controls' 'bars' 'hud'; }
   .scene--cycles { grid-template-columns: 1fr; grid-template-rows: 55vh 50vh 50vh auto 40vh auto; grid-template-areas: 'view' 'pv' 'ts' 'controls' 'wf' 'hud'; }
 }
+
+/* ── mode presenter (M8a): jendela presenter.html dan panel pengganti di halaman ── */
+.topbar__right { align-items: center; gap: 8px; }
+.topbar__tools { display: flex; gap: 8px; }
+body.pres-page { display: block; height: auto; min-height: 100vh; overflow: auto; }
+.pres-page #presenter { padding: 16px; height: auto; }
+.pres { display: grid; gap: 10px; color: var(--text); font-size: 15px; }
+.pres h3 { margin: 6px 0 4px; font-size: 13px; color: var(--accent-cold); text-transform: none; }
+.pres__head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.pres__head-r { display: flex; gap: 8px; align-items: center; }
+.pres__eyebrow { font-size: 12px; color: var(--muted); }
+.pres__current { font-size: 20px; font-weight: 700; }
+.pres__grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(260px, 1fr); gap: 16px; }
+.pres__key { font-size: 19px; font-weight: 600; line-height: 1.35; margin: 0; }
+.pres__notes ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; font-size: 17px; line-height: 1.45; }
+.pres-dim { color: var(--muted); font-size: 13px; margin: 4px 0; }
+.pres-timer { display: grid; gap: 4px; font-size: 14px; }
+.pres-timer b { font-size: 30px; margin: 0 8px; }
+.pres-timer b.is-over { color: var(--accent-hot); }
+.pres__btns { display: flex; gap: 8px; flex-wrap: wrap; margin: 6px 0; }
+.pres__btns .btn { min-height: 44px; }
+.pres-next { padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; }
+.pres-next__title { font-weight: 700; }
+.pres-next__key { margin: 4px 0; }
+@media (max-width: 760px) { .pres__grid { grid-template-columns: 1fr; } }
+.pres-host {
+  position: fixed; right: 16px; bottom: 16px; z-index: 40; width: min(560px, calc(100vw - 32px)); max-height: calc(100vh - 110px); overflow: auto;
+  padding: 14px 16px; border-radius: 14px; background: rgba(11, 15, 22, 0.97); border: 1px solid var(--accent-cold); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+.pres--inpage .pres__grid { grid-template-columns: 1fr; }
+.pres--inpage .pres__notes ul { font-size: 15px; }
