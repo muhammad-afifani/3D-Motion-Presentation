@@ -36,13 +36,24 @@ export const waterfallKey = realSimKey;
 
 // ── kurva ──
 
+/**
+ * Peran proses untuk pewarnaan: kompresi (pertama), pelepasan panas (terakhir), pemanasan
+ * (isokorik/isobarik di tengah), ekspansi (sisanya). Teks nama proses ada di ui/strings.js.
+ */
+function procRole(type, i, n) {
+  if (i === 0) return 'compression';
+  if (i === n - 1) return 'rejection';
+  return type === 'isochoric' || type === 'isobaric' ? 'heat' : 'expansion';
+}
+
 /** cycle.sample() → polyline per proses dengan array v, P, T, s. */
 function procsFromCycle(cycle, n = SAMPLE_N) {
-  return cycle.sample(n).map((p) => {
+  const sampled = cycle.sample(n);
+  return sampled.map((p, i) => {
     const m = p.pts.length;
     const v = new Float64Array(m), P = new Float64Array(m), T = new Float64Array(m), s = new Float64Array(m);
-    p.pts.forEach((q, i) => { v[i] = q.v; P[i] = q.P; T[i] = q.T; s[i] = q.s; });
-    return { name: p.name, type: p.type, v, P, T, s };
+    p.pts.forEach((q, j) => { v[j] = q.v; P[j] = q.P; T[j] = q.T; s[j] = q.s; });
+    return { type: p.type, role: procRole(p.type, i, sampled.length), v, P, T, s };
   });
 }
 
@@ -90,13 +101,13 @@ function realPistonPack(sim) {
   const iTheta0 = Math.max(0, sim.th.findIndex((t) => t >= sim.params.theta0));
   let iPmax = 0;
   for (let i = 0; i < n; i++) if (sim.P[i] > sim.P[iPmax]) iPmax = i;
-  const at = (i, label, note) => ({ label, note, T: sim.T[i], P: sim.P[i], v: v[i], s: s[i], theta: sim.th[i] });
+  const at = (i, label, noteKey) => ({ label, noteKey, T: sim.T[i], P: sim.P[i], v: v[i], s: s[i], theta: sim.th[i] });
   p = {
     procs: [
-      { name: 'Fase tertutup IVC→EVO (cylinderSim)', type: 'real', v, P: sim.P, T: sim.T, s },
-      { name: 'Pertukaran gas (tidak dimodelkan di diagram)', type: 'closing', v: Float64Array.of(v[n - 1], v[0]), P: Float64Array.of(sim.P[n - 1], sim.P[0]), T: Float64Array.of(sim.T[n - 1], sim.T[0]), s: Float64Array.of(s[n - 1], s[0]) },
+      { type: 'real', role: 'real', v, P: sim.P, T: sim.T, s },
+      { type: 'closing', role: 'closing', v: Float64Array.of(v[n - 1], v[0]), P: Float64Array.of(sim.P[n - 1], sim.P[0]), T: Float64Array.of(sim.T[n - 1], sim.T[0]), s: Float64Array.of(s[n - 1], s[0]) },
     ],
-    states: [at(0, '1', 'IVC'), at(iTheta0, '2', 'awal pembakaran θ₀'), at(iPmax, '3', 'Pmax'), at(n - 1, '4', 'EVO')],
+    states: [at(0, '1', 'ivc'), at(iTheta0, '2', 'soc'), at(iPmax, '3', 'pmax'), at(n - 1, '4', 'evo')],
     v, s,
   };
   realCache.set(sim, p);
@@ -192,8 +203,9 @@ export function deriveCycles(s, { sim = null, waterfall = null } = {}) {
   const engine = engineOf(kind);
   const notes = [];
   const knockMax = ENGINES.gas.ranges.r.max;
-  if (kind === 'otto' && s.cR > knockMax && mode === 'ideal') notes.push(`r > ${knockMax.toLocaleString('id-ID')} tidak realistis untuk gas engine (knocking, tidak dimodelkan).`);
-  if (kind === 'otto' && mode === 'real') notes.push(`r gas engine nyata dibatasi ≤ ${knockMax.toLocaleString('id-ID')} (knocking, tidak dimodelkan).`);
+  // catatan sebagai kunci + parameter; teks di ui/strings.js (scene2.notes)
+  if (kind === 'otto' && s.cR > knockMax && mode === 'ideal') notes.push({ key: 'knockIdeal', rMax: knockMax });
+  if (kind === 'otto' && mode === 'real') notes.push({ key: 'knockReal', rMax: knockMax });
 
   const out = { kind, mode, theta, isPiston, engine, notes, tempScale: TEMP_SCALE };
   const ideal = idealPack(s, {}, 'ideal');
@@ -203,9 +215,10 @@ export function deriveCycles(s, { sim = null, waterfall = null } = {}) {
     const main = real ?? ideal;
     const pt = braytonPoint(main.procs, theta);
     Object.assign(out, {
-      modelLevel: real ? 'Real (efisiensi komponen)' : 'Ideal',
+      modelLevel: real ? 'real' : 'ideal',
+      procSet: real ? 'braytonReal' : 'brayton',
       procs: main.procs, states: main.states, ghost: real ? ideal.procs : null,
-      point: { ...pt, visible: true, label: main.procs[pt.proc].name },
+      point: { ...pt, visible: true, labelKey: 'proc' },
       rig: null,
       schematic: { proc: pt.proc, t: pt.t, T: pt.T, gasRGB: tempToRGB(pt.T, TEMP_SCALE.min, TEMP_SCALE.max),
         stations: main.states.map((st) => ({ label: st.label, T: st.T, rgb: tempToRGB(st.T, TEMP_SCALE.min, TEMP_SCALE.max) })) },
@@ -215,10 +228,10 @@ export function deriveCycles(s, { sim = null, waterfall = null } = {}) {
         T2: real?.cycle.T2 ?? ideal.states[1].T, T4: real?.cycle.T4 ?? ideal.states[3].T,
       },
       waterfall: [
-        { label: 'Brayton ideal', eta: ideal.cycle.eta, delta: 0 },
-        ...(real ? [{ label: 'Real: ηc, ηt, ΔP combustor, rugi mekanis', eta: real.cycle.eta, delta: real.cycle.eta - ideal.cycle.eta }] : []),
+        { key: 'braytonIdeal', eta: ideal.cycle.eta, delta: 0 },
+        ...(real ? [{ key: 'braytonReal', eta: real.cycle.eta, delta: real.cycle.eta - ideal.cycle.eta }] : []),
       ],
-      waterfallLevel: real ? 'Real (efisiensi komponen)' : 'Ideal',
+      waterfallLevel: real ? 'real' : 'ideal',
     });
     return out;
   }
@@ -242,9 +255,10 @@ export function deriveCycles(s, { sim = null, waterfall = null } = {}) {
       geom: { bore: geo.bore, stroke: geo.stroke, conrod: geo.conrod, a: geo.a, hc, theta0: 0 },
     };
     Object.assign(out, {
-      modelLevel: 'Ideal',
+      modelLevel: 'ideal',
+      procSet: kind,
       procs: ideal.procs, states: ideal.states, ghost: null,
-      point: { ...pt, visible: true, label: pt.stroke === 'exchange' ? 'Langkah buang/isap: tidak ada di siklus air-standard' : pr.name },
+      point: { ...pt, visible: true, labelKey: pt.stroke === 'exchange' ? 'exchangeIdeal' : 'proc' },
       eta: {
         ideal: ideal.cycle.eta, mep: ideal.cycle.mep, qin: ideal.cycle.qin,
         Tmax: Math.max(...ideal.states.map((x) => x.T)), Pmax: Math.max(...ideal.states.map((x) => x.P)),
@@ -259,11 +273,12 @@ export function deriveCycles(s, { sim = null, waterfall = null } = {}) {
     const ref = ghost ?? ideal; // Dual: pembanding = ideal pada rp, rc slider (q_in tidak disamakan)
     const pt = realPistonPoint(sim, pack, theta);
     out.rig = deriveEngine({ theta, rpmVisual: s.rpmVisual, engine }, sim);
-    if (kind === 'dual') notes.push('Pembanding ideal Dual memakai rp dan rc slider (q_in tidak disamakan dengan pembakaran real).');
+    if (kind === 'dual') notes.push({ key: 'dualRef' });
     Object.assign(out, {
-      modelLevel: 'Semi-empiris',
+      modelLevel: 'semiEmpirical',
+      procSet: 'real',
       procs: pack.procs, states: pack.states, ghost: ghost ? ghost.procs : null,
-      point: pt ? { ...pt, visible: true, label: 'Fase tertutup (cylinderSim)' } : { visible: false, label: 'Pertukaran gas: di luar diagram fase tertutup' },
+      point: pt ? { ...pt, visible: true, labelKey: 'closedReal' } : { visible: false, labelKey: 'exchangeReal' },
       eta: {
         ideal: ref.cycle.eta, ind: sim.etaInd, brake: sim.etaBrake, gap: ref.cycle.eta - sim.etaBrake, gapInd: ref.cycle.eta - sim.etaInd,
         Pmax: sim.Pmax, Tmax: sim.Tmax, qin, rcGhost: ghost && kind === 'diesel' ? ghost.cycle.rc : null, rReal: q.r,
@@ -271,7 +286,7 @@ export function deriveCycles(s, { sim = null, waterfall = null } = {}) {
     });
   }
   out.waterfall = waterfall;
-  out.waterfallLevel = 'Semi-empiris';
+  out.waterfallLevel = 'semiEmpirical';
   out.waterfallEngine = engine;
   out.rEngine = rEngine(s);
   return out;

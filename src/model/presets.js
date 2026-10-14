@@ -2,20 +2,18 @@
  * presets.js — preset unit + rentang slider.
  *
  * Nilai parameter engine diambil langsung dari ENGINE_PRESETS di thermo.js (tidak disalin),
- * supaya hanya ada satu sumber angka. File ini hanya menambah label dan rentang kontrol.
+ * supaya hanya ada satu sumber angka. File ini hanya menambah rentang kontrol; label tampilan ada di ui/strings.js.
  */
 import { ENGINE_PRESETS } from './thermo.js';
 
 /**
  * @typedef {{min:number, max:number, step:number}} Range
- * @typedef {{label:string, cycle:string, params:object, ranges:Record<string, Range>}} EnginePreset
+ * @typedef {{params:object, ranges:Record<string, Range>}} EnginePreset
  */
 
 /** @type {Record<'diesel'|'gas', EnginePreset>} */
 export const ENGINES = {
   diesel: {
-    label: 'Diesel',
-    cycle: 'Diesel / Dual (penyalaan kompresi)',
     params: ENGINE_PRESETS.diesel,
     ranges: {
       r: { min: 12, max: 22, step: 0.5 },
@@ -24,8 +22,6 @@ export const ENGINES = {
     },
   },
   gas: {
-    label: 'Gas engine',
-    cycle: 'Otto (busi, lean-burn)',
     params: ENGINE_PRESETS.gas,
     ranges: {
       r: { min: 8, max: 14, step: 0.5 },
@@ -43,8 +39,8 @@ export const RPM_VISUAL = { min: 2, max: 120, step: 1, default: 20 };
  * (braytonReal / twinShaft). Dipakai mulai M5.
  */
 export const TURBINE_PRESETS = {
-  gtGen: { label: 'Turbin generator (single-shaft)', design: {} },
-  gtComp: { label: 'Turbin kompresor (twin-shaft)', design: {} },
+  gtGen: { design: {} }, // turbin generator (single-shaft)
+  gtComp: { design: {} }, // turbin kompresor (twin-shaft)
 };
 
 /**
@@ -53,8 +49,23 @@ export const TURBINE_PRESETS = {
  * Rentang r mode Ideal lebih lebar dari mesin nyata (mis. Otto r=18 untuk perbandingan teori).
  */
 export const CYCLES = {
-  otto: { label: 'Otto', engine: 'gas', defaults: { r: 10 }, ranges: { r: { min: 6, max: 22, step: 0.5 } } },
-  diesel: { label: 'Diesel', engine: 'diesel', defaults: { r: 18, rc: 2 }, ranges: { r: { min: 12, max: 24, step: 0.5 }, rc: { min: 1.2, max: 3.5, step: 0.05 } } },
-  dual: { label: 'Dual', engine: 'diesel', defaults: { r: 16, rc: 1.4, rp: 1.5 }, ranges: { r: { min: 12, max: 24, step: 0.5 }, rc: { min: 1.1, max: 3, step: 0.05 }, rp: { min: 1.05, max: 2.5, step: 0.05 } } },
-  brayton: { label: 'Brayton', engine: null, defaults: { rpB: 15, T3: 1500 }, ranges: { rpB: { min: 4, max: 40, step: 0.5 }, T3: { min: 1100, max: 1800, step: 10 } } },
+  otto: { engine: 'gas', defaults: { r: 10 }, ranges: { r: { min: 6, max: 22, step: 0.5 } } },
+  diesel: { engine: 'diesel', defaults: { r: 18, rc: 2 }, ranges: { r: { min: 12, max: 24, step: 0.5 }, rc: { min: 1.2, max: 3.5, step: 0.05 } } },
+  dual: { engine: 'diesel', defaults: { r: 16, rc: 1.4, rp: 1.5 }, ranges: { r: { min: 12, max: 24, step: 0.5 }, rc: { min: 1.1, max: 3, step: 0.05 }, rp: { min: 1.05, max: 2.5, step: 0.05 } } },
+  brayton: { engine: null, defaults: { rpB: 15, T3: 1500 }, ranges: { rpB: { min: 4, max: 40, step: 0.5 }, T3: { min: 1100, max: 1800, step: 10 } } },
+};
+
+/**
+ * Scene 3 — pembakaran. φ default piston = preset ENGINE_PRESETS; turbin = φ zona premix desain
+ * (sama dengan default phiPzDesign di loadSweep/dlnFromResult thermo.js).
+ */
+export const FLAME_MODES = {
+  diesel: { engine: 'diesel', fuel: 'diesel', phi: ENGINE_PRESETS.diesel.phi, phiLocal: ENGINE_PRESETS.diesel.phiLocal },
+  gas: { engine: 'gas', fuel: 'gas', phi: ENGINE_PRESETS.gas.phi, phiLocal: null },
+  turbine: { engine: null, fuel: 'gas', phi: 0.5, phiLocal: null },
+};
+export const FLAME_RANGES = {
+  phi: { min: 0.3, max: 1.2, step: 0.01 },
+  phiLocal: { min: 0.5, max: 1.2, step: 0.01 },
+  Tin: { min: 250, max: 1000, step: 5 },
 };

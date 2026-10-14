@@ -7,7 +7,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:offline": "vite build --mode offline",
     "preview": "vite preview",
+    "preview:offline": "vite preview --mode offline",
     "test": "vitest run"
   },
   "devDependencies": {
@@ -16,5 +18,8 @@
   },
   "dependencies": {
     "three": "^0.180.0"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }

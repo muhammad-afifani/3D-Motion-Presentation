@@ -18,7 +18,7 @@ Prinsip utama: **visual 3D, diagram P-V / T-s, dan angka di layar harus menampil
 
 - Penonton: staf produksi/operasi, bukan ahli termodinamika. Presenter: engineer procurement/environmental.
 - Dipresentasikan di proyektor 1080p, dibawakan live selama ±45 menit, dengan sesi tanya jawab.
-- Bahasa UI: **Bahasa Indonesia** (istilah teknis baku boleh tetap Inggris: *part-load, base load, slip*).
+- Bahasa UI: istilah teknis engineering dan label kontrol/menu dalam **bahasa Inggris** (*part-load, base load, heat rate, back-work ratio, derating, lean-burn, premix, methane slip, knocking, swirler, combustor, waterfall, compression ratio*; Play, Pause, Freeze, Reset, Replay, Animation speed). Kalimat penjelasan, pesan kunci, dan tooltip dalam **bahasa Indonesia**. Jangan memaksakan terjemahan bila terasa canggung. Semua teks UI di `src/ui/strings.js`.
 - Presenter harus bisa: mengubah parameter live, membekukan animasi, menyorot satu variabel, dan kembali ke default dengan satu tombol.
 
 ## 3. Stack dan aturan teknis
@@ -187,9 +187,9 @@ Kode warna spesies (konsisten di semua scene, aman buta warna): NOx = oranye, CO
 
 ## 11. Akurasi dan keterbukaan (wajib)
 
-1. **Label tingkat model** di pojok tiap grafik: `Ideal` / `Real (efisiensi komponen)` / `Semi-empiris`.
+1. **Label tingkat model** di pojok tiap grafik: `Ideal` / `Real (component efficiency)` / `Semi-empirical` / `Site data`.
 2. Semua korelasi emisi berlabel **"indikatif"**. Panel asumsi (`H`) mencantumkan: rumus Zeldovich, konstanta, asumsi fuel split tetap, faktor kalibrasi (`ENGINE_NOX_CALIB`, kalibrasi DLN) beserta nilai tipikal literatur yang dipakai sebagai target.
-3. **Faktor kalibrasi tampil di HUD** bila ≠ 1. Presenter dapat memasukkan data CEMS/OEM (CSV `Tflame,NOx,CO` atau `load,NOx,CO`) → diubah menjadi `lookup1D` dan menggantikan kurva model (badge berubah menjadi "Data unit").
+3. **Faktor kalibrasi tampil di HUD** bila ≠ 1. Presenter dapat memasukkan data CEMS/OEM (CSV `Tflame,NOx,CO` atau `load,NOx,CO`) → diubah menjadi `lookup1D` dan menggantikan kurva model (badge berubah menjadi "Site data").
 4. Tidak ada klaim yang menyebut vendor, merek, atau tipe turbin tertentu.
 5. Basis koreksi O₂ dan basis volume (0 °C / 25 °C) selalu terlihat di samping angka mg/Nm³ atau ppm.
 
@@ -224,7 +224,7 @@ Kode warna spesies (konsisten di semua scene, aman buta warna): NOx = oranye, CO
 - [ ] Legenda warna suhu dan warna spesies emisi ada di setiap scene yang memakainya.
 - [ ] 60 fps di laptop iGPU; jalan offline dari `dist/`.
 - [ ] Mode presenter, freeze, reset, snapshot PNG berfungsi.
-- [ ] Semua teks UI berbahasa Indonesia dan bebas typo.
+- [ ] Istilah teknis dan label kontrol/menu berbahasa Inggris; kalimat penjelasan, pesan kunci, dan tooltip berbahasa Indonesia; semua teks dari `src/ui/strings.js`; bebas typo.
 
 ## 13. Urutan kerja (milestone)
 

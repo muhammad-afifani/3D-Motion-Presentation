@@ -5,17 +5,20 @@
 import './styles.css';
 import { mountModelBadge } from './ui/modelBadge.js';
 import { installTooltips } from './ui/tooltip.js';
-import { createStore, defaultState, resetPatch, engineSwitchPatch, togglePlayPatch, toggleFreezePatch, cycleInitialState } from './state/store.js';
+import { STR } from './ui/strings.js';
+import { createStore, defaultState, resetPatch, engineSwitchPatch, togglePlayPatch, toggleFreezePatch, cycleInitialState, flameInitialState } from './state/store.js';
 
 const SCENES = [
   { id: 'piston', number: 1, load: () => import('./scenes/piston.js') },
   { id: 'cycles', number: 2, load: () => import('./scenes/cycles.js') },
+  { id: 'combustion', number: 3, load: () => import('./scenes/combustion.js') },
 ];
 
+document.querySelector('.brand').textContent = STR.app.brand;
 mountModelBadge(document.getElementById('model-badge'));
 installTooltips();
 
-const store = createStore({ ...defaultState('diesel'), ...cycleInitialState() });
+const store = createStore({ ...defaultState('diesel'), ...cycleInitialState(), ...flameInitialState() });
 const app = document.getElementById('app');
 const toastEl = document.getElementById('toast');
 let toastTimer = 0;
@@ -31,7 +34,7 @@ let index = -1;
 let loading = false;
 
 async function goTo(i) {
-  if (i < 0 || i >= SCENES.length) { toast('Scene lain dibangun di milestone berikutnya'); return; }
+  if (i < 0 || i >= SCENES.length) { toast(STR.app.toast.noScene); return; }
   if (i === index || loading) return;
   loading = true;
   try {
@@ -39,9 +42,9 @@ async function goTo(i) {
     current?.dispose();
     app.replaceChildren();
     const msgEl = document.getElementById('key-message');
-    document.getElementById('scene-tag').textContent = `Scene ${mod.meta.number} · ${mod.meta.title}`;
+    document.getElementById('scene-tag').textContent = STR.app.sceneTag(mod.meta.number, mod.meta.title);
     msgEl.textContent = mod.meta.message;
-    document.title = `${mod.meta.title} · Engine & Turbine Emission Lab`;
+    document.title = STR.app.docTitle(mod.meta.title);
     current = mod.createScene({ root: app, store, toast, setMessage: (t) => { msgEl.textContent = t; } });
     current.mount();
     index = i;
@@ -52,27 +55,28 @@ async function goTo(i) {
 
 window.addEventListener('keydown', (e) => {
   if (e.ctrlKey || e.metaKey || e.altKey) return;
-  const tag = /** @type {HTMLElement} */ (e.target).tagName;
-  if (tag === 'INPUT' && /** @type {HTMLInputElement} */ (e.target).type !== 'range') return;
+  const t = /** @type {HTMLInputElement} */ (e.target);
+  if (t instanceof HTMLInputElement && t.type !== 'range') return;
   if (current?.onKey?.(e)) { e.preventDefault(); return; }
   const s = store.get();
-  switch (e.key) {
+  const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+  switch (key) {
     case ' ':
       e.preventDefault();
       /** @type {HTMLElement} */ (document.activeElement)?.blur?.();
-      if (s.frozen) toast('Sedang beku: tekan F untuk melepas');
+      if (s.frozen) toast(STR.app.toast.frozenHint);
       store.set(togglePlayPatch(s));
       break;
-    case 'f': case 'F': store.set(toggleFreezePatch(s)); break;
-    case 'r': case 'R': store.set(resetPatch(s)); toast('Parameter dikembalikan ke preset'); break;
+    case 'f': store.set(toggleFreezePatch(s)); break;
+    case 'r': store.set(resetPatch(s)); toast(STR.app.toast.reset); break;
     case '1': case '2': {
       const engine = e.key === '1' ? 'diesel' : 'gas';
       if (engine !== s.engine) store.set(engineSwitchPatch(s, engine));
       break;
     }
-    case '3': case '4': toast('Turbin: Scene 5 (milestone M5)'); break;
-    case 'h': case 'H': toast('Panel asumsi: milestone M4'); break;
-    case 'p': case 'P': toast('Mode presenter: milestone M8'); break;
+    case '3': case '4': toast(STR.app.toast.turbine); break;
+    case 'h': toast(STR.app.toast.assumptions); break;
+    case 'p': toast(STR.app.toast.presenter); break;
     case 'ArrowRight': goTo(index + 1); break;
     case 'ArrowLeft': goTo(index - 1); break;
     default: return;

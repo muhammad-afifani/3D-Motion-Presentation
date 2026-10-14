@@ -4,15 +4,18 @@
  * Area fase tertutup (IVC→EVO) diarsir = kerja kotor per siklus.
  */
 import { createChartBase, makeScale, niceTicks, logTicks, niceCeil, drawAxes, CHART_FONT } from './chartBase.js';
-import { fmt, toBar, toLiter } from '../ui/format.js';
+import { toBar, toLiter } from '../ui/format.js';
+import { STR } from '../ui/strings.js';
+
+const S = STR.charts.pv;
 
 const C_LOOP = '#ffb15c';
 const C_GASX = 'rgba(120,170,230,0.75)';
 const C_FILL = 'rgba(255,154,60,0.16)';
 
 /** @param {HTMLElement} container */
-export function createPVChart(container, { modelLevel = 'Semi-empiris' } = {}) {
-  const base = createChartBase(container, { title: 'Diagram P-V', modelLevel });
+export function createPVChart(container, { modelLevel = 'semiEmpirical' } = {}) {
+  const base = createChartBase(container, { title: S.title, modelLevel });
   let log = false;
   let curve = null, engine = null, yMax = 0;
   let sx = null, sy = null;
@@ -20,9 +23,9 @@ export function createPVChart(container, { modelLevel = 'Semi-empiris' } = {}) {
   const btn = document.createElement('button');
   btn.className = 'chart__toggle';
   btn.type = 'button';
-  btn.textContent = 'Skala: linier';
-  btn.title = 'Ganti skala linier / log-log (proses politropik tampak lurus pada log-log)';
-  btn.addEventListener('click', () => { log = !log; btn.textContent = log ? 'Skala: log-log' : 'Skala: linier'; base.markDirty(); });
+  btn.textContent = S.scaleLinear;
+  btn.dataset.tip = S.scaleTip;
+  btn.addEventListener('click', () => { log = !log; btn.textContent = log ? S.scaleLog : S.scaleLinear; base.markDirty(); });
   base.root.appendChild(btn);
 
   function drawStatic(f) {
@@ -40,11 +43,11 @@ export function createPVChart(container, { modelLevel = 'Semi-empiris' } = {}) {
       const Pmin = Math.max(0.5, toBar(c.Pmin) * 0.8);
       sx = makeScale(toLiter(g.Vc) * 0.85, Vmax * 1.15, x0, x1, true);
       sy = makeScale(Pmin, yMax * 1.3, y0, y1, true);
-      drawAxes(ctx, box, sx, sy, { xTicks: logTicks(...sx.domain), yTicks: logTicks(...sy.domain), xLabel: 'Volume silinder V [L]', yLabel: 'Tekanan P [bar]' });
+      drawAxes(ctx, box, sx, sy, { xTicks: logTicks(...sx.domain), yTicks: logTicks(...sy.domain), xLabel: S.xLabel, yLabel: S.yLabel });
     } else {
       sx = makeScale(0, niceCeil(Vmax * 1.04), x0, x1);
       sy = makeScale(0, yMax, y0, y1);
-      drawAxes(ctx, box, sx, sy, { xTicks: niceTicks(...sx.domain, 6), yTicks: niceTicks(0, yMax, 5), xLabel: 'Volume silinder V [L]', yLabel: 'Tekanan P [bar]' });
+      drawAxes(ctx, box, sx, sy, { xTicks: niceTicks(...sx.domain, 6), yTicks: niceTicks(0, yMax, 5), xLabel: S.xLabel, yLabel: S.yLabel });
     }
 
     // garis TDC / BDC
@@ -54,7 +57,7 @@ export function createPVChart(container, { modelLevel = 'Semi-empiris' } = {}) {
     ctx.font = CHART_FONT;
     ctx.fillStyle = '#a9b4c7';
     ctx.textAlign = 'center';
-    for (const [V, lbl] of [[g.Vc, 'TDC'], [g.Vc + g.Vd, 'BDC']]) {
+    for (const [V, lbl] of [[g.Vc, S.tdc], [g.Vc + g.Vd, S.bdc]]) {
       const x = sx(toLiter(V));
       ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x, y1); ctx.stroke();
       ctx.fillText(lbl, x, y1 - 6);
@@ -92,9 +95,8 @@ export function createPVChart(container, { modelLevel = 'Semi-empiris' } = {}) {
     ctx.stroke();
 
     base.setCaption(
-      `<span class="sw" style="background:${C_FILL};border-color:${C_LOOP}"></span>Luas arsir = W kotor = ` +
-      `<b>${fmt(f.summary.Wgross / 1e3, 2)} kJ</b>/siklus (IMEP ${fmt(toBar(f.summary.imepG), 1)} bar × V<sub>d</sub> ${fmt(toLiter(g.Vd), 2)} L)` +
-      ` · <span class="sw sw--line" style="background:${C_GASX}"></span>pertukaran gas (disederhanakan)`);
+      `<span class="sw" style="background:${C_FILL};border-color:${C_LOOP}"></span>${S.caption(f.summary.Wgross / 1e3, toBar(f.summary.imepG), toLiter(g.Vd))}` +
+      ` · <span class="sw sw--line" style="background:${C_GASX}"></span>${S.captionGasx}`);
   }
 
   return {

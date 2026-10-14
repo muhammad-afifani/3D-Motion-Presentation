@@ -57,6 +57,7 @@ export function createRenderer(container, { fov = 35, camPos = [1, 0.8, 1.6], ta
   scene.add(key, rim, new THREE.HemisphereLight(0x8899bb, 0x10131a, 0.35));
 
   const composer = bloom ? createComposer(renderer, scene, camera) : null;
+  let bloomOn = !!composer;
 
   function resize() {
     const w = Math.max(1, container.clientWidth), h = Math.max(1, container.clientHeight);
@@ -75,8 +76,11 @@ export function createRenderer(container, { fov = 35, camPos = [1, 0.8, 1.6], ta
     THREE, renderer, scene, camera, controls,
     render() {
       controls.update();
-      if (composer) composer.render(); else renderer.render(scene, camera);
+      if (composer && bloomOn) composer.render(); else renderer.render(scene, camera);
     },
+    /** Nyalakan/matikan bloom (hanya berlaku bila dibuat dengan bloom: true). */
+    setBloom(on) { bloomOn = !!on && !!composer; },
+    get bloomOn() { return bloomOn; },
     dispose() {
       ro.disconnect();
       controls.dispose();

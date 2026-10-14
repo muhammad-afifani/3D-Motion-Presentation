@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest';
 import { cylinderSim, otto, engineGeometry, lossWaterfall } from '../src/model/thermo.js';
 import { ENGINES } from '../src/model/presets.js';
 import { cycleDefaults, cycleInitialState, cycleKindPatch, cycleModePatch } from '../src/state/store.js';
+import { STR } from '../src/ui/strings.js';
 import { deriveCycles, realSimParams, rEngine, idealPistonPoint, SAMPLE_N, waterfallParams } from '../src/state/deriveCycles.js';
 
 const base = { ...cycleInitialState(), theta: -360, rpmVisual: 20 };
@@ -38,7 +39,8 @@ describe('Scene 2: angka golden tampil di frame (mode Ideal, default)', () => {
     near(f.eta.ideal, 0.539, 0.001);
     near(f.eta.real, 0.378, 0.005);
     near(f.eta.gap, f.eta.ideal - f.eta.real, 1e-12);
-    expect(f.modelLevel).toBe('Real (efisiensi komponen)');
+    expect(f.modelLevel).toBe('real');
+    expect(STR.common.level[f.modelLevel]).toBe('Real (component efficiency)');
     expect(f.waterfall.map((x) => x.eta)).toEqual([f.eta.ideal, f.eta.real]);
   });
 });
@@ -87,7 +89,8 @@ describe('Scene 2: titik state (hover)', () => {
     const s = { ...st('diesel'), ...cycleModePatch(st('diesel'), 'real') };
     const sim = cylinderSim(realSimParams(s));
     const f = deriveCycles(s, { sim });
-    expect(f.states.map((x) => x.note)).toEqual(['IVC', 'awal pembakaran θ₀', 'Pmax', 'EVO']);
+    expect(f.states.map((x) => x.noteKey)).toEqual(['ivc', 'soc', 'pmax', 'evo']);
+    expect(f.states.map((x) => STR.scene2.refNotes[x.noteKey])).toEqual(['IVC', 'SOC θ₀', 'Pmax', 'EVO']);
     expect(f.states[2].P).toBe(sim.Pmax);
     expect(f.states[0].theta).toBe(sim.params.ivc);
     expect(f.states[3].theta).toBe(sim.params.evo);
@@ -143,16 +146,19 @@ describe('Scene 2: mode Real dan pembanding ideal', () => {
     const s = { ...st('dual'), ...cycleModePatch(st('dual'), 'real') };
     const f = deriveCycles(s, { sim: cylinderSim(realSimParams(s)) });
     expect(f.ghost).toBeNull();
-    expect(f.notes.join(' ')).toMatch(/Dual/);
+    expect(f.notes).toEqual([{ key: 'dualRef' }]);
+    expect(STR.scene2.notes.dualRef).toMatch(/Dual/);
   });
   it('Otto: r di-clamp ke rentang gas engine di mode Real; catatan knocking di Ideal saat r > 14', () => {
     const ideal18 = st('otto', { cR: 18 });
-    expect(deriveCycles(ideal18).notes.join(' ')).toMatch(/knocking/);
+    expect(deriveCycles(ideal18).notes).toEqual([{ key: 'knockIdeal', rMax: ENGINES.gas.ranges.r.max }]);
+    expect(STR.scene2.notes.knockIdeal(14)).toMatch(/knocking/);
     expect(deriveCycles(st('otto', { cR: 12 })).notes).toEqual([]);
     const real = { ...ideal18, ...cycleModePatch(ideal18, 'real') };
     expect(real.cR).toBe(ENGINES.gas.ranges.r.max);
     expect(rEngine(ideal18)).toBe(ENGINES.gas.ranges.r.max);
-    expect(deriveCycles(real, { sim: cylinderSim(realSimParams(real)) }).notes.join(' ')).toMatch(/knocking/);
+    expect(deriveCycles(real, { sim: cylinderSim(realSimParams(real)) }).notes.map((n) => n.key)).toEqual(['knockReal']);
+    expect(STR.scene2.notes.knockReal(14)).toMatch(/knocking/);
   });
   it('ganti jenis siklus: parameter ke nilai acuan jenis tsb', () => {
     const s = st('otto', { cR: 7 });
@@ -160,10 +166,20 @@ describe('Scene 2: mode Real dan pembanding ideal', () => {
     expect(cycleKindPatch(s, 'brayton')).toMatchObject({ cKind: 'brayton', cRpB: 15, cT3: 1500 });
   });
   it('label tingkat model per mode', () => {
-    expect(deriveCycles(st('diesel')).modelLevel).toBe('Ideal');
+    expect(deriveCycles(st('diesel')).modelLevel).toBe('ideal');
     const s = { ...st('diesel'), ...cycleModePatch(st('diesel'), 'real') };
-    expect(deriveCycles(s, { sim: cylinderSim(realSimParams(s)) }).modelLevel).toBe('Semi-empiris');
-    expect(deriveCycles(st('brayton')).modelLevel).toBe('Ideal');
+    expect(deriveCycles(s, { sim: cylinderSim(realSimParams(s)) }).modelLevel).toBe('semiEmpirical');
+    expect(deriveCycles(st('brayton')).modelLevel).toBe('ideal');
+    expect(Object.values(STR.common.level)).toEqual(['Ideal', 'Real (component efficiency)', 'Semi-empirical', 'Site data']);
+  });
+  it('nama proses tampilan tersedia untuk setiap proses tiap jenis/mode (STR.scene2.procs)', () => {
+    for (const kind of ['otto', 'diesel', 'dual', 'brayton']) {
+      for (const mode of ['ideal', 'real']) {
+        const s = { ...st(kind), ...cycleModePatch(st(kind), mode) };
+        const f = deriveCycles(s, kind !== 'brayton' && mode === 'real' ? { sim: cylinderSim(realSimParams(s)) } : {});
+        expect(STR.scene2.procs[f.procSet].length).toBe(f.procs.length);
+      }
+    }
   });
 });
 

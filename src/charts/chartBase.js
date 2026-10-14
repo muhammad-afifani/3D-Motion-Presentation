@@ -4,6 +4,7 @@
  * dan dinamis (titik berjalan; tiap frame). Label tingkat model di pojok.
  */
 import { fmt } from '../ui/format.js';
+import { STR } from '../ui/strings.js';
 
 export const CHART_FONT = '12px Inter, system-ui, sans-serif';
 export const CHART_FONT_NUM = '11px "JetBrains Mono", ui-monospace, monospace';
@@ -16,20 +17,26 @@ export const CHART_COLORS = {
 
 /**
  * @param {HTMLElement} container
- * @param {{title:string, modelLevel:string, pad?:{l:number,r:number,t:number,b:number}}} opts
+ * @param {{title:string, modelLevel:'ideal'|'real'|'semiEmpirical'|'siteData', pad?:{l:number,r:number,t:number,b:number}}} opts
+ *   modelLevel = kunci; teks label diambil dari STR.common.level.
  */
 export function createChartBase(container, { title, modelLevel, pad = { l: 56, r: 16, t: 58, b: 40 } }) {
   const root = document.createElement('div');
   root.className = 'chart';
   root.innerHTML = `
-    <div class="chart__title">${title}</div>
-    <div class="chart__level" title="Tingkat model">${modelLevel}</div>
+    <div class="chart__title"></div>
+    <div class="chart__level"></div>
     <canvas class="chart__layer"></canvas>
     <canvas class="chart__layer"></canvas>
     <div class="chart__caption num"></div>`;
   container.appendChild(root);
   const [cs, cd] = root.querySelectorAll('canvas');
   const caption = root.querySelector('.chart__caption');
+  const titleEl = root.querySelector('.chart__title');
+  const levelEl = root.querySelector('.chart__level');
+  titleEl.textContent = title;
+  levelEl.title = STR.common.levelTip;
+  levelEl.textContent = STR.common.level[modelLevel];
   const ctxS = cs.getContext('2d');
   const ctxD = cd.getContext('2d');
 
@@ -57,6 +64,9 @@ export function createChartBase(container, { title, modelLevel, pad = { l: 56, r
     beginStatic() { ctxS.setTransform(box.dpr, 0, 0, box.dpr, 0, 0); ctxS.clearRect(0, 0, box.w, box.h); dirty = false; return ctxS; },
     beginDynamic() { ctxD.setTransform(box.dpr, 0, 0, box.dpr, 0, 0); ctxD.clearRect(0, 0, box.w, box.h); return ctxD; },
     setCaption(html) { if (caption.innerHTML !== html) caption.innerHTML = html; },
+    setTitle(text) { if (titleEl.textContent !== text) titleEl.textContent = text; },
+    /** @param {'ideal'|'real'|'semiEmpirical'|'siteData'} key */
+    setLevel(key) { const t = STR.common.level[key]; if (levelEl.textContent !== t) levelEl.textContent = t; },
     dispose() { ro.disconnect(); root.remove(); },
   };
 }
