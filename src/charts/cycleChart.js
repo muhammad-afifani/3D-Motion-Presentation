@@ -143,7 +143,7 @@ export function createCycleChart(container, which, { onHover } = {}) {
       const ctx = base.beginDynamic();
       if (!f.point.visible) return;
       const x = sx(conv[ax.x](f.point[ax.x])), y = sy(conv[ax.y](f.point[ax.y]));
-      ctx.fillStyle = `rgb(${(f.rig?.gasRGB ?? f.schematic?.gasRGB ?? [1, 1, 1]).map((c) => Math.round(c * 255)).join(',')})`;
+      ctx.fillStyle = `rgb(${(f.pointRGB ?? f.rig?.gasRGB ?? f.schematic?.gasRGB ?? [1, 1, 1]).map((c) => Math.round(c * 255)).join(',')})`;
       ctx.strokeStyle = '#fff';
       ctx.lineWidth = 2;
       ctx.beginPath(); ctx.arc(x, y, 7, 0, Math.PI * 2); ctx.fill(); ctx.stroke();

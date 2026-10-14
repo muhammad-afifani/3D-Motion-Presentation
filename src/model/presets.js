@@ -69,3 +69,23 @@ export const FLAME_RANGES = {
   phiLocal: { min: 0.5, max: 1.2, step: 0.01 },
   Tin: { min: 250, max: 1000, step: 5 },
 };
+
+/**
+ * Scene 5 — turbin gas. Nilai desain = default fungsi thermo.js (dijaga tes golden):
+ *   generator       → braytonReal  (single-shaft, N tetap)
+ *   compressorDrive → twinShaft    (gas generator + free power turbine)
+ * mdot 20 kg/s = kelas industri generik (±7 MW), hanya untuk HUD daya absolut.
+ */
+export const GAS_TURBINES = {
+  generator: { model: 'braytonReal', design: { rp: 15, T3: 1500, etaC: 0.87, etaT: 0.90 }, mdot: 20, Nrpm: 3000 },
+  compressorDrive: { model: 'twinShaft', design: { rp: 20, T3: 1450, etaC: 0.86, etaGG: 0.89, etaPT: 0.90 }, mdot: 20 },
+};
+export const GT_RANGES = {
+  rp: { min: 6, max: 30, step: 0.5 },
+  T3: { min: 1200, max: 1700, step: 10 },
+  etaC: { min: 0.78, max: 0.92, step: 0.005 },
+  etaT: { min: 0.82, max: 0.94, step: 0.005 },
+  Tamb: { min: -10, max: 50, step: 1 },
+};
+/** Jumlah tahap rig 3D (visual). */
+export const GT_STAGES = { compressor: 10, turbine: 3, ggTurbine: 2, powerTurbine: 2 };

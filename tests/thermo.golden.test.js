@@ -4,6 +4,7 @@ import {
   otto, diesel, dual, braytonIdeal, braytonReal, braytonDerated, co2Specific,
   cylinderSim, ENGINE_PRESETS, noxThermal, twinShaft, gasCompressor, selfTest,
   lossWaterfall, simStates, flameTemperature, qinPerKgAir, phiFromQinPerKgAir,
+  compressorStages, turbineStages, twinShaftCycle,
 } from '../src/model/thermo.js';
 
 /** |got − want| ≤ tol */
@@ -122,6 +123,40 @@ describe('Pembakaran (Scene 3)', () => {
     const b = braytonReal({});
     near(phiFromQinPerKgAir(b.qin, 'gas', b.params.combEff), 0.341, 0.003);
     near(phiFromQinPerKgAir(qinPerKgAir(0.73, 'diesel', 0.98), 'diesel', 0.98), 0.73, 1e-12);
+  });
+});
+
+describe('Turbin gas (Scene 5)', () => {
+  it('braytonReal({}) η 0,378 / T2 675 K / T4 843 K; braytonDerated @35 °C = 0,865 (0,68 %/°C)', () => {
+    const b = braytonReal({});
+    near(b.eta, 0.378, 0.005); near(b.T2, 675, 2); near(b.T4, 843, 3);
+    const d = braytonDerated({}, { TambC: 35 });
+    near(d.derate, 0.865, 0.005); near(d.perDegC * 100, 0.68, 0.01);
+  });
+  it('twinShaft() desain η 0,405 / T2 742 / T45 1049 / T5 760 K', () => {
+    const t = twinShaft({});
+    near(t.eta, 0.405, 0.005); near(t.T2, 742, 3); near(t.T45, 1049, 5); near(t.T5, 760, 5);
+  });
+  it('compressorStages/turbineStages: tahap terakhir = T2/T4 braytonReal dan T45/T5 twinShaft; monoton', () => {
+    const b = braytonReal({});
+    const c = compressorStages(b.params.T1, b.rp, b.params.etaC, 10), t = turbineStages(b.T3, b.rpt, b.params.etaT, 3);
+    near(c[9].T, b.T2, 1e-9); near(t[2].T, b.T4, 1e-9);
+    for (let i = 1; i < c.length; i++) expect(c[i].T).toBeGreaterThan(c[i - 1].T);
+    for (let i = 1; i < t.length; i++) expect(t[i].T).toBeLessThan(t[i - 1].T);
+    const w = twinShaftCycle({});
+    near(turbineStages(w.T3, w.epsGG, 0.89, 2)[1].T, w.T45, 1e-9);
+    near(turbineStages(w.T45, w.rpt, 0.90, 2)[1].T, w.T5, 1e-9);
+  });
+  it('twinShaftCycle: di ISO identik dengan twinShaft(); state 1,2,3,4.5,5; P45 = rpt·P1; derating @35 °C', () => {
+    const t = twinShaft({}), c = twinShaftCycle({});
+    for (const k of ['eta', 'T2', 'T45', 'T5', 'power']) expect(c[k]).toBe(t[k]);
+    expect(c.states.length).toBe(5);
+    expect(c.states.map((x) => x.T)).toEqual([288.15, t.T2, t.T3, t.T45, t.T5]);
+    near(c.P45, t.rpt * 101325, 1e-6);
+    near(c.wnet, t.wpt, 1e-9);
+    expect(c.derate).toBe(1);
+    const h = twinShaftCycle({}, { TambC: 35 });
+    near(h.derate, 0.844, 0.005); near(h.perDegC * 100, 0.78, 0.01);
   });
 });
 

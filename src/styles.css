@@ -162,6 +162,19 @@ kbd {
 .fl-big b { font-family: var(--font-num); font-size: 24px; color: var(--accent-hot); margin-left: 4px; }
 .note-chip--info { background: rgba(79, 179, 255, 0.12); border-color: rgba(79, 179, 255, 0.45); color: #cfe8ff; }
 
+/* ── Scene 5: turbin gas ── */
+.scene--gt {
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr) auto auto;
+  grid-template-areas: 'view ts' 'view pv' 'controls controls' 'hud hud';
+}
+.gt-view { grid-area: view; position: relative; border-radius: 12px; overflow: hidden; background: radial-gradient(ellipse at 50% 40%, #1a2540 0%, #0b0f16 80%); border: 1px solid var(--line); min-height: 0; }
+.gt-ts { grid-area: ts; } .gt-pv { grid-area: pv; } .gt-hud { grid-area: hud; }
+.gt-hud .hud { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+.gt-hud .hud__note { grid-column: 1 / -1; }
+.scene--gt .overlay--formula { z-index: 2; }
+.scene--gt .overlay--legend { top: auto; right: auto; left: 12px; bottom: 12px; transform: none; z-index: 2; }
+
 /* ── chart ── */
 .chart-slot { min-height: 0; }
 .chart { position: relative; height: 100%; border-radius: 12px; background: var(--bg-1); border: 1px solid var(--line); overflow: hidden; }
@@ -237,6 +250,8 @@ button:focus-visible, input:focus-visible, .hud__item:focus-visible { outline: 2
   .scene { height: auto; grid-template-columns: 1fr; grid-template-rows: 60vh 70vh auto auto; grid-template-areas: 'view' 'charts' 'controls' 'hud'; }
   .hud { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .hud__note { grid-column: 1 / -1; }
+  .scene--gt { grid-template-columns: 1fr; grid-template-rows: 55vh 45vh 45vh auto auto; grid-template-areas: 'view' 'ts' 'pv' 'controls' 'hud'; }
+  .gt-hud .hud { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .scene--flame { grid-template-columns: 1fr; grid-template-rows: 55vh 50vh auto 40vh auto; grid-template-areas: 'view' 'chart' 'controls' 'bars' 'hud'; }
   .scene--cycles { grid-template-columns: 1fr; grid-template-rows: 55vh 50vh 50vh auto 40vh auto; grid-template-areas: 'view' 'pv' 'ts' 'controls' 'wf' 'hud'; }
 }
