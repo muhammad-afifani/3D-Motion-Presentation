@@ -147,6 +147,21 @@ kbd {
 .chart__tip { position: absolute; z-index: 3; white-space: pre; font-size: 12px; line-height: 1.45; padding: 7px 9px; border-radius: 8px; background: #0a0e15; border: 1px solid var(--line); box-shadow: 0 6px 18px rgba(0,0,0,0.5); pointer-events: none; }
 .chart__tip[hidden] { display: none; }
 
+/* ── Scene 3: pembakaran ── */
+.scene--flame {
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1.4fr) auto minmax(0, 1fr);
+  grid-template-areas: 'view chart' 'controls controls' 'bars hud';
+}
+.fl-view { grid-area: view; position: relative; border-radius: 12px; overflow: hidden; background: radial-gradient(ellipse at 50% 40%, #1a2133 0%, #07090e 80%); border: 1px solid var(--line); min-height: 0; }
+.fl-chart { grid-area: chart; } .fl-bars { grid-area: bars; } .fl-hud { grid-area: hud; min-height: 0; }
+.fl-hud .hud { grid-template-columns: repeat(2, minmax(0, 1fr)); height: 100%; align-content: start; }
+.fl-hud .hud__note { grid-column: 1 / -1; }
+.scene--flame .overlay--formula { z-index: 2; max-width: calc(100% - 140px); }
+.fl-big { font-family: var(--font-ui); font-size: 15px; color: var(--muted); }
+.fl-big b { font-family: var(--font-num); font-size: 24px; color: var(--accent-hot); margin-left: 4px; }
+.note-chip--info { background: rgba(79, 179, 255, 0.12); border-color: rgba(79, 179, 255, 0.45); color: #cfe8ff; }
+
 /* ── chart ── */
 .chart-slot { min-height: 0; }
 .chart { position: relative; height: 100%; border-radius: 12px; background: var(--bg-1); border: 1px solid var(--line); overflow: hidden; }
@@ -222,5 +237,6 @@ button:focus-visible, input:focus-visible, .hud__item:focus-visible { outline: 2
   .scene { height: auto; grid-template-columns: 1fr; grid-template-rows: 60vh 70vh auto auto; grid-template-areas: 'view' 'charts' 'controls' 'hud'; }
   .hud { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .hud__note { grid-column: 1 / -1; }
+  .scene--flame { grid-template-columns: 1fr; grid-template-rows: 55vh 50vh auto 40vh auto; grid-template-areas: 'view' 'chart' 'controls' 'bars' 'hud'; }
   .scene--cycles { grid-template-columns: 1fr; grid-template-rows: 55vh 50vh 50vh auto 40vh auto; grid-template-areas: 'view' 'pv' 'ts' 'controls' 'wf' 'hud'; }
 }
