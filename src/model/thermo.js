@@ -406,6 +406,40 @@ export function affinity({ N0, N1, Q0 = 1, H0 = 1, P0 = 1 }) {
 }
 export const speedForHead = ({ Hreq, Hdesign, Ndesign }) => Ndesign * Math.sqrt(Hreq / Hdesign);
 
+/**
+ * Aliran volumetrik aktual di suction (m³/s): Q = ṁ·Z·R·T/(P·MW). Hukum affinitas berlaku untuk aliran
+ * volumetrik (Q ∝ N), bukan aliran massa — dipakai sumbu "flow" grafik head-flow Scene 7.
+ */
+export function suctionFlow({ mdot, Psuc, Tsuc = 305, MWgas = 18, Z = 0.95 }) {
+  return (mdot * Z * R_UNIV * 1000 * Tsuc) / (Psuc * MWgas);
+}
+
+/**
+ * Rangkaian kompresor gas + compressor-drive (twin-shaft) — Scene 7 → Scene 5/6:
+ *   gasCompressor(comp) → daya poros; beban turbin = P_kompresor / P_PT desain (twinShaft N_GG = 1);
+ *   beban diklem ke loadRange (rentang Scene 6) → twinShaftForLoad → dlnFromResult (fixed premix split).
+ *   Bila compDesign diberikan: speed yang dibutuhkan = speedForHead(head, head_desain) — dari head saja;
+ *   kecocokan aliran–speed, peta kompresor, surge, dan batas speed TIDAK dimodelkan.
+ * Default gtDesign = compressor drive Scene 5 (rp 20, T3 1450 K, ṁ 20 kg/s → P_PT 6,58 MW).
+ */
+export function compressorTrain({
+  comp, compDesign = null,
+  gtDesign = { rpDesign: 20, T3: 1450, etaC: 0.86, etaGG: 0.89, etaPT: 0.90, mdotDesign: 20 },
+  calib = 1, loadRange = [0.4, 1], phiPzDesign = 0.5, tauMs = 12, refO2 = 15,
+}) {
+  const g = gasCompressor(comp);
+  const d = twinShaft({ ...gtDesign, Ngg: 1 });
+  const loadRaw = g.power / d.power;
+  const load = clamp(loadRaw, loadRange[0], loadRange[1]);
+  const r = twinShaftForLoad(gtDesign, load);
+  const e = dlnFromResult(r, d, { phiPzDesign, tauMs, calib, refO2 });
+  const Nreq = compDesign ? speedForHead({ Hreq: g.head, Hdesign: gasCompressor(compDesign).head, Ndesign: 1 }) : null;
+  return {
+    comp: g, Nreq, ptPower: d.power, loadRaw, load, inRange: loadRaw >= loadRange[0] && loadRaw <= loadRange[1],
+    Ngg: r.Ngg, T3: r.T3, eta: r.eta, Tflame: e.Tflame, NOx_ppm: e.NOx_ppm, CO_ppm: e.CO_ppm, phiPz: e.phiPz,
+  };
+}
+
 // ───────────────────────── C. Piston: geometri & simulasi ─────────────────────────
 
 export function engineGeometry({ bore = 0.2, stroke = 0.26, conrod = 0.52, r = 16 } = {}) {
