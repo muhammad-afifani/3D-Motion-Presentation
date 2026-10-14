@@ -8,6 +8,7 @@ import {
   zeldovichRate, noxRateRatio, zeldovichCurve, calibrateDLN, calibrateEngineNOx, ENGINE_NOX_CALIB,
   retardSweep, noxCoTradeoff, emissionAtBasis, ZELDOVICH, MW, loadSweep,
   suctionFlow, compressorTrain, affinity, speedForHead,
+  co2eWithSlip, ghgPenalty, dryFlueNm3PerKg, ppmToGkWh, mgNm3ToPpm, ppmToMgNm3, fuelPerKWh,
 } from '../src/model/thermo.js';
 
 /** |got − want| ≤ tol */
@@ -318,6 +319,52 @@ describe('Kompresor gas + compressor drive (Scene 7)', () => {
     near(lo.loadRaw, 0.3275, 0.002); expect(lo.load).toBe(0.4); expect(lo.inRange).toBe(false);
     const hi = compressorTrain({ comp: { ...D, Psuc: 10e5 } });
     expect(hi.loadRaw).toBeGreaterThan(1); expect(hi.load).toBe(1); expect(hi.inRange).toBe(false);
+  });
+});
+
+describe('Emisi gabungan & trade-off (Scene 8–9) — slide S8/S9', () => {
+  const sd = cylinderSim(ENGINE_PRESETS.diesel), sg = cylinderSim(ENGINE_PRESETS.gas);
+  it('co2Specific: gas η 42 % = 480,9, diesel η 44 % = 606,3; pada η preset (42,3 % / 44,1 %) ≈ 478 / 605 (gas 21 % lebih rendah)', () => {
+    near(co2Specific(0.42, 'gas'), 480.9, 0.1); near(co2Specific(0.44, 'diesel'), 606.3, 0.1);
+    near(sg.etaBrake, 0.423, 0.001); near(sd.etaBrake, 0.441, 0.001);
+    near(sg.co2_gkWh, 478, 0.5); near(sd.co2_gkWh, 605, 0.5);
+    near((1 - sg.co2_gkWh / sd.co2_gkWh) * 100, 21, 0.2);
+    near(co2Specific(braytonReal({}).eta, 'gas'), 534.7, 0.2);
+  });
+  it('methane slip @ η 40 %: 1 % → CO₂e 561 vs 505 (+11,1 %), 3 % → 673 (+33,2 %); GWP 29,8', () => {
+    const a = co2eWithSlip({ eta: 0.4, slipFrac: 0.01 }), b = co2eWithSlip({ eta: 0.4, slipFrac: 0.03 });
+    near(a.co2, 504.9, 0.1); near(a.ch4_g, 1.875, 0.001); near(a.co2e, 560.8, 0.1); near((a.co2e / a.co2 - 1) * 100, 11.1, 0.05);
+    near(b.co2e, 672.5, 0.1); near((b.co2e / b.co2 - 1) * 100, 33.2, 0.05);
+  });
+  it('retardSweep diesel −8/−4/0/+4: NOx 15,1/10,7/7,4/5,3; η 44,9/44,1/42,8/41,3 %; CO₂ 593/605/623/645; −8→+4 NOx −65 %, CO₂ +8,7 %', () => {
+    const r = retardSweep('diesel', [-8, -4, 0, 4]);
+    [15.10, 10.69, 7.42, 5.26].forEach((v, i) => near(r[i].NOx_gkWh, v, 0.01));
+    [0.449, 0.441, 0.428, 0.413].forEach((v, i) => near(r[i].etaBrake, v, 0.001));
+    [593.5, 604.8, 622.8, 645.2].forEach((v, i) => near(r[i].co2_gkWh, v, 0.2));
+    near((r[3].NOx_gkWh / r[0].NOx_gkWh - 1) * 100, -65.2, 0.2); near((r[3].co2_gkWh / r[0].co2_gkWh - 1) * 100, 8.7, 0.1);
+  });
+  it('ghgPenalty 3 %: η 35 % → 577,0 → 594,3 (+3,00 %); CO₂ ∝ bahan bakar', () => {
+    const g = ghgPenalty({ eta: 0.35, fuelPenaltyPct: 3 });
+    near(g.co2_0, 577.0, 0.1); near(g.co2_1, 594.3, 0.1); near((g.co2_1 / g.co2_0 - 1) * 100, 3, 1e-9);
+  });
+  it('dryFlueNm3PerKg (F-factor kering, 0 °C): gas 11,90, diesel 10,55 Nm³/kg', () => {
+    near(dryFlueNm3PerKg('gas'), 11.90, 0.01); near(dryFlueNm3PerKg('diesel'), 10.55, 0.01);
+  });
+  it('ppmToGkWh: validasi silang dengan cylinderSim (< 1 %); turbin desain 15 ppm NOx → 0,258 g/kWh, 11,6 ppm CO → 0,121', () => {
+    const d = ppmToGkWh({ ppm: sd.NOx_ppmvd_ref, MWspecies: MW.NO2, eta: sd.etaBrake, fuel: 'diesel' });
+    const g = ppmToGkWh({ ppm: sg.NOx_ppmvd_ref, MWspecies: MW.NO2, eta: sg.etaBrake, fuel: 'gas' });
+    expect(Math.abs(d / sd.NOx_gkWh - 1)).toBeLessThan(0.01);
+    expect(Math.abs(g / sg.NOx_gkWh - 1)).toBeLessThan(0.01);
+    const eta = braytonReal({}).eta;
+    near(ppmToGkWh({ ppm: 15, eta }), 0.258, 0.001);
+    near(ppmToGkWh({ ppm: 11.6, MWspecies: MW.CO, eta }), 0.121, 0.001);
+    // invarian basis: ppm @5 % O₂ yang setara memberi g/kWh yang sama
+    const ppm5 = emissionAtBasis({ ppm: 15, refO2: 5 }).ppm;
+    near(ppmToGkWh({ ppm: ppm5, refO2: 5, eta }), ppmToGkWh({ ppm: 15, eta }), 1e-12);
+  });
+  it('mgNm3ToPpm = kebalikan ppmToMgNm3 (0 °C dan 25 °C)', () => {
+    for (const T of [273.15, 298.15]) near(mgNm3ToPpm(ppmToMgNm3(25, MW.NO2, T), MW.NO2, T), 25, 1e-12);
+    near(mgNm3ToPpm(51.3, MW.NO2), 25, 0.01);
   });
 });
 

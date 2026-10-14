@@ -97,7 +97,7 @@ Alur cerita: **mesinnya apa → energi jadi kerja dan panas → suhu menentukan 
 ## S8 · Emisi gabungan: diesel vs gas vs turbin (3 menit)
 - **Pesan kunci:** Gas lebih bersih per kWh, tetapi methane slip bisa menghapus sebagian keunggulannya.
 - **Angka demo:**
-  - CO₂ spesifik: gas η 42% ≈ **478 g/kWh**; diesel η 44% ≈ **605 g/kWh** (≈ 21% lebih rendah).
+  - CO₂ spesifik: gas η 42,3 % ≈ **478 g/kWh**; diesel η 44,1 % ≈ **605 g/kWh** (≈ 21% lebih rendah).
   - NOx tipikal terkalibrasi: diesel ≈ 11 g/kWh; gas lean-burn ≈ 2,6 g/kWh.
   - Methane slip pada η 40%: slip 1% → CO₂e **561 vs 505 g/kWh (+11%)**; slip 3% → **673 (+33%)**.
 - **Naskah:** "Satu persen bahan bakar yang lolos tidak terbakar sudah menambah sepersepuluh jejak karbonnya."

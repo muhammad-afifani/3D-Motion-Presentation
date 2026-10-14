@@ -638,6 +638,30 @@ export const correctToRefO2 = (C, O2meas, O2ref) => C * ((20.9 - O2ref) / (20.9 
 /** Volume molar (m³/kmol) pada Tref (K), 1 atm. 273,15 → "Nm³"; 298,15 → basis 25 °C. */
 export const molarVolume = (Tref = 273.15) => 22.414 * (Tref / 273.15);
 export const ppmToMgNm3 = (ppm, MWspecies, Tref = 273.15) => (ppm * MWspecies) / molarVolume(Tref);
+/** Kebalikan ppmToMgNm3: mg/Nm³ → ppm (input batas presenter dalam mg/Nm³, Scene 9). */
+export const mgNm3ToPpm = (mg, MWspecies, Tref = 273.15) => (mg * molarVolume(Tref)) / MWspecies;
+
+/**
+ * Volume flue gas KERING stoikiometrik per kg bahan bakar (F-factor, Nm³/kg pada 0 °C):
+ * CxHy + (x + y/4)(O₂ + 3,76 N₂) → x CO₂ + (y/2) H₂O + 3,76(x + y/4) N₂; kering = x + 3,76(x + y/4) kmol.
+ * gas (CH₄) ≈ 11,90 Nm³/kg; diesel (C₁₂H₂₃) ≈ 10,55 Nm³/kg. Udara kering, bahan bakar tanpa N/S/abu.
+ */
+export function dryFlueNm3PerKg(fuel = 'gas') {
+  const { x, y } = FUELS[fuel];
+  return ((x + 3.76 * (x + y / 4)) / (12.011 * x + 1.008 * y)) * molarVolume(273.15);
+}
+
+/**
+ * ppmvd @ refO2 → g/kWh: konsentrasi × volume flue gas kering pada O₂ acuan per kWh.
+ *   V = fuelPerKWh(η) · F_kering · 20,9/(20,9 − refO2)   [Nm³/kWh, 0 °C]
+ *   g/kWh = ppm·1e-6 · (MW/22,414) kg/Nm³ · 1000 · V
+ * Dipakai untuk turbin (hanya punya ppm). Validasi silang: preset cylinderSim diesel 730 ppm → 10,75 vs
+ * NOx_gkWh 10,69; gas 168 ppm → 2,58 vs 2,57 (< 1 %). η = efisiensi berbasis daya keluaran (rem / poros).
+ */
+export function ppmToGkWh({ ppm, refO2 = 15, MWspecies = MW.NO2, eta, fuel = 'gas' }) {
+  const V = fuelPerKWh(eta, fuel) * dryFlueNm3PerKg(fuel) * (20.9 / (20.9 - refO2));
+  return ppm * 1e-6 * (MWspecies / molarVolume(273.15)) * 1000 * V;
+}
 /**
  * Angka emisi pada basis tampilan: ppmvd dari O₂ acuan refFrom ke refO2 (correctToRefO2),
  * lalu mg/Nm³ sebagai spesies MW pada basis volume TrefK (ppmToMgNm3). Dry basis tetap.
