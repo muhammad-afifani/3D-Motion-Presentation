@@ -2,7 +2,7 @@
  * store.js — store reaktif kecil, sumber kebenaran tunggal untuk parameter UI.
  * Alur: UI control → store.set → derive() → frame → { rig 3D, chart, HUD }.
  */
-import { ENGINES, RPM_VISUAL, CYCLES, FLAME_MODES, GAS_TURBINES, EMISSION_BASIS, NOX_CALIB_DEFAULTS, LOAD_RANGE } from '../model/presets.js';
+import { ENGINES, RPM_VISUAL, CYCLES, FLAME_MODES, GAS_TURBINES, EMISSION_BASIS, NOX_CALIB_DEFAULTS, LOAD_RANGE, GAS_COMPRESSOR } from '../model/presets.js';
 
 /**
  * @typedef {Object} AppState
@@ -210,3 +210,21 @@ export function limitsPatch({ nox, co } = {}) {
 // ── Scene 6 (part-load) ──
 /** State awal Scene 6: beban 100 %, strategi single-shaft IGV. */
 export const loadInitialState = () => ({ lLoad: LOAD_RANGE.max, lStrategy: 'igv', lAux: 'flame' });
+
+// ── Scene 7 (kompresor gas) — satuan slider: bar, kg/kmol, kg/s, % N ──
+/** State awal Scene 7 = demo case slide S7 (golden gasCompressor). */
+export function compInitialState() {
+  const d = GAS_COMPRESSOR.design;
+  return { cPsuc: d.Psuc / 1e5, cPdis: d.Pdis / 1e5, cMW: d.MWgas, cMdot: d.mdot, cSpeed: 100 };
+}
+/** Patch tekanan: jaga Pdis ≥ minRatio·Psuc (geser yang tidak sedang diubah). */
+export function compPressurePatch(s, { Psuc, Pdis }) {
+  const k = GAS_COMPRESSOR.minRatio, R = GAS_COMPRESSOR.ranges;
+  const round = (v, st) => Math.round(v / st) * st;
+  if (Psuc != null) {
+    const pd = Math.max(s.cPdis, Math.min(R.Pdis.max, Math.ceil(Psuc * k)));
+    return { cPsuc: Psuc, cPdis: pd };
+  }
+  const ps = Math.min(s.cPsuc, Math.max(R.Psuc.min, round(Math.floor((Pdis / k) * 2) / 2, R.Psuc.step)));
+  return { cPdis: Pdis, cPsuc: ps };
+}

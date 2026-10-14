@@ -500,6 +500,60 @@ export const STR = {
     species: { nox: 'NOx', co: 'CO' },
   },
 
+  // ─────────────────────────── Scene 7 — kompresor gas & hukum affinitas ───────────────────────────
+  scene7: {
+    title: 'Kompresor gas dan hukum affinitas',
+    message: 'Turbin kompresor mengikuti proses, bukan sebaliknya.',
+    messageDesign: (N, L, Tf) =>
+      `Demo case: speed ${fmt(N * 100, 0)} %, beban turbin ${fmt(L * 100, 1)} %, flame T zona premix ${fmt(Tf, 0)} K (model). Ubah tekanan, MW, atau ṁ untuk melihat pergeseran.`,
+    messageShift: (N, dN, L, dL, dT) =>
+      `Kondisi proses ini: speed yang dibutuhkan ${fmt(N * 100, 1)} % (${dN >= 0 ? '+' : '−'}${fmt(Math.abs(dN) * 100, 1)} pp), beban turbin ${fmt(L * 100, 1)} % (${dL >= 0 ? '+' : '−'}${fmt(Math.abs(dL) * 100, 1)} pp), flame T zona premix ${dT >= 0 ? '+' : '−'}${fmt(Math.abs(dT), 0)} K dibanding demo case (model).`,
+    Psuc: 'Suction pressure', Pdis: 'Discharge pressure', MW: 'Gas MW', mdot: 'Mass flow ṁ', speed: 'Speed (what-if)',
+    units: { bar: 'bar', MW: 'kg/kmol', kgs: 'kg/s', pct: '%', m3s: 'm³/s', kJkg: 'kJ/kg' },
+    tips: {
+      Psuc: 'Tekanan suction (mis. tekanan sumur/separator). Turun → rasio tekanan & head naik → speed dan daya naik.',
+      Pdis: 'Tekanan discharge (pipa/injeksi). Selalu ≥ 1,05 × suction.',
+      MW: 'Gas molecular weight (berat molekul gas, kg/kmol). Gas lebih ringan → head per rasio tekanan lebih besar.',
+      mdot: 'Laju massa gas (demo case 20 kg/s). Beban turbin bergantung langsung pada ṁ ini.',
+      speed: 'What-if: hukum affinity dari titik proses ke speed ini (Q ∝ N, H ∝ N², P ∝ N³). Rig tetap berputar pada speed yang dibutuhkan proses.',
+      reset: 'Kembalikan ke demo case (20 → 60 bar, MW 18, ṁ 20 kg/s, speed 100 %)',
+    },
+    demoCase: (mdot) => `Demo case (ṁ = ${fmt(mdot, 1)} kg/s)`,
+    driveRow: 'Compressor drive (Scene 5/6)',
+    hud: {
+      rp: { label: 'Pressure ratio', model: 'gasCompressor', tip: 'r_p = P_discharge / P_suction.' },
+      head: { label: 'Polytropic head', model: 'gasCompressor', tip: 'H_p = (Z·R·T₁/m)·(r_p^m − 1), m = (k−1)/(k·η_p). Z 0,95, k 1,27, η_p 0,80 (default model).' },
+      power: { label: 'Compressor power', model: 'gasCompressor', tip: 'P = ṁ·H_p/η_p (daya poros).' },
+      tdis: { label: 'Discharge T', model: 'gasCompressor', tip: 'T₂ = T₁·r_p^m. T suction tetap 308 K.' },
+      flow: { label: 'Suction flow Q', model: 'suctionFlow', tip: 'Aliran volumetrik aktual di suction: Q = ṁ·Z·R·T/(P·MW). Affinity berlaku untuk Q, bukan ṁ.' },
+      nreq: { label: 'Speed required', model: 'speedForHead', tip: 'N = N_desain·√(H/H_desain): dihitung dari head saja. Kecocokan aliran–speed, peta kompresor, dan batas speed tidak dimodelkan.' },
+      pt: { label: 'Power turbine available', model: 'twinShaft · Scene 5 design', tip: 'Daya power turbine compressor drive di titik desain Scene 5 (ṁ udara 20 kg/s).' },
+      load: { label: 'Turbine load', model: 'compressorTrain', tip: 'Beban = daya kompresor / daya power turbine desain, diklem ke rentang Scene 6 (40–100 %). Bukan klaim beban unit nyata.' },
+      ngg: { label: 'N_GG', value: (n) => `${fmt(n * 100, 0)} %`, model: 'twinShaftForLoad', tip: 'Kecepatan gas generator pada beban tersebut (model Scene 6).' },
+      flame: { label: 'Premix-zone flame T', model: 'dlnFromResult', tip: 'Flame T zona premix compressor drive pada beban tersebut (fixed premix fuel split).' },
+      nox: { label: 'NOx · indikatif', unit: 'ppmvd', tip: 'NOx DLN compressor drive pada beban tersebut, kalibrasi twin dari store, basis aktif.' },
+      co: { label: 'CO · indikatif', unit: 'ppmvd', tip: 'CO DLN (coDLN, dianggap @15 % O₂) pada beban tersebut, dikoreksi ke basis aktif.' },
+      outOfRange: 'di luar rentang model (diklem)',
+      designLine: (L) => `Titik desain kompresor ≈ beban turbin ${fmt(L * 100, 1)} % (model)`,
+    },
+    affinity: {
+      title: 'Affinity laws (what-if)',
+      level: 'Ideal · η tetap',
+      formula: 'Q ∝ N · H ∝ N² · P ∝ N³',
+      at: (N, Nreq, r) => `N ${fmt(N * 100, 0)} % vs dibutuhkan ${fmt(Nreq * 100, 1)} % → rasio ×${fmt(r, 3)}`,
+      flow: (Q, r) => `Flow ${fmt(Q, 3)} m³/s (×${fmt(r, 3)})`,
+      head: (H, r) => `Head ${fmt(H / 1e3, 1)} kJ/kg (×${fmt(r * r, 3)})`,
+      power: (P, r) => `Power ${fmt(P / 1e6, 2)} MW (×${fmt(r * r * r, 3)})`,
+    },
+    charts: {
+      hq: { title: 'Head vs flow', xLabel: 'Suction flow Q [m³/s]', yLabel: 'Head [kJ/kg]', caption: 'Kurva = hukum affinity melalui titik proses (Ideal, η tetap). Titik putih = proses (gasCompressor), biru = what-if, cincin = demo case.' },
+      pn: { title: 'Power vs speed', xLabel: 'Speed [% N]', yLabel: 'Power [MW]', caption: 'P ∝ N³ dari titik proses (affinity). Garis putus = daya power turbine desain (Scene 5).', ptLine: 'PT available' },
+    },
+    labels3d: { impeller: 'Impeller', volute: 'Volute', inlet: 'Suction', discharge: 'Discharge', coupling: 'Coupling → PT (Scene 5/6)' },
+    note: 'Speed yang dibutuhkan dihitung dari head saja (speedForHead). Peta kompresor, surge line, dan batas speed tidak dimodelkan.',
+    tempLegend: 'Gas T [K]',
+  },
+
   // ─────────────────────────── panel asumsi (tombol H, semua scene) ───────────────────────────
   assumptions: {
     title: 'Model assumptions',
@@ -542,6 +596,15 @@ export const STR = {
         'CO DLN: bentuk kurva ilustratif; ganti dengan kurva OEM/CEMS bila ada. Anggapan: CO dari coDLN dinyatakan sebagai ppmvd @ 15 % O₂, lalu dikoreksi ke basis aktif dengan rumus yang sama seperti NOx.',
         'Jadwal fuel staging OEM tidak dimodelkan (fixed premix split). Perilaku nyata bisa lebih baik atau lebih buruk; besarnya perlu data OEM/CEMS unit.',
         'Part-load: single-shaft = IGV menahan T3 sampai ṁ minimum 70 %, lalu T3 turun (atau fuel-only tanpa IGV); twin-shaft = ṁ ∝ N_GG dengan jadwal T3 = 0,75 + 0,25·N_GG. Kecepatan power turbine tidak dimodelkan.',
+      ],
+    },
+    compressor: {
+      title: 'Gas compressor (Scene 7)',
+      items: [
+        'Speed yang dibutuhkan dihitung dari head saja (speedForHead: N ∝ √H). Kecocokan aliran–speed, peta kompresor, surge line, dan batas speed tidak dimodelkan.',
+        'T suction tetap 308 K; Z 0,95, k 1,27, η_p 0,80 (default gasCompressor).',
+        'Kurva H ∝ Q² dan P ∝ N³ adalah hukum affinity (Ideal, η tetap), bukan peta kompresor.',
+        'Beban turbin = daya kompresor / daya power turbine desain Scene 5 (demo case ṁ 20 kg/s), diklem 40–100 %; bukan klaim beban unit nyata.',
       ],
     },
     calib: {

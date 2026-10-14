@@ -9,7 +9,7 @@ import { STR } from '../ui/strings.js';
 const rgb = (c) => `rgb(${c.map((v) => Math.round(v * 255)).join(',')})`;
 
 /** @param {HTMLElement} container */
-export function createTempLegend(container, { title = STR.common.tempLegend } = {}) {
+export function createTempLegend(container, { title = STR.common.tempLegend, tickStep = 500 } = {}) {
   const root = document.createElement('div');
   root.className = 'temp-legend';
   root.innerHTML = '<div class="temp-legend__title"></div><div class="temp-legend__body"><canvas></canvas><div class="temp-legend__ticks num"></div><div class="temp-legend__marker num"></div></div>';
@@ -29,7 +29,7 @@ export function createTempLegend(container, { title = STR.common.tempLegend } = 
       ctx.fillRect(0, y, w, 1);
     }
     ticks.innerHTML = '';
-    for (let T = Math.ceil(min / 500) * 500; T <= max; T += 500) {
+    for (let T = Math.ceil(min / tickStep) * tickStep; T <= max; T += tickStep) {
       const el = document.createElement('span');
       el.style.top = `${(1 - (T - min) / (max - min)) * 100}%`;
       el.textContent = T === max ? `${fmt(T, 0)}+` : fmt(T, 0);

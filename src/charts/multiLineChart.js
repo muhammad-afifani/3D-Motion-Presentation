@@ -87,7 +87,7 @@ export function createMultiLineChart(container, { title, modelLevel, xLabel, yLa
     setYLabel(t) { yl = t; },
     setLog(on) { logNow = !!on; },
     setTitle: base.setTitle,
-    /** @param {{x:number,y:number,fill:string,ring?:string}[]} pts */
+    /** @param {{x:number,y:number,fill:string,ring?:string,guide?:boolean}[]} pts  guide=false → tanpa garis vertikal */
     setPoints(pts) {
       if (!data) return;
       if (base.dirty) drawStatic();
@@ -96,7 +96,7 @@ export function createMultiLineChart(container, { title, modelLevel, xLabel, yLa
       ctx.strokeStyle = 'rgba(255,255,255,0.4)';
       ctx.lineWidth = 1;
       ctx.setLineDash([4, 4]);
-      const xs = new Set(pts.map((p) => p.x));
+      const xs = new Set(pts.filter((p) => p.guide !== false).map((p) => p.x));
       for (const x of xs) { const X = sx(x); ctx.beginPath(); ctx.moveTo(X, box.pad.t); ctx.lineTo(X, box.h - box.pad.b); ctx.stroke(); }
       ctx.setLineDash([]);
       for (const p of pts) {

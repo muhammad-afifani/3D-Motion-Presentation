@@ -145,3 +145,20 @@ export const NOX_CALIB_DEFAULTS = Object.freeze({
   }),
   literature: Object.freeze({ engine: Object.freeze({ diesel: 11, gas: 2.5 }), dlnPpm: 15, dlnRefO2: 15 }),
 });
+
+/**
+ * Scene 7 — kompresor gas (demo case slide S7: 20 → 60 bar, 308 K, MW 18, ṁ 20 kg/s = golden gasCompressor).
+ * Satuan slider: bar, kg/kmol, kg/s, % N. Tsuc tetap (bukan input). Penggerak = compressor drive Scene 5 (LOAD_DESIGNS.twin).
+ */
+export const GAS_COMPRESSOR = Object.freeze({
+  design: Object.freeze({ Psuc: 20e5, Pdis: 60e5, Tsuc: 308, MWgas: 18, mdot: 20 }),
+  ranges: Object.freeze({
+    Psuc: { min: 5, max: 40, step: 0.5 },
+    Pdis: { min: 10, max: 100, step: 1 },
+    MW: { min: 16, max: 28, step: 0.5 },
+    mdot: { min: 5, max: 30, step: 0.5 },
+    speed: { min: 50, max: 110, step: 1 },
+  }),
+  minRatio: 1.05,          // Pdis ≥ 1,05·Psuc (kompresor, bukan ekspander)
+  speedSweep: { min: 50, max: 110, step: 1 },
+});

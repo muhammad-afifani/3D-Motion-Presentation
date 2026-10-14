@@ -7,6 +7,7 @@ import {
   compressorStages, turbineStages, twinShaftCycle,
   zeldovichRate, noxRateRatio, zeldovichCurve, calibrateDLN, calibrateEngineNOx, ENGINE_NOX_CALIB,
   retardSweep, noxCoTradeoff, emissionAtBasis, ZELDOVICH, MW, loadSweep,
+  suctionFlow, compressorTrain, affinity, speedForHead,
 } from '../src/model/thermo.js';
 
 /** |got − want| ≤ tol */
@@ -282,6 +283,41 @@ describe('Part-load (Scene 6) — tabel S6 docs/ALUR_SLIDE (NOx 15 ppm @15% O₂
     near(at(r, 0.7).Tflame, 1829, 1); near(at(r, 0.7).NOx_ppm, 3.9, 0.06); near(at(r, 0.7).CO_ppm, 11.7, 0.1); near(at(r, 0.7).eta, 0.357, 0.003); near(at(r, 0.7).N, 0.77, 0.005);
     near(at(r, 0.5).Tflame, 1795, 1); near(at(r, 0.5).NOx_ppm, 1.5, 0.05); near(at(r, 0.5).CO_ppm, 20.5, 0.1); near(at(r, 0.5).eta, 0.312, 0.003); near(at(r, 0.5).N, 0.62, 0.005);
     near(at(r, 1).Tflame - at(r, 0.5).Tflame, 88, 2); // ±90 K dari 100 % ke 50 %
+  });
+});
+
+describe('Kompresor gas + compressor drive (Scene 7)', () => {
+  const D = { Psuc: 20e5, Pdis: 60e5, Tsuc: 308, MWgas: 18, mdot: 20 };
+  it('gasCompressor desain: rp 3, head 172 kJ/kg, daya 4,31 MW, T discharge 412 K (slide S7)', () => {
+    const g = gasCompressor(D);
+    near(g.rp, 3, 1e-12); near(g.headKJ, 172, 1); near(g.power / 1e6, 4.31, 0.03); near(g.Tdis, 412, 1);
+  });
+  it('affinity & speedForHead (slide S7): head 80 % → speed 89 %; speed 90 % → daya 73 %', () => {
+    near(speedForHead({ Hreq: 0.8, Hdesign: 1, Ndesign: 1 }), 0.894, 0.001);
+    const a = affinity({ N0: 1, N1: 0.9 });
+    near(a.Q, 0.9, 1e-12); near(a.H, 0.81, 1e-12); near(a.P, 0.729, 1e-12);
+  });
+  it('suctionFlow desain = ṁ·Z·R·T/(P·MW) = 1,352 m³/s', () => {
+    near(suctionFlow({ mdot: 20, Psuc: 20e5, Tsuc: 308, MWgas: 18 }), 1.352, 0.002);
+    near(suctionFlow({ mdot: 20, Psuc: 10e5, Tsuc: 308, MWgas: 18 }), 2 * 1.352, 0.004); // ∝ 1/P
+  });
+  it('compressorTrain desain: P_PT 6,58 MW → beban 65,5 %, speed 100 %, flame T 1821 K', () => {
+    const t = compressorTrain({ comp: D, compDesign: D });
+    near(t.ptPower / 1e6, 6.582, 0.005); near(t.loadRaw, 0.655, 0.002); expect(t.inRange).toBe(true);
+    near(t.Nreq, 1, 1e-12); near(t.Tflame, 1821, 1);
+  });
+  it('compressorTrain Psuc 18 bar: speed 105,5 %, beban 72,8 %, N_GG 0,795, flame T 1834 K; Psuc 15 bar: 114,6 % / 86,0 % / 0,896 / 1858 K', () => {
+    const a = compressorTrain({ comp: { ...D, Psuc: 18e5 }, compDesign: D, calib: 4.38 });
+    near(a.Nreq, 1.055, 0.001); near(a.load, 0.728, 0.002); near(a.Ngg, 0.795, 0.002); near(a.Tflame, 1834, 1);
+    near(a.NOx_ppm, 4.5, 0.1); near(a.CO_ppm, 10.9, 0.1);
+    const b = compressorTrain({ comp: { ...D, Psuc: 15e5 }, compDesign: D, calib: 4.38 });
+    near(b.Nreq, 1.146, 0.001); near(b.load, 0.860, 0.002); near(b.Ngg, 0.896, 0.002); near(b.Tflame, 1858, 1);
+  });
+  it('compressorTrain di luar rentang: beban diklem 40–100 % dan ditandai', () => {
+    const lo = compressorTrain({ comp: { ...D, mdot: 10 } });
+    near(lo.loadRaw, 0.3275, 0.002); expect(lo.load).toBe(0.4); expect(lo.inRange).toBe(false);
+    const hi = compressorTrain({ comp: { ...D, Psuc: 10e5 } });
+    expect(hi.loadRaw).toBeGreaterThan(1); expect(hi.load).toBe(1); expect(hi.inRange).toBe(false);
   });
 });
 
