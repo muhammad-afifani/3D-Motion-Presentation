@@ -16,8 +16,8 @@ export function createLimitsInput(container, cb) {
   el.innerHTML = `
     <span class="ctl__label">${T.title}</span>
     <div class="lim__row">
-      <label class="lim__in"><span>${T.nox}</span><input type="number" min="0" step="0.5" inputmode="decimal" placeholder="${T.placeholder}" data-lim="nox" /></label>
-      <label class="lim__in"><span>${T.co}</span><input type="number" min="0" step="1" inputmode="decimal" placeholder="${T.placeholder}" data-lim="co" /></label>
+      <label class="lim__in"><span data-lbl="nox">${T.nox}</span><input type="number" min="0" step="0.5" inputmode="decimal" placeholder="${T.placeholder}" data-lim="nox" /></label>
+      <label class="lim__in"><span data-lbl="co">${T.co}</span><input type="number" min="0" step="1" inputmode="decimal" placeholder="${T.placeholder}" data-lim="co" /></label>
       <button type="button" class="btn btn--sm" data-clear>${T.clear}</button>
     </div>
     <div class="lim__basis" data-v="basis"></div>`;
@@ -32,11 +32,12 @@ export function createLimitsInput(container, cb) {
   const basisEl = el.querySelector('[data-v="basis"]');
   return {
     el,
-    /** @param {{nox:number|null, co:number|null, basisText:string}} v */
+    /** @param {{nox:number|null, co:number|null, basisText:string, labels?:{nox:string, co:string}}} v */
     update(v) {
+      if (v.labels) for (const k of ['nox', 'co']) { const l = el.querySelector(`[data-lbl="${k}"]`); if (l.textContent !== v.labels[k]) l.textContent = v.labels[k]; }
       for (const k of ['nox', 'co']) {
         if (document.activeElement === inp(k)) continue;
-        const s = v[k] == null ? '' : String(v[k]);
+        const s = v[k] == null ? '' : String(Math.round(v[k] * 100) / 100);
         if (inp(k).value !== s) inp(k).value = s;
       }
       if (basisEl.textContent !== v.basisText) basisEl.textContent = v.basisText;

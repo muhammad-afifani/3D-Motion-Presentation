@@ -173,3 +173,10 @@ export const EMIS = Object.freeze({
   pmLevel: Object.freeze({ diesel: 'high', gas: 'low', turbine: 'veryLow' }),
   pmParticles: Object.freeze({ high: 0.8, low: 0.25, veryLow: 0.07 }),
 });
+
+/** Scene 9 — trade-off kebijakan. Panel A memakai NOX_TIMING; panel B penalti bahan bakar (%); panel C kurva Scene 6. */
+export const POLICY = Object.freeze({
+  tabs: Object.freeze(['A', 'B', 'C']),
+  penalty: Object.freeze({ min: 0, max: 10, step: 0.5, default: 3 }),
+  limUnits: Object.freeze(['ppm', 'mg']),
+});
