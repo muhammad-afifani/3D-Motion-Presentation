@@ -17,6 +17,7 @@ import { createPresenterMode } from './ui/presenterMode.js';
 import { button } from './ui/controls.js';
 import { takeSnapshot } from './ui/snapshot.js';
 import { createDebugOverlay } from './ui/debugOverlay.js';
+import { fadeSwap } from './ui/transition.js';
 import { createFpsMeter } from './state/fpsMeter.js';
 import { rendererStats, disposeLog } from './gfx/renderer.js';
 import { STR } from './ui/strings.js';
@@ -114,15 +115,18 @@ async function goTo(i) {
   loading = true;
   try {
     const mod = await SCENES[i].load();
-    current?.dispose();
-    app.replaceChildren();
-    const msgEl = document.getElementById('key-message');
-    document.getElementById('scene-tag').textContent = STR.app.sceneTag(mod.meta.number, mod.meta.title);
-    msgEl.textContent = mod.meta.message;
-    document.title = STR.app.docTitle(mod.meta.title);
-    current = mod.createScene({ root: app, store, toast, setMessage: (t) => { msgEl.textContent = t; }, goToScene });
-    current.mount();
-    index = i;
+    // fade-through ±350 ms (instan bila prefers-reduced-motion); data frame & HUD tidak disentuh
+    await fadeSwap(app, () => {
+      current?.dispose();
+      app.replaceChildren();
+      const msgEl = document.getElementById('key-message');
+      document.getElementById('scene-tag').textContent = STR.app.sceneTag(mod.meta.number, mod.meta.title);
+      msgEl.textContent = mod.meta.message;
+      document.title = STR.app.docTitle(mod.meta.title);
+      current = mod.createScene({ root: app, store, toast, setMessage: (t) => { msgEl.textContent = t; }, goToScene });
+      current.mount();
+      index = i;
+    }, { skipOut: !current });
     persist.setScene(mod.meta.number);
     presenter.sync();
   } finally {

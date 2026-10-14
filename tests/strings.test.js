@@ -23,7 +23,7 @@ import { join } from 'node:path';
 import { STR } from '../src/ui/strings.js';
 
 const ROOT = new URL('..', import.meta.url).pathname;
-const ALLOW = new Set(['ArrowRight', 'ArrowLeft', 'Escape']);
+const ALLOW = new Set(['ArrowRight', 'ArrowLeft', 'Escape', '(prefers-reduced-motion: reduce)']);
 
 function files() {
   const out = [];

@@ -466,3 +466,8 @@ body.pres-page { display: block; height: auto; min-height: 100vh; overflow: auto
 .debug-overlay__title { font-weight: 700; color: var(--accent-cold); }
 .debug-overlay__warn { color: var(--accent-hot); max-width: 240px; }
 .debug-overlay__gpu { color: var(--muted); max-width: 240px; font-size: 11px; }
+
+/* transisi antar scene (M8b): fade-through ±350 ms; dimatikan bila prefers-reduced-motion */
+#app { transition: opacity 200ms ease-out; }
+#app.is-fading { opacity: 0; transition: opacity 150ms ease-in; }
+@media (prefers-reduced-motion: reduce) { #app, #app.is-fading { transition: none; } }
