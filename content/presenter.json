@@ -1,0 +1,98 @@
+{
+  "version": 1,
+  "scenes": [
+    {
+      "number": 1,
+      "targetMin": 7,
+      "keyMessage": "Satu putaran engkol menjadi satu loop di diagram P-V; luas loop adalah kerja.",
+      "notes": [
+        "Pembuka: bahan bakar sama, mesin beda, emisi beda. Kenapa?",
+        "Pembuka: hari ini kita lihat apa yang terjadi di dalam mesin sampai muncul angka di laporan emisi, dan kenapa satu angka batas tidak cocok untuk semua mesin.",
+        "Garis ini bukan gambar. Titik di grafik dan posisi piston dihitung dari sudut engkol yang sama."
+      ]
+    },
+    {
+      "number": 2,
+      "targetMin": 6,
+      "keyMessage": "Efisiensi teoretis jauh di atas efisiensi lapangan. Selisihnya bukan kesalahan, tetapi fisika.",
+      "notes": [
+        "Tiga langkah pertama adalah fisika gas dan waktu pembakaran. Dua terakhir adalah panas yang lari ke dinding dan gesekan."
+      ]
+    },
+    {
+      "number": 3,
+      "targetMin": 4,
+      "keyMessage": "Suhu nyala ditentukan campuran. Diesel punya zona panas lokal; gas lean-burn homogen dan lebih dingin.",
+      "notes": [
+        "Mesin diesel rata-rata miskin bahan bakar, tetapi di dalamnya ada kantong yang hampir stoikiometrik. Kantong itulah yang menghasilkan NOx."
+      ]
+    },
+    {
+      "number": 4,
+      "targetMin": 5,
+      "keyMessage": "NOx tidak naik linier dengan suhu, tetapi eksponensial.",
+      "notes": [
+        "Ini sebabnya turbin dan mesin dioperasikan di jendela suhu yang sempit. Kenaikan suhu yang kecil bisa melipatgandakan NOx.",
+        "Tunjukkan angka di HUD dan grafik; jangan menyebut angka di luar yang ditampilkan model."
+      ]
+    },
+    {
+      "number": 5,
+      "targetMin": 5,
+      "keyMessage": "Turbin memakai porsi besar kerjanya untuk memutar kompresornya sendiri; ambient panas langsung memotong daya.",
+      "notes": [
+        "Di hari panas, turbin yang sama menghasilkan daya lebih kecil, dan titik operasi kompresornya bergeser."
+      ]
+    },
+    {
+      "number": 6,
+      "targetMin": 8,
+      "keyMessage": "Generator punya titik optimum yang tetap. Turbin kompresor tidak pernah punya titik tetap.",
+      "notes": [
+        "Kalau generator dijaga di base load, ia berada di titik terbaiknya. Turbin kompresor mengikuti tekanan sumur dan pipa, jadi titiknya selalu bergerak.",
+        "Kalimat aman untuk twin-shaft: jendela operasinya bergeser terus-menerus dan menyempit; besarnya perlu data OEM atau CEMS unit."
+      ]
+    },
+    {
+      "number": 7,
+      "targetMin": 4,
+      "keyMessage": "Turbin kompresor mengikuti proses, bukan sebaliknya.",
+      "notes": [
+        "Tekanan sumur turun sedikit, kecepatan power turbine ikut berubah, dan seluruh kondisi di combustor ikut bergeser."
+      ]
+    },
+    {
+      "number": 8,
+      "targetMin": 3,
+      "keyMessage": "Gas lebih bersih per kWh, tetapi methane slip bisa menghapus sebagian keunggulannya.",
+      "notes": [
+        "Sedikit bahan bakar yang lolos tidak terbakar sudah menambah jejak karbonnya secara berarti. Tunjukkan besarnya di grafik."
+      ]
+    },
+    {
+      "number": 9,
+      "targetMin": 6,
+      "keyMessage": "Menekan satu emisi hampir selalu menggeser yang lain.",
+      "notes": [
+        "Kita menyelamatkan kualitas udara lokal dengan membayar karbon. Pertanyaannya bukan siapa benar, tetapi apakah satu angka cocok untuk dua mesin dengan jendela operasi berbeda."
+      ]
+    },
+    {
+      "number": 10,
+      "targetMin": 3,
+      "keyMessage": "Setiap pengendali menurunkan satu hal dan membebani hal lain.",
+      "notes": [
+        "Tidak ada pengendali gratis. Yang kita bandingkan adalah apa yang kita korbankan."
+      ]
+    },
+    {
+      "number": 11,
+      "targetMin": 2,
+      "keyMessage": "Baku mutu yang efektif memperhitungkan tipe mesin, rentang beban, dan dampak GHG.",
+      "notes": [
+        "Usulannya bukan melonggarkan, tetapi mengukur dengan cara yang sesuai cara mesin itu bekerja.",
+        "Pilih opsi arah diskusi sesuai audiens, jangan semuanya."
+      ]
+    }
+  ]
+}

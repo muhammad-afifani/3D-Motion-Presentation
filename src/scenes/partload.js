@@ -8,7 +8,7 @@ import { html } from './sceneBase.js';
 import { togglePlayPatch, toggleFreezePatch, tickPatch, loadInitialState, limitsPatch, limitsInitialState, calibResetPatch } from '../state/store.js';
 import { deriveLoad } from '../state/deriveLoad.js';
 import { createEngineCalibrator, dlnCalibration } from '../state/calibration.js';
-import { LOAD_RANGE, GT_STAGES, RPM_VISUAL, NOX_CALIB_DEFAULTS } from '../model/presets.js';
+import { LOAD_RANGE, GT_STAGES, NOX_CALIB_DEFAULTS } from '../model/presets.js';
 import { createRenderer } from '../gfx/renderer.js';
 import { createGasTurbineRig } from '../gfx/turbineRig.js';
 import { SPECIES_COLORS } from '../gfx/species.js';
@@ -17,6 +17,7 @@ import { decadeTicks, decadeFmt } from '../charts/xyChart.js';
 import { niceCeil } from '../charts/chartBase.js';
 import { createTempLegend } from '../charts/legend.js';
 import { slider, segmented, button } from '../ui/controls.js';
+import { animSpeedSlider } from '../ui/animSpeed.js';
 import { createHud } from '../ui/hud.js';
 import { createLimitsInput } from '../ui/limitsInput.js';
 import { createCalibrationPanel } from '../ui/calibrationPanel.js';
@@ -113,7 +114,7 @@ export function createScene(ctx) {
     ctl.load = slider({ label: S.load, ...LOAD_RANGE, value: s.lLoad, digits: 0, unit: U.pct, tip: S.tips.load, onInput: (v) => store.set({ lLoad: v }) });
     ctl.strategy = segmented({ label: S.strategy, tip: S.tips.strategy, options: [{ value: 'igv', label: S.strategies.igv, key: '1' }, { value: 'fuelOnly', label: S.strategies.fuelOnly, key: '2' }], value: s.lStrategy, onChange: (v) => store.set({ lStrategy: v }) });
     ctl.aux = segmented({ label: S.aux, tip: S.tips.aux, options: [{ value: 'flame', label: S.auxes.flame }, { value: 'eta', label: S.auxes.eta }], value: s.lAux, onChange: (v) => store.set({ lAux: v }) });
-    ctl.rpm = slider({ label: C.animSpeed, ...RPM_VISUAL, value: s.rpmVisual, digits: 0, unit: U.rpmVisual, tip: C.tips.animSpeed, onInput: (v) => store.set({ rpmVisual: v }) });
+    ctl.rpm = animSpeedSlider(store);
     ctl.calib = button({ label: S.calibButton, key: S.calibKey, tip: S.tips.calib, onClick: () => toggleCalib() });
     ctl.play = button({ label: C.pause, key: C.keySpace, tip: C.tips.play, onClick: () => store.set(togglePlayPatch(store.get())) });
     ctl.freeze = button({ label: C.freeze, key: 'F', tip: C.tips.freeze, onClick: () => store.set(toggleFreezePatch(store.get())) });
@@ -158,7 +159,7 @@ export function createScene(ctx) {
   function toggleCalib(on = !cal.open) { cal.setOpen(on); ctl.calib.setOn(on); }
 
   function syncControls(s, changed) {
-    ctl.load.set(s.lLoad); ctl.strategy.set(s.lStrategy); ctl.aux.set(s.lAux); ctl.rpm.set(s.rpmVisual);
+    ctl.load.set(s.lLoad); ctl.strategy.set(s.lStrategy); ctl.aux.set(s.lAux); ctl.rpm.set(s.animSpeed);
     lim.update({ nox: s.limNOx, co: s.limCO, basisText: C.basis.full(s.emRefO2, s.emTrefC) });
     if (changed.includes('playing') || changed.includes('frozen')) {
       ctl.play.setLabel(s.playing ? C.pause : C.play);

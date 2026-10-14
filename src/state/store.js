@@ -2,7 +2,7 @@
  * store.js — store reaktif kecil, sumber kebenaran tunggal untuk parameter UI.
  * Alur: UI control → store.set → derive() → frame → { rig 3D, chart, HUD }.
  */
-import { ENGINES, RPM_VISUAL, CYCLES, FLAME_MODES, GAS_TURBINES, EMISSION_BASIS, NOX_CALIB_DEFAULTS, LOAD_RANGE, GAS_COMPRESSOR } from '../model/presets.js';
+import { ENGINES, RPM_VISUAL, ANIM_SPEED, CYCLES, FLAME_MODES, GAS_TURBINES, EMISSION_BASIS, NOX_CALIB_DEFAULTS, LOAD_RANGE, GAS_COMPRESSOR } from '../model/presets.js';
 
 /**
  * @typedef {Object} AppState
@@ -11,7 +11,8 @@ import { ENGINES, RPM_VISUAL, CYCLES, FLAME_MODES, GAS_TURBINES, EMISSION_BASIS,
  * @property {number} phi      rasio ekuivalen global
  * @property {number} theta0   awal pembakaran (° ATDC, negatif = sebelum TDC)
  * @property {number} theta    sudut engkol saat ini (°), −360…+360
- * @property {number} rpmVisual rpm animasi (slow-motion)
+ * @property {number} rpmVisual rpm visual dasar (pada Animation speed 1×)
+ * @property {number} animSpeed  Animation speed 0,1×–2× (global; loop utama mengalikan dt)
  * @property {boolean} playing
  * @property {boolean} frozen   beku: waktu berhenti, θ terkunci (slider θ & Spasi tidak berlaku)
  */
@@ -52,10 +53,20 @@ export function createStore(initial) {
   };
 }
 
-/** Patch "reset parameter" (tombol R): kembali ke preset mesin aktif, θ dan mesin tetap. */
+/** Animation speed global (M8a): satu kontrol bersama di semua scene beranimasi. */
+export const animInitialState = () => ({ animSpeed: ANIM_SPEED.default });
+/** Patch Animation speed: di-clamp ke 0,1×–2× dan dibulatkan ke step; input tak valid diabaikan. */
+export function animSpeedPatch(v) {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return {};
+  const k = Math.round(Math.min(ANIM_SPEED.max, Math.max(ANIM_SPEED.min, n)) / ANIM_SPEED.step) * ANIM_SPEED.step;
+  return { animSpeed: Math.round(k * 10) / 10 };
+}
+
+/** Patch "reset parameter" (tombol R): kembali ke preset mesin aktif, θ dan mesin tetap; Animation speed ke 1×. */
 export function resetPatch(s) {
   const d = defaultState(s.engine);
-  return { r: d.r, phi: d.phi, theta0: d.theta0, rpmVisual: d.rpmVisual };
+  return { r: d.r, phi: d.phi, theta0: d.theta0, rpmVisual: d.rpmVisual, ...animInitialState() };
 }
 
 /** Patch ganti mesin: parameter ke preset mesin baru; θ dan status animasi dipertahankan. */
@@ -192,6 +203,9 @@ export const calibEnginePatch = (s, engine, calib) => ({ calEngine: { ...s.calEn
 /** @param {'single'|'twin'} cfg */
 export const calibDlnPatch = (s, cfg, calib) => ({ calDln: { ...s.calDln, [cfg]: calib } });
 export const calibResetPatch = () => calibInitialState();
+/** true bila semua faktor kalibrasi = default (faktor tidak disimpan; nilai custom hanya berlaku selama sesi). */
+export const isDefaultCalib = (s) => ['diesel', 'gas'].every((k) => s.calEngine?.[k] === NOX_CALIB_DEFAULTS.engine[k])
+  && ['single', 'twin'].every((k) => s.calDln?.[k] === NOX_CALIB_DEFAULTS.dln[k]);
 
 /**
  * Batas emisi yang diisi presenter (ppm @ basis aktif). Default KOSONG (null): tidak ada angka baku mutu di kode.

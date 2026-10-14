@@ -1,6 +1,7 @@
 import { execSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 
 /**
@@ -62,6 +63,8 @@ export default defineConfig(({ command, mode, isPreview }) => {
       target: 'es2020',
       chunkSizeWarningLimit: 900,
       rollupOptions: {
+        // dua halaman: aplikasi utama + jendela presenter (M8a); keduanya memakai base yang sama
+        input: { main: fileURLToPath(new URL('./index.html', import.meta.url)), presenter: fileURLToPath(new URL('./presenter.html', import.meta.url)) },
         output: { manualChunks: (id) => (id.includes('node_modules/three') ? 'three' : undefined) },
       },
     },

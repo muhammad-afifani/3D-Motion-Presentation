@@ -51,6 +51,37 @@ Teks kartu pengendali emisi (Scene 10) dan penutup (Scene 11) **bukan hasil mode
 - Bila file **tidak bisa diambil** (mis. 404), aplikasi memakai isi bawaan tanpa banner.
 - Halaman harus dibuka lewat **server statis** (`npm run preview:offline`, `npx serve dist`, `python3 -m http.server -d dist`), bukan dengan membuka `index.html` langsung (`file://`). Di `file://` aplikasi tidak berjalan (ES module dan Web Worker), dan konten tidak bisa di-fetch.
 
+## Mode presenter (tombol P)
+
+Tekan `P` (atau tombol **Presenter** di bilah atas) untuk membuka **jendela kedua** (`presenter.html`) berisi:
+
+- catatan scene aktif (Key message + Notes) dari `content/presenter.json`;
+- timer total dan timer per scene (**Start / Pause / Reset**; `Spasi` di jendela presenter). Target durasi per scene (`targetMin`, menit) opsional; angka waktu berubah warna bila target terlewati;
+- pratinjau teks scene berikutnya (nomor, judul, key message, catatan pertama);
+- tombol **Prev / Next** (atau `←`/`→`) yang memindah scene di jendela utama.
+
+Kedua jendela sinkron lewat `BroadcastChannel`, yang **hanya bekerja antarhalaman pada origin yang sama** (skema + host + port). Buka jendela presenter dari jendela utama (tombol `P`) dan pastikan keduanya berasal dari **server yang sama** (mis. sama-sama `http://localhost:4173/…`). Jendela dari server lain, port lain, atau `file://` tidak akan tersambung. Bila jendela presenter menunggu terus, tekan **Reconnect**.
+
+Seret jendela presenter ke layar laptop, dan jendela utama ke proyektor (F11 untuk layar penuh). `P` lagi saat jendela sudah terbuka hanya memfokuskannya.
+
+Bila **pop-up diblokir** browser (atau `BroadcastChannel` tidak tersedia), muncul pesan, lalu **panel presenter di dalam halaman** dibuka sebagai pengganti (isi sama; `P` atau Close untuk menutup). Untuk memakai jendela terpisah, izinkan pop-up untuk situs ini lalu tekan `P` lagi.
+
+**Catatan presenter** ada di `content/presenter.json` (`scenes[]`: `number`, `keyMessage`, `notes[]`, `targetMin` opsional). Isi awal diambil dari "Naskah" dan "Pesan kunci" di `docs/ALUR_SLIDE_presentasi.md`, **tanpa angka model**; Scene 0 (Pembuka) digabung ke catatan Scene 1. Presenter bebas menambah angka sendiri. Cara edit sama dengan konten Scene 10–11: ubah `dist/content/presenter.json`, simpan, reload (jendela presenter juga); JSON rusak → isi bawaan + banner galat; file tidak ada → isi bawaan tanpa banner.
+
+## Snapshot PNG (tombol S)
+
+Tekan `S` (atau tombol **Snapshot**) untuk mengunduh PNG tampilan scene saat ini: canvas 3D, grafik, HUD, judul, pesan kunci, caption, dan basis emisi, pada **resolusi 2×** dengan **tema gelap**. Nama berkas: `etel-scene-NN-YYYYMMDD-HHMM.png`; footer gambar memuat judul scene, waktu, dan pengingat bahwa angka emisi indikatif. Panel H, panel presenter, dan toast tidak ikut.
+
+- Tidak ada dependensi tambahan: 3D dan grafik digambar ulang sesaat pada skala 2×, lalu teks halaman dilukis ke gambar. Font dan posisi teks bisa sedikit berbeda dari layar.
+- Bila teks halaman gagal digabung, yang disimpan hanya canvas (3D + grafik) dan muncul pesan yang menjelaskannya.
+- Ekspor tema terang (untuk cetak) direncanakan di M8b.
+
+## Pengaturan tersimpan
+
+Browser mengingat: batas NOx/CO dan satuannya, basis O₂/volume, opsi Scene 11 yang disembunyikan, dan scene terakhir (hanya sebagai scene awal saat halaman dibuka; `R` mengembalikannya ke Scene 1). **Faktor kalibrasi tidak disimpan**: selalu mulai dari default; bila diubah, bilah atas menampilkan "Custom calibration (session only)". Hapus semuanya dengan **Reset saved settings** di panel `H`. Bila penyimpanan browser diblokir (mis. mode privat), aplikasi tetap berjalan normal tanpa mengingat apa pun.
+
 ## Pintasan saat presentasi
 
-`→`/`←` pindah scene · `Spasi` Play/Pause · `F` Freeze · `R` Reset · `1`–`4` pilih mesin/siklus · `L` label 3D (Scene 1) · `I` Ideal/Real (Scene 2) · `W` replay waterfall (Scene 2) · `B` Bloom (Scene 3) · `C` panel Calibration (Scene 4, 6) · `1`/`2` strategi IGV / Fuel-only (Scene 6) · `1`/`2`/`3` panel A/B/C (Scene 9) · `H` panel asumsi + basis O₂/volume (semua scene)
+`→`/`←` pindah scene · `Spasi` Play/Pause · `F` Freeze · `R` Reset · `P` mode presenter · `S` snapshot PNG · `1`–`4` pilih mesin/siklus · `L` label 3D (Scene 1) · `I` Ideal/Real (Scene 2) · `W` replay waterfall (Scene 2) · `B` Bloom (Scene 3) · `C` panel Calibration (Scene 4, 6; tombol Collapse melipatnya ke samping) · `1`/`2` strategi IGV / Fuel-only (Scene 6) · `1`/`2`/`3` panel A/B/C (Scene 9) · `E` edit opsi (Scene 11) · `H` panel asumsi + basis O₂/volume + Reset saved settings (semua scene)
+
+**Animation speed** (0,1×–2×, 1× = 20 rpm visual) adalah satu kontrol bersama di semua scene beranimasi (Scene 1–8); hanya kecepatan tampilan, bukan putaran mesin di model.

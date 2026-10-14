@@ -31,8 +31,11 @@ export const ENGINES = {
   },
 };
 
-/** Rentang rpm visual (slow-motion). N mesin sebenarnya tetap dari preset. */
+/** Rentang rpm visual (slow-motion). N mesin sebenarnya tetap dari preset. default = rpm visual pada Animation speed 1×. */
 export const RPM_VISUAL = { min: 2, max: 120, step: 1, default: 20 };
+
+/** Animation speed (pengali waktu animasi, semua scene beranimasi; M8a). 1× = RPM_VISUAL.default rpm visual. */
+export const ANIM_SPEED = Object.freeze({ min: 0.1, max: 2, step: 0.1, default: 1 });
 
 /**
  * Preset turbin: objek kosong = pakai default fungsi thermo.js

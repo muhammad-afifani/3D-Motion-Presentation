@@ -34,7 +34,7 @@ function files() {
   add('src/charts');
   add('src/ui', (f) => f !== 'strings.js' && f !== 'format.js');
   add('src/state', (f) => f.startsWith('derive'));
-  out.push('src/main.js');
+  out.push('src/main.js', 'src/presenter.js');
   return out;
 }
 

@@ -10,7 +10,7 @@ import { deriveNox, noxSimParams, noxSimKey, noxSweepParams, noxSweepKey, noxKey
 import { createSimClient } from '../state/simClient.js';
 import { createEngineCalibrator, dlnCalibration } from '../state/calibration.js';
 import { createCalibrationPanel } from '../ui/calibrationPanel.js';
-import { NOX_TIMING, NOX_WINDOW, RPM_VISUAL, NOX_CALIB_DEFAULTS } from '../model/presets.js';
+import { NOX_TIMING, NOX_WINDOW, NOX_CALIB_DEFAULTS } from '../model/presets.js';
 import { createRenderer } from '../gfx/renderer.js';
 import { createNoxRig } from '../gfx/noxRig.js';
 import { SPECIES_COLORS } from '../gfx/species.js';
@@ -18,6 +18,7 @@ import { createXYChart, decadeTicks, decadeFmt } from '../charts/xyChart.js';
 import { niceCeil } from '../charts/chartBase.js';
 import { createTempLegend } from '../charts/legend.js';
 import { slider, segmented, button } from '../ui/controls.js';
+import { animSpeedSlider } from '../ui/animSpeed.js';
 import { createHud } from '../ui/hud.js';
 import { fmt, pct } from '../ui/format.js';
 import { STR, signedDeg, plusDeg } from '../ui/strings.js';
@@ -119,7 +120,7 @@ export function createScene(ctx) {
     });
     ctl.timing = slider({ label: S.timing[s.nEngine], ...NOX_TIMING[s.nEngine], value: s.nTheta0, format: signedDeg, tip: S.tips.timing, onInput: (v) => store.set({ nTheta0: v }) });
     ctl.theta = slider({ label: S.window, min: NOX_WINDOW.lo, max: NOX_WINDOW.hi, step: 0.5, value: Math.min(NOX_WINDOW.hi, Math.max(NOX_WINDOW.lo, s.theta)), format: signedDeg, tip: S.tips.window, onInput: (v) => store.set(scrubPatch(store.get(), v)) });
-    ctl.rpm = slider({ label: C.animSpeed, ...RPM_VISUAL, value: s.rpmVisual, digits: 0, unit: U.rpmVisual, tip: C.tips.animSpeed, onInput: (v) => store.set({ rpmVisual: v }) });
+    ctl.rpm = animSpeedSlider(store);
     ctl.play = button({ label: C.pause, key: C.keySpace, tip: C.tips.play, onClick: () => store.set(togglePlayPatch(store.get())) });
     ctl.freeze = button({ label: C.freeze, key: 'F', tip: C.tips.freeze, onClick: () => store.set(toggleFreezePatch(store.get())) });
     ctl.reset = button({ label: C.reset, key: 'R', tip: S.tips.reset, onClick: () => resetTiming() });
@@ -181,7 +182,7 @@ export function createScene(ctx) {
       ctl.timing.el.querySelector('.ctl__label').textContent = S.timing[s.nEngine];
     }
     ctl.timing.set(s.nTheta0);
-    ctl.rpm.set(s.rpmVisual);
+    ctl.rpm.set(s.animSpeed);
     if (changed.includes('playing') || changed.includes('frozen')) {
       ctl.play.setLabel(s.playing ? C.pause : C.play);
       ctl.play.setOn(!s.playing);

@@ -115,8 +115,8 @@ export function derive(state, sim) {
     power: sim.powerKW * 1e3,
     load: 1,
     N: q.N,
-    rpmVisual: state.rpmVisual,
-    slowMo: state.rpmVisual / q.N,
+    rpmVisual: state.rpmVisual * (state.animSpeed ?? 1),             // rpm visual efektif (Animation speed)
+    slowMo: (state.rpmVisual * (state.animSpeed ?? 1)) / q.N,
     summary: {
       Pmax: sim.Pmax, thetaPmax: sim.thetaPmax, imepG: sim.imepG, bmep: sim.bmep, Wgross: sim.Wgross, fmep: sim.fmep,
       etaInd: sim.etaInd, etaBrake: sim.etaBrake, bsfc: sim.bsfc, Tmax: sim.Tmax,

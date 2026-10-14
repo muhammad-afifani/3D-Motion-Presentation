@@ -7,12 +7,13 @@ import * as THREE from 'three';
 import { html } from './sceneBase.js';
 import { togglePlayPatch, toggleFreezePatch, tickPatch, gtDefaults } from '../state/store.js';
 import { deriveTurbine, gtKeyNumbers } from '../state/deriveTurbine.js';
-import { GAS_TURBINES, GT_RANGES, GT_STAGES, RPM_VISUAL } from '../model/presets.js';
+import { GAS_TURBINES, GT_RANGES, GT_STAGES } from '../model/presets.js';
 import { createRenderer } from '../gfx/renderer.js';
 import { createGasTurbineRig } from '../gfx/turbineRig.js';
 import { createCycleChart } from '../charts/cycleChart.js';
 import { createTempLegend } from '../charts/legend.js';
 import { slider, segmented, button } from '../ui/controls.js';
+import { animSpeedSlider } from '../ui/animSpeed.js';
 import { createHud } from '../ui/hud.js';
 import { fmt, pct } from '../ui/format.js';
 import { STR } from '../ui/strings.js';
@@ -86,7 +87,7 @@ export function createScene(ctx) {
     ctl.etaGG = slider({ label: S.etaGG, ...GT_RANGES.etaT, value: s.gEtaGG, digits: 3, tip: S.tips.etaGG, onInput: (v) => store.set({ gEtaGG: v }) });
     ctl.etaPT = slider({ label: S.etaPT, ...GT_RANGES.etaT, value: s.gEtaPT, digits: 3, tip: S.tips.etaPT, onInput: (v) => store.set({ gEtaPT: v }) });
     ctl.Tamb = slider({ label: S.Tamb, ...GT_RANGES.Tamb, value: s.gTamb, digits: 0, unit: U.degC, tip: S.tips.Tamb, onInput: (v) => store.set({ gTamb: v }) });
-    ctl.rpm = slider({ label: C.animSpeed, ...RPM_VISUAL, value: s.rpmVisual, digits: 0, unit: U.rpmVisual, tip: C.tips.animSpeed, onInput: (v) => store.set({ rpmVisual: v }) });
+    ctl.rpm = animSpeedSlider(store);
     ctl.play = button({ label: C.pause, key: C.keySpace, tip: C.tips.play, onClick: () => store.set(togglePlayPatch(store.get())) });
     ctl.freeze = button({ label: C.freeze, key: 'F', tip: C.tips.freeze, onClick: () => store.set(toggleFreezePatch(store.get())) });
     ctl.reset = button({ label: C.reset, key: 'R', tip: S.tips.reset, onClick: () => setCfg(store.get().gCfg, true) });
@@ -111,7 +112,7 @@ export function createScene(ctx) {
       ctl.etaGG.el.hidden = !twin; ctl.etaPT.el.hidden = !twin;
       hudKey = '';
     }
-    ctl.rp.set(s.gRp); ctl.T3.set(s.gT3); ctl.etaC.set(s.gEtaC); ctl.etaT.set(s.gEtaT); ctl.etaGG.set(s.gEtaGG); ctl.etaPT.set(s.gEtaPT); ctl.Tamb.set(s.gTamb); ctl.rpm.set(s.rpmVisual);
+    ctl.rp.set(s.gRp); ctl.T3.set(s.gT3); ctl.etaC.set(s.gEtaC); ctl.etaT.set(s.gEtaT); ctl.etaGG.set(s.gEtaGG); ctl.etaPT.set(s.gEtaPT); ctl.Tamb.set(s.gTamb); ctl.rpm.set(s.animSpeed);
     if (changed.includes('playing') || changed.includes('frozen')) {
       ctl.play.setLabel(s.playing ? C.pause : C.play);
       ctl.play.setOn(!s.playing);

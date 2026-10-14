@@ -1,5 +1,6 @@
 /**
- * content.js — konten presenter Scene 10–11 (content/controls.json, content/closing.json).
+ * content.js — konten presenter: Scene 10–11 (content/controls.json, content/closing.json) dan catatan
+ * mode presenter (content/presenter.json, M8a).
  * Dimuat saat runtime dari `${BASE_URL}content/…` (bisa diedit di dist/content/ tanpa build ulang), dengan
  * fallback bawaan yang dibundel dari file sumber yang sama. Tidak pernah throw:
  *   - file tidak bisa di-fetch (tanpa server, 404, atau fallback SPA index.html) → fallback bawaan, TANPA galat
@@ -8,11 +9,14 @@
  */
 import controlsFallback from '../../content/controls.json';
 import closingFallback from '../../content/closing.json';
+import presenterFallback from '../../content/presenter.json';
 
-export const CONTENT_FILES = Object.freeze({ controls: 'controls.json', closing: 'closing.json' });
+export const CONTENT_FILES = Object.freeze({ controls: 'controls.json', closing: 'closing.json', presenter: 'presenter.json' });
 export const MACHINES = Object.freeze(['diesel', 'gas', 'turbine']);
 export const CARD_FIELDS = Object.freeze(['lowers', 'raises', 'efficiency', 'operation']);
-const FALLBACK = { controls: controlsFallback, closing: closingFallback };
+const FALLBACK = { controls: controlsFallback, closing: closingFallback, presenter: presenterFallback };
+/** Batas atas target durasi per scene (menit) di presenter.json. */
+export const TARGET_MIN_MAX = 120;
 const DEFAULT_SCENES = Array.from({ length: 11 }, (_, i) => i + 1);
 
 /** URL fetch konten untuk base Vite (Pages '/<repo>/', offline './', dev '/'). */
@@ -67,10 +71,36 @@ export function validateClosing(j) {
   return e;
 }
 
-const VALIDATE = { controls: validateControls, closing: (j) => validateClosing(j) };
+/**
+ * Validasi presenter.json: { version: 1, scenes: [{ number, keyMessage, notes[], targetMin? }] }.
+ * number unik dan termasuk scene aplikasi; targetMin opsional (menit, > 0 dan ≤ TARGET_MIN_MAX).
+ */
+export function validatePresenter(j, sceneNumbers = DEFAULT_SCENES) {
+  const e = [];
+  if (!j || typeof j !== 'object' || Array.isArray(j)) return [{ field: '(root)', code: 'notObject' }];
+  if (j.version !== 1) e.push({ field: 'version', code: 'version' });
+  if (!Array.isArray(j.scenes) || !j.scenes.length) return [...e, { field: 'scenes', code: 'array' }];
+  const seen = new Set();
+  j.scenes.forEach((sc, i) => {
+    const f = (k) => `scenes[${i}].${k}`;
+    if (!sc || typeof sc !== 'object') { e.push({ field: `scenes[${i}]`, code: 'notObject' }); return; }
+    if (!sceneNumbers.includes(sc.number)) e.push({ field: f('number'), code: 'scenes' });
+    else if (seen.has(sc.number)) e.push({ field: f('number'), code: 'duplicate' });
+    else seen.add(sc.number);
+    if (!isText(sc.keyMessage)) e.push({ field: f('keyMessage'), code: 'text' });
+    if (!isTextList(sc.notes)) e.push({ field: f('notes'), code: 'textList' });
+    if (sc.targetMin != null && !(typeof sc.targetMin === 'number' && sc.targetMin > 0 && sc.targetMin <= TARGET_MIN_MAX)) e.push({ field: f('targetMin'), code: 'minutes' });
+  });
+  return e;
+}
+
+/** Catatan presenter untuk scene n (null bila tidak ada). */
+export const presenterNotes = (data, n) => data?.scenes?.find((x) => x.number === n) ?? null;
+
+const VALIDATE = { controls: validateControls, closing: (j) => validateClosing(j), presenter: validatePresenter };
 
 /**
- * Muat konten. @param {'controls'|'closing'} kind
+ * Muat konten. @param {'controls'|'closing'|'presenter'} kind
  * @returns {Promise<{data:any, source:'file'|'fallback', file:string, errors:{field:string, code:string, detail?:string}[]}>}
  */
 export async function loadContent(kind, { fetchFn = globalThis.fetch, base, sceneNumbers } = {}) {
@@ -89,7 +119,7 @@ export async function loadContent(kind, { fetchFn = globalThis.fetch, base, scen
   }
   let json;
   try { json = JSON.parse(text); } catch (err) { return fallback([{ field: '(json)', code: 'parse', detail: String(err.message ?? err) }]); }
-  const errors = kind === 'controls' ? VALIDATE.controls(json, sceneNumbers) : VALIDATE.closing(json);
+  const errors = kind === 'closing' ? VALIDATE.closing(json) : VALIDATE[kind](json, sceneNumbers);
   return errors.length ? fallback(errors) : { data: json, source: 'file', file, errors: [] };
 }
 

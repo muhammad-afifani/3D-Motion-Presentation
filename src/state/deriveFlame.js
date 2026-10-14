@@ -122,7 +122,7 @@ export function deriveFlame(s, { sim = null } = {}) {
   // piston: laju pelepasan panas dQ/dθ = Qtot·dxb/dθ, dinormalisasi ke φ maks slider
   const use = sim ?? presetSim(m.engine);
   const ref = refSim(m.engine);
-  const f = deriveEngine({ theta: s.theta, rpmVisual: s.rpmVisual, engine: m.engine }, use);
+  const f = deriveEngine({ theta: s.theta, rpmVisual: s.rpmVisual, animSpeed: s.animSpeed, engine: m.engine }, use);
   const dQ = use.Qtot * f.dxb, dQref = ref.Qtot * cycleCurve(ref).dxbMax;
   Object.assign(out, {
     intensity: Math.min(1, dQ / dQref), dQdTheta: dQ, qin: qinPerKgAir(use.params.phi, fuel), simPhi: use.params.phi,

@@ -37,8 +37,9 @@ const row = (cells, tag = 'td') => `<tr>${cells.map((c) => `<${tag}>${c}</${tag}
 /**
  * @param {{get:()=>any, set:(p:any)=>void, subscribe:(fn:any)=>()=>void}} store
  * @param {HTMLElement} [parent]
+ * @param {{available:boolean, onReset:()=>void}} [saved] persistensi (Reset saved settings)
  */
-export function createAssumptionsPanel(store, parent = document.body) {
+export function createAssumptionsPanel(store, parent = document.body, saved = null) {
   const el = document.createElement('div');
   el.className = 'asm';
   el.hidden = true;
@@ -73,6 +74,9 @@ export function createAssumptionsPanel(store, parent = document.body) {
         <section><h3>${A.calib.title}</h3><table data-v="calib"></table><div class="asm__intro">${A.calib.notUnit}</div></section>
         <section><h3>${A.flame.title}</h3><table data-v="flame"></table><div class="asm__intro" data-v="flameNote"></div></section>
         <section style="grid-column: 1 / -1"><h3>${A.levels.title}</h3><table data-v="levels"></table></section>
+        ${saved ? `<section style="grid-column: 1 / -1"><h3>${A.saved.title}</h3>
+          <div class="asm__intro">${saved.available ? A.saved.note : A.saved.unavailable}</div>
+          <button type="button" class="btn btn--sm" data-reset-saved data-tip="${A.saved.resetTip}">${A.saved.reset}</button></section>` : ''}
       </div>
     </div>`;
   parent.appendChild(el);
@@ -100,6 +104,7 @@ export function createAssumptionsPanel(store, parent = document.body) {
   o2.addEventListener('keydown', (e) => { if (e.key !== 'Escape') e.stopPropagation(); });
   q('[data-reset]').addEventListener('click', () => store.set(basisResetPatch()));
   q('[data-close]').addEventListener('click', () => setOpen(false));
+  q('[data-reset-saved]')?.addEventListener('click', () => saved.onReset());
   el.addEventListener('click', (e) => { if (e.target === el) setOpen(false); });
 
   function render() {

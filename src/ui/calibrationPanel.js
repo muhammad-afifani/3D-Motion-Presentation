@@ -1,6 +1,9 @@
 /**
- * calibrationPanel.js — panel Calibration Scene 4 (DOM murni). Tidak menghitung apa pun:
+ * calibrationPanel.js — panel Calibration Scene 4 & 6 (DOM murni). Tidak menghitung apa pun:
  * tombol Apply/Reset memanggil callback (aksi di state/calibration.js), nilai tampil dari `view`.
+ *
+ * Dock (M8a): panel tidak menimpa tampilan 3D. Isi lama `container` dibungkus `.dock-main` (overlay & label 3D
+ * ikut, tetap sejajar dengan canvas) dan panel menjadi kolom di sampingnya; tombol Collapse melipatnya jadi strip.
  */
 import { STR } from './strings.js';
 import { fmt } from './format.js';
@@ -12,6 +15,11 @@ const T = STR.scene4.calib;
  * @param {{onApplyEngine:(kind:string, target:number)=>void, onApplyDln:(cfg:'single'|'twin', target:number)=>void, onReset:()=>void, onClose:()=>void}} cb
  */
 export function createCalibrationPanel(container, cb) {
+  const main = document.createElement('div');
+  main.className = 'dock-main';
+  main.append(...container.childNodes);
+  container.classList.add('has-dock');
+  container.appendChild(main);
   const el = document.createElement('div');
   el.className = 'cal-panel';
   el.hidden = true;
@@ -35,7 +43,9 @@ export function createCalibrationPanel(container, cb) {
       <div class="cal-actions"><button type="button" class="btn btn--sm" data-apply="dln-${k}">${T.apply}</button><span class="cal-status" data-v="s-dln-${k}"></span></div>
     </div>`;
   el.innerHTML = `
-    <div class="cal-panel__head"><b>${T.title}</b><button type="button" class="btn btn--sm" data-close>${T.close} <kbd>${T.key}</kbd></button></div>
+    <button type="button" class="cal-panel__tab" data-expand data-tip="${T.collapseTip}">${T.expand} »</button>
+    <div class="cal-panel__body">
+    <div class="cal-panel__head"><b>${T.title}</b><span class="cal-actions"><button type="button" class="btn btn--sm" data-collapse data-tip="${T.collapseTip}">« ${T.collapse}</button><button type="button" class="btn btn--sm" data-close>${T.close} <kbd>${T.key}</kbd></button></span></div>
     <p class="cal-note">${T.note}</p>
     <h4>${T.engineTitle}</h4>
     ${engineRow('diesel')}
@@ -45,7 +55,8 @@ export function createCalibrationPanel(container, cb) {
     ${dlnRow('twin')}
     <div class="cal-row__dim cal-basis" data-v="basis"></div>
     <div class="cal-row__dim">${T.usedBy}</div>
-    <div class="cal-actions cal-actions--end"><button type="button" class="btn btn--sm" data-reset>${T.reset}</button></div>`;
+    <div class="cal-actions cal-actions--end"><button type="button" class="btn btn--sm" data-reset>${T.reset}</button></div>
+    </div>`;
   container.appendChild(el);
 
   const q = (sel) => el.querySelector(sel);
@@ -63,13 +74,20 @@ export function createCalibrationPanel(container, cb) {
   for (const k of ['single', 'twin']) q(`[data-apply="dln-${k}"]`).addEventListener('click', () => { const v = readTarget(`dln-${k}`); if (v != null) cb.onApplyDln(k, v); });
   q('[data-reset]').addEventListener('click', () => cb.onReset());
   q('[data-close]').addEventListener('click', () => cb.onClose());
+  const setCollapsed = (on) => { el.classList.toggle('is-collapsed', !!on); };
+  q('[data-collapse]').addEventListener('click', () => setCollapsed(true));
+  q('[data-expand]').addEventListener('click', () => setCollapsed(false));
   // panah/angka di input tidak boleh memicu pintasan scene
   el.addEventListener('keydown', (e) => { if (e.target instanceof HTMLInputElement) e.stopPropagation(); });
 
   return {
     el,
+    main,
     get open() { return !el.hidden; },
-    setOpen(on) { el.hidden = !on; },
+    get collapsed() { return el.classList.contains('is-collapsed'); },
+    /** Buka (selalu dalam keadaan terbentang) / tutup. */
+    setOpen(on) { el.hidden = !on; if (on) setCollapsed(false); },
+    setCollapsed,
     /**
      * @param {{calEngine:{diesel:number,gas:number}, calDln:{single:number,twin:number}, defaults:{engine:{diesel:number,gas:number}, dln:{single:number,twin:number}},
      *   literature:{engine:{diesel:number,gas:number}, dlnPpm:number, dlnRefO2:number}, basisText:string}} v
@@ -94,6 +112,6 @@ export function createCalibrationPanel(container, cb) {
       }
     },
     setStatus(k, text) { setText(V(`s-${k}`), text); },
-    dispose() { el.remove(); },
+    dispose() { el.remove(); container.classList.remove('has-dock'); container.prepend(...main.childNodes); main.remove(); },
   };
 }
