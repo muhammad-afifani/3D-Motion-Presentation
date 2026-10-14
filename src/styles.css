@@ -453,3 +453,15 @@ body.pres-page { display: block; height: auto; min-height: 100vh; overflow: auto
 }
 .pres--inpage .pres__grid { grid-template-columns: 1fr; }
 .pres--inpage .pres__notes ul { font-size: 15px; }
+
+/* overlay debug performa (Shift+D, M8b) */
+.debug-overlay {
+  position: fixed; left: 12px; bottom: 12px; z-index: 60; min-width: 220px; padding: 8px 10px; border-radius: 10px; font-size: 12px;
+  background: rgba(5, 8, 12, 0.88); border: 1px solid var(--line); color: var(--text); display: grid; gap: 2px; pointer-events: none;
+}
+.debug-overlay[hidden] { display: none; }
+.debug-overlay > div:not(.debug-overlay__title):not(.debug-overlay__warn):not(.debug-overlay__gpu) { display: flex; justify-content: space-between; gap: 12px; }
+.debug-overlay span { color: var(--muted); }
+.debug-overlay__title { font-weight: 700; color: var(--accent-cold); }
+.debug-overlay__warn { color: var(--accent-hot); max-width: 240px; }
+.debug-overlay__gpu { color: var(--muted); max-width: 240px; font-size: 11px; }

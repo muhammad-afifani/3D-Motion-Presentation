@@ -10,7 +10,9 @@
     "build:offline": "vite build --mode offline",
     "preview": "vite preview",
     "preview:offline": "vite preview --mode offline",
-    "test": "vitest run"
+    "test": "vitest run",
+    "e2e": "vite build && node scripts/e2e/dispose.mjs",
+    "e2e:perf": "vite build && node scripts/e2e/perf.mjs"
   },
   "devDependencies": {
     "vite": "^6.4.4",

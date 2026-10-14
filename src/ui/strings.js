@@ -706,6 +706,17 @@ export const STR = {
     },
   },
 
+  // ─────────────────────────── overlay debug performa (Shift+D) ───────────────────────────
+  debug: {
+    title: 'Debug · performance',
+    software: 'Software rendering (SwiftShader/llvmpipe): fps bukan fps GPU sungguhan.',
+    fps: 'FPS', frameMs: 'Frame [ms]', calls: 'Draw calls', triangles: 'Triangles', geometries: 'Geometries', textures: 'Textures',
+    programs: 'Programs', pixelRatio: 'Pixel ratio', bloom: 'Bloom', on: 'on', off: 'off', quality: 'Quality', heap: 'JS heap [MB]',
+    qualityValue: (mode, tier, particles) => `${mode} · tier ${tier} · particles ×${fmt(particles, 1)}`,
+    renderer: 'Renderer', no3d: 'tanpa 3D di scene ini',
+    gpu: (name) => `GPU: ${name}`,
+  },
+
   // ─────────────────────────── snapshot PNG (tombol S) ───────────────────────────
   snapshot: {
     button: 'Snapshot', key: 'S',

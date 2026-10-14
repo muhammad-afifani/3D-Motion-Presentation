@@ -1,6 +1,6 @@
 /**
  * main.js — boot: lencana model, store global, scene manager (lazy), keyboard, loop animasi.
- * Pintasan: ←/→ scene · Spasi play/pause · F beku · R reset · 1/2 pilih mesin · L label · H panel asumsi · P presenter · S snapshot PNG.
+ * Pintasan: ←/→ scene · Spasi play/pause · F beku · R reset · 1/2 pilih mesin · L label · H panel asumsi · P presenter · S snapshot PNG · Shift+D overlay debug.
  * Animation speed (state.animSpeed, 0,1×–2×) mengalikan dt animasi untuk semua scene; dt mentah ikut sebagai argumen kedua.
  * Persistensi ringan (state/persist.js): batas, satuan, basis, opsi Scene 11, scene awal; kalibrasi tidak disimpan.
  */
@@ -14,6 +14,9 @@ import { SCENE_LIST } from './state/scenes.js';
 import { createPresenterMode } from './ui/presenterMode.js';
 import { button } from './ui/controls.js';
 import { takeSnapshot } from './ui/snapshot.js';
+import { createDebugOverlay } from './ui/debugOverlay.js';
+import { createFpsMeter } from './state/fpsMeter.js';
+import { rendererStats, disposeLog } from './gfx/renderer.js';
 import { STR } from './ui/strings.js';
 import { createStore, defaultState, resetPatch, engineSwitchPatch, togglePlayPatch, toggleFreezePatch, cycleInitialState, flameInitialState, gtInitialState, noxInitialState, basisInitialState, calibInitialState, limitsInitialState, loadInitialState, compInitialState, emisInitialState, policyInitialState, ctrlInitialState, closingInitialState, animInitialState } from './state/store.js';
 
@@ -115,6 +118,16 @@ function goToScene(n) {
   goTo(i);
 }
 
+// overlay debug (Shift+D) + kait uji (scripts/e2e): hanya membaca statistik
+const fpsMeter = createFpsMeter(1);
+const heapMB = () => (performance.memory ? performance.memory.usedJSHeapSize / 1048576 : null);
+const debugOverlay = createDebugOverlay(document.body, () => ({ fps: fpsMeter.fps, ms: fpsMeter.ms, stats: rendererStats(), heapMB: heapMB() }));
+window.__etelDebug = {
+  stats: rendererStats, disposeLog, fps: () => fpsMeter.fps, heapMB,
+  storeSubs: () => store.subscriberCount(), scene: () => SCENES[index]?.number ?? null, loading: () => loading,
+  goToScene: (n) => goToScene(n),
+};
+
 window.addEventListener('keydown', (e) => {
   if (e.ctrlKey || e.metaKey || e.altKey) return;
   const t = /** @type {HTMLInputElement} */ (e.target);
@@ -123,6 +136,7 @@ window.addEventListener('keydown', (e) => {
   if (current?.onKey?.(e)) { e.preventDefault(); return; }
   const s = store.get();
   const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+  if (e.shiftKey && key === 'd') { debugOverlay.toggle(); return; }
   switch (key) {
     case ' ':
       e.preventDefault();
@@ -149,9 +163,12 @@ window.addEventListener('keydown', (e) => {
 
 let last = performance.now();
 function loop(now) {
-  const dt = Math.min(0.1, (now - last) / 1000);
+  const rawDt = Math.max(0, (now - last) / 1000);   // dt mentah (fps & kualitas)
+  const dt = Math.min(0.1, rawDt);                  // dt animasi dibatasi (tab kembali aktif, frame lambat)
   last = now;
   current?.update(dt * (store.get().animSpeed ?? 1), dt);
+  fpsMeter.sample(rawDt);
+  debugOverlay.update(rawDt);
   requestAnimationFrame(loop);
 }
 

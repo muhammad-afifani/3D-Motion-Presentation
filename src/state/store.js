@@ -48,6 +48,8 @@ export function createStore(initial) {
     set,
     /** @param {(s:S, prev:S, changed:string[]) => void} fn */
     subscribe(fn) { subs.add(fn); return () => subs.delete(fn); },
+    /** Jumlah subscriber aktif (uji dispose antar-scene). */
+    subscriberCount: () => subs.size,
     /** Kembali ke default; `override` opsional (mis. pertahankan pilihan mesin). */
     reset(override = {}) { set({ ...initial, ...override }); },
   };
