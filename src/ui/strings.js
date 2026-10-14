@@ -657,6 +657,47 @@ export const STR = {
     },
   },
 
+  // ─────────────────────────── Scene 10 — pengendali emisi ───────────────────────────
+  scene10: {
+    title: 'Perangkat pengendali emisi',
+    message: 'Setiap pengendali menurunkan satu hal dan membebani hal lain.',
+    filter: 'Machine',
+    filters: { all: 'All', diesel: 'Diesel engine', gas: 'Gas engine', turbine: 'Gas turbine' },
+    fields: { lowers: 'Lowers ↓', raises: 'Raises ↑', efficiency: 'η / CO₂', operation: 'Operation' },
+    appliesTo: 'Applies to',
+    machines: { diesel: 'Diesel engine', gas: 'Gas engine', turbine: 'Gas turbine' },
+    goScene: (n) => `→ Scene ${n}`,
+    tips: { filter: 'Sorot kartu yang berlaku untuk mesin terpilih; kartu lain diredupkan.', goScene: 'Buka scene terkait untuk melihat mekanismenya di model.' },
+    note: 'Teks kartu dari content/controls.json (diisi presenter), bukan hasil model. Besaran ditulis kualitatif; periksa sebelum dipakai.',
+    source: { file: 'Sumber: content/controls.json', fallback: 'Sumber: isi bawaan' },
+  },
+
+  // ─────────────────────────── Scene 11 — penutup ───────────────────────────
+  scene11: {
+    title: 'Penutup',
+    message: 'Usulannya bukan melonggarkan, tetapi mengukur dengan cara yang sesuai cara mesin itu bekerja.',
+    pointsTitle: 'Ringkasan',
+    optionsTitle: 'Opsi arah diskusi',
+    edit: 'Edit options', done: 'Done',
+    tips: { edit: 'Centang opsi yang ditampilkan sesuai audiens. Pilihan tersimpan selama sesi (store).' },
+    show: 'Show',
+    none: 'Semua opsi disembunyikan. Tekan Edit options untuk memilih.',
+    note: 'Ringkasan dari scene sebelumnya, tanpa klaim baru. Teks dari content/closing.json.',
+    source: { file: 'Sumber: content/closing.json', fallback: 'Sumber: isi bawaan' },
+  },
+
+  // ─────────────────────────── konten presenter (galat) ───────────────────────────
+  content: {
+    errorTitle: 'Konten presenter tidak valid',
+    error: (file, list) => `content/${file} tidak valid: ${list}. Memakai isi bawaan; perbaiki file lalu reload.`,
+    item: (field, msg, detail) => `${field} (${msg}${detail ? `: ${detail}` : ''})`,
+    codes: {
+      notObject: 'harus objek', version: 'harus 1', array: 'harus daftar tidak kosong', text: 'harus teks tidak kosong',
+      textList: 'harus daftar teks tidak kosong', duplicate: 'id ganda', machines: 'hanya diesel / gas / turbine',
+      scenes: 'nomor scene tidak ada', threePoints: 'harus tepat 3 teks', parse: 'JSON tidak bisa dibaca',
+    },
+  },
+
   // ─────────────────────────── panel asumsi (tombol H, semua scene) ───────────────────────────
   assumptions: {
     title: 'Model assumptions',

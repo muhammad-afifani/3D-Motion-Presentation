@@ -4,6 +4,11 @@ import { readFileSync, mkdtempSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { validateControls, validateClosing, loadContent, contentUrl, fallbackContent, CARD_FIELDS, MACHINES } from '../src/state/content.js';
+import { isHighlighted, cardHtml } from '../src/scenes/controls.js';
+import { visibleOptions } from '../src/scenes/closing.js';
+import { closingInitialState, closingTogglePatch, ctrlInitialState } from '../src/state/store.js';
+import { contentErrorText } from '../src/ui/contentBanner.js';
+import { STR } from '../src/ui/strings.js';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const read = (f) => readFileSync(join(ROOT, 'content', f), 'utf8');
@@ -91,6 +96,14 @@ describe('loader: fallback & galat (tidak pernah throw)', () => {
       expect(r.source).toBe('fallback'); expect(r.errors).toEqual([]); expect(r.data).toBe(fallbackContent('closing'));
     }
   });
+  it('fallback SPA (server mengembalikan index.html 200 untuk file yang tidak ada) → fallback TANPA galat', async () => {
+    const html = async () => ({ ok: true, status: 200, headers: { get: () => 'text/html' }, text: async () => '<!doctype html><html></html>' });
+    const htmlNoType = async () => ({ ok: true, status: 200, text: async () => '<!doctype html>' });
+    for (const fetchFn of [html, htmlNoType]) {
+      const r = await loadContent('closing', { fetchFn, base: '/' });
+      expect(r.source).toBe('fallback'); expect(r.errors).toEqual([]);
+    }
+  });
   it('JSON rusak → fallback + galat (nama file, bidang)', async () => {
     const r = await loadContent('controls', { fetchFn: resp(200, '{ "version": 1, "cards": [ }'), base: '/' });
     expect(r.source).toBe('fallback'); expect(r.file).toBe('controls.json');
@@ -137,7 +150,50 @@ describe('build: dist/content identik dengan sumber (Pages & offline)', () => {
       expect(html).toContain(`src="${c.base}assets/`);
       const js = readdirSync(join(out, 'assets')).filter((f) => f.endsWith('.js')).map((f) => readFileSync(join(out, 'assets', f), 'utf8')).join('\n');
       expect(js).toContain(`"${c.base}"`);   // import.meta.env.BASE_URL → literal base (contentUrl memakai ini)
+      expect(js).toContain('content/');       // loader content.js ikut dibundel (Scene 10–11)
       rmSync(out, { recursive: true, force: true });
     }, 120000);
   }
+});
+
+describe('Scene 10: kartu pengendali', () => {
+  it('filter mesin menyorot kartu sesuai appliesTo', () => {
+    expect(ctrlInitialState()).toEqual({ ctrlFilter: 'all' });
+    const hit = (f) => controls.cards.filter((c) => isHighlighted(c, f)).map((c) => c.id);
+    expect(hit('all')).toHaveLength(7);
+    expect(hit('turbine')).toEqual(['dln', 'water', 'scr', 'oxcat']);
+    expect(hit('diesel')).toEqual(['egr', 'scr', 'oxcat', 'dpf']);
+    expect(hit('gas')).toEqual(['leanburn', 'egr', 'scr', 'oxcat']);
+  });
+  it('kartu memuat keempat label (strings.js), tautan scene terkait, dan teks konten di-escape', () => {
+    const h = cardHtml(controls.cards[0]);
+    for (const k of CARD_FIELDS) expect(h).toContain(STR.scene10.fields[k]);
+    expect(h).toContain('data-scene="6"'); expect(h).toContain(STR.scene10.goScene(6));
+    const x = cardHtml({ ...controls.cards[0], name: '<script>' });
+    expect(x).toContain('&lt;script&gt;'); expect(x).not.toContain('<script>');
+  });
+});
+
+describe('Scene 11: penutup', () => {
+  it('opsi bisa disembunyikan / ditampilkan; tersimpan di store; default semua tampil', () => {
+    let s = { ...closingInitialState() };
+    expect(visibleOptions(closing, s).map((o) => o.id)).toEqual(['by-type', 'load-range', 'inventory', 'cems']);
+    s = { ...s, ...closingTogglePatch(s, 'inventory') };
+    expect(visibleOptions(closing, s).map((o) => o.id)).toEqual(['by-type', 'load-range', 'cems']);
+    s = { ...s, ...closingTogglePatch(s, 'inventory') };
+    expect(visibleOptions(closing, s)).toHaveLength(4);
+  });
+});
+
+describe('banner galat konten', () => {
+  it('menyebut nama file dan bidang; kosong bila tidak ada galat', () => {
+    const t = contentErrorText({ file: 'controls.json', errors: [{ field: 'cards[0].raises', code: 'textList' }, { field: '(json)', code: 'parse', detail: 'Unexpected token' }] });
+    expect(t).toBe('content/controls.json tidak valid: cards[0].raises (harus daftar teks tidak kosong); (json) (JSON tidak bisa dibaca: Unexpected token). Memakai isi bawaan; perbaiki file lalu reload.');
+    expect(contentErrorText({ file: 'closing.json', errors: [] })).toBe('');
+  });
+  it('scene 10–11 tidak mengimpor thermo.js', () => {
+    for (const p of ['../src/scenes/controls.js', '../src/scenes/closing.js', '../src/state/content.js']) {
+      expect(readFileSync(new URL(p, import.meta.url), 'utf8')).not.toMatch(/model\/thermo/);
+    }
+  });
 });

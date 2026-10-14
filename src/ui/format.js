@@ -26,3 +26,7 @@ export function sci(x, digits = 0) {
   const e = Math.floor(Math.log10(Math.abs(x)));
   return `${fmt(x / 10 ** e, digits)}×10${String(e).split('').map((c) => SUP[c]).join('')}`;
 }
+
+const ESC = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' };
+/** Escape teks konten presenter sebelum disisipkan ke HTML. */
+export const escapeHtml = (t) => String(t).replace(/[&<>"]/g, (c) => ESC[c]);

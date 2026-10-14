@@ -2,7 +2,7 @@
  * content.js — konten presenter Scene 10–11 (content/controls.json, content/closing.json).
  * Dimuat saat runtime dari `${BASE_URL}content/…` (bisa diedit di dist/content/ tanpa build ulang), dengan
  * fallback bawaan yang dibundel dari file sumber yang sama. Tidak pernah throw:
- *   - file tidak bisa di-fetch (tanpa server, 404)  → fallback bawaan, TANPA galat
+ *   - file tidak bisa di-fetch (tanpa server, 404, atau fallback SPA index.html) → fallback bawaan, TANPA galat
  *   - file ditemukan tetapi JSON rusak / skema salah → fallback bawaan + daftar galat (nama file, bidang)
  * Teks konten bukan hasil model dan tidak boleh memuat angka termodinamika/emisi (dijaga tests/content.test.js).
  */
@@ -80,7 +80,10 @@ export async function loadContent(kind, { fetchFn = globalThis.fetch, base, scen
   try {
     const res = await fetchFn(contentUrl(file, base), { cache: 'no-store' });
     if (!res || !res.ok) return fallback();          // tidak ada file / 404 → fallback tanpa galat
+    // server dengan fallback SPA (mis. vite preview) mengembalikan index.html (200) untuk file yang tidak ada
+    if (/html/i.test(res.headers?.get?.('content-type') ?? '')) return fallback();
     text = await res.text();
+    if (/^\s*</.test(text)) return fallback();
   } catch {
     return fallback();                                // tanpa server (file://), jaringan → fallback tanpa galat
   }
