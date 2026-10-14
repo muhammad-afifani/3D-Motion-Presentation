@@ -27,12 +27,15 @@ export const STR = {
     units: { bar: 'bar', K: 'K', pct: '%', mm: 'mm', L: 'L', gkWh: 'g/kWh', kJkg: 'kJ/kg', kJkWh: 'kJ/kWh', MW: 'MW', degC: '°C', pp: 'pp', atdc: 'ATDC', rpmVisual: 'rpm visual' },
     /** Label tingkat model (pojok tiap grafik). */
     level: { ideal: 'Ideal', real: 'Real (component efficiency)', semiEmpirical: 'Semi-empirical', siteData: 'Site data' },
+    indicative: 'indikatif',
     levelTip: 'Tingkat model: Ideal / Real (efisiensi komponen) / Semi-empiris / data lapangan',
     phase: { intake: 'Intake', kompresi: 'Compression', ekspansi: 'Expansion', exhaust: 'Exhaust' },
     tempLegend: 'Gas T [K]',
     /** Basis angka emisi — wajib tampil di samping setiap ppm / mg/Nm³ (basis aktif dari panel H). */
     basis: {
       full: (refO2, TrefC) => `sebagai NO₂, dry (ppmvd), @ ${fmt(refO2, Number.isInteger(refO2) ? 0 : 1)} % O₂, ${fmt(TrefC, 0)} °C`,
+      fullCO: (refO2, TrefC) => `sebagai CO, dry (ppmvd), @ ${fmt(refO2, Number.isInteger(refO2) ? 0 : 1)} % O₂, ${fmt(TrefC, 0)} °C`,
+      short: (refO2, TrefC) => `@ ${fmt(refO2, Number.isInteger(refO2) ? 0 : 1)} % O₂ dry, ${fmt(TrefC, 0)} °C`,
       flag: 'Non-default basis',
       flagTip: 'Basis tampilan diubah di panel asumsi (H). Default: 15 % O₂, 0 °C.',
     },
@@ -435,6 +438,66 @@ export const STR = {
       generator: ['1→2 compression', '2→3 combustor (ΔP)', '3→4 turbine expansion', '4→1 exhaust'],
       twin: ['1→2 compression', '2→3 combustor (ΔP)', '3→4.5 GG turbine', '4.5→5 power turbine', '5→1 exhaust'],
     },
+  },
+
+  // ─────────────────────────── Scene 6 — part-load ───────────────────────────
+  scene6: {
+    title: 'Part-load: generator vs penggerak kompresor',
+    message: 'Generator punya titik optimum tetap; turbin penggerak kompresor terus bergeser mengikuti beban.',
+    messageCurves: (f) =>
+      `Generator: flame T tetap ${fmt(f.holdT, 0)} K hingga ${fmt(f.holdLoad, 0)} % beban, lalu CO ×${fmt(f.coRatio, 0)} di ${fmt(f.nextLoad, 0)} %. Compressor drive: flame T turun bertahap ${fmt(f.twinDT, 0)} K (100→50 %), NOx ×${fmt(f.twinNoxRatio, 2)}, CO ×${fmt(f.twinCoRatio, 1)} (model).`,
+    messageWindow: (nox, co, basis, single, twin) =>
+      `Pada batas NOx ${fmt(nox, 1)} dan CO ${fmt(co, 1)} ppmvd ${basis}: jendela beban Generator = ${single}, Compressor drive = ${twin} (model).`,
+    windowText: (ranges) => (ranges.length ? ranges.map(([hi, lo]) => (hi === lo ? `${fmt(hi, 0)} %` : `${fmt(lo, 0)}–${fmt(hi, 0)} %`)).join(', ') : 'tidak ada'),
+    load: 'Load',
+    strategy: 'Generator strategy',
+    strategies: { igv: 'IGV', fuelOnly: 'Fuel-only' },
+    aux: 'Second chart',
+    auxes: { flame: 'Flame T', eta: 'η' },
+    calibButton: 'Calibration',
+    calibKey: 'C',
+    tips: {
+      load: 'Beban kedua turbin (% daya desain). Generator: IGV menutup sampai ṁ 70 %, lalu T3 turun. Compressor drive: N_GG dan T3 turun bersama.',
+      strategy: 'IGV: ṁ dikurangi dulu (T3 & flame T tetap) sampai IGV habis. Fuel-only: tanpa IGV, hanya bahan bakar dikurangi (flame T langsung turun).',
+      aux: 'Ganti grafik kedua: flame T zona premix atau efisiensi termal.',
+      reset: 'Kembalikan beban 100 % dan strategi IGV',
+      calib: 'Panel kalibrasi NOx: DLN per konfigurasi (single / twin) dan engine.',
+    },
+    limits: {
+      title: 'Limits (diisi presenter)',
+      nox: 'NOx limit [ppmvd]',
+      co: 'CO limit [ppmvd]',
+      clear: 'Clear',
+      placeholder: 'kosong',
+      tip: 'Batas emisi diisi presenter, ppmvd pada basis aktif (panel H). Tidak ada angka baku mutu di aplikasi. Jendela beban tampil bila kedua batas diisi.',
+    },
+    charts: {
+      emis: { title: 'NOx & CO vs load', xLabel: 'Load [%]', yLabel: 'ppmvd (log)' },
+      flame: { title: 'Premix-zone flame T vs load', yLabel: 'Flame T [K]' },
+      eta: { title: 'Thermal η vs load', yLabel: 'η [%]' },
+      xLabel: 'Load [%]',
+      emisCaption: (cNox, cCo, basisNox, basisCo, windows) =>
+        `<span class="sw sw--line" style="background:${cNox}"></span>NOx ${basisNox} · <span class="sw sw--line" style="background:${cCo}"></span>CO ${basisCo}<br />Garis penuh = Generator, putus-putus = Compressor drive${windows ? ' · pita abu = jendela Generator, pita biru = jendela Compressor drive' : ''}`,
+      auxCaption: 'Garis penuh = Generator, putus-putus = Compressor drive',
+      limit: { nox: 'NOx limit', co: 'CO limit' },
+      window: { single: 'Generator window', twin: 'Compressor drive window' },
+    },
+    configs: { single: 'Generator (single-shaft)', twin: 'Compressor drive (twin-shaft)' },
+    hud: {
+      eta: { label: 'Thermal η', tip: 'η pada beban ini: loadSweep (singleShaftLoad / twinShaftForLoad).' },
+      T3: { label: 'Turbine inlet T₃', tip: 'Single-shaft: tetap selama IGV masih bisa menutup, lalu turun. Twin-shaft: jadwal T3 = 0,75 + 0,25·N_GG.' },
+      flame: { label: 'Premix-zone flame T', tip: 'flameTemperature(φ zona premix, T₂). φ zona premix ∝ q_in terhadap desain (fixed premix fuel split).' },
+      nox: { label: 'NOx · indikatif', unit: 'ppmvd', tip: 'dlnEmissions: Zeldovich termal di zona premix, dikalibrasi 15 ppm @ 15 % O₂ di titik desain tiap konfigurasi (calDln). Dikoreksi ke basis aktif.' },
+      co: { label: 'CO · indikatif', unit: 'ppmvd', tip: 'coDLN(flame T): bentuk ilustratif. Dianggap ppmvd @ 15 % O₂, lalu dikoreksi ke basis aktif (lihat panel H).' },
+      speed: { label: 'Shaft speed', single: (rpm) => `${fmt(rpm, 0)} rpm`, twin: (n) => `N_GG ${fmt(n * 100, 0)} %`, tipSingle: 'Generator sinkron: N tetap.', tipTwin: 'N_GG dari keseimbangan twinShaft. Kecepatan power turbine tidak dimodelkan (mengikuti proses).' },
+      igv: { label: 'IGV opening', value: (open) => `${fmt(open * 100, 0)} %`, fixed: 'fixed', tip: 'Bukaan IGV ∝ ṁ/ṁ_desain (minimum 70 %). Fuel-only: IGV tetap terbuka.' },
+      window: { label: 'Load window', none: '–', tip: 'Rentang beban yang memenuhi kedua batas presenter (NOx dan CO). Kosong bila batas belum diisi.' },
+      calib: { label: 'DLN calib', value: (c) => `×${fmt(c, 2)}`, sub: (isDefault) => (isDefault ? 'default · calibrateDLN' : 'custom · Calibration'), tip: 'Faktor kalibrasi DLN konfigurasi ini (15 ppm @ 15 % O₂ di titik desain = nilai tipikal literatur, bukan data unit/vendor).' },
+    },
+    note: 'Model: fixed premix fuel split; jadwal fuel staging OEM tidak dimodelkan. Single-shaft menunjukkan "tebing" CO setelah IGV habis; twin-shaft menunjukkan pergeseran bertahap. Besarnya perlu data OEM/CEMS unit.',
+    hudNote: 'Semi-empirical · indikatif. Level NOx absolut dikalibrasi ke nilai tipikal literatur, bukan data unit atau vendor.',
+    labels3d: { single: 'Generator (single-shaft)', twin: 'Compressor drive (twin-shaft)', igv: 'IGV' },
+    species: { nox: 'NOx', co: 'CO' },
   },
 
   // ─────────────────────────── panel asumsi (tombol H, semua scene) ───────────────────────────

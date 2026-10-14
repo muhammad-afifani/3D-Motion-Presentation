@@ -15,6 +15,7 @@ const SCENES = [
   { id: 'combustion', number: 3, load: () => import('./scenes/combustion.js') },
   { id: 'nox', number: 4, load: () => import('./scenes/nox.js') },
   { id: 'turbine', number: 5, load: () => import('./scenes/turbine.js') },
+  { id: 'partload', number: 6, load: () => import('./scenes/partload.js') },
 ];
 
 document.querySelector('.brand').textContent = STR.app.brand;

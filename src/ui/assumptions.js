@@ -23,6 +23,8 @@ export const CHART_TITLES = {
   s4trade: () => STR.scene4.tradeoff.title,
   s4arr: () => STR.scene4.arrhenius.title,
   s5cycle: () => `${STR.charts.cycle.ts.title}${A.levels.sep}${STR.charts.cycle.pv.title}`,
+  s6emis: () => STR.scene6.charts.emis.title,
+  s6aux: () => `${STR.scene6.charts.flame.title}${A.levels.sep}${STR.scene6.charts.eta.title}`,
 };
 
 const list = (items) => `<ul>${items.map((t) => `<li>${t}</li>`).join('')}</ul>`;
