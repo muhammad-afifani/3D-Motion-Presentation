@@ -19,6 +19,8 @@ export const STR = {
   common: {
     play: 'Play', pause: 'Pause', freeze: 'Freeze', unfreeze: 'Unfreeze', reset: 'Reset', labels: 'Labels',
     animSpeed: 'Animation speed', crankAngle: 'Crank angle θ',
+    /** Nilai Animation speed: ×0,5 (label sama di semua scene). */
+    animSpeedValue: (k) => `×${fmt(k, 1)}`,
     keySpace: 'Space',
     paused: 'PAUSED',
     frozen: (theta) => `FROZEN · θ = ${signedDeg(theta)}`,
@@ -45,7 +47,7 @@ export const STR = {
     tips: {
       play: 'Jeda/putar animasi. Saat jeda, θ masih bisa digeser.',
       freeze: 'Bekukan state: waktu berhenti dan θ terkunci untuk menunjuk satu titik. Tekan lagi untuk melepas.',
-      animSpeed: 'Hanya kecepatan tampilan (slow-motion). N mesin di model tetap.',
+      animSpeed: 'Hanya kecepatan tampilan (slow-motion), 0,1× sampai 2×, berlaku untuk semua scene. N mesin di model tetap.',
       crankAngle: 'Geser untuk menjeda dan memeriksa satu sudut. 0° = TDC pembakaran. Terkunci saat Freeze (F).',
     },
   },
@@ -61,7 +63,10 @@ export const STR = {
       reset: 'Parameter dikembalikan ke preset',
       turbine: 'Turbin: Scene 5 (milestone M5)',
       presenter: 'Mode presenter: milestone M8',
+      savedReset: 'Pengaturan tersimpan dihapus; scene awal kembali ke Scene 1',
     },
+    calibFlag: 'Custom calibration (session only)',
+    calibFlagTip: 'Faktor kalibrasi berbeda dari default. Nilai custom tidak disimpan dan kembali ke default saat halaman dibuka ulang. Detail di panel H.',
     badge: {
       ok: (passed, total) => `Model OK · ${passed}/${total}`,
       fail: (failed, total) => `Model FAIL · ${failed}/${total}`,
@@ -366,6 +371,9 @@ export const STR = {
       key: 'C',
       tip: 'Panel kalibrasi NOx: faktor engine (ENGINE_NOX_CALIB) dan DLN (calibrateDLN).',
       title: 'NOx calibration',
+      collapse: 'Collapse',
+      expand: 'Calibration',
+      collapseTip: 'Lipat panel ke samping agar tampilan 3D lebih lebar; klik strip untuk membuka lagi.',
       note: 'Level NOx absolut dikalibrasi ke nilai tipikal literatur, bukan data unit atau vendor. Ganti target dengan data CEMS/OEM unit bila tersedia.',
       engineTitle: 'Engine (Zeldovich rate factor)',
       engines: { diesel: 'Diesel', gas: 'Gas lean-burn' },
@@ -704,6 +712,13 @@ export const STR = {
     close: 'Close',
     keys: 'H / Esc',
     intro: 'Semua korelasi emisi indikatif. Level NOx absolut dikalibrasi ke nilai tipikal literatur, bukan data unit atau vendor.',
+    saved: {
+      title: 'Saved settings',
+      note: 'Disimpan di browser ini: batas NOx/CO dan satuannya, basis O₂/volume, opsi Scene 11 yang disembunyikan, dan scene terakhir (hanya sebagai scene awal; R mengembalikannya ke Scene 1). Faktor kalibrasi tidak disimpan.',
+      unavailable: 'Penyimpanan browser tidak tersedia (mis. mode privat atau diblokir): pengaturan hanya berlaku selama sesi ini.',
+      reset: 'Reset saved settings',
+      resetTip: 'Hapus pengaturan tersimpan: batas, satuan, basis, opsi Scene 11 kembali ke default; scene awal ke Scene 1.',
+    },
     basis: {
       title: 'Emission basis',
       o2: 'Reference O₂ [%]',

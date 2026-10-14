@@ -12,7 +12,7 @@ import {
   deriveCycles, keyNumbers, realSimParams, realSimKey, waterfallParams, waterfallKey,
 } from '../state/deriveCycles.js';
 import { createSimClient } from '../state/simClient.js';
-import { CYCLES, RPM_VISUAL } from '../model/presets.js';
+import { CYCLES } from '../model/presets.js';
 import { createRenderer } from '../gfx/renderer.js';
 import { createPistonRig } from '../gfx/pistonRig.js';
 import { createCycleChart } from '../charts/cycleChart.js';
@@ -20,6 +20,7 @@ import { createWaterfall } from '../charts/waterfall.js';
 import { createBraytonSchematic } from '../charts/braytonSchematic.js';
 import { createTempLegend } from '../charts/legend.js';
 import { slider, segmented, button } from '../ui/controls.js';
+import { animSpeedSlider } from '../ui/animSpeed.js';
 import { createHud } from '../ui/hud.js';
 import { fmt, pct } from '../ui/format.js';
 import { STR, signedDeg } from '../ui/strings.js';
@@ -141,7 +142,7 @@ export function createScene(ctx) {
     ctl.rpB = slider({ label: S.rpB, ...CYCLES.brayton.ranges.rpB, value: s.cRpB, digits: 1, onInput: (v) => store.set({ cRpB: v }) });
     ctl.T3 = slider({ label: S.T3, ...CYCLES.brayton.ranges.T3, value: s.cT3, digits: 0, unit: U.K, onInput: (v) => store.set({ cT3: v }) });
     ctl.theta = slider({ label: S.theta, min: -360, max: 360, step: 0.5, value: s.theta, format: signedDeg, tip: S.tips.theta, onInput: (v) => store.set(scrubPatch(store.get(), v)) });
-    ctl.rpm = slider({ label: C.animSpeed, ...RPM_VISUAL, value: s.rpmVisual, digits: 0, unit: U.rpmVisual, tip: C.tips.animSpeed, onInput: (v) => store.set({ rpmVisual: v }) });
+    ctl.rpm = animSpeedSlider(store);
     ctl.play = button({ label: C.pause, key: C.keySpace, tip: C.tips.play, onClick: () => store.set(togglePlayPatch(store.get())) });
     ctl.freeze = button({ label: C.freeze, key: 'F', tip: C.tips.freeze, onClick: () => store.set(toggleFreezePatch(store.get())) });
     ctl.reset = button({ label: C.reset, key: 'R', tip: S.tips.reset, onClick: resetCycle });
@@ -177,7 +178,7 @@ export function createScene(ctx) {
       q('.overlay--legend').hidden = false;
       hudKey = '';
     }
-    ctl.r.set(s.cR); ctl.rc.set(s.cRc); ctl.rp.set(s.cRp); ctl.rpB.set(s.cRpB); ctl.T3.set(s.cT3); ctl.rpm.set(s.rpmVisual);
+    ctl.r.set(s.cR); ctl.rc.set(s.cRc); ctl.rp.set(s.cRp); ctl.rpB.set(s.cRpB); ctl.T3.set(s.cT3); ctl.rpm.set(s.animSpeed);
     if (changed.includes('playing') || changed.includes('frozen')) {
       ctl.play.setLabel(s.playing ? C.pause : C.play);
       ctl.play.setOn(!s.playing);

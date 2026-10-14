@@ -7,13 +7,14 @@ import * as THREE from 'three';
 import { html } from './sceneBase.js';
 import { togglePlayPatch, toggleFreezePatch, tickPatch, compInitialState, compPressurePatch } from '../state/store.js';
 import { deriveComp } from '../state/deriveComp.js';
-import { GAS_COMPRESSOR, RPM_VISUAL } from '../model/presets.js';
+import { GAS_COMPRESSOR } from '../model/presets.js';
 import { createRenderer } from '../gfx/renderer.js';
 import { createCompressorRig } from '../gfx/compressorRig.js';
 import { createMultiLineChart } from '../charts/multiLineChart.js';
 import { niceCeil } from '../charts/chartBase.js';
 import { createTempLegend } from '../charts/legend.js';
 import { slider, button } from '../ui/controls.js';
+import { animSpeedSlider } from '../ui/animSpeed.js';
 import { createHud } from '../ui/hud.js';
 import { fmt } from '../ui/format.js';
 import { STR } from '../ui/strings.js';
@@ -111,7 +112,7 @@ export function createScene(ctx) {
     ctl.MW = slider({ label: S.MW, ...R.MW, value: s.cMW, digits: 1, unit: SU.MW, tip: S.tips.MW, onInput: (v) => store.set({ cMW: v }) });
     ctl.mdot = slider({ label: S.mdot, ...R.mdot, value: s.cMdot, digits: 1, unit: SU.kgs, tip: S.tips.mdot, onInput: (v) => store.set({ cMdot: v }) });
     ctl.speed = slider({ label: S.speed, ...R.speed, value: s.cSpeed, digits: 0, unit: SU.pct, tip: S.tips.speed, onInput: (v) => store.set({ cSpeed: v }) });
-    ctl.rpm = slider({ label: C.animSpeed, ...RPM_VISUAL, value: s.rpmVisual, digits: 0, unit: U.rpmVisual, tip: C.tips.animSpeed, onInput: (v) => store.set({ rpmVisual: v }) });
+    ctl.rpm = animSpeedSlider(store);
     ctl.play = button({ label: C.pause, key: C.keySpace, tip: C.tips.play, onClick: () => store.set(togglePlayPatch(store.get())) });
     ctl.freeze = button({ label: C.freeze, key: 'F', tip: C.tips.freeze, onClick: () => store.set(toggleFreezePatch(store.get())) });
     ctl.reset = button({ label: C.reset, key: 'R', tip: S.tips.reset, onClick: () => resetParams() });
@@ -125,7 +126,7 @@ export function createScene(ctx) {
   function resetParams() { store.set(compInitialState()); ctx.toast?.(STR.app.toast.reset); }
 
   function syncControls(s, changed) {
-    ctl.Psuc.set(s.cPsuc); ctl.Pdis.set(s.cPdis); ctl.MW.set(s.cMW); ctl.mdot.set(s.cMdot); ctl.speed.set(s.cSpeed); ctl.rpm.set(s.rpmVisual);
+    ctl.Psuc.set(s.cPsuc); ctl.Pdis.set(s.cPdis); ctl.MW.set(s.cMW); ctl.mdot.set(s.cMdot); ctl.speed.set(s.cSpeed); ctl.rpm.set(s.animSpeed);
     if (changed.includes('playing') || changed.includes('frozen')) {
       ctl.play.setLabel(s.playing ? C.pause : C.play);
       ctl.play.setOn(!s.playing);

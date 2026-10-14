@@ -13,6 +13,7 @@ import { createEmissionRig, UNIT_X, SPECIES } from '../gfx/emissionRig.js';
 import { SPECIES_COLORS } from '../gfx/species.js';
 import { createBarChart } from '../charts/barChart.js';
 import { slider, button } from '../ui/controls.js';
+import { animSpeedSlider } from '../ui/animSpeed.js';
 import { createHud } from '../ui/hud.js';
 import { fmt } from '../ui/format.js';
 import { STR } from '../ui/strings.js';
@@ -96,11 +97,12 @@ export function createScene(ctx) {
   function buildControls() {
     const s = store.get();
     ctl.slip = slider({ label: S.slip, ...EMIS.slip, value: s.eSlip, digits: 1, unit: U.pct, tip: S.tips.slip, onInput: (v) => store.set({ eSlip: v }) });
+    ctl.speed = animSpeedSlider(store);
     ctl.play = button({ label: C.pause, key: C.keySpace, tip: C.tips.play, onClick: () => store.set(togglePlayPatch(store.get())) });
     ctl.freeze = button({ label: C.freeze, key: 'F', tip: C.tips.freeze, onClick: () => store.set(toggleFreezePatch(store.get())) });
     ctl.reset = button({ label: C.reset, key: 'R', tip: S.tips.reset, onClick: () => resetParams() });
     const g1 = html('<div class="ctl-group"></div>');
-    g1.append(ctl.slip.el);
+    g1.append(ctl.slip.el, ctl.speed.el);
     const g2 = html('<div class="ctl-group ctl-group--buttons"></div>');
     g2.append(ctl.play.el, ctl.freeze.el, ctl.reset.el);
     q('.scene__controls').append(g1, g2);
@@ -108,6 +110,7 @@ export function createScene(ctx) {
   function resetParams() { store.set(emisInitialState()); ctx.toast?.(STR.app.toast.reset); }
   function syncControls(s, changed) {
     ctl.slip.set(s.eSlip);
+    ctl.speed.set(s.animSpeed);
     if (changed.includes('playing') || changed.includes('frozen')) {
       ctl.play.setLabel(s.playing ? C.pause : C.play);
       ctl.play.setOn(!s.playing);

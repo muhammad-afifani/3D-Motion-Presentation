@@ -8,13 +8,14 @@ import { html } from './sceneBase.js';
 import { resetPatch, engineSwitchPatch, togglePlayPatch, toggleFreezePatch, scrubPatch, tickPatch } from '../state/store.js';
 import { derive, SIM_KEYS } from '../state/derive.js';
 import { createSimClient } from '../state/simClient.js';
-import { ENGINES, RPM_VISUAL } from '../model/presets.js';
+import { ENGINES } from '../model/presets.js';
 import { createRenderer } from '../gfx/renderer.js';
 import { createPistonRig } from '../gfx/pistonRig.js';
 import { createPVChart } from '../charts/pvChart.js';
 import { createLineChart } from '../charts/lineChart.js';
 import { createTempLegend } from '../charts/legend.js';
 import { slider, segmented, button } from '../ui/controls.js';
+import { animSpeedSlider } from '../ui/animSpeed.js';
 import { createHud } from '../ui/hud.js';
 import { fmt, pct, toBar, toLiter, toMm } from '../ui/format.js';
 import { STR, signedDeg, plusDeg } from '../ui/strings.js';
@@ -102,7 +103,7 @@ export function createScene(ctx) {
     ctl.r = slider({ label: S.r, ...R.r, value: s.r, digits: 1, tip: S.tips.r, onInput: (v) => store.set({ r: v }) });
     ctl.phi = slider({ label: S.phi, ...R.phi, value: s.phi, digits: 2, tip: S.tips.phi, onInput: (v) => store.set({ phi: v }) });
     ctl.theta0 = slider({ label: S.theta0, ...R.theta0, value: s.theta0, format: signedDeg, tip: S.tips.theta0, onInput: (v) => store.set({ theta0: v }) });
-    ctl.rpm = slider({ label: C.animSpeed, ...RPM_VISUAL, value: s.rpmVisual, digits: 0, unit: U.rpmVisual, tip: C.tips.animSpeed, onInput: (v) => store.set({ rpmVisual: v }) });
+    ctl.rpm = animSpeedSlider(store);
     ctl.theta = slider({ label: C.crankAngle, min: -360, max: 360, step: 0.5, value: s.theta, format: signedDeg, tip: C.tips.crankAngle, onInput: (v) => store.set(scrubPatch(store.get(), v)) });
     ctl.play = button({ label: C.pause, key: C.keySpace, tip: C.tips.play, onClick: () => store.set(togglePlayPatch(store.get())) });
     ctl.freeze = button({ label: C.freeze, key: 'F', tip: C.tips.freeze, onClick: () => store.set(toggleFreezePatch(store.get())) });
@@ -125,7 +126,7 @@ export function createScene(ctx) {
       ctl.engine.set(s.engine);
       ctl.r.setRange(R.r); ctl.phi.setRange(R.phi); ctl.theta0.setRange(R.theta0);
     }
-    ctl.r.set(s.r); ctl.phi.set(s.phi); ctl.theta0.set(s.theta0); ctl.rpm.set(s.rpmVisual);
+    ctl.r.set(s.r); ctl.phi.set(s.phi); ctl.theta0.set(s.theta0); ctl.rpm.set(s.animSpeed);
     if (changed.includes('playing') || changed.includes('frozen')) {
       ctl.play.setLabel(s.playing ? C.pause : C.play);
       ctl.play.setOn(!s.playing);

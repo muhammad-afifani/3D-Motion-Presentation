@@ -278,7 +278,7 @@ export function deriveCycles(s, { sim = null, waterfall = null } = {}) {
     const ghost = kind === 'dual' ? null : idealPack(s, { T1: q.Tivc, P1: q.Pivc, qin }, 'ghost');
     const ref = ghost ?? ideal; // Dual: pembanding = ideal pada rp, rc slider (q_in tidak disamakan)
     const pt = realPistonPoint(sim, pack, theta);
-    out.rig = deriveEngine({ theta, rpmVisual: s.rpmVisual, engine }, sim);
+    out.rig = deriveEngine({ theta, rpmVisual: s.rpmVisual, animSpeed: s.animSpeed, engine }, sim);
     if (kind === 'dual') notes.push({ key: 'dualRef' });
     Object.assign(out, {
       modelLevel: 'semiEmpirical',

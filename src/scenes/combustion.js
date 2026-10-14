@@ -9,13 +9,14 @@ import {
 } from '../state/store.js';
 import { deriveFlame, flameSimParams, flameSimKey, focusWindow } from '../state/deriveFlame.js';
 import { createSimClient } from '../state/simClient.js';
-import { FLAME_MODES, FLAME_RANGES, RPM_VISUAL } from '../model/presets.js';
+import { FLAME_MODES, FLAME_RANGES } from '../model/presets.js';
 import { createRenderer } from '../gfx/renderer.js';
 import { createChamberCloseup, createCanCombustor } from '../gfx/combustorRig.js';
 import { createPerfGuard } from '../gfx/perfGuard.js';
 import { createFlameChart } from '../charts/flameChart.js';
 import { createBarChart } from '../charts/barChart.js';
 import { slider, segmented, button } from '../ui/controls.js';
+import { animSpeedSlider } from '../ui/animSpeed.js';
 import { createHud } from '../ui/hud.js';
 import { fmt, pct } from '../ui/format.js';
 import { STR, signedDeg } from '../ui/strings.js';
@@ -94,7 +95,7 @@ export function createScene(ctx) {
     ctl.tinModel = button({ label: S.tinModel, tip: S.tips.tinModel, onClick: () => store.set({ fTin: null }) });
     ctl.focus = button({ label: S.focus, tip: S.tips.focus, onClick: () => store.set({ fFocus: !store.get().fFocus }) });
     ctl.theta = slider({ label: C.crankAngle, min: -360, max: 360, step: 0.5, value: s.theta, format: signedDeg, tip: C.tips.crankAngle, onInput: (v) => store.set(scrubPatch(store.get(), v)) });
-    ctl.rpm = slider({ label: C.animSpeed, ...RPM_VISUAL, value: s.rpmVisual, digits: 0, unit: U.rpmVisual, tip: C.tips.animSpeed, onInput: (v) => store.set({ rpmVisual: v }) });
+    ctl.rpm = animSpeedSlider(store);
     ctl.play = button({ label: C.pause, key: C.keySpace, tip: C.tips.play, onClick: () => store.set(togglePlayPatch(store.get())) });
     ctl.freeze = button({ label: C.freeze, key: 'F', tip: C.tips.freeze, onClick: () => store.set(toggleFreezePatch(store.get())) });
     ctl.bloom = button({ label: S.bloom.auto, key: 'B', tip: S.tips.bloom, onClick: cycleBloom });
@@ -127,7 +128,7 @@ export function createScene(ctx) {
       for (const c of [ctl.theta, ctl.rpm, ctl.focus]) c.el.hidden = !piston;
       hudKey = '';
     }
-    ctl.phi.set(s.fPhi); ctl.phiLocal.set(s.fPhiLocal); ctl.rpm.set(s.rpmVisual);
+    ctl.phi.set(s.fPhi); ctl.phiLocal.set(s.fPhiLocal); ctl.rpm.set(s.animSpeed);
     ctl.focus.setOn(s.fFocus);
     ctl.bloom.setLabel(S.bloom[s.fBloom]);
     ctl.bloom.setOn(s.fBloom !== 'off');
