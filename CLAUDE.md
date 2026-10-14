@@ -8,12 +8,14 @@ Presentasi web 3D interaktif untuk staf produksi migas: diesel engine, gas engin
 - `src/model/thermo.js`: satu-satunya sumber perhitungan
 
 ## Stack
-Vite + JavaScript ES modules (JSDoc untuk tipe), three.js, vitest. Tanpa backend dan tanpa API eksternal saat runtime. Harus jalan offline dari `dist/` dan bisa di-deploy ke GitHub Pages. Semua model 3D prosedural (tanpa file aset berhak cipta). Grafik 2D memakai canvas buatan sendiri atau uPlot.
+Vite + JavaScript ES modules (JSDoc untuk tipe), three.js, vitest. Tanpa backend dan tanpa API eksternal saat runtime. Harus jalan offline lewat `npm run build:offline` + server statis lokal (mis. `npm run preview:offline`; lihat README "Cara presentasi offline"; `file://` tidak didukung karena ES module/Web Worker), dan ter-deploy ke GitHub Pages lewat `.github/workflows/deploy.yml` (`npm run build`, base `/<nama-repo>/`). Semua model 3D prosedural (tanpa file aset berhak cipta). Grafik 2D memakai canvas buatan sendiri atau uPlot.
 
 ## Perintah
 - `npm run dev`: server pengembangan
 - `npm test`: vitest (golden test harus hijau sebelum milestone dianggap selesai)
-- `npm run build`: bundle produksi (target < 1,5 MB gzip)
+- `npm run build`: bundle produksi untuk GitHub Pages, base `/<nama-repo>/` dari git remote / `GITHUB_REPOSITORY` (target < 1,5 MB gzip)
+- `npm run build:offline` lalu `npm run preview:offline`: paket presentasi offline (base relatif `./`)
+- `npm run preview`: uji build Pages di `http://localhost:4173/<nama-repo>/`
 - `node -e "import('./src/model/thermo.js').then(t=>console.log(t.selfTest()))"`: validasi cepat model (harus `failed: 0`, saat ini 14 tes)
 
 ## Arsitektur (wajib)
