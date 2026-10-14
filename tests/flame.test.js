@@ -82,7 +82,7 @@ describe('Scene 3: suhu masuk dari model dan label', () => {
     near(f.Tflame, flameTemperature(FLAME_MODES.diesel.phiLocal, f.Tin, 'diesel'), 1e-12);
     expect(f.dTlocal).toBeGreaterThan(300);
     expect(STR.scene3.hud.tflame.label).toBe('Adiabatic flame temperature');
-    expect(STR.scene3.hud.tflame.tip(true)).toMatch(/SAAT campuran terbakar, BUKAN suhu puncak zona terbakar \(itu di Scene 4\)/);
+    expect(STR.scene3.hud.tflame.tip(true)).toMatch(/SAAT campuran terbakar, BUKAN "Peak burned-zone temperature" di Scene 4/);
     expect(STR.scene3.overlay.tflameLabel).toBe('Suhu nyala adiabatik saat terbakar:');
   });
   it('turbin: titik berlabel φ zona premix; φ keseluruhan ≈ 0,34 dari model', () => {

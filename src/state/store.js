@@ -163,3 +163,10 @@ export function gtDefaults(cfg = 'generator') {
 }
 /** State awal Scene 5 (ambient ISO 15 °C). */
 export const gtInitialState = () => ({ ...gtDefaults('generator'), gTamb: 15 });
+
+// ── Scene 4 (NOx) — key terpisah: n* ──
+
+/** Default Scene 4 per engine: timing = preset thermo.js (θ0). */
+export const noxDefaults = (engine = 'diesel') => ({ nEngine: engine, nTheta0: ENGINES[engine].params.theta0 });
+/** State awal Scene 4. */
+export const noxInitialState = () => noxDefaults('diesel');

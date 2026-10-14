@@ -89,3 +89,21 @@ export const GT_RANGES = {
 };
 /** Jumlah tahap rig 3D (visual). */
 export const GT_STAGES = { compressor: 10, turbine: 3, ggTurbine: 2, powerTurbine: 2 };
+
+/**
+ * Scene 4 — NOx. Rentang timing (° ATDC) per engine; preset = ENGINE_PRESETS.theta0.
+ * Sapuan retardSweep memakai SEMUA langkah slider, sehingga titik operasi selalu berada tepat
+ * di salah satu titik kurva NOx–η. Gas: di atas ≈ −22° risiko knocking (tidak dimodelkan).
+ */
+const steps = (r) => Array.from({ length: Math.round((r.max - r.min) / r.step) + 1 }, (_, i) => r.min + i * r.step);
+export const NOX_TIMING = {
+  diesel: { min: -12, max: 6, step: 1 },
+  gas: { min: -22, max: 2, step: 1 },
+};
+for (const r of Object.values(NOX_TIMING)) r.sweep = steps(r);
+
+/** Grafik Arrhenius (zeldovichCurve): rentang T, acuan laju relatif, dan rentang yang dibandingkan. */
+export const NOX_ARRHENIUS = { Tmin: 1500, Tmax: 3100, Tref: 1800, engineBand: [2200, 3000], dlnBand: [1500, 2000] };
+
+/** Jendela animasi Scene 4 (° ATDC): kompresi akhir → EVO, tempat zona terbakar ada. */
+export const NOX_WINDOW = { lo: -60, hi: 150 };

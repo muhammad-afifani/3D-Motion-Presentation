@@ -49,7 +49,7 @@ export const STR = {
       frozenHint: 'Sedang Freeze: tekan F untuk melepas',
       reset: 'Parameter dikembalikan ke preset',
       turbine: 'Turbin: Scene 5 (milestone M5)',
-      assumptions: 'Panel asumsi: milestone M4',
+      assumptions: 'Panel asumsi (H): menyusul di M4b',
       presenter: 'Mode presenter: milestone M8',
     },
     badge: {
@@ -248,7 +248,7 @@ export const STR = {
       reset: 'Kembalikan parameter ruang bakar ke preset',
     },
     hud: {
-      tflame: { label: 'Adiabatic flame temperature', tip: (diesel) => `flameTemperature(φ${diesel ? ' lokal' : ''}, T_in, bahan bakar).\nSuhu nyala adiabatik SAAT campuran terbakar, BUKAN suhu puncak zona terbakar (itu di Scene 4).\nIndikatif ±100 K.` },
+      tflame: { label: 'Adiabatic flame temperature', tip: (diesel) => `flameTemperature(φ${diesel ? ' lokal' : ''}, T_in, bahan bakar).\nSuhu nyala adiabatik SAAT campuran terbakar, BUKAN "Peak burned-zone temperature" di Scene 4 (gas terbakar yang ikut tertekan, lebih panas).\nIndikatif ±100 K.` },
       dT: { label: 'ΔT local zone vs global φ', tip: 'flameTemperature(φ lokal) − flameTemperature(φ global) pada T_in yang sama.\nCampuran tak homogen: kantong hampir stoikiometrik walau rata-rata miskin.' },
       phiTip: { turbine: 'φ di zona premix combustor (DLN), bukan φ keseluruhan turbin.', other: 'φ = (bahan bakar/udara) ÷ stoikiometrik.' },
       tin: { label: 'Inlet mixture T', tipTurbine: 'Model: T₂ keluar kompresor (braytonReal).', tipPiston: 'Model: suhu gas saat θ₀ (akhir kompresi, sebelum terbakar) dari cylinderSim.' },
@@ -283,6 +283,72 @@ export const STR = {
       caption: 'Masing-masing pada T_in model-nya; mode aktif mengikuti slider. Warna bar = flameColor(φ).',
     },
   },
+  // ─────────────────────────── Scene 4 — NOx ───────────────────────────
+  scene4: {
+    title: 'NOx: kenapa suhu begitu menentukan',
+    message: 'NOx tidak naik linier dengan suhu, tetapi eksponensial.',
+    messageWithNumbers: (ratio, Tref) =>
+      `NOx naik eksponensial terhadap suhu: +100 K di ${fmt(Tref, 0)} K ≈ ×${fmt(ratio, 1)} laju pembentukan NO (model Zeldovich).`,
+    engine: 'Engine',
+    engines: { diesel: 'Diesel', gas: 'Gas lean-burn' },
+    timing: { diesel: 'Injection timing θ₀', gas: 'Spark timing θ₀' },
+    window: 'Crank angle θ',
+    tips: {
+      engine: 'Preset engine dari thermo.js (sama dengan Scene 1). Hanya timing yang diubah di scene ini.',
+      timing: 'Awal pembakaran θ₀ (° ATDC; negatif = sebelum TDC). Geser ke kanan = retard: puncak suhu zona terbakar turun → NOx turun, tetapi η turun dan CO₂ naik.',
+      window: 'Animasi hanya memutar jendela akhir kompresi → EVO, tempat zona terbakar ada. Geser untuk menjeda di satu sudut.',
+      reset: 'Kembalikan timing ke preset engine',
+      labels: 'Tampilkan/sembunyikan label komponen 3D',
+    },
+    formula: {
+      zeldovich: 'd[NO]/dt ≈ 6×10¹⁶/√T · exp(−69.090/T) · [O₂]<sup>½</sup> [N₂]',
+      o2: 'C<sub>ref</sub> = C · (20,9 − O₂<sub>ref</sub>) / (20,9 − O₂<sub>ukur</sub>)',
+      note: (refO2) => `Zeldovich termal (Heywood) · koreksi ke ${fmt(refO2, 0)}% O₂, gas kering · indikatif`,
+    },
+    readout: {
+      Tgas: 'Mean gas T', Tb: 'Burned-zone T', noFrac: 'NO formed', none: '–',
+      tbTip: 'Suhu zona terbakar pada θ ini (elemen terpanas). Gelembung 3D diwarnai dengan suhu ini (legenda K).',
+    },
+    tempLegend: 'Gas / burned-zone T [K]',
+    speciesNo: 'NO (thermal)',
+    labels3d: { burned: 'Burned zone', no: 'NO particles', piston: 'Piston', top: { diesel: 'Injector', gas: 'Spark plug' } },
+    tradeoff: {
+      title: 'NOx vs brake efficiency (timing sweep)',
+      xLabel: 'Brake efficiency η [%]',
+      yLabel: 'NOx [g/kWh] · indikatif',
+      preset: 'Preset',
+      point: (theta0) => `${theta0 > 0 ? '+' : theta0 < 0 ? '−' : ''}${fmt(Math.abs(theta0), 0)}°`,
+      now: (nox, eta) => `${fmt(nox, 1)} g/kWh · η ${fmt(eta * 100, 1)}%`,
+      caption: (dNox, dCo2) =>
+        `Retard → NOx turun, η turun, CO₂ naik. Terhadap preset: NOx <b>${dNox >= 0 ? '+' : '−'}${fmt(Math.abs(dNox) * 100, 0)}%</b>, CO₂ <b>${dCo2 >= 0 ? '+' : '−'}${fmt(Math.abs(dCo2) * 100, 1)}%</b> (retardSweep, indikatif)`,
+      captionWait: 'Menghitung sapuan timing…',
+    },
+    arrhenius: {
+      title: 'Zeldovich rate vs temperature (Arrhenius)',
+      xLabel: 'Temperature T [K]',
+      yLabel: (Tref) => `Rel. NO rate (${fmt(Tref, 0)} K = 1)`,
+      bandEngine: 'Engine burned zone',
+      bandDln: 'DLN flame T',
+      peak: 'Peak burned-zone T',
+      caption: (ratioRef, Tref, ratioPeak, Tpeak) =>
+        `+100 K → laju NO <b>×${fmt(ratioRef, 1)}</b> di ${fmt(Tref, 0)} K, <b>×${fmt(ratioPeak, 1)}</b> di T puncak ${fmt(Tpeak, 0)} K.<br />Rentang T zona terbakar engine (2200–3000 K) berbeda dari flame T DLN (1500–2000 K, noxCoTradeoff di Scene 6/9).`,
+    },
+    hud: {
+      timing: { label: (diesel) => (diesel ? 'Injection timing' : 'Spark timing'), tip: 'θ₀ = awal pembakaran (Wiebe), ° ATDC. Negatif = sebelum TDC.' },
+      tbPeak: {
+        label: 'Peak burned-zone temperature',
+        tip: 'Suhu tertinggi zona terbakar selama siklus (cylinderSim → TburnedMax). Gas yang sudah terbakar ikut tertekan saat tekanan silinder naik, jadi bisa melampaui suhu nyala adiabatik.\nBeda dengan "Adiabatic flame temperature" di Scene 3: suhu SAAT campuran terbakar, pada kondisi masuk tetap.\nNOx termal (Zeldovich) ditentukan oleh suhu zona terbakar ini.',
+      },
+      noxG: { label: 'NOx · indikatif', tip: 'NOx spesifik (sebagai NO₂) per kWh poros: cylinderSim → NOx_gkWh.\nDikalibrasi ke nilai tipikal literatur, bukan data unit.' },
+      noxPpm: { label: 'NOx · indikatif', unit: (refO2, TrefC) => `ppmvd @${fmt(refO2, 0)}% O₂ · ${fmt(TrefC, 0)} °C`, tip: 'ppm volume, gas kering, dikoreksi ke O₂ acuan: C·(20,9 − O₂ref)/(20,9 − O₂ukur).\nBasis O₂ dan volume tetap di M4a (input menyusul).' },
+      noxMg: { label: 'NOx as NO₂ · indikatif', unit: (refO2, TrefC) => `mg/Nm³ @${fmt(refO2, 0)}% O₂ · ${fmt(TrefC, 0)} °C`, tip: 'mg/Nm³ = ppm · M(NO₂) / volume molar pada basis volume (22,414 m³/kmol pada 0 °C).' },
+      eta: { label: 'Brake η', tip: 'Efisiensi rem cylinderSim (sama dengan Scene 1 pada preset).' },
+      co2: { label: 'CO₂', tip: 'CO₂ spesifik = faktor emisi bahan bakar × 3,6 / η rem. Retard → η turun → CO₂ naik.' },
+      calib: { label: 'NOx calib', value: (c) => `×${fmt(c, 2)}`, tip: 'ENGINE_NOX_CALIB (thermo.js): faktor laju Zeldovich agar preset ≈ nilai tipikal literatur (diesel ≈ 11, gas lean-burn ≈ 2,5 g/kWh). Ditampilkan karena ≠ 1.' },
+      note: 'NOx: Zeldovich termal per elemen zona terbakar (cylinderSim, Wiebe), dikalibrasi ke nilai tipikal literatur, bukan data unit/vendor. Indikatif.',
+    },
+  },
+
   // ─────────────────────────── Scene 5 — turbin gas ───────────────────────────
   scene5: {
     title: 'Turbin gas: Brayton dari dekat',
@@ -312,6 +378,8 @@ export const STR = {
       texh: { label: (twin) => (twin ? 'Exhaust T₅' : 'Exhaust T₄'), tip: 'Suhu gas buang (masuk ke cerobong atau HRSG).' },
       derate: { label: 'Derating', tip: (ref) => `Penurunan daya per °C di atas ISO 15 °C.${ref ? '\nPada 15 °C dihitung di acuan 35 °C.' : ''}\nSumber: braytonDerated().perDegC / twinShaftCycle().perDegC.` },
       powerIso: { label: 'Power vs ISO', tip: 'Daya relatif terhadap kondisi ISO (15 °C, 1 atm).' },
+      /** Label model di bawah angka derating (tile Derating & Power vs ISO). */
+      derateModel: { generator: 'Generator · braytonDerated', compressorDrive: 'Compressor drive · twinShaft' },
       speed: { label: 'Shaft speed', tipGen: 'Generator sinkron: N tetap (3000 rpm untuk 50 Hz). Beban turun → yang diatur adalah bahan bakar/IGV, bukan N (lihat Scene 6).', tipTwin: 'N_GG = gas generator, N_PT = power turbine. Pada compressor drive, N_PT mengikuti kebutuhan proses (Scene 6–7).' },
       perDegUnit: '%/°C', refSuffix: ' (ref 35 °C)',
       note: 'Model: efisiensi komponen (η_c, η_t), ΔP combustor 4%, rugi mekanis 1%. Derating: ṁ ∝ P/T pada rasio tekanan tetap (indikatif).',

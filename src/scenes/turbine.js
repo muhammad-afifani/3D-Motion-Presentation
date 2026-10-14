@@ -32,8 +32,8 @@ function hudItems(cfg, perDegRef) {
     { id: 'pw', label: H.power.label(GAS_TURBINES[cfg].mdot), unit: U.MW, value: (f) => fmt(f.power / 1e6, 2), tip: H.power.tip },
     { id: 'bwr', label: H.bwr.label, unit: U.pct, value: (f) => pct(f.bwr, 0), tip: H.bwr.tip },
     { id: 'tex', label: H.texh.label(twin), unit: U.K, value: (f) => fmt(f.Texh, 0), tip: H.texh.tip },
-    { id: 'der', label: `${H.derate.label}${perDegRef ? H.refSuffix : ''}`, unit: H.perDegUnit, value: (f) => fmt(f.perDegC * 100, 2), tip: H.derate.tip(perDegRef) },
-    { id: 'iso', label: H.powerIso.label, unit: U.pct, value: (f) => `${f.derate >= 1 ? '+' : '−'}${fmt(Math.abs(f.derate - 1) * 100, 1)}`, tip: H.powerIso.tip },
+    { id: 'der', label: `${H.derate.label}${perDegRef ? H.refSuffix : ''}`, unit: H.perDegUnit, model: H.derateModel[cfg], value: (f) => fmt(f.perDegC * 100, 2), tip: H.derate.tip(perDegRef) },
+    { id: 'iso', label: H.powerIso.label, unit: U.pct, model: H.derateModel[cfg], value: (f) => `${f.derate >= 1 ? '+' : '−'}${fmt(Math.abs(f.derate - 1) * 100, 1)}`, tip: H.powerIso.tip },
     { id: 'n', label: H.speed.label, unit: '', value: (f) => (f.twin ? S.speedTwin(f.N.gg, f.N.pt) : S.speedGen(f.N.rpm)), tip: twin ? H.speed.tipTwin : H.speed.tipGen },
   ];
 }

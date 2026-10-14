@@ -151,8 +151,8 @@ describe('strings.js: isi', () => {
   });
 
   it('pesan kunci & judul scene tetap berbahasa Indonesia', () => {
-    for (const k of ['scene1', 'scene2', 'scene3']) {
-      expect(STR[k].message).toMatch(/\b(dan|di|pada|karena|satu|luas|punya)\b/);
+    for (const k of ['scene1', 'scene2', 'scene3', 'scene4']) {
+      expect(STR[k].message).toMatch(/\b(dan|di|pada|karena|satu|luas|punya|tidak|dengan)\b/);
     }
   });
 });

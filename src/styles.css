@@ -175,6 +175,18 @@ kbd {
 .scene--gt .overlay--formula { z-index: 2; }
 .scene--gt .overlay--legend { top: auto; right: auto; left: 12px; bottom: 12px; transform: none; z-index: 2; }
 
+/* ── Scene 4: NOx ── */
+.scene--nox .hud { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+.scene--nox .hud__note { grid-column: 1 / -1; }
+.scene--nox .hud__value { white-space: normal; line-height: 1.1; }
+.scene--nox .hud__value .u { display: inline-block; white-space: nowrap; }
+.scene--nox .chart__caption { white-space: normal; line-height: 1.35; }
+.scene--nox .overlay--formula { z-index: 2; }
+.scene--nox .overlay--legend { display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
+.nox-species { font-size: 12px; color: var(--text); padding: 6px 10px; border-radius: 10px; background: rgba(11, 15, 22, 0.72); border: 1px solid var(--line); white-space: nowrap; }
+.nox-species .sw { border-radius: 50%; width: 10px; }
+.ro-tb { pointer-events: auto; cursor: help; text-decoration: underline dotted; }
+
 /* ── chart ── */
 .chart-slot { min-height: 0; }
 .chart { position: relative; height: 100%; border-radius: 12px; background: var(--bg-1); border: 1px solid var(--line); overflow: hidden; }
@@ -228,6 +240,7 @@ button:focus-visible, input:focus-visible, .hud__item:focus-visible { outline: 2
 .hud__label { font-size: 12px; color: var(--muted); }
 .hud__value { font-size: clamp(18px, 1.5vw, 28px); font-weight: 700; white-space: nowrap; }
 .hud__value .u { font-size: 0.5em; color: var(--muted); margin-left: 5px; font-weight: 500; }
+.hud__model { font-size: 10.5px; line-height: 1.25; color: var(--accent-cold); font-family: var(--font-num); overflow-wrap: anywhere; }
 .hud__note { font-size: 11px; color: var(--muted); line-height: 1.4; align-self: center; }
 .hud__note .level { display: inline-block; margin-right: 6px; font-weight: 600; color: var(--text); border: 1px solid var(--line); border-radius: 999px; padding: 0 7px; }
 
@@ -252,6 +265,7 @@ button:focus-visible, input:focus-visible, .hud__item:focus-visible { outline: 2
   .hud__note { grid-column: 1 / -1; }
   .scene--gt { grid-template-columns: 1fr; grid-template-rows: 55vh 45vh 45vh auto auto; grid-template-areas: 'view' 'ts' 'pv' 'controls' 'hud'; }
   .gt-hud .hud { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .scene--nox .hud { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .scene--flame { grid-template-columns: 1fr; grid-template-rows: 55vh 50vh auto 40vh auto; grid-template-areas: 'view' 'chart' 'controls' 'bars' 'hud'; }
   .scene--cycles { grid-template-columns: 1fr; grid-template-rows: 55vh 50vh 50vh auto 40vh auto; grid-template-areas: 'view' 'pv' 'ts' 'controls' 'wf' 'hud'; }
 }
