@@ -5,17 +5,18 @@
 import './styles.css';
 import { mountModelBadge } from './ui/modelBadge.js';
 import { installTooltips } from './ui/tooltip.js';
-import { createStore, defaultState, resetPatch, engineSwitchPatch, togglePlayPatch, toggleFreezePatch, cycleInitialState } from './state/store.js';
+import { createStore, defaultState, resetPatch, engineSwitchPatch, togglePlayPatch, toggleFreezePatch, cycleInitialState, flameInitialState } from './state/store.js';
 
 const SCENES = [
   { id: 'piston', number: 1, load: () => import('./scenes/piston.js') },
   { id: 'cycles', number: 2, load: () => import('./scenes/cycles.js') },
+  { id: 'combustion', number: 3, load: () => import('./scenes/combustion.js') },
 ];
 
 mountModelBadge(document.getElementById('model-badge'));
 installTooltips();
 
-const store = createStore({ ...defaultState('diesel'), ...cycleInitialState() });
+const store = createStore({ ...defaultState('diesel'), ...cycleInitialState(), ...flameInitialState() });
 const app = document.getElementById('app');
 const toastEl = document.getElementById('toast');
 let toastTimer = 0;

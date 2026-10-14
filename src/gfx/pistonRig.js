@@ -10,6 +10,7 @@ import { createMaterials } from './materials.js';
 const DEG = Math.PI / 180;
 const CUT_START = 90 * DEG;   // jendela cutaway menghadap kamera (−60°…+90°, diukur dari +Z ke +X)
 const CUT_LEN = 210 * DEG;    // bagian dinding yang tetap ada
+const CUT_FACES = [CUT_START - 0.004, CUT_START + CUT_LEN + 0.004]; // bidang potongan sedikit di luar sisi padat (tanpa z-fighting)
 export const HP = 0.11;       // tinggi kompresi piston (pin → crown), visual
 export const VALVE_MAX = 0.016; // angkat katup maksimum (m), visual
 
@@ -66,7 +67,7 @@ export function createPistonRig() {
     const liner = mesh(annularSector(R, R + wall, CUT_START, CUT_LEN, deck - linerBottom), mat.block);
     liner.position.y = linerBottom;
     staticGroup.add(liner);
-    for (const th of [CUT_START, CUT_START + CUT_LEN]) {
+    for (const th of CUT_FACES) {
       const f = mesh(cutFace(R, R + wall, th, deck - linerBottom), mat.cut, { cast: false });
       f.position.y = linerBottom;
       staticGroup.add(f);
@@ -76,7 +77,7 @@ export function createPistonRig() {
     const head = mesh(annularSector(0, R + wall + 0.015, CUT_START, CUT_LEN, headH), mat.block);
     head.position.y = deck;
     staticGroup.add(head);
-    for (const th of [CUT_START, CUT_START + CUT_LEN]) {
+    for (const th of CUT_FACES) {
       const f = mesh(cutFace(0, R + wall + 0.015, th, headH), mat.cut, { cast: false });
       f.position.y = deck;
       staticGroup.add(f);

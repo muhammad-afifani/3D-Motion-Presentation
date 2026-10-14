@@ -597,6 +597,15 @@ function engineNOx({ th, P, step, N, Pivc, Tivc, phi, phiLocal, fuel, mFuel, mas
   return { TburnedMax: TbMax, NO_ppmWet: xExhWet * 1e6, NOx_ppmvd_ref, NOx_mgNm3_ref: ppmToMgNm3(NOx_ppmvd_ref, MW.NO2), nNOkmol: nNO };
 }
 
+/**
+ * Panas yang dilepas per kg udara pada rasio ekuivalen φ (J/kg udara):
+ * q = φ · LHV · combEff / AFRst. Untuk combustor premix: per kg udara ZONA PREMIX (bukan seluruh aliran).
+ * Konsisten dengan cylinderSim (mFuel = φ·m/AFRst → Efuel/m = qinPerKgAir(φ)) dan braytonReal (mf = ṁ·qin/(LHV·combEff)).
+ */
+export const qinPerKgAir = (phi, fuel = 'gas', combEff = 1) => (phi * FUELS[fuel].LHV * 1e3 * combEff) / FUELS[fuel].AFRst;
+/** Invers qinPerKgAir: φ yang melepas q (J/kg udara). Mis. φ keseluruhan turbin = phiFromQinPerKgAir(braytonReal().qin, 'gas', 0,99). */
+export const phiFromQinPerKgAir = (q, fuel = 'gas', combEff = 1) => q / qinPerKgAir(1, fuel, combEff);
+
 // ───────────────────── CO2, GHG, trade-off kebijakan ─────────────────────
 
 /** CO2 spesifik g/kWh = EF[g/MJ]·3,6/η */

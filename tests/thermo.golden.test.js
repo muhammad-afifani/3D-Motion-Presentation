@@ -3,7 +3,7 @@ import { describe, it, expect } from 'vitest';
 import {
   otto, diesel, dual, braytonIdeal, braytonReal, braytonDerated, co2Specific,
   cylinderSim, ENGINE_PRESETS, noxThermal, twinShaft, gasCompressor, selfTest,
-  lossWaterfall, simStates,
+  lossWaterfall, simStates, flameTemperature, qinPerKgAir, phiFromQinPerKgAir,
 } from '../src/model/thermo.js';
 
 /** |got − want| ≤ tol */
@@ -103,6 +103,26 @@ describe('simStates (entropi cylinderSim untuk T-s real)', () => {
       near(v[0], sim.V[0] / sim.mass, 1e-15);
     });
   }
+});
+
+describe('Pembakaran (Scene 3)', () => {
+  it('flameTemperature(0,5; 300 K) ≈ 1530 K', () => near(flameTemperature(0.5, 300), 1530, 1));
+  it('flameTemperature(1,0; 300 K) ≈ 2226 K', () => near(flameTemperature(1.0, 300), 2226, 1));
+  it('qinPerKgAir: gas φ 0,5 → 1403,5 kJ/kg; diesel φ 0,5 → 1458,5 kJ/kg', () => {
+    near(qinPerKgAir(0.5, 'gas') / 1e3, 1403.5, 0.1);
+    near(qinPerKgAir(0.5, 'diesel') / 1e3, 1458.5, 0.1);
+  });
+  it('qinPerKgAir = Efuel/massa cylinderSim (preset diesel & gas)', () => {
+    for (const k of ['diesel', 'gas']) {
+      const sim = cylinderSim({ ...ENGINE_PRESETS[k], nox: false });
+      near(qinPerKgAir(sim.params.phi, sim.params.fuel), sim.Efuel / sim.mass, 1e-6);
+    }
+  });
+  it('φ keseluruhan turbin (braytonReal default, T3 1500 K) ≈ 0,34; invers konsisten', () => {
+    const b = braytonReal({});
+    near(phiFromQinPerKgAir(b.qin, 'gas', b.params.combEff), 0.341, 0.003);
+    near(phiFromQinPerKgAir(qinPerKgAir(0.73, 'diesel', 0.98), 'diesel', 0.98), 0.73, 1e-12);
+  });
 });
 
 describe('selfTest', () => {

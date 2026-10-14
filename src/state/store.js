@@ -2,7 +2,7 @@
  * store.js — store reaktif kecil, sumber kebenaran tunggal untuk parameter UI.
  * Alur: UI control → store.set → derive() → frame → { rig 3D, chart, HUD }.
  */
-import { ENGINES, RPM_VISUAL, CYCLES } from '../model/presets.js';
+import { ENGINES, RPM_VISUAL, CYCLES, FLAME_MODES } from '../model/presets.js';
 
 /**
  * @typedef {Object} AppState
@@ -124,3 +124,27 @@ export function cycleModePatch(s, mode) {
   const rr = cycleRRange(s.cKind, mode);
   return rr ? { cMode: mode, cR: clampTo(s.cR, rr) } : { cMode: mode };
 }
+
+// ── Scene 3 (pembakaran) ──
+
+/** Default Scene 3 untuk satu mode. fTin = null → suhu masuk dari model (lihat deriveFlame). */
+export function flameDefaults(mode = 'diesel') {
+  const m = FLAME_MODES[mode];
+  return { fMode: mode, fPhi: m.phi, fPhiLocal: m.phiLocal ?? FLAME_MODES.diesel.phiLocal, fTin: null };
+}
+
+/** State awal Scene 3 (termasuk preferensi tampilan). */
+export const flameInitialState = () => ({ ...flameDefaults('diesel'), fFocus: true, fBloom: 'auto' });
+
+/** Langkah waktu yang berputar di jendela [lo, hi) (fokus jendela pembakaran); hormati jeda/beku. */
+export function tickWindowPatch(s, dt, lo, hi) {
+  if (!s.playing || s.frozen) return {};
+  const span = hi - lo;
+  let th = s.theta < lo || s.theta >= hi ? lo : s.theta + 6 * s.rpmVisual * dt;
+  if (th >= hi) th = lo + ((th - lo) % span);
+  return { theta: th };
+}
+
+const BLOOM_ORDER = ['auto', 'on', 'off'];
+/** Patch tombol B: Auto → Nyala → Mati → Auto. */
+export const bloomCyclePatch = (s) => ({ fBloom: BLOOM_ORDER[(BLOOM_ORDER.indexOf(s.fBloom) + 1) % BLOOM_ORDER.length] });
