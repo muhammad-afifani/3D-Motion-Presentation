@@ -1,6 +1,6 @@
 # Engine & Turbine Emission Lab
 
-Presentasi web 3D interaktif untuk staf produksi migas: diesel engine, gas engine, turbin generator (single-shaft), turbin kompresor (twin-shaft). Menghubungkan siklus termodinamika → efisiensi → emisi (NOx, CO, CO₂, methane slip) → argumen baku mutu. Bahasa UI: **Indonesia** (istilah teknis baku boleh Inggris).
+Presentasi web 3D interaktif untuk staf produksi migas: diesel engine, gas engine, turbin generator (single-shaft), turbin kompresor (twin-shaft). Menghubungkan siklus termodinamika → efisiensi → emisi (NOx, CO, CO₂, methane slip) → argumen baku mutu. Bahasa UI: **campuran terarah**: istilah teknis engineering dan label kontrol/menu dalam bahasa **Inggris**; kalimat penjelasan, pesan kunci, dan tooltip dalam bahasa **Indonesia** (lihat Konvensi).
 
 ## Dokumen acuan (baca sebelum mengerjakan milestone)
 - `docs/PROMPT_simulasi_3D.md`: spesifikasi lengkap (scene, arsitektur, mapping variabel→visual, golden test, milestone M1–M8)
@@ -31,13 +31,18 @@ Alur data satu arah: `UI control → store.set → derive() → frame → { rig 
 - Selalu tampilkan basis koreksi O₂ (mis. 15%) dan basis volume (0 °C / 25 °C) di samping angka ppm atau mg/Nm³.
 - Angka baku mutu **diisi presenter lewat input**, tidak ditulis di kode.
 - Tidak menyebut vendor, merek, atau tipe turbin tertentu.
-- Tingkat model berlabel di pojok tiap grafik: `Ideal` / `Real (efisiensi komponen)` / `Semi-empiris` / `Data unit`.
+- Tingkat model berlabel di pojok tiap grafik: `Ideal` / `Real (component efficiency)` / `Semi-empirical` / `Site data`.
 
 ## Konvensi
 - Satuan SI di dalam model; konversi hanya di lapisan tampilan.
 - Sudut engkol dalam derajat, 0 = TDC pembakaran; 4-tak −360…+360.
 - Kode warna spesies konsisten di semua scene: NOx oranye, CO merah-magenta, CO₂ abu-biru, CH₄ hijau, PM abu gelap. Skala suhu (`tempToRGB`) selalu disertai legenda K.
 - Angka UI: font tabular-nums; pemisah desimal koma (id-ID) pada teks tampilan.
+- Bahasa UI:
+  - **Inggris**: istilah teknis (part-load, base load, heat rate, back-work ratio, derating, lean-burn, premix, methane slip, knocking, swirler, combustor, waterfall, compression ratio, dll.) dan label kontrol/menu/HUD/judul grafik/sumbu/status (mis. Play, Pause, Freeze, Reset, Replay, Animation speed, PAUSED, FROZEN).
+  - **Indonesia**: kalimat penjelasan, pesan kunci, judul scene, tooltip, catatan/caption penjelas, dan toast. Label "indikatif" untuk korelasi emisi tetap.
+  - Jangan memaksakan terjemahan bila terasa canggung.
+  - Semua teks UI ada di `src/ui/strings.js` (dikelompokkan per scene). `scenes/`, `charts/`, `ui/`, `main.js`, dan `state/derive*.js` tidak menulis teks UI langsung (dijaga `tests/strings.test.js`).
 - Dispose geometri, material, dan listener saat pindah scene. `InstancedMesh` untuk bilah dan partikel.
 - `cylinderSim` berjalan di Web Worker, dengan debounce saat slider digeser.
 

@@ -4,13 +4,15 @@
  * Kurva disampel di titik patah tabel model sehingga polyline = fungsi model; titik tepat di kurva.
  */
 import { createChartBase, makeScale, niceTicks, drawAxes, CHART_FONT } from './chartBase.js';
-import { fmt } from '../ui/format.js';
+import { STR } from '../ui/strings.js';
+
+const S = STR.charts.flame;
 
 const rgb = (c) => `rgb(${c.map((v) => Math.round(v * 255)).join(',')})`;
 
 /** @param {HTMLElement} container */
 export function createFlameChart(container) {
-  const base = createChartBase(container, { title: 'Suhu nyala adiabatik vs φ (indikatif ±100 K)', modelLevel: 'Semi-empiris', pad: { l: 60, r: 18, t: 58, b: 42 } });
+  const base = createChartBase(container, { title: S.title, modelLevel: 'semiEmpirical', pad: { l: 60, r: 18, t: 58, b: 42 } });
   let sx, sy, key = '';
 
   function drawStatic(f) {
@@ -19,14 +21,14 @@ export function createFlameChart(container) {
     sx = makeScale(f.curve.phi[0], f.curve.phi[f.curve.phi.length - 1], box.pad.l, box.w - box.pad.r);
     const tmax = Math.max(...f.curve.T, ...f.curve300.T);
     sy = makeScale(800, Math.ceil((tmax + 150) / 250) * 250, box.h - box.pad.b, box.pad.t);
-    drawAxes(ctx, box, sx, sy, { xTicks: niceTicks(...sx.domain, 9), yTicks: niceTicks(...sy.domain, 5), xLabel: 'Rasio ekuivalen φ (1 = stoikiometrik)', yLabel: 'T nyala adiabatik [K]' });
+    drawAxes(ctx, box, sx, sy, { xTicks: niceTicks(...sx.domain, 9), yTicks: niceTicks(...sy.domain, 5), xLabel: S.xLabel, yLabel: S.yLabel });
     // garis stoikiometrik
     ctx.save();
     ctx.setLineDash([4, 4]); ctx.strokeStyle = 'rgba(169,180,199,0.35)';
     ctx.beginPath(); ctx.moveTo(sx(1), sy.domain ? sy(sy.domain[0]) : 0); ctx.lineTo(sx(1), box.pad.t); ctx.stroke();
-    ctx.fillStyle = '#a9b4c7'; ctx.font = CHART_FONT; ctx.textAlign = 'center'; ctx.fillText('stoikiometrik', sx(1), box.pad.t - 6);
-    ctx.fillText('← miskin (lean)', sx(0.55), box.pad.t - 6);
-    ctx.fillText('kaya (rich) →', sx(1.12), box.pad.t - 6);
+    ctx.fillStyle = '#a9b4c7'; ctx.font = CHART_FONT; ctx.textAlign = 'center'; ctx.fillText(S.stoich, sx(1), box.pad.t - 6);
+    ctx.fillText(S.lean, sx(0.55), box.pad.t - 6);
+    ctx.fillText(S.rich, sx(1.12), box.pad.t - 6);
     ctx.restore();
     const line = (c, style, width, dash) => {
       ctx.save(); ctx.strokeStyle = style; ctx.lineWidth = width; ctx.setLineDash(dash);
@@ -36,7 +38,7 @@ export function createFlameChart(container) {
     };
     line(f.curve300, 'rgba(230,235,243,0.45)', 1.5, [5, 4]);
     line(f.curve, '#ffb15c', 2.5, []);
-    base.setCaption(`<span class="sw sw--line" style="background:#ffb15c"></span>T<sub>in</sub> = ${fmt(f.Tin, 0)} K${f.TinManual ? ' (manual)' : ' (model)'} · <span class="sw sw--line" style="background:rgba(230,235,243,0.6)"></span>T<sub>in</sub> = 300 K · bahan bakar: ${f.fuel === 'diesel' ? 'solar' : 'gas alam'}`);
+    base.setCaption(`<span class="sw sw--line" style="background:#ffb15c"></span>${S.caption(f.Tin, f.TinManual, f.fuel)}`);
   }
 
   return {
@@ -55,7 +57,7 @@ export function createFlameChart(container) {
         const ang = Math.atan2(b.y - a.y, b.x - a.x);
         ctx.beginPath(); ctx.moveTo(b.x - 10 * Math.cos(ang - 0.4), b.y - 10 * Math.sin(ang - 0.4)); ctx.lineTo(b.x, b.y); ctx.lineTo(b.x - 10 * Math.cos(ang + 0.4), b.y - 10 * Math.sin(ang + 0.4)); ctx.stroke();
         ctx.fillStyle = '#ff8fb8'; ctx.font = `600 ${CHART_FONT}`; ctx.textAlign = 'left';
-        ctx.fillText(`ΔT = +${fmt(b.T - a.T, 0)} K`, (a.x + b.x) / 2 + 8, (a.y + b.y) / 2 + 16);
+        ctx.fillText(S.dT(b.T - a.T), (a.x + b.x) / 2 + 8, (a.y + b.y) / 2 + 16);
         ctx.restore();
       }
       for (const p of pts) {
@@ -65,7 +67,7 @@ export function createFlameChart(container) {
         ctx.fillStyle = '#e6ebf3'; ctx.font = `600 ${CHART_FONT}`;
         ctx.textAlign = p.x > base.box.w * 0.7 ? 'right' : 'left';
         const dx = ctx.textAlign === 'right' ? -12 : 12;
-        ctx.fillText(`${p.label}: φ ${fmt(p.phi, 2)} → ${fmt(p.T, 0)} K`, p.x + dx, p.y - 12);
+        ctx.fillText(S.point(STR.scene3.points[p.labelKey], p.phi, p.T), p.x + dx, p.y - 12);
       }
     },
     dispose() { base.dispose(); },

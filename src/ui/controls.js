@@ -3,6 +3,7 @@
  * callback (yang melakukan store.set); nilai tampilan disinkronkan lewat set().
  */
 import { fmt } from './format.js';
+import { STR } from './strings.js';
 
 let uid = 0;
 
@@ -18,7 +19,9 @@ export function slider(o) {
     <label for="${id}" class="ctl__label">${o.label}</label>
     <output class="ctl__value num" for="${id}"></output>
     <input id="${id}" type="range" />`;
-  if (o.tip) el.querySelector('label').dataset.tip = o.tip;
+  const labelEl = el.querySelector('label');
+  if (o.tip) labelEl.dataset.tip = o.tip;
+  labelEl.dataset.locked = STR.common.locked; // ditampilkan CSS saat slider terkunci
   const input = el.querySelector('input');
   const out = el.querySelector('output');
   const show = (v) => { out.textContent = o.format ? o.format(v) : `${fmt(v, o.digits ?? 1)}${o.unit ? ` ${o.unit}` : ''}`; };
@@ -41,7 +44,7 @@ export function slider(o) {
 }
 
 /**
- * @param {{label:string, options:{value:string, label:string, key?:string}[], value:string, onChange:(v:string)=>void}} o
+ * @param {{label:string, tip?:string, options:{value:string, label:string, key?:string}[], value:string, onChange:(v:string)=>void}} o
  */
 export function segmented(o) {
   const el = document.createElement('div');
@@ -49,6 +52,7 @@ export function segmented(o) {
   el.setAttribute('role', 'radiogroup');
   el.setAttribute('aria-label', o.label);
   el.innerHTML = `<span class="ctl__label">${o.label}</span><div class="seg"></div>`;
+  if (o.tip) el.querySelector('.ctl__label').dataset.tip = o.tip;
   const wrap = el.querySelector('.seg');
   const btns = o.options.map((op) => {
     const b = document.createElement('button');

@@ -5,14 +5,16 @@
  */
 import { createChartBase, CHART_FONT } from './chartBase.js';
 import { fmt } from '../ui/format.js';
+import { STR } from '../ui/strings.js';
+
+const S = STR.charts.brayton;
 
 const rgb = (c) => `rgb(${c.map((v) => Math.round(v * 255)).join(',')})`;
 
 /** @param {HTMLElement} container */
 export function createBraytonSchematic(container) {
-  const base = createChartBase(container, { title: 'Skema Brayton (penanda state)', modelLevel: 'Ideal', pad: { l: 20, r: 20, t: 50, b: 30 } });
-  const levelEl = base.root.querySelector('.chart__level');
-  base.setCaption('Skema 2D, bukan rig turbin (rig 3D di Scene 5)');
+  const base = createChartBase(container, { title: S.title, modelLevel: 'ideal', pad: { l: 20, r: 20, t: 50, b: 30 } });
+  base.setCaption(S.note);
 
   /** Lintasan aliran: 4 ruas (1→2 kompresor, 2→3 combustor, 3→4 turbin, 4→1 lingkungan). */
   function layout() {
@@ -48,7 +50,7 @@ export function createBraytonSchematic(container) {
     update(f) {
       const sc = f.schematic;
       if (!sc) return;
-      if (levelEl.textContent !== f.modelLevel) levelEl.textContent = f.modelLevel;
+      base.setLevel(f.modelLevel);
       base.beginStatic();
       const ctx = base.beginDynamic();
       const g = layout();
@@ -71,8 +73,8 @@ export function createBraytonSchematic(container) {
         ctx.fillStyle = '#e6ebf3'; ctx.font = `600 ${CHART_FONT}`; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
         ctx.fillText(label, (x0 + x1) / 2, g.cy - Math.max(h0, h1) / 2 - 6);
       };
-      trap(g.xc0, g.xc1, g.hBig, g.hSmall, st[0].rgb, st[1].rgb, 'Kompresor');
-      trap(g.xt0, g.xt1, g.hSmall, g.hBig, st[2].rgb, st[3].rgb, 'Turbin');
+      trap(g.xc0, g.xc1, g.hBig, g.hSmall, st[0].rgb, st[1].rgb, S.compressor);
+      trap(g.xt0, g.xt1, g.hSmall, g.hBig, st[2].rgb, st[3].rgb, S.turbine);
       // combustor
       const grad = ctx.createLinearGradient(g.xb0, 0, g.xb1, 0);
       grad.addColorStop(0, rgb(st[1].rgb)); grad.addColorStop(1, rgb(st[2].rgb));
@@ -82,7 +84,7 @@ export function createBraytonSchematic(container) {
       ctx.globalAlpha = 1;
       ctx.strokeStyle = '#e6ebf3'; ctx.stroke();
       ctx.fillStyle = '#e6ebf3'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
-      ctx.fillText('Combustor', (g.xb0 + g.xb1) / 2, g.cy - g.hSmall * 0.75 - 6);
+      ctx.fillText(S.combustor, (g.xb0 + g.xb1) / 2, g.cy - g.hSmall * 0.75 - 6);
       // lintasan aliran (ruas aktif disorot)
       g.segs.forEach((seg, i) => {
         ctx.save();
@@ -93,9 +95,9 @@ export function createBraytonSchematic(container) {
         ctx.restore();
       });
       ctx.fillStyle = '#a9b4c7'; ctx.font = CHART_FONT; ctx.textBaseline = 'top';
-      ctx.fillText('4→1 buang panas ke lingkungan (siklus tertutup secara konsep)', (g.xc0 + g.xt1) / 2, g.yRet + 6);
+      ctx.fillText(S.returnPath, (g.xc0 + g.xt1) / 2, g.yRet + 6);
       ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
-      ctx.fillText('Skema 2D penanda state, bukan rig turbin (rig 3D: Scene 5)', 12, base.box.h - 8);
+      ctx.fillText(S.note, 12, base.box.h - 8);
       ctx.textAlign = 'center';
       // penanda state 1–4
       for (let i = 0; i < 4; i++) {
