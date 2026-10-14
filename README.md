@@ -37,4 +37,4 @@ Catatan: membuka `dist/index.html` langsung dengan klik dua kali (`file://`) **t
 
 ## Pintasan saat presentasi
 
-`→`/`←` pindah scene · `Spasi` Play/Pause · `F` Freeze · `R` Reset · `1`–`4` pilih mesin/siklus · `L` label 3D (Scene 1) · `I` Ideal/Real (Scene 2) · `W` replay waterfall (Scene 2) · `B` Bloom (Scene 3)
+`→`/`←` pindah scene · `Spasi` Play/Pause · `F` Freeze · `R` Reset · `1`–`4` pilih mesin/siklus · `L` label 3D (Scene 1) · `I` Ideal/Real (Scene 2) · `W` replay waterfall (Scene 2) · `B` Bloom (Scene 3) · `C` panel Calibration (Scene 4) · `H` panel asumsi + basis O₂/volume (semua scene)

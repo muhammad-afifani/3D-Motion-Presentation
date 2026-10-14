@@ -66,11 +66,11 @@ tests/
 | Part-load turbin | `singleShaftLoad(design, load, {igvMin})`, `twinShaft`, `twinShaftForLoad` |
 | Kompresor gas | `gasCompressor`, `affinity`, `speedForHead` |
 | Silinder (animasi) | `engineGeometry`, `cylinderSim`, `sampleSim(sim, θ)`, `pvLoop`, `valveLift`, `crankAngleAt` |
-| Emisi | `flameTemperature`, `burnedComposition`, `noxThermal`, `coDLN`, `dlnEmissions`, `dlnFromResult`, `loadSweep`, `noxCoTradeoff`, `retardSweep`, `lossWaterfall` |
+| Emisi | `flameTemperature`, `burnedComposition`, `noxThermal`, `coDLN`, `dlnEmissions`, `dlnFromResult`, `loadSweep`, `noxCoTradeoff`, `retardSweep`, `lossWaterfall`, `zeldovichRate`, `noxRateRatio`, `zeldovichCurve`; `cylinderSim` juga memberi `TbTrace`/`noTrace` per θ |
 | Konversi | `toDryRef`, `correctToRefO2`, `ppmToMgNm3`, `massRateKgH`, `exhaustFlowNm3h` |
 | GHG | `co2Specific`, `co2eWithSlip`, `ghgPenalty`, `fuelPerKWh` |
 | Visual | `tempToRGB`, `flameColor`, `logNorm` |
-| Kalibrasi | `calibrateTo(fn, target)`, `lookup1D(points)` |
+| Kalibrasi | `calibrateTo(fn, target)`, `lookup1D(points)`, `calibrateEngineNOx(kind, target)`, `calibrateDLN({targetPpm})` |
 | Validasi | `selfTest()` (jalankan saat start; tampilkan lencana "Model OK" bila semua lulus) |
 
 Aturan: bila butuh perhitungan baru, **tambahkan fungsi baru ke `thermo.js` beserta tes golden-nya**, bukan menghitung di tempat lain.

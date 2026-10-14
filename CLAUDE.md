@@ -60,8 +60,10 @@ Alur data satu arah: `UI control → store.set → derive() → frame → { rig 
 - [x] M2a Verifikasi rig piston, pisah jeda (Spasi) / beku (F)
 - [x] M3a Siklus ideal vs real + waterfall (Scene 2)
 - [x] M3b Pembakaran (Scene 3)
-- [ ] M4 NOx (Scene 4), panel kalibrasi, panel asumsi
-- [ ] M5 Turbin (Scene 5), kompresor gas (Scene 7)
+- [x] M4a NOx (Scene 4): Zeldovich, retardSweep NOx–η, Arrhenius, gelembung zona terbakar + partikel NO, fungsi kalibrasi di thermo.js
+- [x] M4b Panel kalibrasi (engine per jenis + DLN, store global), panel asumsi (H), basis O₂/volume global (emissionAtBasis)
+- [x] M5a Turbin gas (Scene 5): Generator (braytonReal) / Compressor drive (twinShaft)
+- [ ] M5b Kompresor gas (Scene 7)
 - [ ] M6 Part-load (Scene 6), scene terpenting
 - [ ] M7 Emisi gabungan, kebijakan, pengendali, penutup (Scene 8–11)
 - [ ] M8 Finishing (transisi, mode presenter, ekspor PNG, performa, GitHub Pages)

@@ -325,6 +325,68 @@ export function twinShaftForLoad(design, loadFrac, { t3Sched = 0.75 } = {}) {
   return { ...res, loadFrac, designPower: d.power };
 }
 
+/**
+ * Suhu per tahap kompresor aksial (visual warna bilah): rasio tekanan antara π_i = rp^(i/n) dimasukkan
+ * ke rumus T₂ braytonReal/twinShaft → tahap terakhir TEPAT T₂. Return [{T, PR}] untuk i = 1..n.
+ */
+export function compressorStages(T1, rp, etaC, n, k = K_AIR) {
+  const x = (k - 1) / k, out = [];
+  for (let i = 1; i <= n; i++) {
+    const pr = Math.pow(rp, i / n);
+    out.push({ T: T1 * (1 + (Math.pow(pr, x) - 1) / etaC), PR: pr });
+  }
+  return out;
+}
+
+/**
+ * Suhu per tahap turbin (visual): rasio ekspansi antara ε_i = er^(i/n) dimasukkan ke rumus ekspansi
+ * T = Tin·(1 − η·(1 − ε^(−x))) → tahap terakhir TEPAT T₄ (braytonReal) / T₄₅, T₅ (twinShaft).
+ * er = rasio ekspansi total turbin tsb (P_in/P_out). Return [{T, ER}] untuk i = 1..n.
+ */
+export function turbineStages(Tin, er, etaT, n, k = K_GAS) {
+  const x = (k - 1) / k, out = [];
+  for (let i = 1; i <= n; i++) {
+    const e = Math.pow(er, i / n);
+    out.push({ T: Tin * (1 - etaT * (1 - Math.pow(e, -x))), ER: e });
+  }
+  return out;
+}
+
+/**
+ * Siklus twin-shaft (gas generator + free power turbine) di atas twinShaft(): state 1, 2, 3, 4.5, 5
+ * (T, P, v, s) dan jalur proses (sample) untuk T-s / P-v, plus derating ambient.
+ * Ambient: T1/P1 berubah, ṁ ∝ (P1/101325)·(288,15/T1) pada Ngg tetap (analog braytonDerated).
+ * Pada TambC = 15 dan altitude 0, nilai identik dengan twinShaft(design).
+ */
+export function twinShaftCycle(design = {}, { TambC = 15, altitude = 0 } = {}) {
+  const iso = twinShaft({ ...design, T1: 288.15, P1: 101325 });
+  const T1 = TambC + 273.15, P1 = pressureAtAltitude(altitude);
+  const mdotDesign = (design.mdotDesign ?? 1) * (P1 / 101325) * (288.15 / T1);
+  const r = twinShaft({ ...design, T1, P1, mdotDesign });
+  const dp = design.dpComb ?? 0.04, P2 = P1 * r.rp, P3 = P2 * (1 - dp), P45 = r.rpt * P1;
+  const xa = (K_AIR - 1) / K_AIR;
+  const s1 = mkState(T1, P1, 0);
+  const s2 = mkState(r.T2, P2, CP_AIR * Math.log(r.T2 / T1) - R_AIR * Math.log(r.rp));
+  const s3 = mkState(r.T3, P3, s2.s + CP_GAS * Math.log(r.T3 / r.T2) - R_AIR * Math.log(P3 / P2));
+  const s45 = mkState(r.T45, P45, s3.s + CP_GAS * Math.log(r.T45 / r.T3) - R_AIR * Math.log(P45 / P3));
+  const s5 = mkState(r.T5, P1, s45.s + CP_GAS * Math.log(r.T5 / r.T45) - R_AIR * Math.log(P1 / P45));
+  const cyc = buildCycle([s1, s2, s3, s45, s5], [
+    { name: '1→2 kompresi real', type: 'polytropic', from: 0, to: 1, props: { cp: CP_AIR } },
+    { name: '2→3 combustor (ΔP)', type: 'polytropic', from: 1, to: 2, props: { cp: CP_GAS } },
+    { name: '3→4.5 turbin gas generator', type: 'polytropic', from: 2, to: 3, props: { cp: CP_GAS } },
+    { name: '4.5→5 power turbine', type: 'polytropic', from: 3, to: 4, props: { cp: CP_GAS } },
+    { name: '5→1 exhaust', type: 'isobaric', from: 4, to: 0, props: { cp: CP_GAS } },
+  ], {});
+  const wc = CP_AIR * (r.T2 - T1);
+  return {
+    ...cyc, ...r, P1, P2, P3, P45, epsGG: P3 / P45, wc, wnet: r.wpt,
+    backWorkRatio: wc / (wc + r.wpt), // kerja kompresor / kerja turbin total (GG + PT)
+    derate: r.power / iso.power, isoPower: iso.power,
+    perDegC: TambC !== 15 ? (1 - r.power / iso.power) / (TambC - 15) : NaN,
+    params: { ...design, T1, P1, mdotDesign, xa },
+  };
+}
+
 // ─────────────────────── Kompresor gas (mechanical drive) ───────────────────────
 
 /** Head & daya politropik. Psuc, Pdis dalam Pa; Tsuc K; MW kg/kmol; mdot kg/s. */
@@ -490,9 +552,11 @@ export function burnedComposition(phi, fuel = 'gas') {
 }
 
 const kpNO = (T) => Math.exp(1.49 - 10861 / T);                 // ½N2+½O2→NO (aprox.)
+/** Konstanta Zeldovich (Heywood): d[NO]/dt ≈ A/√T · exp(−Ea/T) · [O₂]^½ [N₂]. Diekspor untuk panel asumsi. */
+export const ZELDOVICH = Object.freeze({ A: 6e16, Ea: 69090 });
 const zeldovichK0 = (T, P, xO2, xN2) => {                       // laju per mol campuran (1/s)
   const C = (P / (R_UNIV * T)) * 1e-6;                          // mol/cm3
-  return (6e16 / Math.sqrt(T)) * Math.exp(-69090 / T) * Math.sqrt(xO2 * C) * xN2;
+  return (ZELDOVICH.A / Math.sqrt(T)) * Math.exp(-ZELDOVICH.Ea / T) * Math.sqrt(xO2 * C) * xN2;
 };
 
 /**
@@ -508,6 +572,27 @@ export function noxThermal({ T, P, phi, fuel = 'gas', tau = 0.012, calib = 1, xO
   return { xNO, xEq, k0, ppmWet: xNO * 1e6 };
 }
 
+/**
+ * Laju awal pembentukan NO termal (Zeldovich, 1/s per mol campuran), calib = 1:
+ * d[NO]/dt ≈ 6×10¹⁶/√T · exp(−69.090/T) · [O₂]^½ [N₂]. Untuk grafik Arrhenius Scene 4.
+ */
+export function zeldovichRate({ T, P = 15e5, phi = 0.5, fuel = 'gas', xO2Floor = 0.01 }) {
+  const c = burnedComposition(phi, fuel);
+  return zeldovichK0(T, P, Math.max(c.xO2, xO2Floor), c.xN2);
+}
+/**
+ * Rasio laju Zeldovich pada T+dT terhadap T ("+100 K ≈ ×N"). Hanya bergantung pada T
+ * (P dan komposisi saling menghapus), jadi berlaku sama untuk engine dan turbin.
+ */
+export const noxRateRatio = (T, dT = 100, opts = {}) => zeldovichRate({ ...opts, T: T + dT }) / zeldovichRate({ ...opts, T });
+/** Kurva Arrhenius: laju relatif terhadap Tref (Tref → 1) pada Tmin…Tmax. */
+export function zeldovichCurve({ Tmin = 1600, Tmax = 3000, n = 70, Tref = 1800 } = {}) {
+  const r0 = zeldovichRate({ T: Tref });
+  const out = [];
+  for (let i = 0; i <= n; i++) { const T = Tmin + ((Tmax - Tmin) * i) / n; out.push({ T, rel: zeldovichRate({ T }) / r0 }); }
+  return out;
+}
+
 /** fraksi mol basah → ppmvd terkoreksi O2 acuan (default 15%). comp = burnedComposition(). */
 export function toDryRef(xWet, comp, refO2 = 15) {
   const dry = xWet / (1 - comp.xH2O);
@@ -519,6 +604,15 @@ export const correctToRefO2 = (C, O2meas, O2ref) => C * ((20.9 - O2ref) / (20.9 
 /** Volume molar (m³/kmol) pada Tref (K), 1 atm. 273,15 → "Nm³"; 298,15 → basis 25 °C. */
 export const molarVolume = (Tref = 273.15) => 22.414 * (Tref / 273.15);
 export const ppmToMgNm3 = (ppm, MWspecies, Tref = 273.15) => (ppm * MWspecies) / molarVolume(Tref);
+/**
+ * Angka emisi pada basis tampilan: ppmvd dari O₂ acuan refFrom ke refO2 (correctToRefO2),
+ * lalu mg/Nm³ sebagai spesies MW pada basis volume TrefK (ppmToMgNm3). Dry basis tetap.
+ * Contoh golden (docs/ALUR_SLIDE): 25 ppm NOx @15% O₂ → 51,3 mg/Nm³ (0 °C; 2,05 per ppm), 47,0 (25 °C; 1,88).
+ */
+export function emissionAtBasis({ ppm, refFrom = 15, refO2 = 15, TrefK = 273.15, MWspecies = MW.NO2 }) {
+  const ppmB = correctToRefO2(ppm, refFrom, refO2);
+  return { ppm: ppmB, mgNm3: ppmToMgNm3(ppmB, MWspecies, TrefK), refO2, TrefK };
+}
 export const massRateKgH = (C_mgNm3, Q_Nm3h) => C_mgNm3 * Q_Nm3h * 1e-6;
 /** Aliran flue gas (Nm³/h, 0 °C) dari laju massa udara+bahan bakar (kg/s); ρ ≈ 1,30 kg/Nm³. */
 export const exhaustFlowNm3h = (mAir, mFuel) => ((mAir + mFuel) * 3600) / 1.30;
@@ -556,6 +650,20 @@ export function loadSweep(design, loads = [1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4], { m
   });
 }
 
+/**
+ * Faktor kalibrasi DLN: NOx di titik desain braytonReal(design) (φ zona premix = phiPzDesign) = targetPpm
+ * (ppmvd @refO2). Memakai calibrateTo + satu koreksi (tanh membuat sedikit tak linear).
+ * Default 15 ppm @15% O₂ = nilai tipikal literatur, BUKAN data unit.
+ */
+export function calibrateDLN({ targetPpm = 15, design = {}, phiPzDesign = 0.5, tauMs = 12, refO2 = 15 } = {}) {
+  const d = braytonReal(design);
+  const nox = (c) => dlnFromResult(d, d, { phiPzDesign, tauMs, refO2, calib: c }).NOx_ppm;
+  let calib = calibrateTo(nox, targetPpm);
+  calib *= calibrateTo((k) => nox(calib * k), targetPpm);
+  const e = dlnFromResult(d, d, { phiPzDesign, tauMs, refO2, calib });
+  return { calib, NOx_ppm: e.NOx_ppm, Tflame: e.Tflame, T2: d.T2, P3: d.P3 ?? d.states[2].P, targetPpm, refO2 };
+}
+
 /** Sapuan suhu nyala → NOx & CO (slide trade-off). */
 export function noxCoTradeoff({ T2 = 700, P3 = 15e5, tauMs = 12, fuel = 'gas', calib = 1, Tmin = 1500, Tmax = 2000, n = 26 } = {}) {
   const out = [];
@@ -574,27 +682,33 @@ function engineNOx({ th, P, step, N, Pivc, Tivc, phi, phiLocal, fuel, mFuel, mas
   const xO2 = Math.max(comp.xO2, 0.01), xN2 = comp.xN2, n = th.length - 1;
   const dt = step / (6 * N);
   let nNO = 0, TbMax = 0;
+  // Jejak per θ (tambahan visual, tidak mengubah hasil): TbTrace[i] = suhu tertinggi di antara elemen
+  // zona terbakar pada θ[i] (0 = belum ada zona terbakar); noTrace[i] = NO kumulatif (kmol) pada θ[i].
+  const TbTrace = new Float64Array(n + 1), noTrace = new Float64Array(n + 1);
   let prev = burn(th[0]).x;
   for (let j = 0; j < n; j++) {
     const xNow = burn(th[j + 1]).x, w = xNow - prev; prev = xNow;
     if (w < 1e-7) continue;
     const Tu = Tivc * Math.pow(P[j] / Pivc, 0.2647);                      // campuran tak terbakar (k≈1,36)
     const Tb0 = flameTemperature(phiLocal, Tu, fuel);
+    const mBurned = w * mFuel * (1 + fu.AFRst / phiLocal);                 // kg
     let x = 0;
     for (let i = j; i < n; i++) {
       const Tb = Tb0 * Math.pow(P[i] / P[j], 0.219);                       // kompresi/ekspansi gas terbakar (k≈1,28)
       if (Tb > TbMax) TbMax = Tb;
+      if (Tb > TbTrace[i]) TbTrace[i] = Tb;
       const xe = kpNO(Tb) * Math.sqrt(xO2 * xN2);
       if (x < xe) { x += calib * zeldovichK0(Tb, P[i], xO2, xN2) * (1 - (x / xe) ** 2) * dt; if (x > xe) x = xe; }
+      noTrace[i + 1] += (x * mBurned) / comp.MW;
     }
-    const mBurned = w * mFuel * (1 + fu.AFRst / phiLocal);                 // kg
     nNO += (x * mBurned) / comp.MW;                                        // kmol-ish (kg / (kg/kmol))
   }
+  TbTrace[n] = TbTrace[n - 1];
   const compExh = burnedComposition(phi, fuel);
   const nExh = (mass + mFuel) / compExh.MW;
   const xExhWet = nNO / nExh;
   const NOx_ppmvd_ref = toDryRef(xExhWet, compExh, refO2);
-  return { TburnedMax: TbMax, NO_ppmWet: xExhWet * 1e6, NOx_ppmvd_ref, NOx_mgNm3_ref: ppmToMgNm3(NOx_ppmvd_ref, MW.NO2), nNOkmol: nNO };
+  return { TburnedMax: TbMax, NO_ppmWet: xExhWet * 1e6, NOx_ppmvd_ref, NOx_mgNm3_ref: ppmToMgNm3(NOx_ppmvd_ref, MW.NO2), nNOkmol: nNO, TbTrace, noTrace };
 }
 
 /**
@@ -634,6 +748,21 @@ export function retardSweep(kind = 'diesel', thetas = [-8, -6, -4, -2, 0, 2, 4],
     const s = cylinderSim({ ...ENGINE_PRESETS[kind], theta0: t0, ...over });
     return { theta0: t0, Pmax_bar: s.Pmax / 1e5, TburnedMax: s.TburnedMax, NOx_ppm: s.NOx_ppmvd_ref, NOx_gkWh: s.NOx_gkWh, etaBrake: s.etaBrake, bsfc: s.bsfc, co2_gkWh: s.co2_gkWh };
   });
+}
+
+/**
+ * Faktor kalibrasi NOx engine agar preset (+ over) menghasilkan targetGkWh (g/kWh).
+ * NOx TIDAK linear terhadap calib (dibatasi kesetimbangan NO: calib 1 → 23,7 g/kWh diesel, bukan 63),
+ * jadi calibrateTo diulang (iterasi titik tetap) sampai |galat| < tol relatif.
+ */
+export function calibrateEngineNOx(kind = 'diesel', targetGkWh, over = {}, { calib0 = ENGINE_NOX_CALIB, maxIter = 12, tol = 1e-3 } = {}) {
+  const nox = (c) => cylinderSim({ ...ENGINE_PRESETS[kind], ...over, calib: c }).NOx_gkWh;
+  let calib = calib0, got = nox(calib), iter = 0;
+  while (Math.abs(got / targetGkWh - 1) > tol && iter < maxIter) {
+    calib *= calibrateTo((k) => (k === 1 ? got : nox(calib * k)), targetGkWh);
+    got = nox(calib); iter++;
+  }
+  return { calib, NOx_gkWh: got, iterations: iter, converged: Math.abs(got / targetGkWh - 1) <= tol };
 }
 
 /**

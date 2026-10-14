@@ -14,6 +14,36 @@ const CUT_FACES = [CUT_START - 0.004, CUT_START + CUT_LEN + 0.004]; // bidang po
 export const HP = 0.11;       // tinggi kompresi piston (pin → crown), visual
 export const VALVE_MAX = 0.016; // angkat katup maksimum (m), visual
 
+/**
+ * Dimensi poros engkol (m, visual). Syarat: bigEndW + 2·clearance ≤ webGap (big end muat di celah web).
+ * webT termasuk bevel; cwR = jari-jari counterweight dari sumbu poros; cwHalfAngle = setengah sudut sektornya.
+ */
+export const CRANK = Object.freeze({
+  webGap: 0.064, webT: 0.032, webBevel: 0.004,
+  journalR: 0.045, journalRTip: 0.034, journalLenL: 0.07, journalLenR: 0.1,
+  pinR: 0.042, pinEndR: 0.056,
+  bigEndR: 0.062, bigEndW: 0.04, shankW: 0.026,
+  cwR: 0.12, cwHalfAngle: 0.95,
+  clearance: 0.008,
+});
+if (CRANK.bigEndW + 2 * CRANK.clearance > CRANK.webGap) throw new Error('CRANK: big end tidak muat di celah web');
+
+/**
+ * Garis luar web (bidang xy, sumbu poros di asal, crankpin di (0, a)): sektor counterweight di sisi −y,
+ * sisi lengan melengkung (bukan batang lurus) ke ujung crankpin yang membulat.
+ * @param {number} a jari-jari engkol (m)
+ */
+export function crankWebShape(a) {
+  const K = CRANK, sh = new THREE.Shape();
+  const cx = K.cwR * Math.sin(K.cwHalfAngle), cy = -K.cwR * Math.cos(K.cwHalfAngle);
+  sh.moveTo(-cx, cy);
+  sh.absarc(0, 0, K.cwR, -Math.PI / 2 - K.cwHalfAngle, -Math.PI / 2 + K.cwHalfAngle, false);
+  sh.quadraticCurveTo(K.pinEndR * 1.35, a * 0.35, K.pinEndR, a);
+  sh.absarc(0, a, K.pinEndR, 0, Math.PI, false);
+  sh.quadraticCurveTo(-K.pinEndR * 1.35, a * 0.35, -cx, cy);
+  return sh;
+}
+
 /** Sektor cincin (dinding terpotong) setinggi `h`, dasar di y=0. Sudut θ ala three (dari +Z ke +X). */
 function annularSector(rIn, rOut, thStart, thLen, h, segs = 48) {
   const shape = new THREE.Shape();
@@ -84,30 +114,35 @@ export function createPistonRig() {
     }
     root.add(staticGroup);
 
-    // poros engkol (berputar terhadap sumbu Z)
+    // poros engkol (berputar terhadap sumbu Z). Satu throw, sepanjang sumbu z:
+    //   journal kiri | web kiri | crankpin (hanya di celah) | web kanan | journal kanan (tirus).
+    // Tidak ada geometri poros di antara web selain crankpin (big end berputar di sini).
+    const K = CRANK;
+    const zWeb = K.webGap / 2 + K.webT / 2;               // pusat tebal web
+    const zOut = K.webGap / 2 + K.webT;                   // muka luar web
     crank = new THREE.Group();
-    const journal = mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.38, 32), mat.steel);
-    journal.rotation.x = Math.PI / 2;
-    crank.add(journal);
-    const pin = mesh(new THREE.CylinderGeometry(0.042, 0.042, 0.11, 32), mat.steel);
+    const jL = mesh(new THREE.CylinderGeometry(K.journalR, K.journalR, K.journalLenL, 32), mat.steel);
+    jL.rotation.x = Math.PI / 2;                          // sumbu silinder → z
+    jL.position.z = -(zOut + K.journalLenL / 2);
+    jL.name = 'journalL';
+    const jR = mesh(new THREE.CylinderGeometry(K.journalRTip, K.journalR, K.journalLenR, 32), mat.steel); // +y → +z: tirus ke luar
+    jR.rotation.x = Math.PI / 2;
+    jR.position.z = zOut + K.journalLenR / 2;
+    jR.name = 'journalR';
+    const pin = mesh(new THREE.CylinderGeometry(K.pinR, K.pinR, K.webGap + K.webT, 32), mat.steel); // ujung tertanam ½ tebal di tiap web
     pin.rotation.x = Math.PI / 2;
     pin.position.y = a;
     pin.name = 'crankpin';
-    crank.add(pin);
-    // pipi engkol: lengan ke crankpin + counterweight berbentuk sektor di sisi berlawanan
-    const web = new THREE.Shape();
-    const cwR = 0.12, cwA = 0.95; // jari-jari & setengah sudut counterweight (rad)
-    web.moveTo(-0.05, 0);
-    web.absarc(0, 0, cwR, -Math.PI / 2 - cwA, -Math.PI / 2 + cwA, false);
-    web.lineTo(0.05, 0);
-    web.lineTo(0.05, a);
-    web.absarc(0, a, 0.05, 0, Math.PI, false);
-    web.lineTo(-0.05, 0);
-    const webGeo = new THREE.ExtrudeGeometry(web, { depth: 0.03, bevelEnabled: true, bevelSize: 0.004, bevelThickness: 0.004, bevelSegments: 2, curveSegments: 24 });
-    webGeo.translate(0, 0, -0.015);
-    for (const z of [-0.07, 0.07]) {
-      const w = mesh(z < 0 ? webGeo : webGeo.clone(), mat.steelDark);
-      w.position.z = z;
+    crank.add(jL, jR, pin);
+    // web: pelat berbentuk; ujung crankpin membulat, counterweight di sisi berlawanan (180°)
+    const webGeo = new THREE.ExtrudeGeometry(crankWebShape(a), {
+      depth: K.webT - 2 * K.webBevel, bevelEnabled: true, bevelSize: K.webBevel, bevelThickness: K.webBevel, bevelSegments: 2, curveSegments: 24,
+    });
+    webGeo.translate(0, 0, -(K.webT - 2 * K.webBevel) / 2);
+    for (const side of [-1, 1]) {
+      const w = mesh(side < 0 ? webGeo : webGeo.clone(), mat.steelDark);
+      w.position.z = side * zWeb;
+      w.name = side < 0 ? 'webL' : 'webR';
       crank.add(w);
     }
     root.add(crank);
@@ -117,9 +152,11 @@ export function createPistonRig() {
 
     // batang torak: titik asal di crankpin, sumbu +Y menuju pin piston
     rod = new THREE.Group();
-    const shank = mesh(new THREE.BoxGeometry(0.036, l - 0.08, 0.026), mat.steel);
+    const shank = mesh(new THREE.BoxGeometry(0.036, l - 0.08, CRANK.shankW), mat.steel);
+    shank.name = 'shank';
     shank.position.y = l / 2;
-    const bigEnd = mesh(new THREE.CylinderGeometry(0.062, 0.062, 0.04, 32), mat.steel);
+    const bigEnd = mesh(new THREE.CylinderGeometry(CRANK.bigEndR, CRANK.bigEndR, CRANK.bigEndW, 32), mat.steel);
+    bigEnd.name = 'bigEnd';
     bigEnd.rotation.x = Math.PI / 2;
     const smallEnd = mesh(new THREE.CylinderGeometry(0.034, 0.034, 0.04, 24), mat.steel);
     smallEnd.rotation.x = Math.PI / 2;

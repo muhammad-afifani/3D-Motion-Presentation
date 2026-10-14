@@ -9,11 +9,11 @@ import { STR } from '../ui/strings.js';
 const rgb = (c) => `rgb(${c.map((v) => Math.round(v * 255)).join(',')})`;
 
 /** @param {HTMLElement} container */
-export function createTempLegend(container) {
+export function createTempLegend(container, { title = STR.common.tempLegend } = {}) {
   const root = document.createElement('div');
   root.className = 'temp-legend';
   root.innerHTML = '<div class="temp-legend__title"></div><div class="temp-legend__body"><canvas></canvas><div class="temp-legend__ticks num"></div><div class="temp-legend__marker num"></div></div>';
-  root.querySelector('.temp-legend__title').textContent = STR.common.tempLegend;
+  root.querySelector('.temp-legend__title').textContent = title;
   container.appendChild(root);
   const canvas = root.querySelector('canvas');
   const ticks = root.querySelector('.temp-legend__ticks');

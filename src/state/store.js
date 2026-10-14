@@ -2,7 +2,7 @@
  * store.js — store reaktif kecil, sumber kebenaran tunggal untuk parameter UI.
  * Alur: UI control → store.set → derive() → frame → { rig 3D, chart, HUD }.
  */
-import { ENGINES, RPM_VISUAL, CYCLES, FLAME_MODES } from '../model/presets.js';
+import { ENGINES, RPM_VISUAL, CYCLES, FLAME_MODES, GAS_TURBINES, EMISSION_BASIS, NOX_CALIB_DEFAULTS } from '../model/presets.js';
 
 /**
  * @typedef {Object} AppState
@@ -148,3 +148,46 @@ export function tickWindowPatch(s, dt, lo, hi) {
 const BLOOM_ORDER = ['auto', 'on', 'off'];
 /** Patch tombol B: Auto → Nyala → Mati → Auto. */
 export const bloomCyclePatch = (s) => ({ fBloom: BLOOM_ORDER[(BLOOM_ORDER.indexOf(s.fBloom) + 1) % BLOOM_ORDER.length] });
+
+// ── Scene 5 (turbin gas) ──
+
+/** Default parameter turbin gas per konfigurasi (nilai desain dari presets = default thermo.js). */
+export function gtDefaults(cfg = 'generator') {
+  const d = GAS_TURBINES[cfg].design;
+  return {
+    gCfg: cfg, gRp: d.rp, gT3: d.T3, gEtaC: d.etaC,
+    gEtaT: d.etaT ?? GAS_TURBINES.generator.design.etaT,
+    gEtaGG: d.etaGG ?? GAS_TURBINES.compressorDrive.design.etaGG,
+    gEtaPT: d.etaPT ?? GAS_TURBINES.compressorDrive.design.etaPT,
+  };
+}
+/** State awal Scene 5 (ambient ISO 15 °C). */
+export const gtInitialState = () => ({ ...gtDefaults('generator'), gTamb: 15 });
+
+// ── Scene 4 (NOx) — key terpisah: n* ──
+
+/** Default Scene 4 per engine: timing = preset thermo.js (θ0). */
+export const noxDefaults = (engine = 'diesel') => ({ nEngine: engine, nTheta0: ENGINES[engine].params.theta0 });
+/** State awal Scene 4. */
+export const noxInitialState = () => noxDefaults('diesel');
+
+// ── Global: basis emisi & kalibrasi NOx (M4b) — dipakai semua scene yang menampilkan NOx ──
+
+/** Basis tampilan ppm / mg/Nm³ (panel H). */
+export const basisInitialState = () => ({ emRefO2: EMISSION_BASIS.refO2.default, emTrefC: EMISSION_BASIS.TrefC.default });
+/** Patch basis: O₂ di-clamp ke 3–20 %, basis volume hanya 0 atau 25 °C; input tak valid diabaikan. */
+export function basisPatch({ refO2, TrefC } = {}) {
+  const out = {};
+  const R = EMISSION_BASIS.refO2;
+  if (refO2 != null && Number.isFinite(Number(refO2))) out.emRefO2 = Math.min(R.max, Math.max(R.min, Number(refO2)));
+  if (TrefC != null && EMISSION_BASIS.TrefC.options.includes(Number(TrefC))) out.emTrefC = Number(TrefC);
+  return out;
+}
+export const basisResetPatch = () => basisInitialState();
+export const isDefaultBasis = (s) => s.emRefO2 === EMISSION_BASIS.refO2.default && s.emTrefC === EMISSION_BASIS.TrefC.default;
+
+/** Kalibrasi NOx global: faktor engine per jenis + faktor DLN (Scene 6 memakai calDln yang sama). */
+export const calibInitialState = () => ({ calEngine: { ...NOX_CALIB_DEFAULTS.engine }, calDln: NOX_CALIB_DEFAULTS.dln });
+export const calibEnginePatch = (s, engine, calib) => ({ calEngine: { ...s.calEngine, [engine]: calib } });
+export const calibDlnPatch = (calib) => ({ calDln: calib });
+export const calibResetPatch = () => calibInitialState();

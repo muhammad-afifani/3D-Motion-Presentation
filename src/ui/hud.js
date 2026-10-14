@@ -4,7 +4,9 @@
  */
 
 /**
- * @typedef {{id:string, label:string, unit?:string, tip?:string, value:(f:any)=>string}} HudItem
+ * @typedef {{id:string, label:string, unit?:string, tip?:string, model?:string, sub?:string, flag?:string, value:(f:any)=>string}} HudItem
+ *   model = label model kecil di bawah angka (mis. fungsi thermo.js sumber angka);
+ *   sub = baris kecil di bawah angka (mis. basis emisi); flag = penanda menonjol (mis. basis ≠ default).
  * @param {HTMLElement} container
  * @param {HudItem[]} items
  * @param {{level?:string, note?:string}} [opts]
@@ -17,7 +19,8 @@ export function createHud(container, items, { level, note } = {}) {
     c.className = 'hud__item';
     c.tabIndex = 0;
     if (it.tip) c.dataset.tip = it.tip;
-    c.innerHTML = `<div class="hud__label">${it.label}</div><div class="hud__value num"><span class="v"></span>${it.unit ? `<span class="u">${it.unit}</span>` : ''}</div>`;
+    c.innerHTML = `<div class="hud__label">${it.label}</div><div class="hud__value num"><span class="v"></span>${it.unit ? `<span class="u">${it.unit}</span>` : ''}</div>${it.model ? `<div class="hud__model">${it.model}</div>` : ''}${it.sub ? `<div class="hud__sub">${it.sub}</div>` : ''}${it.flag ? `<div class="hud__flag">${it.flag}</div>` : ''}`;
+    if (it.flag) c.classList.add('is-flag');
     root.appendChild(c);
     return { it, v: c.querySelector('.v'), last: '' };
   });
