@@ -30,8 +30,8 @@ export const MW = { NO: 30.006, NO2: 46.005, CO: 28.010, CO2: 44.010, CH4: 16.04
 
 /** LHV kJ/kg; EF g CO2/MJ (IPCC default); AFRst massa; dTad = koreksi T_ad terhadap tabel CH4 */
 export const FUELS = {
-  diesel: { name: 'Solar/HSD', x: 12, y: 23, LHV: 42500, EF: 74.1, AFRst: 14.57, dTad: 40 },
-  gas:    { name: 'Gas alam (≈CH4)', x: 1, y: 4, LHV: 48000, EF: 56.1, AFRst: 17.1, dTad: 0 },
+  diesel: { name: 'Diesel oil (HSD)', x: 12, y: 23, LHV: 42500, EF: 74.1, AFRst: 14.57, dTad: 40 },
+  gas:    { name: 'Natural gas (≈CH4)', x: 1, y: 4, LHV: 48000, EF: 56.1, AFRst: 17.1, dTad: 0 },
 };
 
 // ───────────────────────────── Utilitas ─────────────────────────────
@@ -116,7 +116,7 @@ export function processPath(type, a, b, n = 40, { cp = CP_AIR, cv = CV_AIR, k = 
         v = (R_AIR * T) / P;
         s = a.s + cp * Math.log(T / a.T) - R_AIR * Math.log(P / a.P);
         break;
-      default: throw new Error('processPath: tipe tidak dikenal ' + type);
+      default: throw new Error('processPath: unknown process type ' + type);
     }
     pts.push({ T, P, v, s });
   }
@@ -143,10 +143,10 @@ export function otto({ r = 10, T1 = 300, P1 = 101325, Tmax = 2200, qin = null, k
   const s4 = { T: T4, P: s3.P / Math.pow(r, k), v: s1.v, s: s3.s };
   const q_in = cv * (T3 - T2), q_out = cv * (T4 - T1), wnet = q_in - q_out;
   return buildCycle([s1, s2, s3, s4], [
-    { name: '1→2 kompresi isentropik', type: 'isentropic', from: 0, to: 1, props },
-    { name: '2→3 pemanasan isokorik (busi)', type: 'isochoric', from: 1, to: 2, props },
-    { name: '3→4 ekspansi isentropik', type: 'isentropic', from: 2, to: 3, props },
-    { name: '4→1 pelepasan panas isokorik', type: 'isochoric', from: 3, to: 0, props },
+    { name: '1→2 isentropic compression', type: 'isentropic', from: 0, to: 1, props },
+    { name: '2→3 constant-volume heat addition (spark)', type: 'isochoric', from: 1, to: 2, props },
+    { name: '3→4 isentropic expansion', type: 'isentropic', from: 2, to: 3, props },
+    { name: '4→1 constant-volume heat rejection', type: 'isochoric', from: 3, to: 0, props },
   ], { eta: 1 - 1 / Math.pow(r, k - 1), etaCheck: wnet / q_in, wnet, qin: q_in, qout: q_out, mep: wnet / (s1.v - s2.v), r });
 }
 
@@ -167,10 +167,10 @@ export function diesel({ r = 18, T1 = 300, P1 = 101325, rc = 2, Tmax = null, qin
   const eta = Math.abs(rcE - 1) < 1e-9 ? 1 - 1 / Math.pow(r, k - 1)
     : 1 - (1 / Math.pow(r, k - 1)) * (Math.pow(rcE, k) - 1) / (k * (rcE - 1));
   return buildCycle([s1, s2, s3, s4], [
-    { name: '1→2 kompresi isentropik', type: 'isentropic', from: 0, to: 1, props },
-    { name: '2→3 injeksi/pembakaran isobarik', type: 'isobaric', from: 1, to: 2, props },
-    { name: '3→4 ekspansi isentropik', type: 'isentropic', from: 2, to: 3, props },
-    { name: '4→1 pelepasan panas isokorik', type: 'isochoric', from: 3, to: 0, props },
+    { name: '1→2 isentropic compression', type: 'isentropic', from: 0, to: 1, props },
+    { name: '2→3 constant-pressure injection/combustion', type: 'isobaric', from: 1, to: 2, props },
+    { name: '3→4 isentropic expansion', type: 'isentropic', from: 2, to: 3, props },
+    { name: '4→1 constant-volume heat rejection', type: 'isochoric', from: 3, to: 0, props },
   ], { eta, etaCheck: wnet / q_in, wnet, qin: q_in, qout: q_out, mep: wnet / (s1.v - s2.v), r, rc: rcE });
 }
 
@@ -189,11 +189,11 @@ export function dual({ r = 16, T1 = 300, P1 = 101325, rp = 1.5, rc = 1.4, k = K_
   const q_in = cv * (T3 - T2) + cp * (T4 - T3), q_out = cv * (T5 - T1), wnet = q_in - q_out;
   const eta = 1 - (1 / Math.pow(r, k - 1)) * (rp * Math.pow(rc, k) - 1) / ((rp - 1) + k * rp * (rc - 1));
   return buildCycle([s1, s2, s3, s4, s5], [
-    { name: '1→2 kompresi isentropik', type: 'isentropic', from: 0, to: 1, props },
-    { name: '2→3 pemanasan isokorik', type: 'isochoric', from: 1, to: 2, props },
-    { name: '3→4 pemanasan isobarik', type: 'isobaric', from: 2, to: 3, props },
-    { name: '4→5 ekspansi isentropik', type: 'isentropic', from: 3, to: 4, props },
-    { name: '5→1 pelepasan panas isokorik', type: 'isochoric', from: 4, to: 0, props },
+    { name: '1→2 isentropic compression', type: 'isentropic', from: 0, to: 1, props },
+    { name: '2→3 constant-volume heat addition', type: 'isochoric', from: 1, to: 2, props },
+    { name: '3→4 constant-pressure heat addition', type: 'isobaric', from: 2, to: 3, props },
+    { name: '4→5 isentropic expansion', type: 'isentropic', from: 3, to: 4, props },
+    { name: '5→1 constant-volume heat rejection', type: 'isochoric', from: 4, to: 0, props },
   ], { eta, etaCheck: wnet / q_in, wnet, qin: q_in, qout: q_out, mep: wnet / (s1.v - s2.v), r, rp, rc });
 }
 
@@ -208,10 +208,10 @@ export function braytonIdeal({ rp = 15, T1 = 288.15, P1 = 101325, T3 = 1500, k =
   const s4 = mkState(T4, P1, s3.s);
   const wc = cp * (T2 - T1), wt = cp * (T3 - T4), q_in = cp * (T3 - T2);
   return buildCycle([s1, s2, s3, s4], [
-    { name: '1→2 kompresi isentropik', type: 'polytropic', from: 0, to: 1, props },
-    { name: '2→3 pembakaran isobarik', type: 'isobaric', from: 1, to: 2, props },
-    { name: '3→4 ekspansi isentropik', type: 'polytropic', from: 2, to: 3, props },
-    { name: '4→1 buang panas isobarik', type: 'isobaric', from: 3, to: 0, props },
+    { name: '1→2 isentropic compression', type: 'polytropic', from: 0, to: 1, props },
+    { name: '2→3 constant-pressure combustion', type: 'isobaric', from: 1, to: 2, props },
+    { name: '3→4 isentropic expansion', type: 'polytropic', from: 2, to: 3, props },
+    { name: '4→1 constant-pressure heat rejection', type: 'isobaric', from: 3, to: 0, props },
   ], { eta: 1 - 1 / Math.pow(rp, x), etaCheck: (wt - wc) / q_in, wnet: wt - wc, wc, wt, qin: q_in, backWorkRatio: wc / wt, rp,
        rpOptWork: Math.pow(T3 / T1, k / (2 * (k - 1))) });
 }
@@ -242,9 +242,9 @@ export function braytonReal({
   const s3 = mkState(T3, P3, s2.s + cpg * Math.log(T3 / T2) - R_AIR * Math.log(P3 / P2));
   const s4 = mkState(T4, P1, s3.s + cpg * Math.log(T4 / T3) - R_AIR * Math.log(P1 / P3));
   const cyc = buildCycle([s1, s2, s3, s4], [
-    { name: '1→2 kompresi real', type: 'polytropic', from: 0, to: 1, props: { cp: cpa } },
+    { name: '1→2 real compression', type: 'polytropic', from: 0, to: 1, props: { cp: cpa } },
     { name: '2→3 combustor (ΔP)', type: 'polytropic', from: 1, to: 2, props: { cp: cpg } },
-    { name: '3→4 ekspansi real', type: 'polytropic', from: 2, to: 3, props: { cp: cpg } },
+    { name: '3→4 real expansion', type: 'polytropic', from: 2, to: 3, props: { cp: cpg } },
     { name: '4→1 exhaust', type: 'isobaric', from: 3, to: 0, props: { cp: cpg } },
   ], {});
   return {
@@ -282,7 +282,7 @@ export function singleShaftLoad(design, loadFrac, { igvMin = 0.7 } = {}) {
       d.T2 + 40, design.T3, { tol: 0.01 });
   }
   const res = braytonReal({ ...design, T3, mdot });
-  return { ...res, loadFrac, N: 1, strategy: loadFrac >= igvMin ? 'IGV (T3 tetap)' : (igvMin >= 1 ? 'fuel-only' : 'IGV min → T3 turun') };
+  return { ...res, loadFrac, N: 1, strategy: loadFrac >= igvMin ? 'IGV (T3 held)' : (igvMin >= 1 ? 'fuel-only' : 'IGV min → T3 falls') };
 }
 
 /**
@@ -371,9 +371,9 @@ export function twinShaftCycle(design = {}, { TambC = 15, altitude = 0 } = {}) {
   const s45 = mkState(r.T45, P45, s3.s + CP_GAS * Math.log(r.T45 / r.T3) - R_AIR * Math.log(P45 / P3));
   const s5 = mkState(r.T5, P1, s45.s + CP_GAS * Math.log(r.T5 / r.T45) - R_AIR * Math.log(P1 / P45));
   const cyc = buildCycle([s1, s2, s3, s45, s5], [
-    { name: '1→2 kompresi real', type: 'polytropic', from: 0, to: 1, props: { cp: CP_AIR } },
+    { name: '1→2 real compression', type: 'polytropic', from: 0, to: 1, props: { cp: CP_AIR } },
     { name: '2→3 combustor (ΔP)', type: 'polytropic', from: 1, to: 2, props: { cp: CP_GAS } },
-    { name: '3→4.5 turbin gas generator', type: 'polytropic', from: 2, to: 3, props: { cp: CP_GAS } },
+    { name: '3→4.5 gas-generator turbine', type: 'polytropic', from: 2, to: 3, props: { cp: CP_GAS } },
     { name: '4.5→5 power turbine', type: 'polytropic', from: 3, to: 4, props: { cp: CP_GAS } },
     { name: '5→1 exhaust', type: 'isobaric', from: 4, to: 0, props: { cp: CP_GAS } },
   ], {});
@@ -837,11 +837,11 @@ export function lossWaterfall(kind = 'diesel', over = {}, { window = 'full' } = 
   const s2 = cylinderSim({ ...base, lossFrac: 0, combEff: 1 });
   const s3 = cylinderSim({ ...base });
   const steps = [
-    { label: 'Batas ideal (Otto, k=1,4)', eta: eta0 },
-    { label: 'Panas jenis naik terhadap T (k turun)', eta: s1.etaInd },
-    { label: 'Pembakaran butuh waktu (Wiebe)', eta: s2.etaInd },
-    { label: 'Rugi panas dinding + tak terbakar', eta: s3.etaInd },
-    { label: 'Friksi mekanis (efisiensi rem)', eta: s3.etaBrake },
+    { label: 'Ideal limit (Otto, k = 1.4)', eta: eta0 },
+    { label: 'Specific heat rises with T (k falls)', eta: s1.etaInd },
+    { label: 'Combustion takes time (Wiebe)', eta: s2.etaInd },
+    { label: 'Wall heat loss + unburned fuel', eta: s3.etaInd },
+    { label: 'Mechanical friction (brake efficiency)', eta: s3.etaBrake },
   ];
   return steps.map((s, i) => ({ ...s, delta: i ? s.eta - steps[i - 1].eta : 0 }));
 }
