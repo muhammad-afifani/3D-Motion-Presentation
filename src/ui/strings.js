@@ -919,6 +919,9 @@ export const STR = {
     },
     engine: {
       title: 'Engine model (cylinderSim)',
+      leversTitle: 'Engine levers',
+      leverNames: { lambda: 'λ (air/fuel)', timing: 'Injection / spark timing', compressionRatio: 'Compression ratio', intakeT: 'Intake temperature', boost: 'Boost pressure', rpm: 'Engine speed', load: 'Load', egr: 'EGR' },
+      leverStatus: { slider: 'available (slider)', model: 'in the model, no slider yet (default = preset)', indirect: 'not a separate lever: diesel through λ, gas engine through boost', notAvailable: 'not available in this model' },
       items: [
         'Closed cycle IVC→EVO, air-standard gas with k(T). Pumping work and work after EVO are ignored.',
         'Wiebe heat release (diesel: premix + diffusion; gas: one Wiebe).',

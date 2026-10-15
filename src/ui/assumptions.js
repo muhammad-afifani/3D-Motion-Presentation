@@ -10,6 +10,7 @@ import { basisPatch, basisResetPatch, displayPatch, QUALITY_ORDER, BLOOM_ORDER }
 import { QUALITY_TUNING, TIER_MAX, displayState } from '../gfx/quality.js';
 import { rendererStats } from '../gfx/renderer.js';
 import { BASIS } from '../model/basis.js';
+import { LEVER_STATUS } from '../state/levers.js';
 
 const A = STR.assumptions, C = STR.common;
 const WATCH = ['emRefO2', 'emTrefC', 'calEngine', 'calDln', 'quality', 'bloomMode', 'qTier'];
@@ -81,7 +82,7 @@ export function createAssumptionsPanel(store, parent = document.body, saved = nu
           <div class="f-line" data-v="zeld"></div>
           ${list(A.zeldovich.notes)}
         </section>
-        <section><h3>${A.engine.title}</h3>${list(A.engine.items)}</section>
+        <section><h3>${A.engine.title}</h3>${list(A.engine.items)}<h3>${A.engine.leversTitle}</h3>${list(Object.entries(LEVER_STATUS).map(([k, st]) => `<b>${A.engine.leverNames[k]}</b>: ${A.engine.leverStatus[st]}`))}</section>
         <section><h3>${A.turbine.title}</h3>${list(A.turbine.items)}</section>
         <section><h3>${A.compressor.title}</h3>${list(A.compressor.items)}</section>
         <section><h3>${A.ghg.title}</h3>${list(A.ghg.items)}</section>
