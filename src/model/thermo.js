@@ -633,6 +633,12 @@ export function toDryRef(xWet, comp, refO2 = 15) {
   const o2dry = (comp.xO2 / (1 - comp.xH2O)) * 100;
   return dry * 1e6 * ((20.9 - refO2) / (20.9 - o2dry));
 }
+/**
+ * Koreksi ke O₂ acuan — JALUR TAMPILAN/MODEL (konstanta 20,9 % O₂ udara kering, seperti EPA Method 19).
+ * Dipakai untuk basis tampilan (panel H), emissionAtBasis, toDryRef, ppmToGkWh. JANGAN dipakai untuk membandingkan
+ * dengan baku mutu: perbandingan ke limit dan chip kepatuhan hanya lewat correctToRefO2Reg (konstanta 21).
+ * Kedua jalur identik bila O2meas = O2ref (faktor 1), berbeda di luar itu (tests/regulation.test.js).
+ */
 export const correctToRefO2 = (C, O2meas, O2ref) => C * ((20.9 - O2ref) / (20.9 - O2meas));
 
 /** Volume molar (m³/kmol) pada Tref (K), 1 atm. 273,15 → "Nm³"; 298,15 → basis 25 °C. */
@@ -640,6 +646,50 @@ export const molarVolume = (Tref = 273.15) => 22.414 * (Tref / 273.15);
 export const ppmToMgNm3 = (ppm, MWspecies, Tref = 273.15) => (ppm * MWspecies) / molarVolume(Tref);
 /** Kebalikan ppmToMgNm3: mg/Nm³ → ppm (input batas presenter dalam mg/Nm³, Scene 9). */
 export const mgNm3ToPpm = (mg, MWspecies, Tref = 273.15) => (mg * molarVolume(Tref)) / MWspecies;
+
+// ───────────── Jalur regulasi (perbandingan dengan baku mutu; angka limit TIDAK ada di kode) ─────────────
+
+/** Suku O₂ udara pada rumus koreksi lampiran regulasi (Permen LHK 11/2021): 21 %. */
+export const O2_AIR_REG = 21;
+
+/**
+ * Koreksi ke O₂ acuan — JALUR REGULASI (konstanta 21): C_ref = C_ukur · (21 − O2ref) / (21 − O2ukur).
+ * Satu-satunya koreksi O₂ yang boleh dipakai untuk membandingkan dengan limit (chip Within / Above).
+ * Jalur tampilan (correctToRefO2, 20,9) memberi hasil identik bila o2MeasPct = o2RefPct, berbeda di luar itu.
+ * Contoh: diukur pada 0 % O₂, acuan 15 % → faktor (21 − 15)/(21 − 0) = 0,2857; diukur 15 %, acuan 0 % → 3,5.
+ */
+export const correctToRefO2Reg = (c, o2MeasPct, o2RefPct) => c * ((O2_AIR_REG - o2RefPct) / (O2_AIR_REG - o2MeasPct));
+
+/** Volume molar gas ideal (L/mol = m³/kmol) pada TrefC (°C) dan PatmAbs (atm): V = R·T/P. 0 °C → 22,414; 25 °C → 24,465. */
+export const molarVolumeReg = (TrefC = 25, PatmAbs = 1) => (R_UNIV * (TrefC + 273.15)) / (101325 * PatmAbs) * 1000;
+/** ppm (volume, kering) → mg/Nm³ pada basis volume regulasi TrefC (°C), 1 atm: mg = ppm · M / V. */
+export const ppmToMgNm3Reg = (ppm, molarMass, TrefC = 25, PatmAbs = 1) => (ppm * molarMass) / molarVolumeReg(TrefC, PatmAbs);
+/** Kebalikan ppmToMgNm3Reg: mg/Nm³ → ppm (mis. limit 320 mg/Nm³ NO₂ @25 °C = 170,2 ppm). */
+export const mgNm3ToPpmReg = (mg, molarMass, TrefC = 25, PatmAbs = 1) => (mg * molarVolumeReg(TrefC, PatmAbs)) / molarMass;
+
+/**
+ * Nilai pada basis regulasi: ppm kering @ refFrom % O₂ → ppm @ basis.refO2Pct (koreksi 21) → mg/Nm³ pada basis.TrefC.
+ * @param {{ppm:number, refFrom?:number, molarMass?:number, basis:{refO2Pct:number, TrefC:number, PatmAbs?:number}}} o
+ * @returns {{ppm:number, mgNm3:number, refO2Pct:number, TrefC:number}}
+ */
+export function toRegulationBasis({ ppm, refFrom = 15, molarMass = MW.NO2, basis }) {
+  const ppmRef = correctToRefO2Reg(ppm, refFrom, basis.refO2Pct);
+  return { ppm: ppmRef, mgNm3: ppmToMgNm3Reg(ppmRef, molarMass, basis.TrefC, basis.PatmAbs ?? 1), refO2Pct: basis.refO2Pct, TrefC: basis.TrefC };
+}
+
+/**
+ * Status nilai terhadap limit (keduanya pada basis dan satuan yang sama):
+ *   'within'     value ≤ limit (nilai SAMA DENGAN limit dihitung within)
+ *   'above'      value > limit
+ *   'notModeled' value atau limit null/tidak terhingga (tidak dimodelkan, atau regulasi tidak punya limit)
+ * Bukan pernyataan lulus uji: UI menulis "Model value vs limit (indicative)".
+ * @param {number|null|undefined} value @param {number|null|undefined} limit
+ * @returns {'within'|'above'|'notModeled'}
+ */
+export function complianceStatus(value, limit) {
+  if (value == null || limit == null || !Number.isFinite(value) || !Number.isFinite(limit)) return 'notModeled';
+  return value <= limit ? 'within' : 'above';
+}
 
 /**
  * Volume flue gas KERING stoikiometrik per kg bahan bakar (F-factor, Nm³/kg pada 0 °C):

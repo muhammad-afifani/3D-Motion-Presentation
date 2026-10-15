@@ -710,6 +710,9 @@ export const STR = {
       minutes: 'must be a number of minutes above zero (maximum 120)',
       refId: 'must be lower-case letters, digits and "-"', refType: 'must be book, paper, standard, regulation, database or report',
       string: 'must be text (may be empty)', boolean: 'must be true or false',
+      number: 'must be a number', numberOrNull: 'must be a number or null', positive: 'must be a number above zero',
+      regSource: 'must be an id listed in sources', regO2: 'must be a number from 0 to below 21 (% O₂)', regClass: 'must be an id listed in capacityClasses',
+      regFuel: 'must be oil or gas', regUnit: 'must be mg/Nm3 or %',
     },
   },
 

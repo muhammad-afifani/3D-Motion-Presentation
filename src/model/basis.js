@@ -31,6 +31,7 @@ export const UTILITY = Object.freeze({
   crankAngleAt: 'Crank angle at time t for the animation clock.',
   pvLoop: 'Closes the P-V loop of a simulation for plotting.',
   selfTest: 'Golden-value self-test behind the "Model OK" badge.',
+  complianceStatus: 'Compares a value with a limit on the same basis: within when value ≤ limit, above otherwise, not modeled when either is missing.',
 });
 
 const e = (level, refs, derivation, assumptions = [], toVerify = []) => Object.freeze({ level, refs: Object.freeze(refs), derivation, assumptions: Object.freeze(assumptions), toVerify: Object.freeze(toVerify) });
@@ -138,9 +139,17 @@ export const BASIS = Object.freeze({
 
   // ───────────────────────────── concentration, basis, mass emission ─────────────────────────────
   toDryRef: e('Ideal', ['epa-method-19', 'epa-method-3a'], 'Wet mole fraction to dry ppm at a reference O₂: divide by (1 − xH₂O), then multiply by (20.9 − O₂ref)/(20.9 − O₂dry).',
-    ['Uses 20.9 % for O₂ in air; some regulations write 21 %. The difference is small but should match the rule you cite.'], ['Check the O₂ constant (20.9 vs 21) against the regulation annex.']),
-  correctToRefO2: e('Ideal', ['epa-method-19', 'epa-method-3a', 'iso-11042'], 'Reference-O₂ correction C·(20.9 − O₂ref)/(20.9 − O₂meas) on a dry basis.',
-    ['Uses 20.9 % for O₂ in air; some regulations write 21 %.'], ['Check the O₂ constant (20.9 vs 21) against the regulation annex.']),
+    ['Display and model path: 20.9 % for O₂ in dry air (EPA Method 19 convention).', 'Comparisons with a limit never use this path; they use the regulation correction with 21 %.']),
+  correctToRefO2: e('Ideal', ['epa-method-19', 'epa-method-3a', 'iso-11042'], 'Reference-O₂ correction C·(20.9 − O₂ref)/(20.9 − O₂meas) on a dry basis (display path).',
+    ['Display path only: 20.9 % for O₂ in dry air.', 'Gives the same result as the regulation correction (21 %) when measured O₂ equals the reference O₂; differs otherwise.', 'Comparisons with a limit never use this path.']),
+  O2_AIR_REG: e('Ideal', ['permen-lhk-11-2021'], 'Ambient O₂ term (21 %) in the O₂ correction formula of the regulation annex.', ['Read from the annex text, whose PDF extraction was poor.'], ['Confirm the 21 % term against the official regulation text.']),
+  correctToRefO2Reg: e('Ideal', ['permen-lhk-11-2021'], 'Regulation O₂ correction: C_ref = C_meas·(21 − O₂ref)/(21 − O₂meas) on a dry basis.',
+    ['The only O₂ correction used for comparisons with a limit (Within / Above chips).', 'Same result as the display path (20.9) when measured O₂ equals the reference O₂.'], ['Confirm the 21 % term against the official regulation text.']),
+  molarVolumeReg: e('Ideal', ['nist-webbook'], 'Ideal-gas molar volume V = R·T/P: 22.414 L/mol at 0 °C and 24.465 L/mol at 25 °C, 1 atm.', ['Ideal gas.']),
+  ppmToMgNm3Reg: e('Ideal', ['permen-lh-13-2009', 'permen-lhk-11-2021'], 'ppm to mg/Nm³ at the regulation volume basis (dry, 25 °C, 1 atm): mg = ppm·M / V.', ['NOx expressed as NO₂ (M = 46.005).', 'The regulation basis comes from the footnotes of the regulation text; confirm it.']),
+  mgNm3ToPpmReg: e('Ideal', ['permen-lh-13-2009', 'permen-lhk-11-2021'], 'Inverse of ppmToMgNm3Reg: a mg/Nm³ limit as ppm at the regulation basis.', ['NOx expressed as NO₂.']),
+  toRegulationBasis: e('Ideal', ['permen-lh-13-2009', 'permen-lhk-11-2021'], 'Model or site value moved to the regulation basis: O₂ correction with 21 %, then mg/Nm³ at the regulation volume basis.',
+    ['Basis values (reference O₂, temperature) are read from content/regulations.json, not from code.']),
   molarVolume: e('Ideal', ['nist-webbook'], 'Molar volume of an ideal gas at 1 atm: 22.414 m³/kmol at 0 °C, scaled linearly with temperature.', ['Ideal gas at 1 atm.']),
   ppmToMgNm3: e('Ideal', ['epa-method-19'], 'ppm to mg/Nm³ with the species molar mass and the molar volume at the chosen volume basis.', ['Dry basis; the volume basis (0 °C or 25 °C) must match the limit being compared.']),
   mgNm3ToPpm: e('Ideal', ['epa-method-19'], 'Inverse of ppmToMgNm3.', ['Dry basis; the volume basis must match.']),
