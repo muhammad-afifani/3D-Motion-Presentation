@@ -99,11 +99,11 @@ npm run e2e:perf   # build + tabel per scene: fps, draw calls, triangles, geomet
                    # (E2E_QUALITY=auto|high|low, E2E_SECONDS=4)
 ```
 
-Tanpa GPU, Chromium memakai SwiftShader (rendering software): angka fps dari `e2e:perf` di lingkungan itu bukan fps GPU; draw calls/triangles/geometries/textures tetap bermakna. Firefox dan WebKit ikut diuji bila browsernya terpasang di Playwright.
+Tanpa GPU, Chromium memakai SwiftShader (rendering software): angka fps dari `e2e:perf` di lingkungan itu bukan fps GPU; draw calls/triangles/geometries/textures tetap bermakna. Firefox dan WebKit akan ikut diuji bila browsernya terpasang di Playwright, tetapi sejauh ini belum pernah dijalankan (browsernya tidak tersedia di lingkungan pengembangan).
 
 ## Daftar cek lintas browser (manual, sebelum presentasi)
 
-Uji otomatis baru mencakup Chromium. Periksa manual di browser yang akan dipakai:
+**Pengujian otomatis baru dilakukan di Chromium; Firefox dan WebKit (Safari) belum diuji.** Periksa manual di browser yang akan dipakai:
 
 | Cek | Chrome | Edge | Firefox | Safari (macOS) |
 |---|---|---|---|---|

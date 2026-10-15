@@ -26,7 +26,7 @@ Prinsip utama: **visual 3D, diagram P-V / T-s, dan angka di layar harus menampil
 - **Vite + JavaScript ES modules** (JSDoc untuk tipe), **three.js** (r16x+), `OrbitControls`, `EffectComposer` + `UnrealBloomPass` (untuk nyala api), `Line2` (garis tebal).
 - Tanpa backend, tanpa API eksternal saat runtime. Semua aset lokal. Harus jalan **offline** dari `dist/` dan bisa di-deploy ke **GitHub Pages** (`base` dikonfigurasi, workflow Actions disertakan).
 - Grafik 2D (P-V, T-s, bar, line): **canvas 2D buatan sendiri** (modul kecil) atau uPlot. Jangan pakai library chart berat.
-- UI: DOM murni + CSS variables (tema gelap utama, tema terang untuk cetak). Tanpa framework UI.
+- UI: DOM murni + CSS variables (tema gelap; tema terang untuk cetak belum diimplementasikan). Tanpa framework UI.
 - Font: self-host (mis. Inter + JetBrains Mono untuk angka). Angka memakai `font-variant-numeric: tabular-nums`.
 - Tidak ada geometri dari file eksternal: **semua model 3D dibangun prosedural** (silinder, piston, batang torak, poros engkol, bilah turbin via `InstancedMesh`, dll.).
 
@@ -79,9 +79,10 @@ Aturan: bila butuh perhitungan baru, **tambahkan fungsi baru ke `thermo.js` bese
 
 Navigasi: `→/←` pindah scene, `Spasi` play/pause animasi, `F` freeze, `R` reset parameter, `H` panel asumsi, `1–4` pindah mesin, `P` mode presenter. Tiap scene punya **judul satu kalimat pesan kunci** di atas layar.
 
-### Scene 0 — Pembuka (peta 4 penggerak)
-- 4 kartu 3D kecil berputar pelan: diesel, gas engine, GT-generator, GT-kompresor. Hover → ringkasan siklus, η tipikal, profil emisi satu baris.
-- Tidak ada rumus. Tujuannya: orientasi.
+### Scene 0 — Pembuka (tidak dibuat sebagai scene aplikasi)
+- Aplikasi dimulai dari Scene 1; tidak ada scene peta 4 penggerak (kartu 3D berputar). Pembuka disampaikan secara lisan, dan catatannya digabung ke catatan presenter Scene 1 dengan awalan "Pembuka" (`content/presenter.json`; sumber: `docs/ALUR_SLIDE_presentasi.md` S0).
+- Tujuannya tetap orientasi: bahan bakar sama, mesin beda, emisi beda.
+- *Pengembangan lanjutan (belum diimplementasikan):* scene peta 4 penggerak dengan kartu 3D dan ringkasan siklus/η/profil emisi per kartu.
 
 ### Scene 1 — Piston: dari engkol ke diagram P-V (engine)
 - 3D: silinder dengan penampang (cutaway), piston, batang torak, poros engkol, katup masuk/buang (`valveLift`), injektor/busi. Gerak piston **dari** `engineGeometry.pistonPos(θ)`.
@@ -161,7 +162,7 @@ Kode warna spesies (konsisten di semua scene, aman buta warna): NOx = oranye, CO
 ## 8. UI/UX dan mode presentasi
 
 - **Mode presenter (`P`)**: panel kecil terpisah (jendela kedua) berisi catatan, timer, scene berikutnya; sinkron via `BroadcastChannel`.
-- **Fragmen**: tiap scene punya langkah (`Enter`) yang memunculkan elemen berurutan (rumus, kurva, nilai).
+- **Fragmen** (langkah `Enter` yang memunculkan elemen berurutan): **tidak diimplementasikan**; seluruh elemen scene tampil bersamaan dan presenter mengatur urutan lewat pesan kunci, catatan presenter, dan interaksi kontrol. Tidak ada rencana mengerjakannya.
 - **Freeze/Play**, **slow-motion** (0,1×–2×), **reset parameter**, **snapshot PNG** layar saat ini.
 - **Tooltip rumus**: hover pada angka HUD memunculkan rumus, variabel, dan asumsi (panel `H` memuat semua asumsi model).
 - **Laser pointer** (kursor menyala) dan **spotlight** (redupkan sisanya).
@@ -172,10 +173,10 @@ Kode warna spesies (konsisten di semua scene, aman buta warna): NOx = oranye, CO
 - Tema gelap, latar gradasi sangat gelap (bukan hitam murni), aksen hangat untuk panas dan dingin untuk udara.
 - Material logam brushed prosedural (PBR sederhana, environment map prosedural), cutaway dengan **clipping plane** dan potongan berwarna.
 - Pencahayaan: key + rim light, bayangan lembut, bloom hanya untuk nyala/partikel panas.
-- Transisi antar scene: kamera bergerak (dolly/orbit) 0,8–1,2 s dengan easing; hindari transisi berlebihan.
+- Transisi antar scene: **fade-through ±350 ms** (keluar 150 ms, masuk 200 ms; lewat opacity CSS), instan bila `prefers-reduced-motion`; tidak mengubah data frame atau angka HUD. Transisi kamera (dolly/orbit) **tidak diimplementasikan** karena label 3D akan tertinggal dari kamera selama animasi.
 - Tipografi besar dan padat informasi tetapi tidak ramai; maksimum **1 grafik utama + 1 grafik pendukung + HUD** per layar.
-- Anotasi 3D: garis penunjuk (leader lines) ke komponen dengan label ringkas, muncul per fragmen.
-- Mode terang untuk cetak/PDF: ekspor tiap scene ke PNG resolusi 2×.
+- Anotasi 3D: label ringkas pada komponen (tampil bersama scene; tombol `L` di Scene 1 menyembunyikannya). Leader line per fragmen tidak diimplementasikan karena fragmen tidak dibuat.
+- Snapshot PNG resolusi 2× (`S`) saat ini hanya **tema gelap**. *Mode terang untuk cetak/PDF (belum diimplementasikan):* ekspor tema terang butuh token warna chart sebagai pengganti warna netral yang kini tertulis di modul grafik.
 
 ## 10. Performa dan kompatibilitas
 

@@ -16,6 +16,8 @@ Vite + JavaScript ES modules (JSDoc untuk tipe), three.js, vitest. Tanpa backend
 - `npm run build`: bundle produksi untuk GitHub Pages, base `/<nama-repo>/` dari git remote / `GITHUB_REPOSITORY` (target < 1,5 MB gzip)
 - `npm run build:offline` lalu `npm run preview:offline`: paket presentasi offline (base relatif `./`)
 - `npm run preview`: uji build Pages di `http://localhost:4173/<nama-repo>/`
+- `npm run e2e`: uji dispose antar-scene (siklus 1→11→1) di browser lewat Playwright terpisah (bukan dependensi, bukan CI); `npm run e2e:perf` untuk tabel performa per scene
+- `npm run package:offline`: paket presentasi offline di `release/` (build base `./` + server Node/Python/PowerShell + `start.bat`/`start.sh` + `BACA-SAYA.txt`)
 - `node -e "import('./src/model/thermo.js').then(t=>console.log(t.selfTest()))"`: validasi cepat model (harus `failed: 0`, saat ini 14 tes)
 
 ## Arsitektur (wajib)
