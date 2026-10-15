@@ -211,7 +211,7 @@ export function createScene(ctx) {
     const aff = q('.overlay--aff').getBoundingClientRect(), top = Math.min(0.4, Math.max(0, (aff.bottom - view.getBoundingClientRect().top) / h));
     gfx.camera.aspect = w / h;
     const direction = gfx.camera.position.clone().sub(gfx.controls.target);
-    const { distance, target } = fitCameraToBox(gfx.camera, rigBox, { width: w, height: h, margin: 0.05, insets: { top: top * 0.6 }, direction });
+    const { distance, target } = fitCameraToBox(gfx.camera, rigBox, { width: w, height: h, margin: 0.03, insets: { top }, direction });
     gfx.controls.target.copy(target);
     gfx.controls.minDistance = distance * 0.3;
     gfx.controls.maxDistance = distance * 2.5; // batas jarak default renderer (6) memotong kamera pada rakitan besar
