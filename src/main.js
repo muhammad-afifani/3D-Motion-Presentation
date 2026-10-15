@@ -27,6 +27,7 @@ import { createFpsMeter } from './state/fpsMeter.js';
 import { rendererStats, disposeLog } from './gfx/renderer.js';
 import { STR } from './ui/strings.js';
 import { regulationsInitialState } from './state/regulations.js';
+import { fuelInitialState } from './state/deriveFuel.js';
 import { createStore, defaultState, resetPatch, engineSwitchPatch, togglePlayPatch, toggleFreezePatch, cycleInitialState, flameInitialState, gtInitialState, noxInitialState, basisInitialState, calibInitialState, limitsInitialState, loadInitialState, compInitialState, emisInitialState, policyInitialState, ctrlInitialState, closingInitialState, animInitialState, displayInitialState, bloomCyclePatch, qualityCyclePatch } from './state/store.js';
 
 /** Loader lazy per id scene (urutan & nomor di state/scenes.js, dipakai juga jendela presenter). */
@@ -49,7 +50,7 @@ document.querySelector('.brand').textContent = STR.app.brand;
 mountModelBadge(document.getElementById('model-badge'));
 installTooltips();
 
-const store = createStore({ ...defaultState('diesel'), ...cycleInitialState(), ...flameInitialState(), ...noxInitialState(), ...gtInitialState(), ...basisInitialState(), ...calibInitialState(), ...limitsInitialState(), ...loadInitialState(), ...compInitialState(), ...emisInitialState(), ...policyInitialState(), ...ctrlInitialState(), ...closingInitialState(), ...animInitialState(), ...displayInitialState(), ...regulationsInitialState() });
+const store = createStore({ ...defaultState('diesel'), ...cycleInitialState(), ...flameInitialState(), ...noxInitialState(), ...gtInitialState(), ...basisInitialState(), ...calibInitialState(), ...limitsInitialState(), ...loadInitialState(), ...compInitialState(), ...emisInitialState(), ...policyInitialState(), ...ctrlInitialState(), ...closingInitialState(), ...animInitialState(), ...displayInitialState(), ...regulationsInitialState(), ...fuelInitialState() });
 const persist = createPersistence(store, { sceneNumbers: SCENES.map((x) => x.number) });
 // Basis card dan References dibuat SEBELUM panel asumsi: pendengar Esc-nya jalan lebih dulu, jadi Esc menutup lapisan paling atas
 const references = createReferencesPage();

@@ -119,3 +119,30 @@ describe('pemilih regulasi di store dan persistensi', () => {
     expect(bad.regEquip).toBeUndefined(); expect(bad.regFuel).toBeUndefined(); expect(bad.regClass).toBeUndefined();
   });
 });
+
+describe('M9 Step 04: SO₂ neraca massa dan O₂ buang di Scene 9 (derive, bukan UI)', () => {
+  it('tanpa input sulfur: SO₂ Not modeled dengan alasan "enter the fuel sulfur" (tidak ada sulfur default di kode)', () => {
+    const f = deriveCompliance(st({ regEquip: 'dieselEngine', regClass: '1000-3000', regFuel: 'oil' }), regs);
+    const so2 = f.rows.find((r) => r.param === 'SO2');
+    expect(so2.status).toBe('notModeled'); expect(so2.reason).toBe('needsInput');
+    expect(STR.regulation.reason.needsInput).toMatch(/fuel sulfur/);
+  });
+  it('solar S 0,5 % → SO₂ ≈ 251 mg/Nm³ pada basis regulasi (sama dengan so2FromFuelSulfur), dibanding limit file', async () => {
+    const { so2FromFuelSulfur } = await import('../src/model/thermo.js');
+    const { fuelSulfurPatch } = await import('../src/state/deriveFuel.js');
+    const s = st({ regEquip: 'dieselEngine', regClass: '1000-3000', regFuel: 'oil', ...fuelSulfurPatch('fuelS', '0,5') });
+    expect(s.fuelS).toBe(0.5);
+    const so2 = deriveCompliance(s, regs).rows.find((r) => r.param === 'SO2');
+    near(so2.model, so2FromFuelSulfur({ fuel: 'oil', sulfur: 0.5 }, 15, 25).mgNm3, 1e-9);
+    expect(so2.limitSource).toBe('regulation'); expect(so2.valueSource).toBe('model');
+    expect(so2.status).toBe(so2.model <= so2.limit ? 'within' : 'above');
+    expect(fuelSulfurPatch('fuelS', '')).toEqual({ fuelS: null }); expect(fuelSulfurPatch('fuelH2S', '-3')).toEqual({ fuelH2S: null });
+  });
+  it('O₂ buang pada λ preset: gas engine dari komposisi gas, diesel dari neraca solar; turbin tidak ditampilkan', async () => {
+    const { exhaustO2FromLambda, ENGINE_PRESETS } = await import('../src/model/thermo.js');
+    const g = deriveCompliance(st({ regEquip: 'gasEngine', regFuel: 'gas' }), regs).fuel;
+    near(g.exhaustO2, exhaustO2FromLambda(1 / ENGINE_PRESETS.gas.phi), 1e-12);
+    expect(g.exhaustO2).toBeGreaterThan(7); expect(g.exhaustO2).toBeLessThan(10);
+    expect(deriveCompliance(st({ regEquip: 'gasTurbine', regFuel: 'gas' }), regs).fuel.exhaustO2).toBe(null);
+  });
+});

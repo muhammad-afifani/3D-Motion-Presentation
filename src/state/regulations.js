@@ -9,12 +9,13 @@ import { toRegulationBasis, correctToRefO2Reg, ppmToMgNm3Reg, mgNm3ToPpmReg, com
 /**
  * Equipment → grup regulasi (id di regulations.json) dan bahan bakar yang mungkin.
  * model = sumber nilai model; params = parameter yang dihitung model (lainnya "Not modeled").
- * Engine: model tidak menghitung CO, PM, SO₂. Turbin oil: model DLN hanya untuk gas → tidak ada nilai model.
+ * Engine: model tidak menghitung CO dan PM. SO₂ = neraca massa sulfur bahan bakar (butuh input sulfur; M9 Step 04).
+ * Turbin oil: model DLN hanya untuk gas → NOx/CO tanpa nilai model; SO₂ tetap neraca massa.
  */
 export const EQUIPMENT = Object.freeze({
-  dieselEngine: Object.freeze({ group: 'engine', fuels: Object.freeze(['oil']), model: 'diesel', params: Object.freeze({ oil: Object.freeze(['NOx']) }) }),
-  gasEngine: Object.freeze({ group: 'engine', fuels: Object.freeze(['gas']), model: 'gas', params: Object.freeze({ gas: Object.freeze(['NOx']) }) }),
-  gasTurbine: Object.freeze({ group: 'gas-turbine', fuels: Object.freeze(['gas', 'oil']), model: 'turbine', params: Object.freeze({ gas: Object.freeze(['NOx', 'CO']), oil: Object.freeze([]) }) }),
+  dieselEngine: Object.freeze({ group: 'engine', fuels: Object.freeze(['oil']), model: 'diesel', params: Object.freeze({ oil: Object.freeze(['NOx', 'SO2']) }) }),
+  gasEngine: Object.freeze({ group: 'engine', fuels: Object.freeze(['gas']), model: 'gas', params: Object.freeze({ gas: Object.freeze(['NOx', 'SO2']) }) }),
+  gasTurbine: Object.freeze({ group: 'gas-turbine', fuels: Object.freeze(['gas', 'oil']), model: 'turbine', params: Object.freeze({ gas: Object.freeze(['NOx', 'CO', 'SO2']), oil: Object.freeze(['SO2']) }) }),
 });
 export const EQUIPMENT_ORDER = Object.freeze(['dieselEngine', 'gasEngine', 'gasTurbine']);
 /** Urutan parameter di chip dan tabel; massa molar untuk konversi ppm ↔ mg/Nm³ (NOx sebagai NO₂). */
@@ -97,9 +98,10 @@ export function regMgToModelPpm(mg, param, basis) {
  * Baris kepatuhan per parameter.
  * @param {{group:any, cls:string, fuel:string, equip:string}} sel
  * @param {Record<string, number|null>} modelPpm15 nilai model ppmvd @ 15 % O₂ per parameter (null = tidak dimodelkan)
- * @param {{siteData?:Record<string, any>, overrides?:Record<string, number|null>, overrideKind?:Record<string,'override'|'permit'>, displayO2?:number}} [opt]
+ * @param {{siteData?:Record<string, any>, overrides?:Record<string, number|null>, overrideKind?:Record<string,'override'|'permit'>, displayO2?:number, needsInput?:string[]}} [opt]
+ *   needsInput: parameter yang dimodelkan tetapi menunggu input presenter (mis. SO₂ tanpa sulfur bahan bakar)
  */
-export function complianceRows(sel, modelPpm15, { siteData = {}, overrides = {}, overrideKind = {}, displayO2 = 15 } = {}) {
+export function complianceRows(sel, modelPpm15, { siteData = {}, overrides = {}, overrideKind = {}, displayO2 = 15, needsInput = [] } = {}) {
   const g = sel.group;
   if (!g) return [];
   const basis = g.basis;
@@ -118,7 +120,7 @@ export function complianceRows(sel, modelPpm15, { siteData = {}, overrides = {},
       param, row, model, site, limit, limitSource, unit: row?.unit ?? 'mg/Nm3',
       valueSource: site != null ? 'site' : model != null ? 'model' : null,
       status: complianceStatus(value, limit),
-      reason: limit == null ? 'noLimit' : value == null ? 'noValue' : null,
+      reason: limit == null ? 'noLimit' : value == null ? (needsInput.includes(param) ? 'needsInput' : 'noValue') : null,
     };
   });
 }

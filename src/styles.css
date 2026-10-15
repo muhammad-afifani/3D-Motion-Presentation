@@ -548,3 +548,5 @@ button.chart__level:hover, .hud__note .level[data-basis]:hover, .cyc-level[data-
 .reg__banner--sm { font-size: 11px; padding: 2px 6px; font-weight: 600; }
 .refs a { color: var(--accent-cold); }
 .regs__cls { margin: 10px 0 4px; font-size: 13px; }
+.reg__sulfur { display: flex; gap: 8px; align-items: center; }
+.reg__sulfur input { font: inherit; font-size: 12px; width: 90px; color: var(--text); background: var(--bg-2); border: 1px solid var(--line); border-radius: 6px; padding: 2px 4px; min-height: 26px; }

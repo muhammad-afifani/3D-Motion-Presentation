@@ -11,7 +11,7 @@ const R = STR.regulation;
 
 /**
  * @param {HTMLElement} container
- * @param {{onSelect:(p:{equip?:string, cls?:string, fuel?:string})=>void, onSite:(param:string, field:string, value:string)=>void}} cb
+ * @param {{onSelect:(p:{equip?:string, cls?:string, fuel?:string})=>void, onSite:(param:string, field:string, value:string)=>void, onSulfur?:(kind:'oil'|'gas', value:string)=>void}} cb
  */
 export function createCompliancePanel(container, cb) {
   const el = document.createElement('section');
@@ -24,6 +24,8 @@ export function createCompliancePanel(container, cb) {
     <div class="reg__note" data-v="display" hidden></div>
     <div class="reg__note" data-v="single" hidden></div>
     <div class="reg__note" data-v="oil" hidden></div>
+    <label class="ctl reg__sulfur"><span class="ctl__label" data-v="sulfurLabel"></span><input type="number" min="0" step="any" inputmode="decimal" data-v="sulfur" /></label>
+    <div class="reg__note num" data-v="o2" hidden></div>
     <table class="reg__table num"><thead></thead><tbody></tbody></table>
     <div class="reg__note" data-v="override" hidden></div>
     <div class="reg__note" data-v="calib" hidden></div>`;
@@ -41,6 +43,13 @@ export function createCompliancePanel(container, cb) {
   const clsSel = /** @type {HTMLSelectElement} */ (clsWrap.querySelector('select'));
   clsSel.addEventListener('change', () => cb.onSelect({ cls: clsSel.value }));
   pick.append(equip.el, clsWrap, fuel.el);
+
+  const sulfur = /** @type {HTMLInputElement} */ (V('sulfur'));
+  sulfur.placeholder = R.fuelSulfur.placeholder;
+  el.querySelector('.reg__sulfur').dataset.tip = R.fuelSulfurTip;
+  let sulfurKind = 'oil';
+  sulfur.addEventListener('change', () => cb.onSulfur?.(sulfurKind, sulfur.value));
+  sulfur.addEventListener('keydown', (e) => { if (e.key !== 'Escape') e.stopPropagation(); });
 
   const tbody = el.querySelector('tbody');
   let tableKey = '', clsKey = '';
@@ -100,6 +109,13 @@ export function createCompliancePanel(container, cb) {
       show(V('oil'), f.turbineOil, R.turbineOil);
       show(V('override'), f.turbine, R.overrideNote);
       show(V('calib'), f.calibrated, R.calibrated);
+      if (f.fuel) {
+        sulfurKind = f.fuel.kind;
+        set(V('sulfurLabel'), R.fuelSulfur[f.fuel.kind]);
+        const sv = f.fuel.sulfur == null ? '' : String(f.fuel.sulfur);
+        if (document.activeElement !== sulfur && sulfur.value !== sv) sulfur.value = sv;
+        show(V('o2'), f.fuel.exhaustO2 != null, f.fuel.exhaustO2 != null ? R.exhaustO2(f.fuel.exhaustO2, f.fuel.lambda) : '');
+      }
 
       const tk = `${f.sel.equip}|${f.rows.map((r) => r.param).join(',')}`;
       if (tk !== tableKey) { tableKey = tk; buildTable(f); }

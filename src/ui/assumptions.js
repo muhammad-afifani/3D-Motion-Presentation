@@ -90,6 +90,8 @@ export function createAssumptionsPanel(store, parent = document.body, saved = nu
         <section style="grid-column: 1 / -1"><h3>${A.levels.title}</h3><table data-v="levels"></table></section>
         <section style="grid-column: 1 / -1" data-section="functions"><h3>${A.functions.title}</h3><div class="asm__intro">${A.functions.intro}</div>
           <table data-v="functions"></table></section>
+        <section style="grid-column: 1 / -1" data-section="issues"><h3>${A.issues.title}</h3><div class="asm__intro">${A.issues.intro}</div>
+          <ul data-v="issues"></ul></section>
         ${saved ? `<section style="grid-column: 1 / -1"><h3>${A.saved.title}</h3>
           <div class="asm__intro">${saved.available ? A.saved.note : A.saved.unavailable}</div>
           <button type="button" class="btn btn--sm" data-reset-saved data-tip="${A.saved.resetTip}">${A.saved.reset}</button></section>` : ''}
@@ -165,6 +167,8 @@ export function createAssumptionsPanel(store, parent = document.body, saved = nu
     return `<tr class="asm-fn" role="button" tabindex="0" data-basis="${name}"><td><code>${name}</code></td><td>${b.level}</td><td>${src}${b.toVerify.length ? ` · <b>${A.functions.toVerify}</b>` : ''}</td></tr>`;
   });
   V('functions').innerHTML = row(A.functions.head, 'th') + fnRows.join('');
+  // penyimpangan yang diketahui (basis.js knownIssue), mis. cv(T) linear vs data polinomial NASA (koreksi direncanakan M10)
+  V('issues').innerHTML = Object.entries(BASIS).filter(([, b]) => b.knownIssue).map(([name, b]) => `<li class="asm-fn" role="button" tabindex="0" data-basis="${name}"><code>${name}</code>: ${b.knownIssue}</li>`).join('');
 
   function setOpen(on) {
     el.hidden = !on;

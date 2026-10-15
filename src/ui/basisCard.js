@@ -83,6 +83,11 @@ export function createBasisCard(parent = document.body, { onOpenRefs } = {}) {
         p.append(h('span', 'bcard__chip bcard__chip--warn', K.toVerify), ' ', document.createTextNode(t));
         sec.appendChild(p);
       }
+      if (e.knownIssue) {
+        const p = h('p', 'bcard__verify');
+        p.append(h('span', 'bcard__chip bcard__chip--warn', K.knownIssue), ' ', document.createTextNode(e.knownIssue));
+        sec.appendChild(p);
+      }
       if (e.assumptions.length) {
         sec.appendChild(h('b', 'bcard__label', `${K.assumptions}:`));
         const ul = h('ul', 'bcard__assume');

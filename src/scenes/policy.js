@@ -20,6 +20,7 @@ import { createContentBanner } from '../ui/contentBanner.js';
 import { deriveCompliance } from '../state/deriveCompliance.js';
 import { regulationsContent, onRegulations } from '../state/regulationsStore.js';
 import { regSelection, regSelectionPatch, siteDataPatch } from '../state/regulations.js';
+import { fuelSulfurPatch } from '../state/deriveFuel.js';
 import { fmt, pct } from '../ui/format.js';
 import { STR, signedDeg, plusDeg } from '../ui/strings.js';
 
@@ -279,6 +280,7 @@ export function createScene(ctx) {
       comp = createCompliancePanel(q('.pol-reg'), {
         onSelect: (p) => store.set(regSelectionPatch(store.get(), regulationsContent().data, p)),
         onSite: (param, field, v) => { const st = store.get(); store.set(siteDataPatch(st, regSelection(st, regulationsContent().data).equip, param, field, v)); },
+        onSulfur: (kind, v) => store.set(fuelSulfurPatch(kind === 'oil' ? 'fuelS' : 'fuelH2S', v)),
       });
     },
     update() {

@@ -392,6 +392,6 @@ describe('selfTest', () => {
   it('selfTest().failed = 0', () => {
     const r = selfTest();
     expect(r.failed, JSON.stringify(r.results.filter((x) => !x.ok))).toBe(0);
-    expect(r.passed).toBe(14);
+    expect(r.passed).toBe(19); // M9 Step 04: 14 → 19 (dual, CH4 LHV & AFR, SO2 solar, O2 dari λ)
   });
 });

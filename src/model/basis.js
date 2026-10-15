@@ -34,7 +34,8 @@ export const UTILITY = Object.freeze({
   complianceStatus: 'Compares a value with a limit on the same basis: within when value ≤ limit, above otherwise, not modeled when either is missing.',
 });
 
-const e = (level, refs, derivation, assumptions = [], toVerify = []) => Object.freeze({ level, refs: Object.freeze(refs), derivation, assumptions: Object.freeze(assumptions), toVerify: Object.freeze(toVerify) });
+/** extra.knownIssue: penyimpangan yang diketahui dan perbaikan yang direncanakan (tampil di kartu Basis dan panel H). */
+const e = (level, refs, derivation, assumptions = [], toVerify = [], extra = {}) => Object.freeze({ level, refs: Object.freeze(refs), derivation, assumptions: Object.freeze(assumptions), toVerify: Object.freeze(toVerify), ...extra });
 
 const AIR = ['Ideal gas with constant specific heats (k = 1.4) except where cv(T) is stated.'];
 const EMISSION_INDICATIVE = 'Indicative correlation: the trend is physical, the absolute level is calibrated to typical literature values, not to site data.';
@@ -53,11 +54,30 @@ export const BASIS = Object.freeze({
   FUELS: e('Real', ['iso-6976', 'nist-webbook', 'ipcc-2006-vol2-ch2'], 'Per-fuel LHV, stoichiometric air/fuel ratio and CO₂ emission factor for an idealised fuel (natural gas ≈ CH₄, diesel ≈ C₁₂H₂₃).',
     ['Fixed composition; real fuel gas varies, so LHV and the emission factor shift by a few percent.', 'The adiabatic-temperature offset for diesel (dTad) is a rough correction to the methane table.', 'CO₂ emission factors 56.1 and 74.1 g/MJ (LHV) are IPCC 2006 default values.']),
 
+  // ───────────────────────────── fuel composition, SO₂, exhaust O₂ (M9 Step 04) ─────────────────────────────
+  ATOMIC_WEIGHT: e('Ideal', ['gri-mech-3'], 'Atomic weights of C, H, O, N (GRI-Mech 3.0 data) and S (conventional 32.06).', []),
+  MW_AIR_DRY: e('Ideal', ['nist-webbook'], 'Molar mass of dry air (28.965 g/mol) for the mass air/fuel ratio.', ['Stoichiometric air counted as O₂ + 3.76 N₂ (argon lumped with N₂).']),
+  FUEL_GAS_SPECIES: e('Semi-empirical', ['gri-mech-3'], 'Atoms per molecule and standard enthalpy of formation (298 K) of each fuel-gas component.',
+    ['CH₄, C₂H₆, C₃H₈, H₂, CO₂ from GRI-Mech 3.0 thermo data.'],
+    ['n-C₄H₁₀ (−125.6 kJ/mol) and H₂S (−20.6 kJ/mol): values from the project owner; confirm against ISO 6976 or NIST.']),
+  PRODUCT_DHF: e('Semi-empirical', ['gri-mech-3'], 'Enthalpy of formation (298 K) of the combustion products CO₂, H₂O (vapour) and SO₂.',
+    ['CO₂ and H₂O from GRI-Mech 3.0.'], ['SO₂ (−296.833 kJ/mol) is from the NASA Glenn data in Cantera, not in the reference list.']),
+  fuelGasProps: e('Semi-empirical', ['gri-mech-3', 'iso-6976', 'epa-method-19'], 'Atom balance (C, H, O, N, S) for stoichiometric combustion with air (O₂ + 3.76 N₂); lower heating value by Hess\'s law from enthalpies of formation.',
+    ['Ideal-gas mixture; water as vapour (LHV).', 'Dry flue volume at 0 °C and 25 °C, 1 atm.', 'Fractions are normalised; H₂S is given in ppmv.'],
+    ['Heating values have not yet been compared with the ISO 6976 tables.']),
+  OIL_DEFAULT: e('Semi-empirical', [], 'Default diesel-oil mass composition: C 86.5 %, H 13 % by weight (pack test case).', ['Typical value, not a fuel analysis.'], ['Source of the default composition: not in the reference list.']),
+  so2FromFuelSulfur: e('Ideal', ['epa-method-19'], 'Mass balance: all fuel sulfur leaves as SO₂ (SO₂ = 64.06/32.06 × S); stoichiometric dry flue volume diluted to the reference O₂ with the 21 % term.',
+    ['Mass balance: no SO₃, no sulfate, no capture.', 'Diesel: sulfur in % by weight; gas: H₂S in ppmv.', 'Dry basis at the chosen O₂ and volume temperature.']),
+  exhaustO2FromLambda: e('Ideal', ['turns', 'epa-method-19'], 'Excess-air balance: dry O₂ = 0.2095·(λ−1)·n_air / (n_dry,st + (λ−1)·n_air).',
+    ['Complete combustion; λ ≤ 1 gives 0 % O₂.', 'Uses 20.95 % O₂ for the excess air (pack formula) while n_air counts air as O₂ + 3.76 N₂; the mismatch is 0.2 % relative.']),
+
   // ───────────────────────────── numerical helpers with physics content ─────────────────────────────
   calibrateTo: e('Site data', [], 'Scale factor c so that a model output reaches a target value (c = target / model(1)).',
     ['Assumes the output is roughly linear in c (NOx saturates, so the calibration functions iterate).', 'Only as good as the target: the default targets are typical literature values, not data from your unit.']),
-  cvOfT: e('Semi-empirical', ['cengel-boles', 'nist-janaf'], 'Linear fit of the specific heat of air with temperature, cv(T) = cv0 + 0.115·(T − 300).',
-    ['Straight-line fit over 300–2500 K; it may deviate from tabulated air properties by a few percent in the middle of the range.'], ['Compare the fit against a printed property table before quoting accuracy.']),
+  cvOfT: e('Semi-empirical', ['cengel-boles', 'nist-janaf', 'gri-mech-3'], 'Linear fit of the specific heat of air with temperature, cv(T) = cv0 + 0.115·(T − 300).',
+    ['Straight-line fit; within 0.5 % up to 500 K, then below the NASA-polynomial values: −2.9 % at 700 K, −6.7 % at 1000 K, −7.5 % at 1200–1400 K, −5.3 % at 2000 K.'],
+    ['Compare the fit against a printed property table before quoting accuracy.'],
+    { knownIssue: 'The linear cv(T) runs up to 7.5 % below NASA-polynomial air data at 1200–1400 K. A correction with recalibration of the engine presets and NOx factor is planned (M10). Peak pressure, brake efficiency and engine NOx depend on it.' }),
   kOfT: e('Semi-empirical', ['cengel-boles'], 'k = 1 + R / cv(T) for an ideal gas with temperature-dependent cv.', ['Follows cvOfT, so it inherits its fit error.']),
   processPath: e('Ideal', ['cengel-boles'], 'Ideal-gas state paths: isentropic (P·vᵏ constant), isochoric, isobaric and polytropic.', AIR),
 

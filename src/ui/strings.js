@@ -793,7 +793,10 @@ export const STR = {
     head: ['Parameter', 'Model', 'Site data', 'Limit', 'Status'],
     status: { within: 'Within', above: 'Above', notModeled: 'Not modeled' },
     statusTip: 'Model value vs limit (indicative). Not a test result.',
-    reason: { noLimit: 'no limit in this table', noValue: 'not computed by the model' },
+    reason: { noLimit: 'no limit in this table', noValue: 'not computed by the model', needsInput: 'enter the fuel sulfur (mass balance)' },
+    fuelSulfur: { oil: 'Fuel sulfur [wt %]', gas: 'Fuel H₂S [ppmv]', placeholder: 'empty' },
+    fuelSulfurTip: 'SO₂ by mass balance: all fuel sulfur leaves as SO₂ (no SO₃, no sulfate). Enter the value from the fuel analysis. Not saved.',
+    exhaustO2: (o2, lam) => `Exhaust O₂ at the preset λ ${fmt(lam, 2)}: ${fmt(o2, 1)} % dry (model, excess-air balance).`,
     limitSource: {
       regulation: (short) => `limit: ${short}`,
       override: 'limit: user override',
@@ -852,6 +855,7 @@ export const STR = {
       locatorUnchecked: 'locator not verified', locatorChecked: 'locator checked',
       locator: (l) => `Location: ${l}`,
       allRefs: 'All references',
+      knownIssue: 'Known deviation',
       note: 'Chapter and equation numbers marked "locator not verified" have not been checked against a printed copy.',
     },
     refs: {
@@ -976,6 +980,10 @@ export const STR = {
       none: 'definition / calibration',
       toVerify: 'source to verify',
       refs: 'All references',
+    },
+    issues: {
+      title: 'Known model deviations (planned fixes)',
+      intro: 'From the basis registry. These are known limits of the current model, not hidden corrections.',
     },
   },
 };
