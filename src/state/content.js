@@ -1,6 +1,7 @@
 /**
  * content.js — konten presenter: Scene 10–11 (content/controls.json, content/closing.json) dan catatan
- * mode presenter (content/presenter.json, M8a), dan daftar sumber (content/references.json, M9).
+ * mode presenter (content/presenter.json, M8a), daftar sumber (content/references.json, M9 Step 02), dan baku mutu
+ * (content/regulations.json, M9 Step 03: angka limit hanya ada di file ini, tidak pernah di kode).
  * Dimuat saat runtime dari `${BASE_URL}content/…` (bisa diedit di dist/content/ tanpa build ulang), dengan
  * fallback bawaan yang dibundel dari file sumber yang sama. Tidak pernah throw:
  *   - file tidak bisa di-fetch (tanpa server, 404, atau fallback SPA index.html) → fallback bawaan, TANPA galat
@@ -11,11 +12,15 @@ import controlsFallback from '../../content/controls.json';
 import closingFallback from '../../content/closing.json';
 import presenterFallback from '../../content/presenter.json';
 import referencesFallback from '../../content/references.json';
+import regulationsFallback from '../../content/regulations.json';
 
-export const CONTENT_FILES = Object.freeze({ controls: 'controls.json', closing: 'closing.json', presenter: 'presenter.json', references: 'references.json' });
+export const CONTENT_FILES = Object.freeze({ controls: 'controls.json', closing: 'closing.json', presenter: 'presenter.json', references: 'references.json', regulations: 'regulations.json' });
 export const MACHINES = Object.freeze(['diesel', 'gas', 'turbine']);
 export const CARD_FIELDS = Object.freeze(['lowers', 'raises', 'efficiency', 'operation']);
-const FALLBACK = { controls: controlsFallback, closing: closingFallback, presenter: presenterFallback, references: referencesFallback };
+const FALLBACK = { controls: controlsFallback, closing: closingFallback, presenter: presenterFallback, references: referencesFallback, regulations: regulationsFallback };
+/** Satuan limit yang diizinkan di regulations.json dan bahan bakar per baris. */
+export const REG_UNITS = Object.freeze(['mg/Nm3', '%']);
+export const REG_FUELS = Object.freeze(['oil', 'gas']);
 /** Jenis sumber di references.json (urutan = urutan kelompok di halaman References). */
 export const REFERENCE_TYPES = Object.freeze(['book', 'paper', 'standard', 'regulation', 'database', 'report']);
 /** Batas atas target durasi per scene (menit) di presenter.json. */
@@ -123,13 +128,81 @@ export function validateReferences(j) {
   return e;
 }
 
+/**
+ * Validasi regulations.json (skema: docs/m9_pack/seeds/regulations.seed.json).
+ * sources[{id, title, short, url}] unik; groups[{id, equipment, source ∈ sources, verified:boolean,
+ * basis{refO2Pct:number, dry:boolean, TrefC:number, PatmAbs:number, NOxAs}, capacityClasses[{id,label,minKW,maxKW}],
+ * rows[{class ∈ capacityClasses, fuel ∈ REG_FUELS, param, limit > 0, unit ∈ REG_UNITS, method}], notes[]}].
+ */
+export function validateRegulations(j) {
+  const e = [];
+  if (!j || typeof j !== 'object' || Array.isArray(j)) return [{ field: '(root)', code: 'notObject' }];
+  if (j.version !== 1) e.push({ field: 'version', code: 'version' });
+  const num = (x) => typeof x === 'number' && Number.isFinite(x);
+  const numOrNull = (x) => x === null || num(x);
+  const srcIds = new Set();
+  if (!Array.isArray(j.sources) || !j.sources.length) e.push({ field: 'sources', code: 'array' });
+  else j.sources.forEach((s, i) => {
+    const f = (k) => `sources[${i}].${k}`;
+    if (!s || typeof s !== 'object') { e.push({ field: `sources[${i}]`, code: 'notObject' }); return; }
+    if (!isText(s.id)) e.push({ field: f('id'), code: 'text' });
+    else if (srcIds.has(s.id)) e.push({ field: f('id'), code: 'duplicate' });
+    else srcIds.add(s.id);
+    for (const k of ['title', 'short', 'url']) if (!isText(s[k])) e.push({ field: f(k), code: 'text' });
+  });
+  if (!Array.isArray(j.groups) || !j.groups.length) return [...e, { field: 'groups', code: 'array' }];
+  const gIds = new Set();
+  j.groups.forEach((g, gi) => {
+    const f = (k) => `groups[${gi}].${k}`;
+    if (!g || typeof g !== 'object') { e.push({ field: `groups[${gi}]`, code: 'notObject' }); return; }
+    if (!isText(g.id)) e.push({ field: f('id'), code: 'text' });
+    else if (gIds.has(g.id)) e.push({ field: f('id'), code: 'duplicate' });
+    else gIds.add(g.id);
+    if (!isText(g.equipment)) e.push({ field: f('equipment'), code: 'text' });
+    if (!srcIds.has(g.source)) e.push({ field: f('source'), code: 'regSource' });
+    if (typeof g.verified !== 'boolean') e.push({ field: f('verified'), code: 'boolean' });
+    const b = g.basis;
+    if (!b || typeof b !== 'object') e.push({ field: f('basis'), code: 'notObject' });
+    else {
+      if (!num(b.refO2Pct) || b.refO2Pct < 0 || b.refO2Pct >= 21) e.push({ field: f('basis.refO2Pct'), code: 'regO2' });
+      if (typeof b.dry !== 'boolean') e.push({ field: f('basis.dry'), code: 'boolean' });
+      if (!num(b.TrefC)) e.push({ field: f('basis.TrefC'), code: 'number' });
+      if (!num(b.PatmAbs) || b.PatmAbs <= 0) e.push({ field: f('basis.PatmAbs'), code: 'number' });
+      if (!isText(b.NOxAs)) e.push({ field: f('basis.NOxAs'), code: 'text' });
+    }
+    const cls = new Set();
+    if (!Array.isArray(g.capacityClasses) || !g.capacityClasses.length) e.push({ field: f('capacityClasses'), code: 'array' });
+    else g.capacityClasses.forEach((c, ci) => {
+      const fc = (k) => `groups[${gi}].capacityClasses[${ci}].${k}`;
+      if (!c || !isText(c.id)) { e.push({ field: fc('id'), code: 'text' }); return; }
+      if (cls.has(c.id)) e.push({ field: fc('id'), code: 'duplicate' });
+      cls.add(c.id);
+      if (!isText(c.label)) e.push({ field: fc('label'), code: 'text' });
+      if (!numOrNull(c.minKW) || !numOrNull(c.maxKW)) e.push({ field: fc('minKW'), code: 'numberOrNull' });
+    });
+    if (!Array.isArray(g.rows) || !g.rows.length) e.push({ field: f('rows'), code: 'array' });
+    else g.rows.forEach((r, ri) => {
+      const fr = (k) => `groups[${gi}].rows[${ri}].${k}`;
+      if (!r || typeof r !== 'object') { e.push({ field: `groups[${gi}].rows[${ri}]`, code: 'notObject' }); return; }
+      if (!cls.has(r.class)) e.push({ field: fr('class'), code: 'regClass' });
+      if (!REG_FUELS.includes(r.fuel)) e.push({ field: fr('fuel'), code: 'regFuel' });
+      if (!isText(r.param)) e.push({ field: fr('param'), code: 'text' });
+      if (!num(r.limit) || r.limit <= 0) e.push({ field: fr('limit'), code: 'positive' });
+      if (!REG_UNITS.includes(r.unit)) e.push({ field: fr('unit'), code: 'regUnit' });
+      if (!isText(r.method)) e.push({ field: fr('method'), code: 'text' });
+    });
+    if (g.notes != null && !(Array.isArray(g.notes) && g.notes.every(isText))) e.push({ field: f('notes'), code: 'textList' });
+  });
+  return e;
+}
+
 /** Catatan presenter untuk scene n (null bila tidak ada). */
 export const presenterNotes = (data, n) => data?.scenes?.find((x) => x.number === n) ?? null;
 
-const VALIDATE = { controls: validateControls, closing: (j) => validateClosing(j), presenter: validatePresenter, references: (j) => validateReferences(j) };
+const VALIDATE = { controls: validateControls, closing: (j) => validateClosing(j), presenter: validatePresenter, references: (j) => validateReferences(j), regulations: (j) => validateRegulations(j) };
 
 /**
- * Muat konten. @param {'controls'|'closing'|'presenter'|'references'} kind
+ * Muat konten. @param {'controls'|'closing'|'presenter'|'references'|'regulations'} kind
  * @returns {Promise<{data:any, source:'file'|'fallback', file:string, errors:{field:string, code:string, detail?:string}[]}>}
  */
 export async function loadContent(kind, { fetchFn = globalThis.fetch, base, sceneNumbers } = {}) {

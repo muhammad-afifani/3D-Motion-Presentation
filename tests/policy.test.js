@@ -1,7 +1,8 @@
 // Scene 9: trade-off kebijakan — retardSweep (A), ghgPenalty (B), kurva Scene 6 + batas presenter (C).
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { retardSweep, ghgPenalty, ppmToMgNm3, mgNm3ToPpm, MW, ENGINE_PRESETS } from '../src/model/thermo.js';
+import { retardSweep, ghgPenalty, ppmToMgNm3, mgNm3ToPpm, mgNm3ToPpmReg, MW, ENGINE_PRESETS } from '../src/model/thermo.js';
+import { fmt } from '../src/ui/format.js';
 import { NOX_TIMING } from '../src/model/presets.js';
 import { policyInitialState, policyEnginePatch, calibInitialState, basisInitialState, limitsInitialState, loadInitialState } from '../src/state/store.js';
 import { derivePolicy, policySweepParams, limitsInputPatch, toDisplay } from '../src/state/derivePolicy.js';
@@ -65,13 +66,18 @@ describe('Scene 9 panel B: ghgPenalty', () => {
 });
 
 describe('Scene 9 panel C: baku mutu seragam', () => {
-  it('batas kosong: ajakan mengisi (bukan angka contoh), tanpa jendela', () => {
+  it('tanpa isian presenter: NOx dari regulations.json, CO kosong (tabel turbin tanpa limit CO) → ajakan mengisi, tanpa jendela', () => {
     const f = derivePolicy(st({ pTab: 'C' }), null);
     expect(f.C.limits.set).toBe(false);
     expect(resultLine(f)).toBe(STR.scene9.C.prompt);
     expect(keyMessage(f)).toBe(STR.scene9.messageC);
     expect(f.C.single.window).toBeNull();
-    expect(hudItems(f).find((x) => x.id === 'ln').value(f)).toBe(STR.scene9.hud.empty);
+    // Step 03: limit NOx default kini dibaca dari file regulasi (bukan kosong); nilainya tidak ditulis di tes
+    const regs = JSON.parse(readFileSync(new URL('../content/regulations.json', import.meta.url), 'utf8'));
+    const gtNox = regs.groups.find((g) => g.id === 'gas-turbine').rows.find((r) => r.fuel === 'gas' && r.param === 'NOx').limit;
+    expect(hudItems(f).find((x) => x.id === 'ln').value(f)).toBe(fmt(mgNm3ToPpmReg(gtNox, MW.NO2, 25), 1));
+    expect(f.C.limits.source).toEqual({ nox: 'regulation', co: null });
+    expect(hudItems(f).find((x) => x.id === 'lc').value(f)).toBe(STR.scene9.hud.empty);
   });
   it('batas terisi (contoh hanya di tes): jendela = deriveLoad; pelanggaran CO diarsir pada beban CO > batas', () => {
     const s = st({ pTab: 'C', ...TEST_LIMITS });
@@ -84,7 +90,7 @@ describe('Scene 9 panel C: baku mutu seragam', () => {
       }
     }
     expect(f.C.twin.coViolation).toEqual([[43, 40]]);
-    expect(resultLine(f)).toBe('Model result at the entered limits: load window Generator = 67–68 %; Compressor drive = 44–90 %.');
+    expect(resultLine(f)).toBe('Model result at these limits: load window Generator = 67–68 %; Compressor drive = 44–90 %.');
   });
   it('toggle satuan: mg/Nm³ = ppmToMgNm3 (NOx sebagai NO₂, CO sebagai CO, basis volume aktif); input mg → disimpan ppm', () => {
     const s = st({ pTab: 'C', ...TEST_LIMITS, limUnit: 'mg', emTrefC: 25 });
@@ -105,7 +111,7 @@ describe('Scene 9 panel C: baku mutu seragam', () => {
     expect(it2.find((x) => x.id === 'ln').sub).toBe('as NO₂, dry (ppmvd), @ 15 % O₂, 0 °C');
     expect(it2.find((x) => x.id === 'lc').sub).toBe('as CO, dry (ppmvd), @ 15 % O₂, 0 °C');
     expect(STR.scene9.titles.C).toBe('One limit value, two machines with different operating windows.');
-    expect(STR.scene9.disclaimer('a', 'b')).toMatch(/^Limits are entered by the presenter/);
+    expect(STR.scene9.disclaimer('a', 'b')).toMatch(/^Limits come from content\/regulations\.json .*no limit is written in the code/);
   });
   it('tidak ada angka batas di kode aplikasi; tanpa klaim konfigurasi "lebih buruk"', () => {
     for (const p of ['../src/scenes/policy.js', '../src/state/derivePolicy.js']) {

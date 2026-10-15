@@ -2,7 +2,8 @@
  * derivePolicy.js — state Scene 9 (trade-off kebijakan) → frame. Semua angka dari thermo.js:
  *   Panel A: retardSweep (diesel / gas, kalibrasi dari store) → NOx, η rem, CO₂ vs timing; Δ % terhadap preset
  *   Panel B: ghgPenalty untuk tiga mesin (η dari deriveEmis: cylinderSim preset / braytonReal desain)
- *   Panel C: kurva Scene 6 (deriveLoad) + batas presenter; satuan ppm @ basis atau mg/Nm³ (ppmToMgNm3 / mgNm3ToPpm)
+ *   Panel C: kurva Scene 6 (deriveLoad) + batas (NOx dari content/regulations.json atau override presenter; CO = isian
+ *            permit/OEM); satuan tampilan ppm @ basis atau mg/Nm³. Jendela dan chip dihitung di deriveLoad lewat jalur regulasi.
  */
 import { ghgPenalty, ppmToMgNm3, mgNm3ToPpm, MW } from '../model/thermo.js';
 import { ENGINES, NOX_TIMING, POLICY, NOX_CALIB_DEFAULTS } from '../model/presets.js';
@@ -71,8 +72,8 @@ export function limitsInputPatch(s, input) {
 }
 
 /** Panel C: kurva Scene 6 dalam satuan aktif, batas, arsiran pelanggaran CO, jendela beban. */
-function panelC(s) {
-  const L = deriveLoad(s);
+function panelC(s, regData) {
+  const L = deriveLoad(s, regData);
   const unit = s.limUnit ?? 'ppm', b = L.basis;
   const conv = (arr, sp) => arr.map((v) => toDisplay(v, sp, unit, b));
   const cfg = (c) => {
@@ -90,7 +91,9 @@ function panelC(s) {
   };
   return {
     unit, basis: b, strategy: L.strategy,
-    limits: { set: L.limits.set, nox: toDisplay(L.limits.nox, 'nox', unit, b), co: toDisplay(L.limits.co, 'co', unit, b), noxPpm: L.limits.nox, coPpm: L.limits.co },
+    limits: { set: L.limits.set, nox: toDisplay(L.limits.nox, 'nox', unit, b), co: toDisplay(L.limits.co, 'co', unit, b), noxPpm: L.limits.nox, coPpm: L.limits.co, source: L.limits.source, override: L.limits.override,
+      overrideShown: { nox: toDisplay(L.limits.override.nox, 'nox', unit, b), co: toDisplay(L.limits.override.co, 'co', unit, b) } },
+    regulation: L.regulation,
     single: cfg('single'), twin: cfg('twin'),
   };
 }
@@ -98,7 +101,8 @@ function panelC(s) {
 /**
  * @param {any} s state store (pTab, pEngine, pTheta0, pPenalty, limUnit, limNOx, limCO, lLoad, lStrategy, calEngine, calDln, emRefO2, emTrefC)
  * @param {any[]|null} sweep hasil retardSweep(policySweepParams(s))
+ * @param {any} [regData] isi content/regulations.json (default: salinan bawaan, lewat deriveLoad)
  */
-export function derivePolicy(s, sweep) {
-  return { tab: s.pTab, A: panelA(s, sweep), B: panelB(s), C: panelC(s), modelLevel: 'semiEmpirical' };
+export function derivePolicy(s, sweep, regData) {
+  return { tab: s.pTab, A: panelA(s, sweep), B: panelB(s), C: panelC(s, regData), modelLevel: 'semiEmpirical' };
 }

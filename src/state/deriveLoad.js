@@ -4,7 +4,11 @@
  *   titik  : baris kurva yang sama pada beban slider (langkah 1 % → selalu di kurva)
  *   rig    : singleShaftLoad / twinShaftForLoad (fungsi yang dipakai loadSweep) → warna tahap, N_GG
  *   basis  : emissionAtBasis (ppmvd @15 % O₂ → basis aktif; CO dianggap @15 % O₂, lihat panel H)
- * Jendela operasi = rentang beban yang memenuhi NOx ≤ batas DAN CO ≤ batas (hanya bila kedua batas diisi).
+ * Jendela operasi = rentang beban yang memenuhi NOx ≤ batas DAN CO ≤ batas (hanya bila kedua batas ada).
+ * Batas (M9 Step 03): NOx dari content/regulations.json (grup turbin gas, bahan bakar gas) kecuali presenter mengisi
+ * override; CO hanya dari isian presenter "Permit/OEM CO value" (tabel turbin tidak punya limit CO).
+ * Perbandingan (jendela, chip) lewat jalur regulasi: nilai mentah @15 % O₂ → toRegulationBasis (21, 25 °C) vs limit mg/Nm³.
+ * Garis batas di grafik dikonversi ke basis tampilan hanya untuk digambar.
  */
 import {
   loadSweep, singleShaftLoad, twinShaftForLoad, compressorStages, turbineStages, emissionAtBasis,
@@ -13,6 +17,9 @@ import {
 import { LOAD_DESIGNS, LOAD_LOADS, LOAD_RANGE, NOX_CALIB_DEFAULTS, GT_STAGES, GAS_TURBINES } from '../model/presets.js';
 import { TEMP_SCALE } from './derive.js';
 import { emissionBasis } from './deriveNox.js';
+import { fallbackContent } from './content.js';
+import { regSelection, rowsFor, regLimitMg, complianceRows, overrideToRegMg, regMgToModelPpm, sourceOf } from './regulations.js';
+import { toRegulationBasis, complianceStatus } from '../model/thermo.js';
 
 const DEG = Math.PI / 180;
 /** ṁ minimum IGV = igvMin default singleShaftLoad/loadSweep (0,7); sudut tutup penuh IGV (visual). */
@@ -70,6 +77,43 @@ export function operatingWindow(curve, limNOx, limCO) {
   return { ranges, ok };
 }
 
+/**
+ * Jendela operasi pada basis regulasi: titik mentah (ppmvd @15 % O₂) → mg/Nm³ basis grup, dibanding limit mg/Nm³.
+ * @param {{NOx_ppm:number, CO_ppm:number, load:number}[]} raw @param {{nox:number|null, co:number|null}} limMg @param {any} basis basis grup
+ */
+export function operatingWindowReg(raw, limMg, basis) {
+  if (limMg.nox == null || limMg.co == null) return null;
+  const mg = (ppm, molarMass) => toRegulationBasis({ ppm, refFrom: 15, molarMass, basis }).mgNm3;
+  const ok = raw.map((r) => complianceStatus(mg(r.NOx_ppm, MW.NO2), limMg.nox) === 'within' && complianceStatus(mg(r.CO_ppm, MW.CO), limMg.co) === 'within');
+  const load = raw.map((r) => Math.round(r.load * 100));
+  const ranges = [];
+  let start = -1;
+  for (let i = 0; i <= ok.length; i++) {
+    if (i < ok.length && ok[i]) { if (start < 0) start = i; } else if (start >= 0) { ranges.push([load[start], load[i - 1]]); start = -1; }
+  }
+  return { ranges, ok };
+}
+
+/**
+ * Batas turbin gas (Scene 6 / Scene 9 panel C). Sumber: 'regulation' | 'override' (presenter) | 'permit' (CO, isian presenter).
+ * @returns {{sel:any, basis:any, verified:boolean, mg:{nox:number|null, co:number|null}, display:{nox:number|null, co:number|null}, source:{nox:string|null, co:string|null}}}
+ */
+export function turbineLimits(s, regData, displayBasis) {
+  const sel = regSelection({ regEquip: 'gasTurbine', regFuel: 'gas' }, regData);
+  const g = sel.group, basis = g?.basis ?? null;
+  const rows = rowsFor(g, sel.cls, sel.fuel);
+  const regMg = (p) => regLimitMg(rows, p);
+  const toDisplay = (ppm15, MWs) => (ppm15 == null ? null : emissionAtBasis({ ppm: ppm15, refFrom: 15, refO2: displayBasis.refO2, TrefK: 273.15 + displayBasis.TrefC, MWspecies: MWs }).ppm);
+  const one = (p, lim, MWs) => {
+    if (lim != null && basis) return { mg: overrideToRegMg(lim, p, displayBasis.refO2, basis), display: lim, source: regMg(p) == null && p === 'CO' ? 'permit' : 'override' };
+    if (lim != null) return { mg: null, display: lim, source: 'override' };
+    const mg = basis ? regMg(p) : null;
+    return { mg, display: mg == null ? null : toDisplay(regMgToModelPpm(mg, p, basis), MWs), source: mg == null ? null : 'regulation' };
+  };
+  const n = one('NOx', s.limNOx ?? null, MW.NO2), c = one('CO', s.limCO ?? null, MW.CO);
+  return { sel, basis, verified: g?.verified === true, mg: { nox: n.mg, co: c.mg }, display: { nox: n.display, co: c.display }, source: { nox: n.source, co: c.source } };
+}
+
 /** Rig: warna tahap & IGV dari fungsi part-load yang sama dengan loadSweep. */
 function rigFrame(cfg, strategy, L) {
   return cached(`rig|${cfg}|${strategy}|${L}`, () => {
@@ -104,7 +148,7 @@ function rigFrame(cfg, strategy, L) {
 }
 
 /** Satu konfigurasi pada beban slider. */
-function configFrame(s, cfg, basis) {
+function configFrame(s, cfg, basis, lim) {
   const strategy = cfg === 'twin' ? 'twin' : s.lStrategy;
   const calib = dlnCalib(s, cfg);
   const curve = curveAt(cfg, strategy, calib, basis);
@@ -119,7 +163,10 @@ function configFrame(s, cfg, basis) {
     point: {
       load: s.lLoad, eta: curve.eta[i], T3: curve.T3[i], Tflame: curve.Tflame[i], nox: curve.nox[i], co: curve.co[i], N: curve.N[i], phiPz: curve.phiPz[i],
     },
-    window: operatingWindow(curve, s.limNOx, s.limCO),
+    window: lim.basis ? operatingWindowReg(curve.raw, lim.mg, lim.basis) : null,
+    compliance: complianceRows(lim.sel, { NOx: curve.raw[i].NOx_ppm, CO: curve.raw[i].CO_ppm }, {
+      overrides: { NOx: s.limNOx ?? null, CO: s.limCO ?? null }, overrideKind: { NOx: 'override', CO: lim.source.co ?? 'permit' }, displayO2: basis.refO2,
+    }),
     ...rig,
     flame: { intensity: Math.max(0.15, Math.min(1, fuelFrac)), color: flameColor(curve.phiPz[i]) },
     N: cfg === 'twin' ? { gg: curve.N[i], pt: null } : { gg: 1, rpm: GAS_TURBINES.generator.Nrpm },
@@ -141,18 +188,27 @@ export function curveFacts(single, twin) {
   };
 }
 
-/** @param {any} s state store (lLoad, lStrategy, calDln, limNOx, limCO, emRefO2, emTrefC, theta) */
-export function deriveLoad(s) {
+/**
+ * @param {any} s state store (lLoad, lStrategy, calDln, limNOx, limCO, emRefO2, emTrefC, theta)
+ * @param {any} [regData] isi content/regulations.json (default: salinan bawaan)
+ */
+export function deriveLoad(s, regData = fallbackContent('regulations')) {
   const basis = emissionBasis(s);
-  const single = configFrame(s, 'single', basis);
-  const twin = configFrame(s, 'twin', basis);
-  const limits = { nox: s.limNOx ?? null, co: s.limCO ?? null, set: s.limNOx != null && s.limCO != null };
+  const lim = turbineLimits(s, regData, basis);
+  const single = configFrame(s, 'single', basis, lim);
+  const twin = configFrame(s, 'twin', basis, lim);
+  // nox/co = garis pada basis tampilan (ppmvd); source = asal limit; override = isian presenter (kosong = dari regulasi)
+  const limits = {
+    nox: lim.display.nox, co: lim.display.co, set: lim.display.nox != null && lim.display.co != null,
+    source: lim.source, override: { nox: s.limNOx ?? null, co: s.limCO ?? null },
+  };
+  const regulation = { basis: lim.basis, verified: lim.verified, group: lim.sel.group?.id ?? null, source: lim.sel.group?.source ?? null, short: sourceOf(regData, lim.sel.group)?.short ?? null };
   const theta = s.theta ?? 0;
   single.rotor = { angleGG: theta * DEG, anglePT: theta * DEG };
   twin.rotor = { angleGG: theta * twin.N.gg * DEG, anglePT: theta * DEG }; // N_PT tidak dimodelkan: putaran visual tetap
   return {
     load: s.lLoad, loadRange: LOAD_RANGE, strategy: s.lStrategy, aux: s.lAux,
-    basis, limits,
+    basis, limits, regulation,
     single, twin,
     facts: curveFacts(single, twin),
     tempScale: TEMP_SCALE,

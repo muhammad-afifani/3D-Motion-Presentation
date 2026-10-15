@@ -43,11 +43,12 @@ export function deriveEmis(s) {
   const atBasis = (ppm, MWs) => emissionAtBasis({ ppm, refFrom: 15, refO2: basis.refO2, TrefK: 273.15 + basis.TrefC, MWspecies: MWs }).ppm;
 
   const rows = {
-    diesel: { id: 'diesel', eta: d.eta, nox: d.nox, co2: d.co2, co2e: d.co2, ch4: 0, slipApplies: false, pm: EMIS.pmLevel.diesel },
-    gas: { id: 'gas', eta: g.eta, nox: g.nox, co2: sg.co2, co2e: sg.co2e, ch4: sg.ch4_g, slipApplies: true, pm: EMIS.pmLevel.gas },
+    // noxPpm15 / coPpm15: nilai model mentah ppmvd @ 15 % O₂ (untuk perbandingan regulasi lewat jalur regulasi)
+    diesel: { id: 'diesel', eta: d.eta, nox: d.nox, co2: d.co2, co2e: d.co2, ch4: 0, slipApplies: false, pm: EMIS.pmLevel.diesel, noxPpm15: d.noxPpm },
+    gas: { id: 'gas', eta: g.eta, nox: g.nox, co2: sg.co2, co2e: sg.co2e, ch4: sg.ch4_g, slipApplies: true, pm: EMIS.pmLevel.gas, noxPpm15: g.noxPpm },
     turbine: {
       id: 'turbine', eta: t.eta, nox: t.nox, co2: st.co2, co2e: st.co2e, ch4: st.ch4_g, slipApplies: true, pm: EMIS.pmLevel.turbine,
-      noxPpm: atBasis(t.noxPpm, MW.NO2), coPpm: atBasis(t.coPpm, MW.CO), co: t.co,
+      noxPpm: atBasis(t.noxPpm, MW.NO2), coPpm: atBasis(t.coPpm, MW.CO), co: t.co, noxPpm15: t.noxPpm, coPpm15: t.coPpm,
     },
   };
   const list = EMIS.machines.map((k) => rows[k]);
