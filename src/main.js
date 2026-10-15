@@ -1,6 +1,6 @@
 /**
  * main.js — boot: lencana model, store global, scene manager (lazy), keyboard, loop animasi.
- * Pintasan: ←/→ scene · Spasi play/pause · F beku · R reset · 1/2 pilih mesin · L label · H panel asumsi · ? References · P presenter · S snapshot PNG · Q Quality · B Bloom · K laser pointer · Shift+K spotlight · Shift+D overlay debug.
+ * Pintasan: ←/→ scene · Spasi play/pause · F beku · R reset · 1/2 pilih mesin · L label · H panel asumsi · ? References · G Regulations · P presenter · S snapshot PNG · Q Quality · B Bloom · K laser pointer · Shift+K spotlight · Shift+D overlay debug.
  * Animation speed (state.animSpeed, 0,1×–2×) mengalikan dt animasi untuk semua scene; dt mentah ikut sebagai argumen kedua.
  * Persistensi ringan (state/persist.js): batas, satuan, basis, opsi Scene 11, scene awal; kalibrasi tidak disimpan.
  */
@@ -10,6 +10,8 @@ import { installTooltips } from './ui/tooltip.js';
 import { createAssumptionsPanel } from './ui/assumptions.js';
 import { createBasisCard } from './ui/basisCard.js';
 import { createReferencesPage } from './ui/referencesPage.js';
+import { createRegulationsPage } from './ui/regulationsPage.js';
+import { isTypingTarget } from './ui/keys.js';
 import { createCalibFlag, createQualityFlag } from './ui/statusFlags.js';
 import { createQualityController, effectiveBloom, applyDisplay, displayState, QUALITY_TIERS } from './gfx/quality.js';
 import { createPerfGuard } from './gfx/perfGuard.js';
@@ -51,6 +53,7 @@ const store = createStore({ ...defaultState('diesel'), ...cycleInitialState(), .
 const persist = createPersistence(store, { sceneNumbers: SCENES.map((x) => x.number) });
 // Basis card dan References dibuat SEBELUM panel asumsi: pendengar Esc-nya jalan lebih dulu, jadi Esc menutup lapisan paling atas
 const references = createReferencesPage();
+const regulations = createRegulationsPage();
 const basisCard = createBasisCard(document.body, { onOpenRefs: () => references.setOpen(true) });
 const assumptions = createAssumptionsPanel(store, document.body, {
   available: persist.available,
@@ -114,6 +117,7 @@ tools.append(
   button({ label: STR.snapshot.button, key: STR.snapshot.key, tip: STR.snapshot.buttonTip, onClick: () => snapshot() }).el,
   button({ label: STR.presenter.button, key: STR.presenter.key, tip: STR.presenter.buttonTip, onClick: () => presenter.toggle() }).el,
   button({ label: STR.basis.refs.button, key: STR.basis.refs.key, tip: STR.basis.refs.buttonTip, onClick: () => references.toggle() }).el,
+  button({ label: STR.regulation.page.button, key: STR.regulation.page.key, tip: STR.regulation.page.buttonTip, onClick: () => regulations.toggle() }).el,
 );
 document.querySelector('.topbar__right').prepend(tools);
 
@@ -163,13 +167,12 @@ window.__etelDebug = {
   quality: () => ({ mode: store.get().quality, ...displayState() }),
   setQuality: (q) => store.set({ quality: q }),
   goToScene: (n) => goToScene(n),
-  basisCardOpen: () => basisCard.open, referencesOpen: () => references.open,
+  basisCardOpen: () => basisCard.open, referencesOpen: () => references.open, regulationsOpen: () => regulations.open,
 };
 
 window.addEventListener('keydown', (e) => {
   if (e.ctrlKey || e.metaKey || e.altKey) return;
-  const t = /** @type {HTMLInputElement} */ (e.target);
-  if (t instanceof HTMLInputElement && t.type !== 'range') return;
+  if (isTypingTarget(e.target)) return; // tombol cepat mati saat fokus di kolom isian (input, select, textarea)
   if (e.key.toLowerCase() === 'r') persist.resetStartScene(); // R: scene awal berikutnya kembali ke Scene 1
   if (current?.onKey?.(e)) { e.preventDefault(); return; }
   const s = store.get();
@@ -193,6 +196,7 @@ window.addEventListener('keydown', (e) => {
     case '3': case '4': toast(STR.app.toast.turbine); break;
     case 'h': assumptions.toggle(); break;
     case '?': references.toggle(); break;
+    case 'g': regulations.toggle(); break;
     case 'p': presenter.toggle(); break;
     case 's': snapshot(); break;
     case 'q': { const p = qualityCyclePatch(s); store.set(p); toast(STR.app.toast.quality(STR.assumptions.display.qualityOpts[p.quality])); break; }

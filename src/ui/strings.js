@@ -478,9 +478,9 @@ export const STR = {
       calib: 'NOx calibration panel: DLN per configuration (single / twin) and engine.',
     },
     limits: {
-      title: 'Limits (regulation file + presenter input)',
-      nox: 'NOx limit override [ppmvd]',
-      co: 'Permit/OEM CO value [ppmvd]',
+      title: 'Limits (file + presenter)',
+      nox: 'NOx override [ppmvd]',
+      co: 'Permit/OEM CO [ppmvd]',
       clear: 'Clear',
       placeholder: 'from file',
       placeholderCo: 'empty',
@@ -620,7 +620,7 @@ export const STR = {
     unit: 'Limit unit',
     units: { ppm: 'ppm @ basis', mg: 'mg/Nm³' },
     unitLabel: { ppm: 'ppmvd', mg: 'mg/Nm³' },
-    limitLabels: { ppm: { nox: 'NOx limit override [ppmvd]', co: 'Permit/OEM CO value [ppmvd]' }, mg: { nox: 'NOx limit override [mg/Nm³, as NO₂]', co: 'Permit/OEM CO value [mg/Nm³]' } },
+    limitLabels: { ppm: { nox: 'NOx override [ppmvd]', co: 'Permit/OEM CO [ppmvd]' }, mg: { nox: 'NOx override [mg/Nm³]', co: 'Permit/OEM CO [mg/Nm³]' } },
     tips: {
       tab: 'Panel A: retard timing. Panel B: fuel penalty. Panel C: one limit applied to the Scene 6 part-load curves.',
       engine: 'Engine preset (same as Scenes 1 and 4).',

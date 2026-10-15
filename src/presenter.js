@@ -6,6 +6,7 @@
 import './styles.css';
 import { STR } from './ui/strings.js';
 import { createPresenterView } from './ui/presenterView.js';
+import { isTypingTarget } from './ui/keys.js';
 import { loadContent, fallbackContent } from './state/content.js';
 import { openChannel, createPresenterLink } from './state/presenterSync.js';
 import { SCENE_NUMBERS } from './state/scenes.js';
@@ -24,7 +25,7 @@ else view.setStatusText(STR.presenter.noChannel);
 loadContent('presenter', { sceneNumbers: [...SCENE_NUMBERS] }).then((r) => view.setContent(r));
 
 window.addEventListener('keydown', (e) => {
-  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.ctrlKey || e.metaKey || e.altKey || isTypingTarget(e.target)) return;
   if (e.key === 'ArrowRight') link?.nav(1);
   else if (e.key === 'ArrowLeft') link?.nav(-1);
   else if (e.key === ' ') { e.preventDefault(); view.toggleTimer(); }
