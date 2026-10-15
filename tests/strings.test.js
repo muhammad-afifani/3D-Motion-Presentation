@@ -15,7 +15,8 @@
 //     e. selector/path/warna/log internal: berawalan '.', '#', '[', './', '../';
 //     f. nilai fungsi CSS: nama(…) mis. rgb(…), translate(…), scaleX(…);
 //     g. string font CSS: berawalan angka + 'px' (mis. '12px Inter, sans-serif');
-//     h. daftar ALLOW di bawah (nama tombol keyboard dsb., bukan teks tampilan).
+//     h. daftar ALLOW di bawah (nama tombol keyboard dsb., bukan teks tampilan);
+//     i. nama CSS custom property: --nama (mis. '--px').
 //  Selain itu dianggap teks UI → pindahkan ke src/ui/strings.js.
 import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
@@ -23,7 +24,7 @@ import { join } from 'node:path';
 import { STR } from '../src/ui/strings.js';
 
 const ROOT = new URL('..', import.meta.url).pathname;
-const ALLOW = new Set(['ArrowRight', 'ArrowLeft', 'Escape']);
+const ALLOW = new Set(['ArrowRight', 'ArrowLeft', 'Escape', '(prefers-reduced-motion: reduce)']);
 
 function files() {
   const out = [];
@@ -101,6 +102,7 @@ function allowed(t) {
   if (/^(\.|#|\[|\.\/|\.\.\/)/.test(t)) return true;                      // e
   if (/^[a-zA-Z-]+\(.*\)$/.test(t)) return true;                          // f
   if (/^\d+px\s/.test(t)) return true;                                    // g
+  if (/^--[a-z][\w-]*$/.test(t)) return true;                            // i
   return ALLOW.has(t);                                                    // h
 }
 

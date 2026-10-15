@@ -221,7 +221,7 @@ export function createScene(ctx) {
       pn = createMultiLineChart(q('.pl-aux'), { title: S.charts.pn.title, modelLevel: 'ideal', xLabel: S.charts.pn.xLabel, yLabel: S.charts.pn.yLabel, indicative: false });
       legend = createTempLegend(q('.overlay--legend'), { title: S.tempLegend, tickStep: 50 });
       try {
-        gfx = createRenderer(q('.view3d'), { camPos: [1.6, 0.9, 3.4], target: [0.1, 0.25, 0], bloom: false });
+        gfx = createRenderer(q('.view3d'), { camPos: [1.6, 0.9, 3.4], target: [0.1, 0.25, 0] });
         rig = createCompressorRig();
         gfx.scene.add(rig.group);
       } catch (err) {

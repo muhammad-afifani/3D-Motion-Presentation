@@ -17,24 +17,25 @@ npm run build      # bundle untuk GitHub Pages (base /3D-Motion-Presentation/)
 
 ## Cara presentasi offline
 
-Untuk laptop presentasi tanpa internet. Siapkan sekali saat masih online (`npm install`), lalu:
+Untuk laptop presentasi tanpa internet. Siapkan sekali saat masih online (`npm install`), lalu buat paket:
 
 ```bash
-npm run build:offline     # bundle dengan path relatif ke folder dist/
-npm run preview:offline   # sajikan dist/ di http://localhost:4173/ (tanpa internet)
+npm run package:offline   # → folder release/ (build base ./ + server + skrip start + BACA-SAYA.txt)
 ```
 
-Buka **http://localhost:4173/** di Chrome atau Edge, lalu tekan F11 untuk layar penuh.
+Salin seluruh folder `release/` ke laptop presentasi (flashdisk/zip), lalu jalankan salah satu:
 
-Alternatif server statis lain (folder `dist/` hasil `build:offline` bisa disalin ke laptop mana pun):
+| Laptop punya | Perintah (di folder `release/`) |
+|---|---|
+| Node.js ≥ 18 | `node server.mjs --open` (Windows: klik dua kali `start.bat`; macOS/Linux: `sh start.sh`) |
+| Python 3 | `python3 server.py --open` (Windows: `py -3 server.py --open`) |
+| Hanya Windows PowerShell | `powershell -ExecutionPolicy Bypass -File start.ps1` (**belum diuji di lingkungan pengembangan**) |
 
-```bash
-npx serve dist                     # perlu paket "serve" sudah terpasang/ter-cache
-python3 -m http.server 8080 -d dist   # lalu buka http://localhost:8080/
-```
+Ketiga server menyajikan `app/` di `http://localhost:8080/` (atau port berikutnya) dengan **MIME type eksplisit** (`.js`/`.mjs` sebagai `text/javascript`, `.json`, `.css`, `.html`, `.svg`, `.png`, `.woff2`) dan mengembalikan **404** untuk file yang tidak ada. Server polos (mis. `python -m http.server` biasa) tidak disarankan: di sebagian Windows `.js` bisa tersaji sebagai `text/plain` sehingga ES module dan Web Worker gagal. `start.bat` mencoba Node, lalu Python, lalu PowerShell. Langkah lengkap ada di `release/BACA-SAYA.txt`. **Uji paket di laptop presentasi sebelum hari-H.**
 
-Catatan: membuka `dist/index.html` langsung dengan klik dua kali (`file://`) **tidak** bisa, karena browser memblokir ES module dan Web Worker dari `file://`. Selalu pakai server statis lokal seperti di atas.
+Di mesin pengembangan juga bisa: `npm run build:offline` lalu `npm run preview:offline` (http://localhost:4173/).
 
+Catatan: membuka `index.html` langsung dengan klik dua kali (`file://`) **tidak** bisa, karena browser memblokir ES module dan Web Worker dari `file://`. Selalu pakai server lokal seperti di atas.
 
 ## Konten presenter (Scene 10–11)
 
@@ -78,10 +79,47 @@ Tekan `S` (atau tombol **Snapshot**) untuk mengunduh PNG tampilan scene saat ini
 
 ## Pengaturan tersimpan
 
-Browser mengingat: batas NOx/CO dan satuannya, basis O₂/volume, opsi Scene 11 yang disembunyikan, dan scene terakhir (hanya sebagai scene awal saat halaman dibuka; `R` mengembalikannya ke Scene 1). **Faktor kalibrasi tidak disimpan**: selalu mulai dari default; bila diubah, bilah atas menampilkan "Custom calibration (session only)". Hapus semuanya dengan **Reset saved settings** di panel `H`. Bila penyimpanan browser diblokir (mis. mode privat), aplikasi tetap berjalan normal tanpa mengingat apa pun.
+Browser mengingat: batas NOx/CO dan satuannya, basis O₂/volume, opsi Scene 11 yang disembunyikan, Quality dan Bloom, dan scene terakhir (hanya sebagai scene awal saat halaman dibuka; `R` mengembalikannya ke Scene 1). **Faktor kalibrasi tidak disimpan**: selalu mulai dari default; bila diubah, bilah atas menampilkan "Custom calibration (session only)". Hapus semuanya dengan **Reset saved settings** di panel `H`. Bila penyimpanan browser diblokir (mis. mode privat), aplikasi tetap berjalan normal tanpa mengingat apa pun.
+
+## Kualitas tampilan dan performa
+
+- **Quality** (Auto / High / Low, tombol `Q`) dan **Bloom** (Auto / On / Off, tombol `B`) berlaku di seluruh scene; atur juga di panel `H` bagian **Display**. Keduanya disimpan di browser.
+- **Auto** menurunkan kualitas bertahap bila fps rendah (bloom mati → pixel ratio 1,0 + partikel ×0,6 → pixel ratio 0,75 + partikel ×0,3) dan menaikkannya lagi bila fps pulih, dengan jeda agar tidak berkedip. Saat kualitas diturunkan, bilah atas menampilkan **Quality reduced (Auto)** (klik untuk membuka pengaturan).
+- Penurunan kualitas **hanya memengaruhi visual** (pixel ratio, bloom, jumlah partikel); angka HUD dan grafik tidak berubah.
+- `Shift+D` membuka **overlay debug**: fps, ms/frame, draw calls, triangles, geometries, textures, programs, pixel ratio, bloom, tier kualitas. Bila GPU terdeteksi sebagai rendering software (SwiftShader/llvmpipe), overlay menandai bahwa fps bukan fps GPU.
+
+## Uji browser otomatis (opsional, untuk pengembang)
+
+Skrip Playwright terpisah (Playwright **bukan** dependensi proyek dan tidak dijalankan di CI). Pasang sekali: `npm i --no-save playwright && npx playwright install chromium` (atau pakai Playwright global; bisa juga `PLAYWRIGHT_MODULE=/path/ke/playwright/index.mjs`).
+
+```bash
+npm run e2e        # build + uji dispose: siklus scene 1→11→1 ×3; listener, ResizeObserver, Worker,
+                   # konteks WebGL, subscriber store kembali ke baseline; renderer menyisakan 0 geometry/texture
+npm run e2e:perf   # build + tabel per scene: fps, draw calls, triangles, geometries, textures
+                   # (E2E_QUALITY=auto|high|low, E2E_SECONDS=4)
+```
+
+Tanpa GPU, Chromium memakai SwiftShader (rendering software): angka fps dari `e2e:perf` di lingkungan itu bukan fps GPU; draw calls/triangles/geometries/textures tetap bermakna. Firefox dan WebKit akan ikut diuji bila browsernya terpasang di Playwright, tetapi sejauh ini belum pernah dijalankan (browsernya tidak tersedia di lingkungan pengembangan).
+
+## Daftar cek lintas browser (manual, sebelum presentasi)
+
+**Pengujian otomatis baru dilakukan di Chromium; Firefox dan WebKit (Safari) belum diuji.** Periksa manual di browser yang akan dipakai:
+
+| Cek | Chrome | Edge | Firefox | Safari (macOS) |
+|---|---|---|---|---|
+| Lencana "Model OK" hijau, Scene 1–11 terbuka dengan `→`/`←` | ☐ | ☐ | ☐ | ☐ |
+| Tampilan 3D muncul (WebGL2), animasi berjalan, Scene 3 nyala + bloom | ☐ | ☐ | ☐ | ☐ |
+| Scene 1/4: angka HUD muncul setelah slider digeser (Web Worker) | ☐ | ☐ | ☐ | ☐ |
+| `P`: jendela presenter terbuka dan sinkron (izinkan pop-up untuk situs) | ☐ | ☐ | ☐ | ☐ |
+| `S`: PNG terunduh dan teks HUD terbaca | ☐ | ☐ | ☐ | ☐ |
+| Reload: batas NOx/CO dan scene terakhir diingat (`localStorage`) | ☐ | ☐ | ☐ | ☐ |
+| `Shift+D`: fps wajar di laptop presentasi; `Q` mengganti Quality | ☐ | ☐ | ☐ | ☐ |
+| Paket offline dari `release/` berjalan tanpa internet | ☐ | ☐ | ☐ | ☐ |
+
+Catatan: Safari membutuhkan versi dengan WebGL2 (Safari 15+); di mode privat Safari, `localStorage` bisa ditolak (aplikasi tetap berjalan tanpa mengingat pengaturan).
 
 ## Pintasan saat presentasi
 
-`→`/`←` pindah scene · `Spasi` Play/Pause · `F` Freeze · `R` Reset · `P` mode presenter · `S` snapshot PNG · `1`–`4` pilih mesin/siklus · `L` label 3D (Scene 1) · `I` Ideal/Real (Scene 2) · `W` replay waterfall (Scene 2) · `B` Bloom (Scene 3) · `C` panel Calibration (Scene 4, 6; tombol Collapse melipatnya ke samping) · `1`/`2` strategi IGV / Fuel-only (Scene 6) · `1`/`2`/`3` panel A/B/C (Scene 9) · `E` edit opsi (Scene 11) · `H` panel asumsi + basis O₂/volume + Reset saved settings (semua scene)
+`→`/`←` pindah scene · `Spasi` Play/Pause · `F` Freeze · `R` Reset · `P` mode presenter · `S` snapshot PNG · `Q` Quality · `B` Bloom (semua scene) · `K` laser pointer · `Shift+K` spotlight (`Esc` mematikan) · `Shift+D` overlay debug · `1`–`4` pilih mesin/siklus · `L` label 3D (Scene 1) · `I` Ideal/Real (Scene 2) · `W` replay waterfall (Scene 2) · `C` panel Calibration (Scene 4, 6; tombol Collapse melipatnya ke samping) · `1`/`2` strategi IGV / Fuel-only (Scene 6) · `1`/`2`/`3` panel A/B/C (Scene 9) · `E` edit opsi (Scene 11) · `H` panel asumsi + basis O₂/volume + Reset saved settings (semua scene)
 
 **Animation speed** (0,1×–2×, 1× = 20 rpm visual) adalah satu kontrol bersama di semua scene beranimasi (Scene 1–8); hanya kecepatan tampilan, bukan putaran mesin di model.

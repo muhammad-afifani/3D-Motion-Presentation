@@ -1,18 +1,18 @@
 /**
  * persist.js — persistensi ringan (localStorage) untuk pengaturan presenter (M8a).
  *
- * Disimpan: batas NOx/CO + satuannya, basis O₂/volume, opsi Scene 11 yang disembunyikan, scene awal.
+ * Disimpan: batas NOx/CO + satuannya, basis O₂/volume, opsi Scene 11 yang disembunyikan, Quality & Bloom, scene awal.
  * TIDAK disimpan: faktor kalibrasi (selalu mulai dari default; nilai custom hanya berlaku selama sesi).
  *
  * Semua akses storage di dalam try/catch: bila localStorage diblokir/penuh/rusak, aplikasi tetap benar
  * dengan nilai default (hanya tidak ingat apa pun). Nilai yang dibaca divalidasi ulang lewat patch store.
  * "Scene terakhir" hanya nilai awal saat halaman dibuka; R atau Reset saved settings → kembali ke Scene 1.
  */
-import { limitsPatch, basisPatch, limitsInitialState, basisInitialState, closingInitialState } from './store.js';
+import { limitsPatch, basisPatch, limitsInitialState, basisInitialState, closingInitialState, displayPatch } from './store.js';
 import { POLICY } from '../model/presets.js';
 
 export const PERSIST_KEY = 'etel:v1';
-export const PERSIST_FIELDS = Object.freeze(['limNOx', 'limCO', 'limUnit', 'emRefO2', 'emTrefC', 'closingVisible']);
+export const PERSIST_FIELDS = Object.freeze(['limNOx', 'limCO', 'limUnit', 'emRefO2', 'emTrefC', 'closingVisible', 'quality', 'bloomMode']);
 export const FIRST_SCENE = 1;
 
 /** Akses storage yang aman: null bila tidak tersedia / melempar (mis. mode privat, cookie diblokir). */
@@ -53,6 +53,7 @@ export function readSaved(storage, sceneNumbers = [FIRST_SCENE]) {
     ...limitsPatch({ nox: d.limNOx ?? '', co: d.limCO ?? '' }),
     ...basisPatch({ refO2: d.emRefO2, TrefC: d.emTrefC }),
     closingVisible: cleanClosing(d.closingVisible),
+    ...displayPatch({ quality: d.quality, bloomMode: d.bloomMode }),
   };
   if (POLICY.limUnits.includes(d.limUnit)) patch.limUnit = d.limUnit;
   const startScene = sceneNumbers.includes(j.scene) ? j.scene : FIRST_SCENE;
@@ -67,7 +68,7 @@ export function writeSaved(storage, state, scene) {
 }
 
 /** Nilai default bidang yang dipersistenkan (dipakai Reset saved settings). */
-export const persistDefaults = () => ({ ...limitsInitialState(), limUnit: POLICY.limUnits[0], ...basisInitialState(), closingVisible: closingInitialState().closingVisible });
+export const persistDefaults = () => ({ ...limitsInitialState(), limUnit: POLICY.limUnits[0], ...basisInitialState(), closingVisible: closingInitialState().closingVisible, quality: 'auto', bloomMode: 'auto' });
 
 /**
  * Sambungkan store ke storage. Panggil sekali saat boot (setelah store dibuat).

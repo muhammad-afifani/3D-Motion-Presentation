@@ -48,6 +48,8 @@ export function createStore(initial) {
     set,
     /** @param {(s:S, prev:S, changed:string[]) => void} fn */
     subscribe(fn) { subs.add(fn); return () => subs.delete(fn); },
+    /** Jumlah subscriber aktif (uji dispose antar-scene). */
+    subscriberCount: () => subs.size,
     /** Kembali ke default; `override` opsional (mis. pertahankan pilihan mesin). */
     reset(override = {}) { set({ ...initial, ...override }); },
   };
@@ -145,7 +147,7 @@ export function flameDefaults(mode = 'diesel') {
 }
 
 /** State awal Scene 3 (termasuk preferensi tampilan). */
-export const flameInitialState = () => ({ ...flameDefaults('diesel'), fFocus: true, fBloom: 'auto' });
+export const flameInitialState = () => ({ ...flameDefaults('diesel'), fFocus: true });
 
 /** Langkah waktu yang berputar di jendela [lo, hi) (fokus jendela pembakaran); hormati jeda/beku. */
 export function tickWindowPatch(s, dt, lo, hi) {
@@ -156,9 +158,23 @@ export function tickWindowPatch(s, dt, lo, hi) {
   return { theta: th };
 }
 
-const BLOOM_ORDER = ['auto', 'on', 'off'];
-/** Patch tombol B: Auto → Nyala → Mati → Auto. */
-export const bloomCyclePatch = (s) => ({ fBloom: BLOOM_ORDER[(BLOOM_ORDER.indexOf(s.fBloom) + 1) % BLOOM_ORDER.length] });
+// ── Global: tampilan (M8b) — hanya visual; derive* tidak membaca kunci ini ──
+export const QUALITY_ORDER = Object.freeze(['auto', 'high', 'low']);
+export const BLOOM_ORDER = Object.freeze(['auto', 'on', 'off']);
+/** Quality (Auto/High/Low) dan Bloom (Auto/On/Off) global; qTier = tier efektif dari pengontrol (tidak disimpan). */
+export const displayInitialState = () => ({ quality: 'auto', bloomMode: 'auto', qTier: 0 });
+const cycle = (order, v) => order[(order.indexOf(v) + 1) % order.length];
+/** Patch tombol B (semua scene): Auto → On → Off → Auto. */
+export const bloomCyclePatch = (s) => ({ bloomMode: cycle(BLOOM_ORDER, s.bloomMode) });
+/** Patch tombol Q: Auto → High → Low → Auto. */
+export const qualityCyclePatch = (s) => ({ quality: cycle(QUALITY_ORDER, s.quality) });
+/** Patch pengaturan tampilan dari panel H / data tersimpan; nilai tak dikenal diabaikan. */
+export function displayPatch({ quality, bloomMode } = {}) {
+  const out = {};
+  if (QUALITY_ORDER.includes(quality)) out.quality = quality;
+  if (BLOOM_ORDER.includes(bloomMode)) out.bloomMode = bloomMode;
+  return out;
+}
 
 // ── Scene 5 (turbin gas) ──
 

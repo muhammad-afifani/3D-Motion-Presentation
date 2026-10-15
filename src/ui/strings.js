@@ -63,7 +63,12 @@ export const STR = {
       reset: 'Parameter dikembalikan ke preset',
       turbine: 'Turbin: Scene 5 (milestone M5)',
       savedReset: 'Pengaturan tersimpan dihapus; scene awal kembali ke Scene 1',
+      quality: (label) => `Quality: ${label}`,
+      pointer: { off: 'Laser pointer dan spotlight dimatikan', laser: 'Laser pointer aktif (K atau Esc untuk mematikan)', spotlight: 'Spotlight aktif (Shift+K atau Esc untuk mematikan)' },
+      bloom: (label) => `Bloom: ${label}`,
     },
+    qualityFlag: 'Quality reduced (Auto)',
+    qualityFlagTip: 'Kualitas visual diturunkan otomatis karena fps rendah (pixel ratio, bloom, partikel). Angka HUD dan grafik tidak berubah. Klik untuk membuka pengaturan Display.',
     calibFlag: 'Custom calibration (session only)',
     calibFlagTip: 'Faktor kalibrasi berbeda dari default. Nilai custom tidak disimpan dan kembali ke default saat halaman dibuka ulang. Detail di panel H.',
     badge: {
@@ -706,6 +711,17 @@ export const STR = {
     },
   },
 
+  // ─────────────────────────── overlay debug performa (Shift+D) ───────────────────────────
+  debug: {
+    title: 'Debug · performance',
+    software: 'Software rendering (SwiftShader/llvmpipe): fps bukan fps GPU sungguhan.',
+    fps: 'FPS', frameMs: 'Frame [ms]', calls: 'Draw calls', triangles: 'Triangles', geometries: 'Geometries', textures: 'Textures',
+    programs: 'Programs', pixelRatio: 'Pixel ratio', bloom: 'Bloom', on: 'on', off: 'off', quality: 'Quality', heap: 'JS heap [MB]',
+    qualityValue: (mode, tier, particles) => `${mode} · tier ${tier} · particles ×${fmt(particles, 1)}`,
+    renderer: 'Renderer', no3d: 'tanpa 3D di scene ini',
+    gpu: (name) => `GPU: ${name}`,
+  },
+
   // ─────────────────────────── snapshot PNG (tombol S) ───────────────────────────
   snapshot: {
     button: 'Snapshot', key: 'S',
@@ -756,12 +772,23 @@ export const STR = {
     close: 'Close',
     keys: 'H / Esc',
     intro: 'Semua korelasi emisi indikatif. Level NOx absolut dikalibrasi ke nilai tipikal literatur, bukan data unit atau vendor.',
+    display: {
+      title: 'Display',
+      quality: 'Quality', bloom: 'Bloom',
+      qualityOpts: { auto: 'Auto', high: 'High', low: 'Low' },
+      bloomOpts: { auto: 'Auto', on: 'On', off: 'Off' },
+      keys: 'Q / B',
+      visualOnly: 'Penurunan kualitas hanya memengaruhi visual (pixel ratio, bloom, jumlah partikel), tidak memengaruhi angka HUD atau grafik.',
+      autoNote: (down, up, dSec, uSec) => `Auto: turun satu tingkat bila fps di bawah ${fmt(down, 0)} selama ${fmt(dSec, 0)} detik, naik lagi bila fps di atas ${fmt(up, 0)} selama ${fmt(uSec, 0)} detik (dengan jeda agar tidak berkedip). High: kualitas penuh. Low: kualitas terendah.`,
+      bloomNote: 'Bloom berlaku di semua scene 3D. Auto: menyala bila kualitas mengizinkan; saat Quality High, bloom dimatikan otomatis bila fps rendah.',
+      status: (tier, max, pr, bloom, particles) => `Tingkat aktif ${tier} dari ${max} (0 = penuh) · pixel ratio ${pr == null ? '–' : fmt(pr, 2)} · bloom ${bloom ? 'on' : 'off'} · partikel ×${fmt(particles, 1)}`,
+    },
     saved: {
       title: 'Saved settings',
-      note: 'Disimpan di browser ini: batas NOx/CO dan satuannya, basis O₂/volume, opsi Scene 11 yang disembunyikan, dan scene terakhir (hanya sebagai scene awal; R mengembalikannya ke Scene 1). Faktor kalibrasi tidak disimpan.',
+      note: 'Disimpan di browser ini: batas NOx/CO dan satuannya, basis O₂/volume, opsi Scene 11 yang disembunyikan, Quality dan Bloom, dan scene terakhir (hanya sebagai scene awal; R mengembalikannya ke Scene 1). Faktor kalibrasi tidak disimpan.',
       unavailable: 'Penyimpanan browser tidak tersedia (mis. mode privat atau diblokir): pengaturan hanya berlaku selama sesi ini.',
       reset: 'Reset saved settings',
-      resetTip: 'Hapus pengaturan tersimpan: batas, satuan, basis, opsi Scene 11 kembali ke default; scene awal ke Scene 1.',
+      resetTip: 'Hapus pengaturan tersimpan: batas, satuan, basis, opsi Scene 11, Quality dan Bloom kembali ke default; scene awal ke Scene 1.',
     },
     basis: {
       title: 'Emission basis',

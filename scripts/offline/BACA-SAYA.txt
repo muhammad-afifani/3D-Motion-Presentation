@@ -1,0 +1,60 @@
+ENGINE & TURBINE EMISSION LAB — PAKET PRESENTASI OFFLINE
+=========================================================
+
+Paket ini berjalan tanpa internet, tetapi HARUS dibuka lewat server lokal kecil.
+Jangan klik dua kali app/index.html: browser memblokir ES module dan Web Worker dari file://,
+sehingga aplikasi tidak berjalan.
+
+Isi folder:
+  app/            aplikasi (index.html, presenter.html, assets/, content/)
+  start.bat       Windows: klik dua kali (memakai Node, lalu Python, lalu PowerShell)
+  start.sh        macOS / Linux: jalankan  sh start.sh
+  server.mjs      server untuk Node 18 atau lebih baru
+  server.py       server untuk Python 3
+  start.ps1       server untuk Windows PowerShell (BELUM DIUJI di lingkungan pengembangan)
+
+Ketiga server memakai MIME type yang benar (.js sebagai text/javascript) dan mengembalikan
+404 untuk file yang tidak ada. Jangan ganti dengan server polos lain yang tidak jelas MIME-nya.
+
+
+SKENARIO 1 — Laptop punya Node.js (versi 18 atau lebih baru)
+  1. Buka terminal / Command Prompt di folder ini.
+  2. Jalankan:   node server.mjs --open
+     (Windows: cukup klik dua kali start.bat)
+  3. Browser terbuka di http://localhost:8080/ (atau port berikutnya bila 8080 terpakai).
+
+SKENARIO 2 — Laptop punya Python 3 (tanpa Node)
+  1. Buka terminal / Command Prompt di folder ini.
+  2. Jalankan:   python3 server.py --open
+     (Windows: py -3 server.py --open, atau klik dua kali start.bat)
+  3. Browser terbuka di http://localhost:8080/.
+
+SKENARIO 3 — Hanya Windows PowerShell (tanpa Node dan Python)
+  1. Klik kanan di folder ini > "Open in Terminal" / buka PowerShell di folder ini.
+  2. Jalankan:   powershell -ExecutionPolicy Bypass -File start.ps1
+  3. Browser terbuka di http://localhost:8080/.
+  Catatan: server PowerShell ini BELUM DIUJI di lingkungan pengembangan. Uji dulu di laptop
+  presentasi. Bila Windows meminta izin jaringan/firewall, pilih jaringan "Private".
+
+
+CARA MEMASTIKAN SERVER JALAN
+  - Jendela terminal menampilkan:  Server presentasi berjalan: http://localhost:8080/
+  - Biarkan jendela itu terbuka selama presentasi (menutupnya = server berhenti).
+  - Di browser, pojok kanan atas aplikasi menampilkan lencana hijau "Model OK".
+  - Tekan P: jendela presenter terbuka dan ikut berpindah scene (bila pop-up diblokir,
+    izinkan pop-up untuk localhost, atau pakai panel presenter di dalam halaman).
+  - Bila halaman kosong / galat: pastikan alamatnya http://localhost:..., bukan file:///...
+
+MENGEDIT TEKS PRESENTER (tanpa build ulang)
+  app/content/presenter.json   catatan presenter per scene (tombol P)
+  app/content/controls.json    kartu pengendali emisi (Scene 10)
+  app/content/closing.json     penutup (Scene 11)
+  Simpan, lalu reload browser (Ctrl+R). JSON yang rusak tidak membuat aplikasi crash: aplikasi
+  memakai isi bawaan dan menampilkan banner galat yang menyebut file dan bidangnya.
+
+PERINGATAN
+  Uji paket ini DI LAPTOP PRESENTASI sebelum hari-H: jalankan server, buka semua scene
+  (panah kanan/kiri), coba P (presenter) dan S (snapshot PNG), dan cek proyektor.
+  Browser yang disarankan: Chrome atau Edge terbaru (WebGL2 wajib).
+  Bila animasi berat, tekan Q untuk memilih Quality (Auto/High/Low) atau buka panel H > Display.
+  Angka emisi dalam aplikasi bersifat indikatif (lihat label tingkat model di tiap grafik).

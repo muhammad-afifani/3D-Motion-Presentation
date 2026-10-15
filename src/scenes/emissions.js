@@ -143,7 +143,7 @@ export function createScene(ctx) {
       noxChart = createBarChart(q('.emis-aux__chart'), { title: S.charts.nox.title, xLabel: S.charts.nox.xLabel, unit: U.gkWh, digits: 2, labelWidth: 230, indicative: true });
       hud = createHud(q('.scene__hud'), hudItems(), { level: C.level.semiEmpirical, note: H.note });
       try {
-        gfx = createRenderer(q('.view3d'), { camPos: [0.3, 2.6, 8.6], target: [0, 1.3, 0], bloom: false });
+        gfx = createRenderer(q('.view3d'), { camPos: [0.3, 2.6, 8.6], target: [0, 1.3, 0] });
         gfx.controls.maxDistance = 14;
         gfx.camera.position.set(0.3, 2.6, 8.6); // posisi ulang: batas jarak default renderer (6) sudah memotongnya
         gfx.controls.update();

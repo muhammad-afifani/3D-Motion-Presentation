@@ -7,6 +7,7 @@
 import * as THREE from 'three';
 import { createMaterials } from './materials.js';
 import { SPECIES_COLORS } from './species.js';
+import { particleScale } from './quality.js';
 
 export const UNIT_X = Object.freeze({ diesel: -2.3, gas: 0, turbine: 2.3 });
 export const SPECIES = Object.freeze(['NOx', 'CO2', 'CH4', 'PM']);
@@ -77,11 +78,12 @@ export function createEmissionRig({ capacity = 1400, random = Math.random } = {}
      */
     update(f, dt = 0) {
       if (dt > 0) {
+        const k = particleScale(); // kualitas: hanya jumlah partikel visual
         for (const unit of Object.keys(UNIT_X)) {
           for (const sp of SPECIES) {
-            const k = `${unit}|${sp}`;
-            carry[k] = (carry[k] ?? 0) + (f.particles[unit]?.[sp] ?? 0) * RATE * dt;
-            while (carry[k] >= 1) { carry[k] -= 1; spawn(unit, sp); }
+            const id = `${unit}|${sp}`;
+            carry[id] = (carry[id] ?? 0) + (f.particles[unit]?.[sp] ?? 0) * RATE * dt * k;
+            while (carry[id] >= 1) { carry[id] -= 1; spawn(unit, sp); }
           }
         }
         for (const p of P) {

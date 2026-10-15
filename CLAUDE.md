@@ -16,6 +16,8 @@ Vite + JavaScript ES modules (JSDoc untuk tipe), three.js, vitest. Tanpa backend
 - `npm run build`: bundle produksi untuk GitHub Pages, base `/<nama-repo>/` dari git remote / `GITHUB_REPOSITORY` (target < 1,5 MB gzip)
 - `npm run build:offline` lalu `npm run preview:offline`: paket presentasi offline (base relatif `./`)
 - `npm run preview`: uji build Pages di `http://localhost:4173/<nama-repo>/`
+- `npm run e2e`: uji dispose antar-scene (siklus 1→11→1) di browser lewat Playwright terpisah (bukan dependensi, bukan CI); `npm run e2e:perf` untuk tabel performa per scene
+- `npm run package:offline`: paket presentasi offline di `release/` (build base `./` + server Node/Python/PowerShell + `start.bat`/`start.sh` + `BACA-SAYA.txt`)
 - `node -e "import('./src/model/thermo.js').then(t=>console.log(t.selfTest()))"`: validasi cepat model (harus `failed: 0`, saat ini 14 tes)
 
 ## Arsitektur (wajib)
@@ -68,7 +70,7 @@ Alur data satu arah: `UI control → store.set → derive() → frame → { rig 
 - [x] M7a Emisi gabungan (Scene 8) dan trade-off kebijakan (Scene 9): ppmToGkWh, methane slip, retardSweep, ghgPenalty, baku mutu seragam
 - [x] M7b Pengendali emisi dan penutup (Scene 10–11)
 - [x] M8a Fitur presentasi: mode presenter (P, jendela kedua + BroadcastChannel, panel pengganti), content/presenter.json, snapshot PNG 2× tema gelap (S), persistensi ringan (localStorage), dock panel Calibration, Animation speed 0,1×–2× bersama
-- [ ] M8b Finishing: transisi kamera ringan, penurunan kualitas otomatis, bloom di seluruh aplikasi, uji dispose antar-scene, uji lintas browser, paket offline, cek akhir GitHub Pages; ekspor PNG tema terang (opsional); laser pointer/spotlight (opsional, di akhir)
+- [x] M8b Finishing: overlay debug (Shift+D), kualitas adaptif Auto/High/Low + bloom global (Q/B), uji dispose e2e (npm run e2e), transisi fade-through, paket offline (npm run package:offline), cek Pages & bundle, laser pointer/spotlight (K/Shift+K); ekspor PNG tema terang belum dikerjakan
 
 ## Golden test acuan (ringkas; tabel lengkap di `docs/PROMPT_simulasi_3D.md` bagian 12)
 Otto r=10 η 0,602 · Diesel r=18 rc=2 η 0,632 · Brayton ideal rp=15 η 0,539 · Brayton real η 0,378 · CO₂ gas η=0,35 → 577 g/kWh · preset diesel Pmax ≈ 116 bar, η rem 0,441 · preset gas Pmax ≈ 109 bar, η rem 0,423.

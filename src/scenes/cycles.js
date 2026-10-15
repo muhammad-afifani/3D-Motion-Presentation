@@ -262,7 +262,7 @@ export function createScene(ctx) {
       schem = createBraytonSchematic(q('.cyc-schem'));
       legend = createTempLegend(q('.overlay--legend'));
       try {
-        gfx = createRenderer(q('.view3d'), { camPos: [1.25, 1.0, 2.1], target: [0, 0.55, 0], bloom: true });
+        gfx = createRenderer(q('.view3d'), { camPos: [1.25, 1.0, 2.1], target: [0, 0.55, 0] });
         rig = createPistonRig();
         gfx.scene.add(rig.group);
       } catch (err) {

@@ -12,7 +12,7 @@ import { createSimClient } from '../state/simClient.js';
 import { FLAME_MODES, FLAME_RANGES } from '../model/presets.js';
 import { createRenderer } from '../gfx/renderer.js';
 import { createChamberCloseup, createCanCombustor } from '../gfx/combustorRig.js';
-import { createPerfGuard } from '../gfx/perfGuard.js';
+import { displayState } from '../gfx/quality.js';
 import { createFlameChart } from '../charts/flameChart.js';
 import { createBarChart } from '../charts/barChart.js';
 import { slider, segmented, button } from '../ui/controls.js';
@@ -50,8 +50,7 @@ export function createScene(ctx) {
   const { store } = ctx;
   const disposers = [];
   let el, gfx = null, chamber = null, can = null, chart, bars, hud = null, hudKey = '';
-  let sim = null, simKeyNow = null, camMode = '', lastNow = 0;
-  const guard = createPerfGuard();
+  let sim = null, simKeyNow = null, camMode = '';
   const ctl = {};
   const simClient = createSimClient((r, key) => { sim = r; simKeyNow = key; }, { paramsOf: flameSimParams, keyOf: flameSimKey });
 
@@ -113,11 +112,8 @@ export function createScene(ctx) {
   function setMode(mode, force = false) {
     if (mode !== store.get().fMode || force) store.set(flameDefaults(mode));
   }
-  function cycleBloom() {
-    const p = bloomCyclePatch(store.get());
-    if (p.fBloom === 'auto') guard.reset();
-    store.set(p);
-  }
+  /** Bloom global (Auto → On → Off), sama dengan tombol B di semua scene. */
+  const cycleBloom = () => store.set(bloomCyclePatch(store.get()));
 
   function syncControls(s, changed) {
     const piston = s.fMode !== 'turbine';
@@ -130,8 +126,8 @@ export function createScene(ctx) {
     }
     ctl.phi.set(s.fPhi); ctl.phiLocal.set(s.fPhiLocal); ctl.rpm.set(s.animSpeed);
     ctl.focus.setOn(s.fFocus);
-    ctl.bloom.setLabel(S.bloom[s.fBloom]);
-    ctl.bloom.setOn(s.fBloom !== 'off');
+    ctl.bloom.setLabel(S.bloom[s.bloomMode]);
+    ctl.bloom.setOn(s.bloomMode !== 'off');
     if (changed.includes('playing') || changed.includes('frozen')) {
       ctl.play.setLabel(s.playing ? C.pause : C.play);
       ctl.play.setOn(!s.playing);
@@ -154,7 +150,7 @@ export function createScene(ctx) {
     hud.update(f);
   }
 
-  function updateOverlay(f, s, bloomState) {
+  function updateOverlay(f, s) {
     const O = S.overlay;
     for (const n of el.querySelectorAll('[data-k]')) {
       const k = n.dataset.k;
@@ -166,7 +162,8 @@ export function createScene(ctx) {
     if (f.mode === 'turbine') notes.push(S.notes.premix(f.T3, f.phiOverall));
     if (f.TinManual) notes.push(S.notes.tinManual(f.TinModel));
     setHTML(q('.overlay--notes'), notes.map((t) => `<div class="note-chip note-chip--info">ⓘ ${t}</div>`).join(''));
-    const st = [`<span class="pill">${S.status.bloom(bloomState.bloom, bloomState.tripped && s.fBloom === 'auto')}</span>`];
+    const on = displayState().bloom;
+    const st = [`<span class="pill">${S.status.bloom(on, !on && s.bloomMode === 'auto')}</span>`];
     if (s.frozen) st.push(`<span class="pill pill--freeze">${C.frozen(s.theta)}</span>`);
     else if (!s.playing) st.push(`<span class="pill">${C.paused}</span>`);
     setHTML(q('.overlay--status'), st.join(' '));
@@ -188,7 +185,7 @@ export function createScene(ctx) {
       chart = createFlameChart(q('.fl-chart'));
       bars = createBarChart(q('.fl-bars'), { title: S.bars.title, unit: U.K, xLabel: S.bars.xLabel, labelWidth: 210 });
       try {
-        gfx = createRenderer(q('.view3d'), { camPos: CAM.piston.pos, target: CAM.piston.target, bloom: true });
+        gfx = createRenderer(q('.view3d'), { camPos: CAM.piston.pos, target: CAM.piston.target });
         chamber = createChamberCloseup({ bore: 0.2 });
         can = createCanCombustor({ radius: 0.12, length: 0.6, swirler: 'axial', vanes: 12 });
         gfx.scene.add(chamber.group, can.group);
@@ -219,16 +216,9 @@ export function createScene(ctx) {
       bars.update(f.bars.map((b) => ({ label: S.bars.labels[b.mode], sub: S.bars.sub(b.phi, b.Tin), value: b.T, color: b.color, active: b.active })),
         { min: 1000, caption: S.bars.caption });
       updateHud(f);
-      // fps nyata: dt loop utama dibatasi 0,1 s untuk animasi, jadi pakai selisih waktu frame sebenarnya
-      const now = performance.now();
-      const rawDt = lastNow ? (now - lastNow) / 1000 : dt;
-      lastNow = now;
-      const bloomState = guard.sample(rawDt, s.fBloom);
-      if (bloomState.justTripped) ctx.toast(S.toastBloomOff(bloomState.fps));
-      updateOverlay(f, s, bloomState);
+      updateOverlay(f, s);
       if (gfx) {
         if (camMode !== (piston ? 'piston' : 'turbine')) { camMode = piston ? 'piston' : 'turbine'; setCamera(f.mode); }
-        gfx.setBloom(bloomState.bloom);
         const time = performance.now() / 1000; // hanya untuk kedip visual shader
         chamber.group.visible = piston;
         can.group.visible = !piston;
@@ -248,7 +238,6 @@ export function createScene(ctx) {
     onKey(e) {
       const k = e.key.toLowerCase();
       if (KEYS_MODE[k]) { setMode(KEYS_MODE[k]); return true; }
-      if (k === 'b') { cycleBloom(); return true; }
       if (k === 'r') { setMode(store.get().fMode, true); return true; }
       return false;
     },

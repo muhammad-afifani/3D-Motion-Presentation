@@ -1,6 +1,7 @@
 // Konten presenter Scene 10–11 (content/*.json): skema, tanpa angka bersatuan, loader (fallback & galat), build.
 import { describe, it, expect } from 'vitest';
 import { readFileSync, mkdtempSync, readdirSync, rmSync } from 'node:fs';
+import { gzipSync } from 'node:zlib';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { validateControls, validateClosing, loadContent, contentUrl, fallbackContent, CARD_FIELDS, MACHINES } from '../src/state/content.js';
@@ -154,6 +155,10 @@ describe('build: dist/content identik dengan sumber (Pages & offline)', () => {
       const js = readdirSync(join(out, 'assets')).filter((f) => f.endsWith('.js')).map((f) => readFileSync(join(out, 'assets', f), 'utf8')).join('\n');
       expect(js).toContain(`"${c.base}"`);   // import.meta.env.BASE_URL → literal base (contentUrl memakai ini)
       expect(js).toContain('content/');       // loader content.js ikut dibundel (Scene 10–11)
+      // ukuran bundle (M8b): total gzip js/css/html/json < 1,5 MB
+      const all = [...readdirSync(join(out, 'assets')).map((f) => join(out, 'assets', f)), join(out, 'index.html'), join(out, 'presenter.html'), ...readdirSync(join(out, 'content')).map((f) => join(out, 'content', f))];
+      const gz = all.filter((f) => /\.(js|css|html|json)$/.test(f)).reduce((n, f) => n + gzipSync(readFileSync(f)).length, 0);
+      expect(gz).toBeLessThan(1.5 * 1024 * 1024);
       rmSync(out, { recursive: true, force: true });
     }, 120000);
   }

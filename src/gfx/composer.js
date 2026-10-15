@@ -12,13 +12,21 @@ export function createComposer(renderer, scene, camera) {
   const composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
   const bloom = new UnrealBloomPass(new THREE.Vector2(512, 512), 0.7, 0.4, 0.92);
+  // bloom aditif hanya ke RGB: alpha tujuan dipertahankan agar latar transparan (gradasi CSS) tetap terlihat;
+  // bawaan UnrealBloomPass menulis alpha 1 sehingga latar menjadi hitam
+  Object.assign(bloom.blendMaterial, {
+    blending: THREE.CustomBlending, blendEquation: THREE.AddEquation, blendSrc: THREE.OneFactor, blendDst: THREE.OneFactor,
+    blendEquationAlpha: THREE.AddEquation, blendSrcAlpha: THREE.ZeroFactor, blendDstAlpha: THREE.OneFactor,
+  });
   composer.addPass(bloom);
-  composer.addPass(new OutputPass());
+  const output = new OutputPass();
+  composer.addPass(output);
   return {
     bloom,
     render: () => composer.render(),
     setSize: (w, h) => composer.setSize(w, h),
     setPixelRatio: (k) => composer.setPixelRatio(k),
-    dispose: () => composer.dispose(),
+    // EffectComposer.dispose hanya melepas render target miliknya; pass (bloom: ±10 render target) dilepas sendiri
+    dispose: () => { for (const p of composer.passes) p.dispose?.(); composer.dispose(); },
   };
 }

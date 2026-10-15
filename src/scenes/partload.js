@@ -266,7 +266,7 @@ export function createScene(ctx) {
       q('.overlay--legend').append(q('.nox-species'));
       buildCalibration();
       try {
-        gfx = createRenderer(q('.view3d'), { camPos: [0.2, 0.6, 8.4], target: [0, -0.15, 0], bloom: false });
+        gfx = createRenderer(q('.view3d'), { camPos: [0.2, 0.6, 8.4], target: [0, -0.15, 0] });
         gfx.controls.maxDistance = 18;
         gfx.camera.position.set(0.2, 0.6, 8.4); // posisi ulang: batas jarak default renderer (6) sudah memotongnya
         gfx.controls.update();
