@@ -10,6 +10,7 @@ import { deriveComp } from '../state/deriveComp.js';
 import { GAS_COMPRESSOR } from '../model/presets.js';
 import { createRenderer } from '../gfx/renderer.js';
 import { createCompressorRig } from '../gfx/compressorRig.js';
+import { fitCameraToBox } from '../gfx/fitCamera.js';
 import { createMultiLineChart } from '../charts/multiLineChart.js';
 import { niceCeil } from '../charts/chartBase.js';
 import { createTempLegend } from '../charts/legend.js';
@@ -62,6 +63,7 @@ export function keyMessage(f) {
 export function createScene(ctx) {
   const { store } = ctx;
   const disposers = [];
+  let rigBox = null, fitKey = '';
   let el, gfx = null, rig = null, legend, hq, pn, hudComp = null, hudDrive = null, driveKey = '', hqKey = '', pnKey = '', lastMsg = '';
   const ctl = {};
   const labelEls = {};
@@ -197,6 +199,25 @@ export function createScene(ctx) {
     if (msg !== lastMsg) { lastMsg = msg; ctx.setMessage?.(msg); }
   }
 
+  /**
+   * Bingkai seluruh rakitan (impeller, volute, pipa suction & discharge) dari Box3 rig, dengan margin dan sebagian
+   * tinggi kartu overlay disisihkan; dihitung ulang saat ukuran tampilan berubah (arah orbit pengguna dipertahankan).
+   */
+  function fitView(force = false) {
+    const view = q('.view3d'), w = view.clientWidth, h = view.clientHeight;
+    const key = `${w}x${h}`;
+    if (!gfx || !rigBox || !w || !h || (!force && key === fitKey)) return;
+    fitKey = key;
+    const aff = q('.overlay--aff').getBoundingClientRect(), top = Math.min(0.4, Math.max(0, (aff.bottom - view.getBoundingClientRect().top) / h));
+    gfx.camera.aspect = w / h;
+    const direction = gfx.camera.position.clone().sub(gfx.controls.target);
+    const { distance, target } = fitCameraToBox(gfx.camera, rigBox, { width: w, height: h, margin: 0.05, insets: { top: top * 0.6 }, direction });
+    gfx.controls.target.copy(target);
+    gfx.controls.minDistance = distance * 0.3;
+    gfx.controls.maxDistance = distance * 2.5; // batas jarak default renderer (6) memotong kamera pada rakitan besar
+    gfx.controls.update();
+  }
+
   function updateLabels() {
     const box = q('.overlay--labels');
     const w = box.clientWidth, h = box.clientHeight;
@@ -224,6 +245,7 @@ export function createScene(ctx) {
         gfx = createRenderer(q('.view3d'), { camPos: [1.6, 0.9, 3.4], target: [0.1, 0.25, 0] });
         rig = createCompressorRig();
         gfx.scene.add(rig.group);
+        rigBox = rig.bounds();
       } catch (err) {
         console.warn('[compressor] 3D dinonaktifkan:', err);
         gfx = null; rig = null;
@@ -240,6 +262,7 @@ export function createScene(ctx) {
       updateCharts(f);
       updateOverlay(f, s);
       if (gfx) {
+        fitView();
         rig.update(f, s.playing && !s.frozen ? dt : 0);
         gfx.render();
         updateLabels();

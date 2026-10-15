@@ -54,7 +54,8 @@ kbd {
 .topbar__right { display: flex; justify-content: flex-end; }
 .brand { font-weight: 600; font-size: 13px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
 .scene-tag { font-size: 13px; color: var(--accent-hot); }
-.key-message { margin: 0; font-size: clamp(16px, 1.45vw, 26px); font-weight: 600; text-align: center; line-height: 1.25; }
+.key-message { margin: 0; min-width: 0; font-size: clamp(15px, 1.45vw, 26px); font-weight: 600; text-align: center; line-height: 1.25; overflow-wrap: anywhere; }
+@media (max-width: 1500px) { .key-message { font-size: clamp(14px, 1.3vw, 20px); } }
 
 #app { flex: 1; min-height: 0; }
 
@@ -219,7 +220,11 @@ kbd {
 .scene--load .ctl--slider { width: 200px; }
 
 /* ── Scene 7: kompresor gas (memakai tata letak .scene--load) ── */
-.scene--comp .overlay--aff { z-index: 2; font-size: 13px; }
+.scene--comp .overlay--aff { z-index: 2; font-size: 13px; max-width: calc(100% - 24px); }
+.scene--comp .overlay--aff .f-line { white-space: normal; overflow-wrap: anywhere; }
+.scene--comp .overlay--aff .f-vals { gap: 2px 12px; }
+.scene--comp .overlay--aff .f-vals span { overflow-wrap: anywhere; min-width: 0; }
+@media (max-width: 1500px) { .scene--comp .overlay--aff { font-size: 12px; padding: 8px 10px; line-height: 1.4; } .scene--comp .overlay--aff .f-vals { margin-top: 3px; font-size: 12px; } }
 .aff-level { font-size: 11px; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 0 6px; margin-left: 6px; }
 .scene--comp .pl-hud .hud { grid-template-columns: repeat(6, minmax(0, 1fr)); }
 .scene--comp .ctl--slider { width: 210px; }
