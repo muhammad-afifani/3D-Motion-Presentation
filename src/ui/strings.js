@@ -239,7 +239,11 @@ export const STR = {
     waterfall: {
       title: (engine, r) => `${engine === 'gas' ? 'Gas engine' : 'Diesel'} waterfall: ideal limit → brake η (r = ${fmt(r, 1)})`,
       caption: 'Efficiency lost between the ideal limit and brake efficiency, at preset valve timing (IVC to EVO)',
-      steps: ['Ideal limit (Otto, k = 1.4)', 'Variable specific heat k(T)', 'Finite combustion duration (Wiebe)', 'Wall heat loss + unburned', 'Mechanical friction (brake η)'],
+      captionDiesel: 'Efficiency lost between the ideal limit and brake efficiency, at preset valve timing (IVC to EVO). Diesel ideal limit = dual cycle; its constant-volume heat share is set equal to the preset premix fraction (assumption). The second bar mixes k(T) with the constant-volume vs dual difference.',
+      steps: {
+        idealOtto: 'Ideal limit (Otto, k = 1.4)', idealDual: 'Ideal limit (dual, k = 1.4)', kT: 'Variable specific heat k(T)',
+        burn: 'Finite combustion duration (Wiebe)', heat: 'Wall heat loss + unburned', friction: 'Mechanical friction (brake η)',
+      },
       braytonTitle: 'Brayton: ideal → real',
       braytonCaption: 'Two bars only: the Brayton model has no step-by-step loss breakdown',
       brayton: { braytonIdeal: 'Brayton ideal', braytonReal: 'Real: ηc, ηt, combustor ΔP, mechanical loss' },

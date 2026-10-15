@@ -111,7 +111,9 @@ export const BASIS = Object.freeze({
   sampleSim: e('Semi-empirical', ['heywood'], 'Interpolates the cylinderSim result for the animation; outside the closed phase (intake, exhaust) it uses simple decay laws.',
     ['Intake and exhaust strokes are schematic: constant intake state, exponential blow-down to exhaust pressure.']),
   lossWaterfall: e('Semi-empirical', ['heywood', 'cengel-boles'], 'Steps from the ideal efficiency limit to brake efficiency by switching on one real effect at a time: variable specific heat, finite burn time, heat loss and unburned fuel, friction.',
-    ['The first bar is the Otto limit (1 − r^(1−k)) for both engine kinds, so for the diesel preset it is an upper bound.', 'The size of each step depends on the order in which the effects are added.']),
+    ['First bar: gas engine (SI) = Otto limit (1 − r^(1−k)); diesel (CI) = dual-cycle limit traced to the preset (see dualIdealLimit).', 'Diesel: the second bar mixes two effects, k(T) and the difference between the constant-volume burn of the comparison run and the dual cycle.', 'The size of each step depends on the order in which the effects are added.']),
+  dualIdealLimit: e('Ideal', ['cengel-boles', 'heywood'], 'Air-standard dual cycle for the diesel preset: heat input φ·LHV/AFRst per kg charge, split into a constant-volume part (rp) and a constant-pressure part (rc).',
+    ['Assumption: the constant-volume heat fraction equals the preset premix fraction (premixFrac). This mapping is a modelling choice, not a measured split.', 'k = 1.4, no losses. premixFrac 1 gives Otto, premixFrac 0 gives Diesel.']),
 
   // ───────────────────────────── flame, NOx, CO ─────────────────────────────
   flameTemperature: e('Semi-empirical', ['turns', 'nist-janaf'], 'Adiabatic flame temperature vs equivalence ratio from a methane table, corrected for fuel and for inlet temperature.',

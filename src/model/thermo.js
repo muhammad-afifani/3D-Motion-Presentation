@@ -876,22 +876,47 @@ export function calibrateEngineNOx(kind = 'diesel', targetGkWh, over = {}, { cal
 }
 
 /**
- * Waterfall: dari batas ideal ke efisiensi rem (5 langkah). Nilai = η kumulatif.
+ * Batas ideal siklus dual untuk preset CI (diesel), dapat dilacak ke preset (M9 Step 04):
+ *   q_in  = φ·LHV/AFRst per kg muatan (= Efuel/massa cylinderSim pada combEff 1, tanpa rugi panas)
+ *   T₂    = T_ivc·r^(k−1); fraksi panas volume-tetap = premixFrac preset (ASUMSI pemetaan, lihat basis.js)
+ *   rp    = 1 + premixFrac·q_in/(cv·T₂);  rc = 1 + (1 − premixFrac)·q_in/(cp·T₂·rp)
+ *   η     = dual({ r, rp, rc }) dengan k = 1,4 (air-standard).
+ * Batas: premixFrac 1 → rc = 1 → Otto; premixFrac 0 → rp = 1 → Diesel.
+ * @param {{r:number, Tivc:number, Pivc?:number, phi:number, fuel?:string, premixFrac:number}} p
+ * @returns {{eta:number, rp:number, rc:number, qin:number}}
+ */
+export function dualIdealLimit({ r, Tivc, Pivc = 101325, phi, fuel = 'diesel', premixFrac, k = K_AIR }) {
+  const cv = R_AIR / (k - 1), cp = k * cv;
+  const qin = qinPerKgAir(phi, fuel, 1);
+  const T2 = Tivc * Math.pow(r, k - 1);
+  const rp = 1 + (premixFrac * qin) / (cv * T2);
+  const rc = 1 + ((1 - premixFrac) * qin) / (cp * T2 * rp);
+  return { eta: dual({ r, T1: Tivc, P1: Pivc, rp, rc, k }).eta, rp, rc, qin };
+}
+
+/**
+ * Waterfall: dari batas ideal ke efisiensi rem (5 langkah). Nilai = η kumulatif; key = kunci label (teks di UI).
  * window: 'full' (default) = fase tertutup penuh ±180°; 'preset' = IVC/EVO preset (±150°),
  * sehingga langkah terakhir sama dengan η rem cylinderSim preset (HUD Scene 1).
+ * Batas ideal (M9 Step 04): gas engine (SI) = Otto (k = 1,4); diesel (CI) = siklus dual dari preset (dualIdealLimit).
+ * Alasan perubahan: Otto adalah batas volume-tetap; untuk mesin CI batas yang dapat dilacak ke preset adalah dual.
+ * Dulu diesel 67,0 % (Otto r = 16), kini 63,2 %; langkah lain tidak berubah. Untuk diesel, langkah kedua mencampur
+ * efek k(T) dan beda pembakaran volume-tetap (simulasi pembanding) vs dual.
  */
 export function lossWaterfall(kind = 'diesel', over = {}, { window = 'full' } = {}) {
   const base = { ...ENGINE_PRESETS[kind], ...over, nox: false, ...(window === 'full' ? { ivc: -180, evo: 180 } : {}) };
-  const eta0 = 1 - 1 / Math.pow(base.r, K_AIR - 1);
+  const ci = kind === 'diesel';
+  const eta0 = ci ? dualIdealLimit({ r: base.r, Tivc: base.Tivc, Pivc: base.Pivc, phi: base.phi, fuel: base.fuel, premixFrac: base.premixFrac }).eta
+    : 1 - 1 / Math.pow(base.r, K_AIR - 1);
   const s1 = cylinderSim({ ...base, theta0: -1, dur: 2, premixFrac: 0, lossFrac: 0, combEff: 1 });
   const s2 = cylinderSim({ ...base, lossFrac: 0, combEff: 1 });
   const s3 = cylinderSim({ ...base });
   const steps = [
-    { label: 'Ideal limit (Otto, k = 1.4)', eta: eta0 },
-    { label: 'Specific heat rises with T (k falls)', eta: s1.etaInd },
-    { label: 'Combustion takes time (Wiebe)', eta: s2.etaInd },
-    { label: 'Wall heat loss + unburned fuel', eta: s3.etaInd },
-    { label: 'Mechanical friction (brake efficiency)', eta: s3.etaBrake },
+    { key: ci ? 'idealDual' : 'idealOtto', label: ci ? 'Ideal limit (dual, k = 1.4)' : 'Ideal limit (Otto, k = 1.4)', eta: eta0 },
+    { key: 'kT', label: 'Specific heat rises with T (k falls)', eta: s1.etaInd },
+    { key: 'burn', label: 'Combustion takes time (Wiebe)', eta: s2.etaInd },
+    { key: 'heat', label: 'Wall heat loss + unburned fuel', eta: s3.etaInd },
+    { key: 'friction', label: 'Mechanical friction (brake efficiency)', eta: s3.etaBrake },
   ];
   return steps.map((s, i) => ({ ...s, delta: i ? s.eta - steps[i - 1].eta : 0 }));
 }

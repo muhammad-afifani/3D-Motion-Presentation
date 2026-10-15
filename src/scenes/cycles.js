@@ -212,7 +212,7 @@ export function createScene(ctx) {
   function waterfallSteps(f) {
     if (f.waterfall !== wfSrc) {
       wfSrc = f.waterfall;
-      wfShown = f.waterfall?.map((st, i) => ({ ...st, label: f.isPiston ? S.waterfall.steps[i] : S.waterfall.brayton[st.key] })) ?? null;
+      wfShown = f.waterfall?.map((st, i) => ({ ...st, label: f.isPiston ? S.waterfall.steps[st.key] : S.waterfall.brayton[st.key] })) ?? null;
     }
     return wfShown;
   }
@@ -220,7 +220,7 @@ export function createScene(ctx) {
   function updateWaterfall(f) {
     const W = S.waterfall;
     if (f.isPiston) {
-      wf.setData(waterfallSteps(f), { title: W.title(f.waterfallEngine, f.rEngine), level: f.waterfallLevel, basis: f.waterfallBasis, caption: W.caption });
+      wf.setData(waterfallSteps(f), { title: W.title(f.waterfallEngine, f.rEngine), level: f.waterfallLevel, basis: f.waterfallBasis, caption: f.waterfallEngine === 'diesel' ? W.captionDiesel : W.caption });
     } else {
       wf.setData(waterfallSteps(f), { title: W.braytonTitle, level: f.waterfallLevel, basis: f.waterfallBasis, caption: W.braytonCaption });
     }

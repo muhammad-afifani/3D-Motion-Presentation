@@ -97,7 +97,7 @@ Navigasi: `→/←` pindah scene, `Spasi` play/pause animasi, `F` freeze, `R` re
 - Kurva dari `cycle.sample()`. Titik state 1–4 berlabel, bisa di-hover (T, P, v, s).
 - Toggle **Ideal ↔ Real**. Real memakai `cylinderSim` (piston) atau `braytonReal` (turbin); tampilkan **celah efisiensi**.
 - Waterfall dari `lossWaterfall(kind)`: batas ideal → k(T) → pembakaran berwaktu → rugi panas → friksi. Animasikan bar turun satu per satu.
-- Pesan kunci: *pada r sama Otto ≥ Diesel; diesel menang karena r jauh lebih tinggi; teori 60–67% jadi 42–45% di lapangan.*
+- Pesan kunci: *pada r sama Otto ≥ Diesel; diesel menang karena r jauh lebih tinggi; teori 62–63% jadi 42–45% di lapangan.* (M9 Step 04: batas ideal diesel = siklus dual dari preset, dulu Otto 67%.)
 
 ### Scene 3 — Pembakaran, φ, dan suhu nyala
 - 3D: ruang bakar/combustor dengan nyala (shader + bloom). Warna nyala = `flameColor(φ)`. Tinggi/ukuran nyala ∝ laju pelepasan panas (`dxb/dθ` atau `qin`).
