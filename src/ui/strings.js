@@ -701,7 +701,7 @@ export const STR = {
 
   // ─────────────────────────── presenter content (errors) ───────────────────────────
   content: {
-    errorTitle: 'Invalid presenter content',
+    errorTitle: 'Invalid content file',
     error: (file, list) => `content/${file} is invalid: ${list}. Using the built-in text. Fix the file and reload.`,
     item: (field, msg, detail) => `${field} (${msg}${detail ? `: ${detail}` : ''})`,
     codes: {
@@ -709,6 +709,8 @@ export const STR = {
       textList: 'must be a non-empty list of text', duplicate: 'duplicate id', machines: 'only diesel / gas / turbine',
       scenes: 'no such scene number', threePoints: 'must be exactly 3 texts', parse: 'the JSON cannot be read',
       minutes: 'must be a number of minutes above zero (maximum 120)',
+      refId: 'must be lower-case letters, digits and "-"', refType: 'must be book, paper, standard, regulation, database or report',
+      string: 'must be text (may be empty)', boolean: 'must be true or false',
     },
   },
 

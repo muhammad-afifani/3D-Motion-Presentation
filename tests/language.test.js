@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import * as thermo from '../src/model/thermo.js';
 import { STR } from '../src/ui/strings.js';
+import { BASIS, UTILITY } from '../src/model/basis.js';
 import { fmt, dateTime } from '../src/ui/format.js';
 
 const ROOT = new URL('..', import.meta.url).pathname;
@@ -38,6 +39,13 @@ describe('bahasa UI: English, tanpa sisa kata Indonesia', () => {
   it('strings.js: tidak ada kata Indonesia umum yang tertinggal', () => {
     const bad = leaves(STR).filter(([, t]) => ID_RE.test(clean(t))).map(([p, t]) => `${p}: ${t.slice(0, 80)} [${(clean(t).match(ID_RE) ?? [])[0]}]`);
     expect(bad).toEqual([]);
+  });
+  it('basis.js (dasar teori) dan content/references.json (use) berbahasa English', () => {
+    const basisTexts = [...Object.values(UTILITY), ...Object.values(BASIS).flatMap((b) => [b.derivation, ...b.assumptions, ...b.toVerify])];
+    expect(basisTexts.filter((t) => ID_RE.test(clean(t)))).toEqual([]);
+    // kolom cite memuat nama resmi regulasi Indonesia dan nama penulis (mis. "Yang"), jadi hanya kolom use yang diperiksa
+    const uses = JSON.parse(read('content/references.json')).references.map((r) => r.use);
+    expect(uses.filter((t) => ID_RE.test(clean(t)))).toEqual([]);
   });
   it('content/controls.json dan closing.json (kartu & penutup) berbahasa English', () => {
     for (const f of ['content/controls.json', 'content/closing.json']) {
