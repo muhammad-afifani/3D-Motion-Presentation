@@ -1,8 +1,10 @@
 /**
  * persist.js — persistensi ringan (localStorage) untuk pengaturan presenter (M8a).
  *
- * Disimpan: batas NOx/CO + satuannya, basis O₂/volume, opsi Scene 11 yang disembunyikan, Quality & Bloom, scene awal.
- * TIDAK disimpan: faktor kalibrasi (selalu mulai dari default; nilai custom hanya berlaku selama sesi).
+ * Disimpan: batas NOx/CO + satuannya, basis O₂/volume, opsi Scene 11 yang disembunyikan, Quality & Bloom, scene awal,
+ * pemilih regulasi (equipment, kelas kapasitas, bahan bakar).
+ * TIDAK disimpan: faktor kalibrasi (selalu mulai dari default; nilai custom hanya berlaku selama sesi) dan site data
+ * (nilai ukur lapangan tidak boleh muncul lagi tanpa sengaja di sesi berikutnya).
  *
  * Semua akses storage di dalam try/catch: bila localStorage diblokir/penuh/rusak, aplikasi tetap benar
  * dengan nilai default (hanya tidak ingat apa pun). Nilai yang dibaca divalidasi ulang lewat patch store.
@@ -10,9 +12,10 @@
  */
 import { limitsPatch, basisPatch, limitsInitialState, basisInitialState, closingInitialState, displayPatch } from './store.js';
 import { POLICY } from '../model/presets.js';
+import { EQUIPMENT, regulationsInitialState } from './regulations.js';
 
 export const PERSIST_KEY = 'etel:v1';
-export const PERSIST_FIELDS = Object.freeze(['limNOx', 'limCO', 'limUnit', 'emRefO2', 'emTrefC', 'closingVisible', 'quality', 'bloomMode']);
+export const PERSIST_FIELDS = Object.freeze(['limNOx', 'limCO', 'limUnit', 'emRefO2', 'emTrefC', 'closingVisible', 'quality', 'bloomMode', 'regEquip', 'regClass', 'regFuel']);
 export const FIRST_SCENE = 1;
 
 /** Akses storage yang aman: null bila tidak tersedia / melempar (mis. mode privat, cookie diblokir). */
@@ -56,6 +59,10 @@ export function readSaved(storage, sceneNumbers = [FIRST_SCENE]) {
     ...displayPatch({ quality: d.quality, bloomMode: d.bloomMode }),
   };
   if (POLICY.limUnits.includes(d.limUnit)) patch.limUnit = d.limUnit;
+  // pemilih regulasi: kelas divalidasi ulang terhadap regulations.json saat dipakai (regSelection)
+  if (Object.hasOwn(EQUIPMENT, d.regEquip)) patch.regEquip = d.regEquip;
+  if (typeof d.regClass === 'string' && d.regClass.length <= 64) patch.regClass = d.regClass;
+  if (d.regFuel === 'oil' || d.regFuel === 'gas') patch.regFuel = d.regFuel;
   const startScene = sceneNumbers.includes(j.scene) ? j.scene : FIRST_SCENE;
   return { patch, startScene };
 }
@@ -68,7 +75,7 @@ export function writeSaved(storage, state, scene) {
 }
 
 /** Nilai default bidang yang dipersistenkan (dipakai Reset saved settings). */
-export const persistDefaults = () => ({ ...limitsInitialState(), limUnit: POLICY.limUnits[0], ...basisInitialState(), closingVisible: closingInitialState().closingVisible, quality: 'auto', bloomMode: 'auto' });
+export const persistDefaults = () => ({ ...limitsInitialState(), limUnit: POLICY.limUnits[0], ...basisInitialState(), closingVisible: closingInitialState().closingVisible, quality: 'auto', bloomMode: 'auto', regEquip: regulationsInitialState().regEquip, regClass: null, regFuel: regulationsInitialState().regFuel });
 
 /**
  * Sambungkan store ke storage. Panggil sekali saat boot (setelah store dibuat).

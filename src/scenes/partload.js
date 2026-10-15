@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import { html } from './sceneBase.js';
 import { togglePlayPatch, toggleFreezePatch, tickPatch, loadInitialState, limitsPatch, limitsInitialState, calibResetPatch } from '../state/store.js';
 import { deriveLoad } from '../state/deriveLoad.js';
+import { regulationsContent } from '../state/regulationsStore.js';
 import { createEngineCalibrator, dlnCalibration } from '../state/calibration.js';
 import { LOAD_RANGE, GT_STAGES, NOX_CALIB_DEFAULTS } from '../model/presets.js';
 import { createRenderer } from '../gfx/renderer.js';
@@ -89,6 +90,7 @@ export function createScene(ctx) {
         <div class="pl-view">
           <div class="view3d"></div>
           <div class="overlay overlay--note"></div>
+          <div class="overlay overlay--reg"></div>
           <div class="overlay overlay--legend">
             <div class="nox-species"><span class="sw" style="background:${SPECIES_COLORS.NOx}"></span>${S.species.nox} · <span class="sw" style="background:${SPECIES_COLORS.CO}"></span>${S.species.co}</div>
           </div>
@@ -170,6 +172,15 @@ export function createScene(ctx) {
     }
   }
 
+  // ── chip regulasi pada beban ini (jalur regulasi di deriveLoad; site data tidak dipakai di sini) ──
+  function updateReg(f) {
+    const R = STR.regulation, b = f.regulation.basis;
+    if (!b) { setHTML(q('.overlay--reg'), ''); return; }
+    const chip = (r) => `<span class="reg-chip reg-chip--${r.status}" data-tip="${R.statusTip}">${R.scene6Item(r.param, R.status[r.status], r.status === 'notModeled' && r.reason ? R.reason[r.reason] : r.limitSource && r.limitSource !== 'regulation' ? R.limitSource[r.limitSource] : '')}</span>`;
+    const rows = CFGS.map((cfg) => `<div>${R.scene6Row(S.configs[cfg], f[cfg].compliance.filter((r) => r.param === 'NOx' || r.param === 'CO').map(chip).join(' '))}</div>`).join('');
+    setHTML(q('.overlay--reg'), `<div data-tip="${R.scene6Basis}"><b>${R.scene6Title}</b> · ${R.title}</div><div class="reg__basis">${R.basis(b.refO2Pct, b.TrefC, b.NOxAs)}</div>${rows}${f.regulation.verified ? '' : `<div class="reg__banner reg__banner--sm">⚠ ${R.banner}</div>`}`);
+  }
+
   // ── HUD ──
   function updateHud(f) {
     for (const cfg of CFGS) {
@@ -198,7 +209,7 @@ export function createScene(ctx) {
       const yMax = 10 ** Math.ceil(Math.log10(Math.max(...series.flatMap((x) => [...x.y]), f.limits.nox ?? 0, f.limits.co ?? 0)));
       const yDomain = [yMax / 1e4, yMax];
       const hlines = [];
-      if (f.limits.nox != null) hlines.push({ y: f.limits.nox, color: SPECIES_COLORS.NOx, label: S.charts.limit.nox, align: 'left' });
+      if (f.limits.nox != null) hlines.push({ y: f.limits.nox, color: SPECIES_COLORS.NOx, label: f.limits.source.nox === 'override' ? S.charts.limit.noxOverride : S.charts.limit.nox, align: 'left' });
       if (f.limits.co != null) hlines.push({ y: f.limits.co, color: SPECIES_COLORS.CO, label: S.charts.limit.co });
       emis.setData({ series, xDomain, yDomain, yTicks: decadeTicks(...yDomain), yFmt: decadeFmt, xFmt: (v) => fmt(v, 0), hlines, bands: windowBands(f) });
       emis.setCaption(S.charts.emisCaption(SPECIES_COLORS.NOx, SPECIES_COLORS.CO, C.basis.full(f.basis.refO2, f.basis.TrefC), C.basis.fullCO(f.basis.refO2, f.basis.TrefC), f.limits.set));
@@ -293,8 +304,9 @@ export function createScene(ctx) {
     update(dt) {
       store.set(tickPatch(store.get(), dt));
       const s = store.get();
-      const f = deriveLoad(s);
+      const f = deriveLoad(s, regulationsContent().data);
       updateHud(f);
+      updateReg(f);
       updateEmis(f);
       updateAux(f);
       updateOverlay(f, s);

@@ -49,8 +49,19 @@ export function regSelectionPatch(s, data, { equip, cls, fuel } = {}) {
   return { regEquip: sel.equip, regClass: sel.cls, regFuel: sel.fuel };
 }
 
+/**
+ * Patch site data (input presenter) untuk satu equipment + parameter. field: 'value' | 'unit' | 'o2'.
+ * Tidak divalidasi di sini (nilai mentah input); konversi + validasi di siteToRegMg.
+ */
+export function siteDataPatch(s, equip, param, field, value) {
+  const cur = s.siteData?.[equip]?.[param] ?? { value: '', unit: 'mg', o2: '' };
+  return { siteData: { ...s.siteData, [equip]: { ...s.siteData?.[equip], [param]: { ...cur, [field]: value } } } };
+}
+
 /** Baris limit untuk pilihan (kelas + bahan bakar). */
 export const rowsFor = (group, cls, fuel) => (group?.rows ?? []).filter((r) => r.class === cls && r.fuel === fuel);
+/** Limit mg/Nm³ satu parameter dari baris pilihan (null bila tidak ada atau satuannya bukan mg/Nm³). */
+export const regLimitMg = (rows, param) => rows.find((r) => r.param === param && r.unit === 'mg/Nm3')?.limit ?? null;
 
 /**
  * Nilai site data (input presenter) → mg/Nm³ pada basis regulasi.

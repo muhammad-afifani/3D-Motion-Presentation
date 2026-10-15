@@ -15,6 +15,11 @@ import { niceCeil } from '../charts/chartBase.js';
 import { slider, segmented, button } from '../ui/controls.js';
 import { createHud } from '../ui/hud.js';
 import { createLimitsInput } from '../ui/limitsInput.js';
+import { createCompliancePanel } from '../ui/compliancePanel.js';
+import { createContentBanner } from '../ui/contentBanner.js';
+import { deriveCompliance } from '../state/deriveCompliance.js';
+import { regulationsContent, onRegulations } from '../state/regulationsStore.js';
+import { regSelection, regSelectionPatch, siteDataPatch } from '../state/regulations.js';
 import { fmt, pct } from '../ui/format.js';
 import { STR, signedDeg, plusDeg } from '../ui/strings.js';
 
@@ -53,11 +58,17 @@ export function hudItems(f) {
   }
   const c = f.C, unitLbl = S.unitLabel[c.unit];
   return [
-    { id: 'ln', label: H.limN.label, unit: c.limits.nox == null ? '' : unitLbl, sub: basisText('nox', c.unit, c.basis), value: (x) => (x.C.limits.nox == null ? H.empty : fmt(x.C.limits.nox, 1)), tip: H.limN.tip },
-    { id: 'lc', label: H.limC.label, unit: c.limits.co == null ? '' : unitLbl, sub: basisText('co', c.unit, c.basis), value: (x) => (x.C.limits.co == null ? H.empty : fmt(x.C.limits.co, 1)), tip: H.limC.tip },
+    { id: 'ln', label: H.limN.label, unit: c.limits.nox == null ? '' : unitLbl, model: limitSourceText(c.limits.source.nox, c.regulation), sub: basisText('nox', c.unit, c.basis), value: (x) => (x.C.limits.nox == null ? H.empty : fmt(x.C.limits.nox, 1)), tip: H.limN.tip },
+    { id: 'lc', label: H.limC.label, unit: c.limits.co == null ? '' : unitLbl, model: limitSourceText(c.limits.source.co, c.regulation), sub: basisText('co', c.unit, c.basis), value: (x) => (x.C.limits.co == null ? H.empty : fmt(x.C.limits.co, 1)), tip: H.limC.tip },
     { id: 'ws', label: H.winS.label, unit: '', value: (x) => winText(x.C.single.window), tip: H.winS.tip },
     { id: 'wt', label: H.winT.label, unit: '', value: (x) => winText(x.C.twin.window), tip: H.winT.tip },
   ];
+}
+
+/** Asal limit untuk label kecil di HUD: regulasi (nama singkat), user override, atau permit/OEM (diekspor untuk tes). */
+export function limitSourceText(source, regulation) {
+  if (!source) return undefined;
+  return source === 'regulation' ? STR.regulation.limitSource.regulation(regulation?.short ?? '') : STR.regulation.limitSource[source];
 }
 
 /** Baris hasil di bawah judul panel (diekspor untuk tes). */
@@ -85,7 +96,8 @@ export function keyMessage(f) {
 export function createScene(ctx) {
   const { store } = ctx;
   const disposers = [];
-  let el, main, sub, lim, hud = null, hudKey = '', mainKey = '', lastMsg = '';
+  let el, main, sub, lim, comp, regBanner, hud = null, hudKey = '', mainKey = '', lastMsg = '';
+  let compMemo = { s: null, data: null, f: null };
   let sweep = null, sweepKey = null;
   const ctl = {};
 
@@ -104,6 +116,7 @@ export function createScene(ctx) {
           <p class="pol-note" data-k="note"></p>
           <p class="pol-note" data-k="strategy"></p>
           <div class="pol-disclaimer" data-k="disclaimer"></div>
+          <div class="pol-reg"></div>
         </div>
         <div class="pl-emis chart-slot"></div>
         <div class="pl-aux chart-slot"></div>
@@ -151,13 +164,20 @@ export function createScene(ctx) {
 
   function updateLimits(f, s) {
     const c = f.C;
-    lim.update({ nox: c.limits.nox, co: c.limits.co, basisText: `${basisText('nox', c.unit, c.basis)} · ${basisText('co', c.unit, c.basis)}`, labels: S.limitLabels[s.limUnit] });
+    // input hanya menampilkan isian presenter (override / permit-OEM); kosong = limit dari file regulasi
+    lim.update({ nox: c.limits.overrideShown.nox, co: c.limits.overrideShown.co, basisText: `${basisText('nox', c.unit, c.basis)} · ${basisText('co', c.unit, c.basis)}`, labels: S.limitLabels[s.limUnit] });
   }
 
   function updateHud(f) {
-    const key = `${f.tab}|${f.A?.engine}|${f.C.unit}|${f.C.basis.refO2}|${f.C.basis.TrefC}|${f.C.limits.nox == null}|${f.C.limits.co == null}`;
+    const key = `${f.tab}|${f.A?.engine}|${f.C.unit}|${f.C.basis.refO2}|${f.C.basis.TrefC}|${f.C.limits.nox == null}|${f.C.limits.co == null}|${f.C.limits.source.nox}|${f.C.limits.source.co}`;
     if (key !== hudKey) { hud?.dispose(); hudKey = key; hud = createHud(q('.scene__hud'), hudItems(f), { level: C.level.semiEmpirical, basis: 'policy', note: STR.common.indicative }); }
     hud.update(f);
+  }
+
+  /** Strip kepatuhan: dihitung ulang hanya bila state atau isi file regulasi berganti. */
+  function updateCompliance(s, data) {
+    if (compMemo.s !== s || compMemo.data !== data) compMemo = { s, data, f: deriveCompliance(s, data) };
+    comp?.update(compMemo.f, s.siteData?.[compMemo.f.sel.equip] ?? {});
   }
 
   function updateCard(f) {
@@ -208,7 +228,7 @@ export function createScene(ctx) {
 
   function chartsC(f) {
     const c = f.C;
-    const k = `c|${c.unit}|${c.basis.refO2}|${c.basis.TrefC}|${c.limits.noxPpm}|${c.limits.coPpm}|${c.strategy}|${c.single.nox[0]}|${c.twin.nox[0]}`;
+    const k = `c|${c.unit}|${c.basis.refO2}|${c.basis.TrefC}|${c.limits.noxPpm}|${c.limits.coPpm}|${c.limits.source.nox}|${c.strategy}|${c.single.nox[0]}|${c.twin.nox[0]}`;
     const xDomain = [LOAD_RANGE.max, LOAD_RANGE.min];
     if (k !== mainKey) {
       mainKey = k;
@@ -220,7 +240,7 @@ export function createScene(ctx) {
       const yMax = 10 ** Math.ceil(Math.log10(Math.max(...series.flatMap((x) => [...x.y]), c.limits.nox ?? 0, c.limits.co ?? 0)));
       const yDomain = [yMax / 1e4, yMax];
       const hlines = [];
-      if (c.limits.nox != null) hlines.push({ y: c.limits.nox, color: SPECIES_COLORS.NOx, label: STR.scene6.charts.limit.nox, align: 'left' });
+      if (c.limits.nox != null) hlines.push({ y: c.limits.nox, color: SPECIES_COLORS.NOx, label: c.limits.source.nox === 'override' ? STR.scene6.charts.limit.noxOverride : STR.scene6.charts.limit.nox, align: 'left' });
       if (c.limits.co != null) hlines.push({ y: c.limits.co, color: SPECIES_COLORS.CO, label: STR.scene6.charts.limit.co });
       const bands = ['single', 'twin'].flatMap((cfg) => c[cfg].coViolation.map(([hi, lo]) => ({ x0: hi + 0.5, x1: lo - 0.5, color: cfg === 'single' ? 'rgba(224,64,122,0.16)' : 'rgba(224,64,122,0.08)' })));
       main.setData({ series, xDomain, yDomain, yTicks: decadeTicks(...yDomain), yFmt: decadeFmt, xFmt: (v) => fmt(v, 0), hlines, bands });
@@ -253,11 +273,20 @@ export function createScene(ctx) {
         syncControls(s, changed);
       }));
       syncControls(s0, ['pEngine']);
+      regBanner = createContentBanner(q('.pol-reg'));
+      regBanner.show(regulationsContent());
+      disposers.push(onRegulations((r) => regBanner?.show(r)));
+      comp = createCompliancePanel(q('.pol-reg'), {
+        onSelect: (p) => store.set(regSelectionPatch(store.get(), regulationsContent().data, p)),
+        onSite: (param, field, v) => { const st = store.get(); store.set(siteDataPatch(st, regSelection(st, regulationsContent().data).equip, param, field, v)); },
+      });
     },
     update() {
       const s = store.get();
-      const f = derivePolicy(s, sweepKey === policySweepKey(s) ? sweep : null);
+      const reg = regulationsContent();
+      const f = derivePolicy(s, sweepKey === policySweepKey(s) ? sweep : null, reg.data);
       updateCard(f);
+      updateCompliance(s, reg.data);
       updateHud(f);
       updateLimits(f, s);
       if (f.tab === 'A') chartsA(f); else if (f.tab === 'B') chartsB(f); else chartsC(f);
@@ -273,7 +302,7 @@ export function createScene(ctx) {
     dispose() {
       for (const d of disposers.splice(0)) d();
       sweepClient.dispose();
-      main?.dispose(); sub?.dispose(); hud?.dispose(); lim?.dispose();
+      main?.dispose(); sub?.dispose(); hud?.dispose(); lim?.dispose(); comp?.dispose(); regBanner?.dispose();
       el?.remove();
     },
   };
