@@ -42,9 +42,9 @@ describe('Scene 9 panel A: retard timing', () => {
   it('sapuan basi (engine lain) diabaikan; catatan methane slip; pesan kunci dari model', () => {
     expect(derivePolicy(st(policyEnginePatch('gas')), swD).A).toBeNull();
     const f = derivePolicy({ ...sD, pTheta0: 0 }, swD);
-    expect(keyMessage(f)).toMatch(/NOx −31 %, tetapi CO₂ \+3,0 %/);
-    expect(STR.scene9.A.note).toMatch(/Methane slip tidak dimodelkan di panel ini, sehingga CO₂e sebenarnya lebih tinggi/);
-    expect(resultLine(f)).toMatch(/NOx −30,6 %, CO₂ \+3,0 % terhadap preset/);
+    expect(keyMessage(f)).toMatch(/NOx −31 %, but CO₂ \+3\.0 %/);
+    expect(STR.scene9.A.note).toMatch(/Methane slip is not included here\. Real CO₂e is higher/);
+    expect(resultLine(f)).toMatch(/NOx −30\.6 %, CO₂ \+3\.0 % versus preset/);
   });
 });
 
@@ -60,7 +60,7 @@ describe('Scene 9 panel B: ghgPenalty', () => {
     }
     const gas = f.B.machines.find((m) => m.id === 'gas');
     near(gas.current.co2_0, 477.8, 0.2); near(gas.current.co2_1, 492.1, 0.2);
-    expect(keyMessage(f)).toMatch(/Penalti bahan bakar 3,0 % menaikkan CO₂ spesifik 3,0 %/);
+    expect(keyMessage(f)).toMatch(/A 3\.0 % fuel penalty raises specific CO₂ by 3\.0 %/);
   });
 });
 
@@ -84,7 +84,7 @@ describe('Scene 9 panel C: baku mutu seragam', () => {
       }
     }
     expect(f.C.twin.coViolation).toEqual([[43, 40]]);
-    expect(resultLine(f)).toBe('Hasil model pada batas yang diisi: jendela beban Generator = 67–68 %; Compressor drive = 44–90 %.');
+    expect(resultLine(f)).toBe('Model result at the entered limits: load window Generator = 67–68 %; Compressor drive = 44–90 %.');
   });
   it('toggle satuan: mg/Nm³ = ppmToMgNm3 (NOx sebagai NO₂, CO sebagai CO, basis volume aktif); input mg → disimpan ppm', () => {
     const s = st({ pTab: 'C', ...TEST_LIMITS, limUnit: 'mg', emTrefC: 25 });
@@ -95,17 +95,17 @@ describe('Scene 9 panel C: baku mutu seragam', () => {
     const p = limitsInputPatch(s, { nox: '20', co: '30' });
     near(p.limNOx, mgNm3ToPpm(20, MW.NO2, 298.15), 1e-12); near(p.limCO, mgNm3ToPpm(30, MW.CO, 298.15), 1e-12);
     expect(limitsInputPatch(st(), { nox: '12,5' })).toEqual({ limNOx: 12.5 });
-    expect(hudItems(f).find((x) => x.id === 'ln').sub).toBe('sebagai NO₂, dry, @ 15 % O₂, 25 °C (mg/Nm³)');
-    expect(hudItems(f).find((x) => x.id === 'lc').sub).toBe('sebagai CO, dry, @ 15 % O₂, 25 °C (mg/Nm³)');
+    expect(hudItems(f).find((x) => x.id === 'ln').sub).toBe('as NO₂, dry, @ 15 % O₂, 25 °C (mg/Nm³)');
+    expect(hudItems(f).find((x) => x.id === 'lc').sub).toBe('as CO, dry, @ 15 % O₂, 25 °C (mg/Nm³)');
     expect(limitsInputPatch(st(), { co: '' })).toEqual({ limCO: null });
   });
   it('HUD menampilkan basis lengkap di samping batas; judul & disclaimer permanen', () => {
     const f = derivePolicy(st({ pTab: 'C', ...TEST_LIMITS }), null);
     const it2 = hudItems(f);
-    expect(it2.find((x) => x.id === 'ln').sub).toBe('sebagai NO₂, dry (ppmvd), @ 15 % O₂, 0 °C');
-    expect(it2.find((x) => x.id === 'lc').sub).toBe('sebagai CO, dry (ppmvd), @ 15 % O₂, 0 °C');
-    expect(STR.scene9.titles.C).toBe('Satu angka baku mutu, dua mesin dengan jendela operasi berbeda.');
-    expect(STR.scene9.disclaimer('a', 'b')).toMatch(/^Angka baku mutu diisi presenter/);
+    expect(it2.find((x) => x.id === 'ln').sub).toBe('as NO₂, dry (ppmvd), @ 15 % O₂, 0 °C');
+    expect(it2.find((x) => x.id === 'lc').sub).toBe('as CO, dry (ppmvd), @ 15 % O₂, 0 °C');
+    expect(STR.scene9.titles.C).toBe('One limit value, two machines with different operating windows.');
+    expect(STR.scene9.disclaimer('a', 'b')).toMatch(/^Limits are entered by the presenter/);
   });
   it('tidak ada angka batas di kode aplikasi; tanpa klaim konfigurasi "lebih buruk"', () => {
     for (const p of ['../src/scenes/policy.js', '../src/state/derivePolicy.js']) {
@@ -113,6 +113,6 @@ describe('Scene 9 panel C: baku mutu seragam', () => {
       expect(src).not.toMatch(/lim(NOx|CO)\s*[:=]\s*\d/);
     }
     expect(readFileSync(new URL('../src/scenes/policy.js', import.meta.url), 'utf8')).not.toMatch(/model\/thermo/);
-    expect(JSON.stringify(STR.scene9)).not.toMatch(/lebih buruk|meledak/i);
+    expect(JSON.stringify(STR.scene9)).not.toMatch(/lebih buruk|meledak|worse|explod|blow up/i);
   });
 });

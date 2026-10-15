@@ -82,15 +82,15 @@ describe('Scene 3: suhu masuk dari model dan label', () => {
     near(f.Tflame, flameTemperature(FLAME_MODES.diesel.phiLocal, f.Tin, 'diesel'), 1e-12);
     expect(f.dTlocal).toBeGreaterThan(300);
     expect(STR.scene3.hud.tflame.label).toBe('Adiabatic flame temperature');
-    expect(STR.scene3.hud.tflame.tip(true)).toMatch(/SAAT campuran terbakar, BUKAN "Peak burned-zone temperature" di Scene 4/);
-    expect(STR.scene3.overlay.tflameLabel).toBe('Suhu nyala adiabatik saat terbakar:');
+    expect(STR.scene3.hud.tflame.tip(true)).toMatch(/at the moment the mixture burns[\s\S]*Not the "Peak burned-zone temperature" in Scene 4/);
+    expect(STR.scene3.overlay.tflameLabel).toBe('Adiabatic flame temperature while burning:');
   });
   it('turbin: titik berlabel φ zona premix; φ keseluruhan ≈ 0,34 dari model', () => {
     const f = deriveFlame(st('turbine'));
     expect(f.points[0].labelKey).toBe('phiPremix');
     expect(STR.scene3.points.phiPremix).toBe('Premix-zone φ');
     expect(STR.scene3.phiLabel.turbine).toBe('Premix-zone φ');
-    expect(STR.scene3.notes.premix(1500, f.phiOverall)).toMatch(/bukan φ keseluruhan \(T₃ 1\.500 K ≈ 0,34\)/);
+    expect(STR.scene3.notes.premix(1500, f.phiOverall)).toMatch(/not the overall turbine φ \(T₃ 1,500 K ≈ 0\.34\)/);
     near(f.phiOverall, 0.34, 0.005);
     near(f.T3, 1500, 1e-9);
   });

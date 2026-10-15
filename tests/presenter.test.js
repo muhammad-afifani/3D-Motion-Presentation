@@ -150,14 +150,14 @@ describe('loader presenter.json (sama dengan konten lain)', () => {
     const r = await loadContent('presenter', { fetchFn: res('{rusak'), base: '/x/' });
     expect(r.source).toBe('fallback');
     expect(r.data).toEqual(presenter);
-    expect(contentErrorText(r)).toMatch(/content\/presenter\.json tidak valid: \(json\)/);
+    expect(contentErrorText(r)).toMatch(/content\/presenter\.json is invalid: \(json\)/);
   });
   it('skema salah → galat menyebut bidang', async () => {
     const bad = { version: 1, scenes: [{ number: 1, keyMessage: 'a', notes: ['b'], targetMin: -2 }, { number: 1, keyMessage: '', notes: [] }, { number: 42, keyMessage: 'c', notes: ['d'] }] };
     const r = await loadContent('presenter', { fetchFn: res(JSON.stringify(bad)), base: '/x/' });
     const fields = r.errors.map((e) => e.field);
     expect(fields).toEqual(['scenes[0].targetMin', 'scenes[1].number', 'scenes[1].keyMessage', 'scenes[1].notes', 'scenes[2].number']);
-    expect(contentErrorText(r)).toMatch(/scenes\[0\]\.targetMin \(harus angka menit/);
+    expect(contentErrorText(r)).toMatch(/scenes\[0\]\.targetMin \(must be a number of minutes/);
   });
   it('404, tanpa server, atau fallback SPA (HTML) → isi bawaan TANPA galat', async () => {
     for (const fetchFn of [res('', { ok: false }), async () => { throw new TypeError('Failed to fetch'); }, res('<!doctype html><html>', { type: 'text/html' })]) {

@@ -30,7 +30,7 @@ describe('overlay debug', () => {
   it('baris berlabel Inggris dari strings.js; tanda tanpa 3D', () => {
     const rows = debugRows({ fps: 58.6, ms: 17.1, stats: { count: 1, calls: 42, triangles: 123456, geometries: 30, textures: 4, programs: 9, pixelRatio: 1.5, bloom: true } });
     expect(rows.map((r) => r[0])).toEqual([STR.debug.fps, STR.debug.frameMs, STR.debug.calls, STR.debug.triangles, STR.debug.geometries, STR.debug.textures, STR.debug.programs, STR.debug.pixelRatio, STR.debug.bloom]);
-    expect(rows[3][1]).toBe('123.456');
+    expect(rows[3][1]).toBe('123,456');
     expect(debugRows({ fps: null, ms: null, stats: { count: 0 } }).at(-1)).toEqual([STR.debug.renderer, STR.debug.no3d]);
   });
   it('rendering software dikenali (fps bukan fps GPU)', () => {
@@ -38,7 +38,7 @@ describe('overlay debug', () => {
     expect(isSoftwareGpu('llvmpipe (LLVM 15.0.7, 256 bits)')).toBe(true);
     expect(isSoftwareGpu('ANGLE (Intel, Intel(R) UHD Graphics 620 Direct3D11 vs_5_0 ps_5_0)')).toBe(false);
     expect(isSoftwareGpu(null)).toBeNull();
-    expect(STR.debug.software).toMatch(/bukan fps GPU/);
+    expect(STR.debug.software).toMatch(/not real GPU fps/);
   });
 });
 

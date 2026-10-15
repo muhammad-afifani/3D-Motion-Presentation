@@ -28,8 +28,8 @@ describe('Scene 7: angka dari model', () => {
     const f = deriveComp(st());
     near(f.design.load, 0.655, 0.002);
     expect(f.design.load).toBe(compressorTrain({ comp: D, compDesign: D, gtDesign: LOAD_DESIGNS.twin }).loadRaw);
-    expect(STR.scene7.hud.designLine(f.design.load)).toBe('Titik desain kompresor ≈ beban turbin 65,5 % (model)');
-    expect(STR.scene7.demoCase(f.comp.mdot)).toBe('Demo case (ṁ = 20,0 kg/s)');
+    expect(STR.scene7.hud.designLine(f.design.load)).toBe('Compressor design point ≈ turbine load 65.5 % (model)');
+    expect(STR.scene7.demoCase(f.comp.mdot)).toBe('Demo case (ṁ = 20.0 kg/s)');
   });
   it('Psuc 18 bar: speed 105,5 %, beban 72,8 %, N_GG 0,795, flame T 1834 K; Psuc 15 bar: 114,6 % / 86,0 % / 0,896 / 1858 K', () => {
     const a = deriveComp(st({ cPsuc: 18 }));
@@ -53,7 +53,7 @@ describe('Scene 7: angka dari model', () => {
     near(f.train.nox, emissionAtBasis({ ppm: t.NOx_ppm, refO2: 3, MWspecies: MW.NO2 }).ppm, 1e-9);
     near(f.train.co, t.CO_ppm * 17.9 / 5.9, 1e-9);
     const it2 = driveHudItems(f).find((x) => x.id === 'nox');
-    expect(it2.sub).toBe('sebagai NO₂, dry (ppmvd), @ 3 % O₂, 0 °C');
+    expect(it2.sub).toBe('as NO₂, dry (ppmvd), @ 3 % O₂, 0 °C');
     expect(it2.flag).toBe(STR.common.basis.flag);
   });
 });
@@ -92,21 +92,23 @@ describe('Scene 7: kontrol, pesan, teks', () => {
     const f0 = deriveComp(st());
     expect(keyMessage(f0)).toBe(STR.scene7.messageDesign(f0.Nreq, f0.train.loadRaw, f0.train.Tflame));
     const m = keyMessage(deriveComp(st({ cPsuc: 18 })));
-    expect(m).toMatch(/speed yang dibutuhkan 105,5 % \(\+5,5 pp\)/);
-    expect(m).toMatch(/beban turbin 72,8 % \(\+7,3 pp\)/);
+    expect(m).toMatch(/required speed 105\.5 % \(\+5\.5 pp\)/);
+    expect(m).toMatch(/turbine load 72\.8 % \(\+7\.3 pp\)/);
     expect(m).toMatch(/\+13 K/);
     expect(m).not.toMatch(/unit nyata|lapangan|vendor/i);
   });
   it('HUD kompresor memakai label model fungsi thermo.js', () => {
-    expect(compHudItems().map((x) => x.model)).toEqual(['gasCompressor', 'gasCompressor', 'gasCompressor', 'gasCompressor', 'suctionFlow', 'speedForHead']);
+    expect(compHudItems().map((x) => x.model)).toEqual(['compressor model', 'compressor model', 'compressor model', 'compressor model', 'actual flow at suction', 'from head alone']);
   });
   it('panel H: speed dari head saja, peta/surge/batas speed tidak dimodelkan, Tsuc tetap, H ∝ Q² = affinity Ideal', () => {
     const t = STR.assumptions.compressor.items.join(' ');
-    expect(t).toMatch(/dari head saja \(speedForHead/);
-    expect(t).toMatch(/peta kompresor, surge line, dan batas speed tidak dimodelkan/);
-    expect(t).toMatch(/T suction tetap 308 K/);
-    expect(t).toMatch(/H ∝ Q² .*hukum affinity \(Ideal, η tetap\)/);
-    expect(JSON.stringify(STR.scene7)).not.toMatch(/surge line digambar|compressor map/i);
+    expect(t).toMatch(/from head alone \(speedForHead/);
+    expect(t).toMatch(/compressor map, the surge line, and speed limits are not modeled/);
+    expect(t).toMatch(/Suction T fixed at 308 K/);
+    expect(t).toMatch(/H ∝ Q² .*affinity laws \(Ideal, constant η\)/);
+    // dulu: tidak ada klaim "surge line digambar" / peta kompresor. Kini teks English menyebut peta hanya sebagai TIDAK dimodelkan.
+    expect(JSON.stringify(STR.scene7)).not.toMatch(/surge line digambar|surge line (is )?(drawn|shown)|compressor map (is )?(drawn|shown|included)/i);
+    expect(STR.scene7.note).toMatch(/compressor map, surge line, and speed limits are not modeled/);
   });
 });
 

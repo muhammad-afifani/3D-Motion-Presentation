@@ -38,7 +38,7 @@ describe('content/controls.json', () => {
     for (const c of controls.cards) expect(c.appliesTo.every((x) => MACHINES.includes(x))).toBe(true);
   });
   it('SCR & oxidation catalyst: kebutuhan operasi kualitatif (jendela suhu exhaust, besaran dari data unit)', () => {
-    for (const id of ['scr', 'oxcat']) expect(controls.cards.find((c) => c.id === id).operation.join(' ')).toMatch(/jendela suhu exhaust tertentu, besaran dari data unit/);
+    for (const id of ['scr', 'oxcat']) expect(controls.cards.find((c) => c.id === id).operation.join(' ')).toMatch(/exhaust temperature window; the values come from unit data/);
   });
 });
 
@@ -196,7 +196,7 @@ describe('Scene 11: penutup', () => {
 describe('banner galat konten', () => {
   it('menyebut nama file dan bidang; kosong bila tidak ada galat', () => {
     const t = contentErrorText({ file: 'controls.json', errors: [{ field: 'cards[0].raises', code: 'textList' }, { field: '(json)', code: 'parse', detail: 'Unexpected token' }] });
-    expect(t).toBe('content/controls.json tidak valid: cards[0].raises (harus daftar teks tidak kosong); (json) (JSON tidak bisa dibaca: Unexpected token). Memakai isi bawaan; perbaiki file lalu reload.');
+    expect(t).toBe('content/controls.json is invalid: cards[0].raises (must be a non-empty list of text); (json) (the JSON cannot be read: Unexpected token). Using the built-in text. Fix the file and reload.');
     expect(contentErrorText({ file: 'closing.json', errors: [] })).toBe('');
   });
   it('scene 10–11 tidak mengimpor thermo.js', () => {

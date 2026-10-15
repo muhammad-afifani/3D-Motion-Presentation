@@ -116,6 +116,6 @@ describe('kualitas hanya visual: frame & HUD identik di semua tier', () => {
     for (const f of readdirSync(`${ROOT}src/state`).filter((x) => x.startsWith('derive'))) {
       expect(readFileSync(`${ROOT}src/state/${f}`, 'utf8'), f).not.toMatch(/quality|bloomMode|qTier|particleScale/);
     }
-    expect(STR.assumptions.display.visualOnly).toMatch(/hanya memengaruhi visual \(pixel ratio, bloom, jumlah partikel\), tidak memengaruhi angka HUD atau grafik/);
+    expect(STR.assumptions.display.visualOnly).toMatch(/only affects visuals \(pixel ratio, bloom, particle count\)\. It does not change the HUD numbers or the charts/);
   });
 });

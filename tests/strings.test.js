@@ -148,13 +148,13 @@ describe('strings.js: isi', () => {
     expect(STR.scene3.focus).toBe('Combustion window focus');
   });
 
-  it('tooltip Bloom (Indonesia) sesuai permintaan', () => {
-    expect(STR.scene3.tips.bloom.startsWith('Efek cahaya (glow) di sekitar nyala. Matikan bila animasi berat.')).toBe(true);
+  it('tooltip Bloom (English)', () => {
+    expect(STR.scene3.tips.bloom.startsWith('Glow around the flame. Turn it off if the animation is slow.')).toBe(true);
   });
 
-  it('pesan kunci & judul scene tetap berbahasa Indonesia', () => {
+  it('pesan kunci & judul scene berbahasa Inggris', () => {
     for (const k of ['scene1', 'scene2', 'scene3', 'scene4', 'scene6', 'scene7', 'scene8', 'scene9', 'scene10', 'scene11']) {
-      expect(STR[k].message).toMatch(/\b(dan|di|pada|karena|satu|luas|punya|tidak|dengan|bukan|mengikuti|tetapi|lebih)\b/);
+      expect(STR[k].message).toMatch(/\b(the|and|is|of|at|to|a|in|on|not|than|with|one|each|but|its|does)\b/);
     }
   });
 });
