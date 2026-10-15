@@ -20,8 +20,8 @@ import { createChartBase, makeScale, niceTicks, logTicks, drawAxes, CHART_FONT, 
  */
 
 /** @param {HTMLElement} container */
-export function createXYChart(container, { title, modelLevel, xLabel, yLabel, logY = false, color = '#ff9a3c', pad = { l: 60, r: 18, t: 58, b: 40 } }) {
-  const base = createChartBase(container, { title, modelLevel, pad });
+export function createXYChart(container, { title, modelLevel, basis = null, xLabel, yLabel, logY = false, color = '#ff9a3c', pad = { l: 60, r: 18, t: 58, b: 40 } }) {
+  const base = createChartBase(container, { title, modelLevel, basis, pad });
   /** @type {XYData|null} */
   let data = null;
   let sx = null, sy = null;

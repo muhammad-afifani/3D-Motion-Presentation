@@ -38,15 +38,16 @@ export function setChartExportScale(k = null) {
 
 /**
  * @param {HTMLElement} container
- * @param {{title:string, modelLevel:'ideal'|'real'|'semiEmpirical'|'siteData', pad?:{l:number,r:number,t:number,b:number}, indicative?:boolean}} opts
- *   modelLevel = kunci; teks label diambil dari STR.common.level. indicative = tambahkan "· indikatif" di label pojok.
+ * @param {{title:string, modelLevel:'ideal'|'real'|'semiEmpirical'|'siteData', basis?:string|string[], pad?:{l:number,r:number,t:number,b:number}, indicative?:boolean}} opts
+ *   modelLevel = kunci; kata level diambil dari STR.common.level. indicative = tambahkan "· indicative".
+ *   basis = id kelompok (BASIS_GROUPS) atau daftar kunci BASIS: tag "Basis · <level>" di pojok membuka kartu Basis.
  */
-export function createChartBase(container, { title, modelLevel, pad = { l: 56, r: 16, t: 58, b: 40 }, indicative = false }) {
+export function createChartBase(container, { title, modelLevel, basis = null, pad = { l: 56, r: 16, t: 58, b: 40 }, indicative = false }) {
   const root = document.createElement('div');
   root.className = 'chart';
   root.innerHTML = `
     <div class="chart__title"></div>
-    <div class="chart__level"></div>
+    <button type="button" class="chart__level"></button>
     <canvas class="chart__layer"></canvas>
     <canvas class="chart__layer"></canvas>
     <div class="chart__caption num"></div>`;
@@ -56,9 +57,11 @@ export function createChartBase(container, { title, modelLevel, pad = { l: 56, r
   const titleEl = root.querySelector('.chart__title');
   const levelEl = root.querySelector('.chart__level');
   titleEl.textContent = title;
-  levelEl.title = STR.common.levelTip;
-  const levelText = (k) => (indicative ? `${STR.common.level[k]} · ${STR.common.indicative}` : STR.common.level[k]);
+  levelEl.dataset.tip = STR.basis.tagTip;
+  const levelText = (k) => `${STR.basis.tag} · ${STR.common.level[k]}${indicative ? ` · ${STR.common.indicative}` : ''}`;
+  const setBasisAttr = (b) => { if (b) levelEl.dataset.basis = Array.isArray(b) ? b.join(',') : b; else delete levelEl.dataset.basis; };
   levelEl.textContent = levelText(modelLevel);
+  setBasisAttr(basis);
   const ctxS = cs.getContext('2d');
   const ctxD = cd.getContext('2d');
 
@@ -97,8 +100,12 @@ export function createChartBase(container, { title, modelLevel, pad = { l: 56, r
     beginDynamic() { ctxD.setTransform(box.dpr, 0, 0, box.dpr, 0, 0); ctxD.clearRect(0, 0, box.w, box.h); return ctxD; },
     setCaption(html) { if (caption.innerHTML !== html) caption.innerHTML = html; },
     setTitle(text) { if (titleEl.textContent !== text) titleEl.textContent = text; },
-    /** @param {'ideal'|'real'|'semiEmpirical'|'siteData'} key */
-    setLevel(key) { const t = levelText(key); if (levelEl.textContent !== t) levelEl.textContent = t; },
+    /** @param {'ideal'|'real'|'semiEmpirical'|'siteData'} key @param {string|string[]} [b] kelompok Basis baru (bila berubah per mode) */
+    setLevel(key, b) {
+      const t = levelText(key);
+      if (levelEl.textContent !== t) levelEl.textContent = t;
+      if (b) setBasisAttr(b);
+    },
     dispose() { BASES.delete(entry); ro.disconnect(); io?.disconnect(); root.remove(); },
   };
 }

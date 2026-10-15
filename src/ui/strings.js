@@ -32,7 +32,6 @@ export const STR = {
     /** Model level label (corner of every chart). */
     level: { ideal: 'Ideal', real: 'Real (component efficiency)', semiEmpirical: 'Semi-empirical', siteData: 'Site data' },
     indicative: 'indicative',
-    levelTip: 'Model level: Ideal / Real (component efficiency) / Semi-empirical / Site data',
     phase: { intake: 'Intake', kompresi: 'Compression', ekspansi: 'Expansion', exhaust: 'Exhaust' },
     tempLegend: 'Gas T [K]',
     /** Emission basis: always shown next to every ppm / mg/Nm³ (active basis from panel H). */
@@ -769,6 +768,44 @@ export const STR = {
     keysHint: '←/→ change scene · Space start/pause timer',
   },
 
+  // ─────────────────────────── basis (Basis tag, card, References page) ───────────────────────────
+  basis: {
+    tag: 'Basis',
+    tagTip: 'Open the basis of this view: model level, where the formulas come from, sources and assumptions.',
+    /** Short name of each tag group (title of the Basis card). */
+    groups: {
+      engineCycle: 'Piston engine model', idealCycles: 'Ideal air-standard cycles', realCycles: 'Real gas-turbine cycles',
+      lossWaterfall: 'Efficiency loss steps', flame: 'Flame temperature and combustion', noxCo: 'NOx and CO of a lean-premix combustor',
+      zeldovich: 'Thermal NO (Zeldovich)', engineNox: 'Engine NOx', partLoad: 'Part-load and DLN emissions', compressor: 'Gas compressor',
+      emissions: 'Emissions and CO₂ per kWh', policy: 'Policy trade-off',
+    },
+    card: {
+      title: 'Basis', custom: 'Basis of this view', close: 'Close',
+      level: 'Model level', derivation: 'Derived from', sources: 'Sources', assumptions: 'Assumptions',
+      noSource: 'No literature source: definition or calibration.',
+      toVerify: 'Source to verify',
+      unknownRef: (id) => `source to verify (${id} is not in the reference list)`,
+      locatorUnchecked: 'locator not verified', locatorChecked: 'locator checked',
+      locator: (l) => `Location: ${l}`,
+      allRefs: 'All references',
+      note: 'Chapter and equation numbers marked "locator not verified" have not been checked against a printed copy.',
+    },
+    refs: {
+      title: 'References', button: 'References', key: '?',
+      buttonTip: 'List of all sources behind the models. Also opens with #/references in the address bar.',
+      close: 'Close',
+      intro: 'Every formula and correlation in the app points to one of these sources. A source that is not in this list is shown as "source to verify", never invented.',
+      banner: (n, total) => `${n} of ${total} entries have a location (chapter, table or equation) that has not been checked against a printed copy. Check it before quoting it as fact.`,
+      types: { book: 'Books', paper: 'Journal papers and reports', standard: 'Standards and methods', regulation: 'Regulations', database: 'Databases', report: 'Assessment reports' },
+      use: 'Used for',
+      citedBy: 'Cited by',
+      notCited: 'Not cited by a model function yet',
+      locator: (l) => `Location: ${l}`,
+      noLocator: 'Location: not given',
+      unchecked: 'locator not verified', checked: 'locator checked',
+    },
+  },
+
   // ─────────────────────────── assumptions panel (H key, all scenes) ───────────────────────────
   assumptions: {
     title: 'Model assumptions',
@@ -867,6 +904,14 @@ export const STR = {
       title: 'Model level per chart',
       head: ['Scene', 'Chart', 'Level'],
       sep: ' / ',
+    },
+    functions: {
+      title: 'Theory basis per model function',
+      intro: 'From the basis registry. Click a row to open its Basis card.',
+      head: ['Function', 'Level', 'Sources'],
+      none: 'definition / calibration',
+      toVerify: 'source to verify',
+      refs: 'All references',
     },
   },
 };

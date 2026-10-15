@@ -199,7 +199,7 @@ export function createScene(ctx) {
     if (key !== hudKey) {
       hud?.dispose();
       hudKey = key;
-      hud = createHud(q('.scene__hud'), hudItems(f), { level: C.level.semiEmpirical, note: H.note(f.calib, f.calDln) });
+      hud = createHud(q('.scene__hud'), hudItems(f), { level: C.level.semiEmpirical, basis: 'engineNox', note: H.note(f.calib, f.calDln) });
     }
     hud.update(f);
   }
@@ -303,8 +303,8 @@ export function createScene(ctx) {
     mount() {
       buildDom();
       buildControls();
-      tradeChart = createXYChart(q('.chart-slot--main'), { title: S.tradeoff.title, modelLevel: 'semiEmpirical', xLabel: S.tradeoff.xLabel, yLabel: S.tradeoff.yLabel, color: SPECIES_COLORS.NOx, pad: CHART_PAD });
-      arrChart = createXYChart(q('.chart-slot--sub'), { title: S.arrhenius.title, modelLevel: 'semiEmpirical', xLabel: S.arrhenius.xLabel, yLabel: S.arrhenius.yLabel(noxKeyNumbers().Tref), logY: true, color: '#e6ebf3', pad: CHART_PAD });
+      tradeChart = createXYChart(q('.chart-slot--main'), { title: S.tradeoff.title, modelLevel: 'semiEmpirical', basis: 'noxCo', xLabel: S.tradeoff.xLabel, yLabel: S.tradeoff.yLabel, color: SPECIES_COLORS.NOx, pad: CHART_PAD });
+      arrChart = createXYChart(q('.chart-slot--sub'), { title: S.arrhenius.title, modelLevel: 'semiEmpirical', basis: 'zeldovich', xLabel: S.arrhenius.xLabel, yLabel: S.arrhenius.yLabel(noxKeyNumbers().Tref), logY: true, color: '#e6ebf3', pad: CHART_PAD });
       legend = createTempLegend(q('.overlay--legend'), { title: S.tempLegend });
       buildCalibration();
       q('.overlay--legend').append(q('.nox-species'));

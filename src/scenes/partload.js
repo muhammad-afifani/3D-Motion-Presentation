@@ -102,7 +102,7 @@ export function createScene(ctx) {
         <div class="pl-hud">
           <div class="pl-hud__row"><div class="pl-hud__title">${S.configs.single}</div><div class="pl-hud__body" data-hud="single"></div></div>
           <div class="pl-hud__row"><div class="pl-hud__title">${S.configs.twin}</div><div class="pl-hud__body" data-hud="twin"></div></div>
-          <div class="hud__note"><span class="level">${C.level.semiEmpirical}</span>${S.hudNote}</div>
+          <div class="hud__note"><span class="level" role="button" tabindex="0" data-basis="partLoad" data-tip="${STR.basis.tagTip}">${STR.basis.tag} · ${C.level.semiEmpirical}</span>${S.hudNote}</div>
         </div>
       </section>`);
     q('.overlay--note').textContent = S.note;
@@ -260,8 +260,8 @@ export function createScene(ctx) {
     mount() {
       buildDom();
       buildControls();
-      emis = createMultiLineChart(q('.pl-emis'), { title: S.charts.emis.title, modelLevel: 'semiEmpirical', xLabel: S.charts.emis.xLabel, yLabel: S.charts.emis.yLabel, logY: true, pad: { l: 60, r: 18, t: 92, b: 40 } });
-      aux = createMultiLineChart(q('.pl-aux'), { title: S.charts.flame.title, modelLevel: 'semiEmpirical', xLabel: S.charts.xLabel, yLabel: S.charts.flame.yLabel });
+      emis = createMultiLineChart(q('.pl-emis'), { title: S.charts.emis.title, modelLevel: 'semiEmpirical', basis: 'partLoad', xLabel: S.charts.emis.xLabel, yLabel: S.charts.emis.yLabel, logY: true, pad: { l: 60, r: 18, t: 92, b: 40 } });
+      aux = createMultiLineChart(q('.pl-aux'), { title: S.charts.flame.title, modelLevel: 'semiEmpirical', basis: 'partLoad', xLabel: S.charts.xLabel, yLabel: S.charts.flame.yLabel });
       legend = createTempLegend(q('.overlay--legend'));
       q('.overlay--legend').append(q('.nox-species'));
       buildCalibration();

@@ -66,7 +66,7 @@ export function createScene(ctx) {
           <div class="overlay overlay--legend"></div>
           <div class="overlay overlay--labels"></div>
           <div class="overlay overlay--status num"></div>
-          <div class="cyc-level">${C.level.real}</div>
+          <div class="cyc-level" role="button" tabindex="0" data-basis="realCycles">${STR.basis.tag} · ${C.level.real}</div>
           <div class="view3d__fallback" hidden>${C.webglFallback}</div>
         </div>
         <div class="gt-ts chart-slot"></div>
@@ -127,7 +127,7 @@ export function createScene(ctx) {
     if (key !== hudKey) {
       hud?.dispose();
       hudKey = key;
-      hud = createHud(q('.gt-hud'), hudItems(f.cfg, f.perDegRef), { level: C.level.real, note: H.note });
+      hud = createHud(q('.gt-hud'), hudItems(f.cfg, f.perDegRef), { level: C.level.real, basis: 'realCycles', note: H.note });
     }
     hud.update(f);
   }
@@ -170,8 +170,8 @@ export function createScene(ctx) {
     mount() {
       buildDom();
       buildControls();
-      ts = createCycleChart(q('.gt-ts'), 'ts', { onHover: (i) => pv.highlight(i) });
-      pv = createCycleChart(q('.gt-pv'), 'pv', { onHover: (i) => ts.highlight(i) });
+      ts = createCycleChart(q('.gt-ts'), 'ts', { onHover: (i) => pv.highlight(i), basis: 'realCycles' });
+      pv = createCycleChart(q('.gt-pv'), 'pv', { onHover: (i) => ts.highlight(i), basis: 'realCycles' });
       legend = createTempLegend(q('.overlay--legend'));
       try {
         gfx = createRenderer(q('.view3d'), { camPos: CAM.generator.pos, target: CAM.generator.target });

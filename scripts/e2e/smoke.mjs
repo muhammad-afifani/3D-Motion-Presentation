@@ -36,7 +36,8 @@ function inspect({ minFill }) {
       for (let k = 3; k < a.length; k += 4) if (a[k] > 0 || (b && b[k] > 0)) n++;
       out.pct = +(100 * n / (stat.width * stat.height)).toFixed(2);
     }
-    out.ok = out.w > 0 && out.h > 0 && out.cssW > 0 && out.cssH > 0 && out.pct >= minFill;
+    out.basis = !!root.querySelector('.chart__level')?.dataset.basis;   // tag Basis terpasang (M9 Step 02)
+    out.ok = out.w > 0 && out.h > 0 && out.cssW > 0 && out.cssH > 0 && out.pct >= minFill && out.basis;
     return out;
   });
 
@@ -69,6 +70,40 @@ function inspect({ minFill }) {
   return { charts, overflow };
 }
 
+/** Interaksi Basis (M9 Step 02): tag grafik → kartu Basis → Esc; tombol ? → References → Esc; alamat #/references. */
+async function basisInteraction(page, url, browser) {
+  const fails = [];
+  const vis = (sel) => page.evaluate((s) => { const e = document.querySelector(s); return !!e && !e.hidden && getComputedStyle(e).display !== 'none'; }, sel);
+  await goScene(page, 1, 400);
+  await page.locator('.chart__level').first().click();
+  if (!(await vis('.bcard'))) fails.push('tag Basis: kartu tidak terbuka saat tag grafik diklik');
+  else {
+    const txt = await page.locator('.bcard__box').innerText();
+    if (!/Semi-empirical/.test(txt) || !/Derived from/.test(txt) || !/locator not verified/.test(txt)) fails.push('kartu Basis: level / asal rumus / penanda locator tidak tampil');
+    await page.keyboard.press('Escape');
+    if (await vis('.bcard')) fails.push('kartu Basis: Esc tidak menutup');
+  }
+  await page.keyboard.press('?');
+  if (!(await vis('.refs'))) fails.push('References: tombol ? tidak membuka halaman');
+  else {
+    const hash = await page.evaluate(() => location.hash);
+    const n = await page.locator('.refs__item').count();
+    if (hash !== '#/references') fails.push(`References: alamat ${hash} (harusnya #/references)`);
+    if (n < 30) fails.push(`References: hanya ${n} entri tampil`);
+    await page.keyboard.press('Escape');
+    if (await vis('.refs')) fails.push('References: Esc tidak menutup');
+  }
+  await page.getByRole('button', { name: /References/ }).first().click();
+  if (!(await vis('.refs'))) fails.push('References: tombol di bilah atas tidak membuka halaman');
+  await page.keyboard.press('Escape');
+  const p2 = await browser.newPage({ viewport: { width: 1366, height: 768 } });
+  await p2.goto(`${url.replace(/#.*$/, '')}#/references`);
+  await p2.waitForFunction(() => window.__etelDebug?.scene() != null, null, { timeout: 30000 });
+  if (!(await p2.evaluate(() => window.__etelDebug.referencesOpen()))) fails.push('References: alamat langsung #/references tidak membuka halaman');
+  await p2.close();
+  return fails;
+}
+
 const pw = await loadPlaywright();
 const srv = await startPreview(Number(process.env.E2E_PORT ?? 4185));
 mkdirSync(SHOTS, { recursive: true });
@@ -97,11 +132,12 @@ try {
         }
         const label = `${w}×${h} · Scene ${n}${tab ? ` · tab ${tab}` : ''}`;
         report.push({ label, charts: res.charts.map((c) => c.pct), overflow: res.overflow.length });
-        for (const c of res.charts) if (!c.ok) failures.push(`${label}: grafik #${c.i} "${c.title}" kosong/0 (canvas ${c.w}×${c.h}, css ${c.cssW}×${c.cssH}, terisi ${c.pct} % < ${MIN_FILL_PCT} %)`);
+        for (const c of res.charts) if (!c.ok) failures.push(`${label}: grafik #${c.i} "${c.title}" kosong/0/tanpa tag Basis (canvas ${c.w}×${c.h}, css ${c.cssW}×${c.cssH}, terisi ${c.pct} %, minimum ${MIN_FILL_PCT} %, tag Basis ${c.basis ? 'ada' : 'HILANG'})`);
         for (const o of res.overflow) failures.push(`${label}: teks meluber di ${o.el}: ${o.reasons[0]}`);
         if (SHOT_SCENES.has(n) && (!tab || tab === '1')) await page.screenshot({ path: `${SHOTS}/scene${n}-${w}x${h}.png` });
       }
     }
+    if (w === 1366) failures.push(...await basisInteraction(page, srv.url, chromium.browser));
     for (const e of [...new Set(errs)]) failures.push(`${w}×${h}: ${e}`);
     await page.close();
   }

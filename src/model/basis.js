@@ -164,6 +164,25 @@ export const BASIS = Object.freeze({
     ['Single-zone engine model; the NOx–efficiency trade is trend-level.', EMISSION_INDICATIVE]),
 });
 
+/**
+ * Which entries a chart or HUD tag opens. A tag names a group; the Basis card lists the group's entries.
+ * (Pure bookkeeping: the groups say which functions feed a chart, they hold no numbers.)
+ */
+export const BASIS_GROUPS = Object.freeze({
+  engineCycle: ['engineGeometry', 'wiebe', 'cylinderSim', 'chenFlynnFMEP', 'cvOfT', 'kOfT', 'simStates', 'sampleSim'],
+  idealCycles: ['processPath', 'otto', 'diesel', 'dual', 'braytonIdeal'],
+  realCycles: ['processPath', 'braytonReal', 'braytonDerated', 'twinShaft', 'twinShaftCycle', 'compressorStages', 'turbineStages'],
+  lossWaterfall: ['lossWaterfall', 'cylinderSim', 'cvOfT', 'wiebe', 'chenFlynnFMEP'],
+  flame: ['flameTemperature', 'phiFromFlameT', 'burnedComposition', 'qinPerKgAir', 'cylinderSim'],
+  noxCo: ['noxCoTradeoff', 'dlnEmissions', 'noxThermal', 'flameTemperature', 'coDLN', 'calibrateDLN'],
+  zeldovich: ['ZELDOVICH', 'zeldovichRate', 'zeldovichCurve', 'noxRateRatio'],
+  engineNox: ['cylinderSim', 'noxThermal', 'ZELDOVICH', 'ENGINE_NOX_CALIB', 'calibrateEngineNOx', 'toDryRef', 'ppmToMgNm3'],
+  partLoad: ['loadSweep', 'singleShaftLoad', 'twinShaftForLoad', 'dlnFromResult', 'dlnEmissions', 'coDLN', 'calibrateDLN'],
+  compressor: ['gasCompressor', 'suctionFlow', 'affinity', 'speedForHead', 'compressorTrain'],
+  emissions: ['ppmToGkWh', 'emissionAtBasis', 'dryFlueNm3PerKg', 'co2Specific', 'co2eWithSlip', 'GWP_CH4', 'cylinderSim', 'dlnEmissions'],
+  policy: ['retardSweep', 'ghgPenalty', 'co2eWithSlip', 'emissionAtBasis', 'loadSweep'],
+});
+
 /** Entry of an export (undefined when the name is a UTILITY helper or unknown). */
 export const basisFor = (name) => BASIS[name];
 /** Sources of an entry still missing from references.json, as the UI shows them: "source to verify". */

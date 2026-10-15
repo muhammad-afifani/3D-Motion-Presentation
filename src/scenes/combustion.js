@@ -71,7 +71,7 @@ export function createScene(ctx) {
           </div>
           <div class="overlay overlay--notes"></div>
           <div class="overlay overlay--status num"></div>
-          <div class="cyc-level">${C.level.semiEmpirical}</div>
+          <div class="cyc-level" role="button" tabindex="0" data-basis="flame">${STR.basis.tag} · ${C.level.semiEmpirical}</div>
         </div>
         <div class="fl-chart chart-slot"></div>
         <div class="scene__controls"></div>
@@ -143,7 +143,7 @@ export function createScene(ctx) {
       hud?.dispose();
       hudKey = f.mode;
       hud = createHud(q('.fl-hud'), hudItems(f.mode), {
-        level: C.level.semiEmpirical,
+        level: C.level.semiEmpirical, basis: 'flame',
         note: H.note,
       });
     }
@@ -182,8 +182,8 @@ export function createScene(ctx) {
     mount() {
       buildDom();
       buildControls();
-      chart = createFlameChart(q('.fl-chart'));
-      bars = createBarChart(q('.fl-bars'), { title: S.bars.title, unit: U.K, xLabel: S.bars.xLabel, labelWidth: 210 });
+      chart = createFlameChart(q('.fl-chart'), { basis: 'flame' });
+      bars = createBarChart(q('.fl-bars'), { basis: 'flame', title: S.bars.title, unit: U.K, xLabel: S.bars.xLabel, labelWidth: 210 });
       try {
         gfx = createRenderer(q('.view3d'), { camPos: CAM.piston.pos, target: CAM.piston.target });
         chamber = createChamberCloseup({ bore: 0.2 });

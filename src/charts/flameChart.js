@@ -11,8 +11,8 @@ const S = STR.charts.flame;
 const rgb = (c) => `rgb(${c.map((v) => Math.round(v * 255)).join(',')})`;
 
 /** @param {HTMLElement} container */
-export function createFlameChart(container) {
-  const base = createChartBase(container, { title: S.title, modelLevel: 'semiEmpirical', pad: { l: 60, r: 18, t: 58, b: 42 } });
+export function createFlameChart(container, { basis = null } = {}) {
+  const base = createChartBase(container, { title: S.title, modelLevel: 'semiEmpirical', basis, pad: { l: 60, r: 18, t: 58, b: 42 } });
   let sx, sy, key = '';
 
   function drawStatic(f) {

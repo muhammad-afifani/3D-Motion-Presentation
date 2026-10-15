@@ -158,13 +158,13 @@ export function createScene(ctx) {
       { id: 'etai', label: H.etai.label, unit: U.pct, value: (f) => pct(f.eta.ind, 1), tip: H.etai.tip },
       { id: 'etab', label: H.etab.label, unit: U.pct, value: (f) => pct(f.eta.brake, 1), tip: H.etab.tip },
       { id: 'bsfc', label: H.bsfc.label, unit: U.gkWh, value: (f) => fmt(f.summary.bsfc, 0), tip: H.bsfc.tip },
-    ], { level: C.level.semiEmpirical, note: H.note });
+    ], { level: C.level.semiEmpirical, basis: 'engineCycle', note: H.note });
   }
 
   // ── grafik ──
   function buildCharts() {
-    pv = createPVChart(q('.chart-slot--main'));
-    pth = createLineChart(q('.chart-slot--sub'), { title: S.ptheta.title, modelLevel: 'semiEmpirical', xLabel: S.ptheta.xLabel, yLabel: S.ptheta.yLabel });
+    pv = createPVChart(q('.chart-slot--main'), { basis: 'engineCycle' });
+    pth = createLineChart(q('.chart-slot--sub'), { title: S.ptheta.title, modelLevel: 'semiEmpirical', basis: 'engineCycle', xLabel: S.ptheta.xLabel, yLabel: S.ptheta.yLabel });
     legend = createTempLegend(q('.overlay--legend'));
   }
 
