@@ -56,7 +56,7 @@ export function createRegulationsPage(parent = document.body, { win = window } =
       sec.appendChild(h('h3', '', P.group(g.equipment, src?.short ?? g.source)));
       if (!g.verified) sec.appendChild(h('div', 'refs__banner', `⚠ ${R.banner}`));
       const b = g.basis;
-      sec.appendChild(h('p', 'regs__basis', `${P.basisLabel}: ${R.basis(b.refO2Pct, b.TrefC, b.NOxAs)}`));
+      sec.appendChild(h('p', 'regs__basis', R.basis(b.refO2Pct, b.TrefC, b.NOxAs)));
       if (g.basisNote) sec.appendChild(h('p', 'refs__use', `${P.basisNote}: ${g.basisNote}`));
       for (const c of g.capacityClasses) {
         for (const fuel of ['oil', 'gas']) {

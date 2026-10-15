@@ -14,6 +14,7 @@ import { mkdirSync } from 'node:fs';
 import { loadPlaywright, startPreview, launchers, goScene } from './lib.mjs';
 
 export const VIEWPORTS = [[1366, 768], [1920, 1080], [1280, 720]];
+export const MAX_TOPBAR_PX = 140;           // tinggi bilah atas maksimum (4 baris pesan kunci)
 export const MIN_FILL_PCT = 1;            // % piksel non-transparan minimum per grafik (terukur 1,9–63 % pada tampilan normal)
 const SHOT_SCENES = new Set([7, 9]);
 const TABS = { 9: ['1', '2', '3'] };       // tab Scene 9 (A/B/C); scene lain satu keadaan
@@ -67,7 +68,9 @@ function inspect({ minFill }) {
     }
     if (reasons.length) overflow.push({ el: name(el), reasons });
   }
-  return { charts, overflow };
+  // bilah atas tidak boleh tumbuh tinggi (pesan kunci membungkus karena tombol terlalu lebar)
+  const topbarH = Math.round(document.querySelector('.topbar')?.getBoundingClientRect().height ?? 0);
+  return { charts, overflow, topbarH };
 }
 
 /** Interaksi Basis (M9 Step 02): tag grafik → kartu Basis → Esc; tombol ? → References → Esc; alamat #/references. */
@@ -172,6 +175,7 @@ try {
         report.push({ label, charts: res.charts.map((c) => c.pct), overflow: res.overflow.length });
         for (const c of res.charts) if (!c.ok) failures.push(`${label}: grafik #${c.i} "${c.title}" kosong/0/tanpa tag Basis (canvas ${c.w}×${c.h}, css ${c.cssW}×${c.cssH}, terisi ${c.pct} %, minimum ${MIN_FILL_PCT} %, tag Basis ${c.basis ? 'ada' : 'HILANG'})`);
         for (const o of res.overflow) failures.push(`${label}: teks meluber di ${o.el}: ${o.reasons[0]}`);
+        if (res.topbarH > MAX_TOPBAR_PX) failures.push(`${label}: bilah atas ${res.topbarH} px > ${MAX_TOPBAR_PX} px (pesan kunci terlalu banyak baris)`);
         if (SHOT_SCENES.has(n) && (!tab || tab === '1')) await page.screenshot({ path: `${SHOTS}/scene${n}-${w}x${h}.png` });
       }
     }
