@@ -71,7 +71,7 @@ export const BASIS = Object.freeze({
     ['Constant cp and k on the air side and on the hot-gas side.', 'Fuel mass flow is not added to the turbine flow; no cooling-air bleed, no inlet/exhaust losses.', 'Heat added is cpg·(T3 − T2), a mixed-property simplification.']),
   pressureAtAltitude: e('Ideal', ['iso-2533'], 'International-standard-atmosphere pressure at altitude h in the troposphere.', ['Standard atmosphere; no weather variation.']),
   braytonDerated: e('Real', ['saravanamuttoo', 'boyce'], 'Re-runs braytonReal at the site ambient temperature and pressure; mass flow scales with air density (∝ P/T).',
-    ['Mass flow follows density at constant volumetric flow; a corrected-flow (∝ P/√T) scaling would give a different slope.', 'Turbine inlet temperature T3 is held constant (no control limit).']),
+    ['Mass flow ∝ P/T: constant volumetric flow at constant shaft speed, so mass flow follows air density. A P/√T scaling applies instead at constant corrected speed (N/√T), which this model does not use.', 'Turbine inlet temperature T3 is held constant (no control limit).']),
   singleShaftLoad: e('Real', ['saravanamuttoo'], 'Part-load of a single-shaft machine at constant speed: first close the IGV to cut air flow with T3 held, then lower T3 once the IGV reaches its minimum.',
     ['Fixed IGV minimum; compressor and turbine efficiencies are held constant off-design (no component map).']),
   twinShaft: e('Real', ['saravanamuttoo', 'boyce'], 'Gas generator plus free power turbine: the gas-generator turbine only drives the compressor, the rest expands in the power turbine.',
@@ -83,7 +83,7 @@ export const BASIS = Object.freeze({
   turbineStages: e('Real', ['saravanamuttoo'], 'Per-stage temperature of the turbine for the 3D colouring: equal expansion-ratio steps through the cycle expansion formula.',
     ['Equal stage expansion ratios; drawing aid whose last stage equals the cycle outlet temperature.']),
   twinShaftCycle: e('Real', ['saravanamuttoo', 'boyce'], 'Twin-shaft cycle states 1, 2, 3, 4.5, 5 with ambient derating (air density ∝ P/T at fixed Ngg).',
-    ['Same limits as twinShaft; the derating uses the density scaling, as in braytonDerated.']),
+    ['Same limits as twinShaft.', 'Mass flow ∝ P/T: constant volumetric flow at constant gas-generator speed (fixed Ngg), so mass flow follows air density. A P/√T scaling applies instead at constant corrected speed (N/√T), which this model does not use.']),
 
   // ───────────────────────────── gas compressor ─────────────────────────────
   gasCompressor: e('Real', ['dixon-hall', 'api-617'], 'Polytropic head H = (Z·R·T1 / m)·(rp^m − 1) with m = (k − 1) / (k·ηp); shaft power = ṁ·H / ηp.',

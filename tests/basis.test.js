@@ -74,6 +74,13 @@ describe('basis.js: isi entri', () => {
     expect(needsVerification('cvOfT')).toBe(true);
     expect(needsVerification('otto')).toBe(false);
   });
+  it('asumsi derating: massa aliran ∝ P/T (debit volume tetap, putaran tetap); P/√T untuk kecepatan terkoreksi tetap', () => {
+    for (const k of ['braytonDerated', 'twinShaftCycle']) {
+      const a = BASIS[k].assumptions.join(' ');
+      expect(a, k).toMatch(/Mass flow ∝ P\/T: constant volumetric flow at constant/);
+      expect(a, k).toMatch(/P\/√T scaling applies instead at constant corrected speed/);
+    }
+  });
   it('sumber yang ditambahkan (IPCC 2006, ISO 2533, Chen–Flynn 1965) tersambung dan penanda toVerify-nya dihapus', () => {
     for (const [k, id] of [['FUELS', 'ipcc-2006-vol2-ch2'], ['co2Specific', 'ipcc-2006-vol2-ch2'], ['co2MassRate', 'ipcc-2006-vol2-ch2'], ['pressureAtAltitude', 'iso-2533'], ['chenFlynnFMEP', 'chen-flynn-1965']]) {
       expect(BASIS[k].refs, k).toContain(id);
