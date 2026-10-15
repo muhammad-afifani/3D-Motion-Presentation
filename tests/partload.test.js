@@ -34,8 +34,8 @@ describe('Scene 6: store', () => {
   });
   it('panel H mencatat anggapan basis CO (coDLN @15 % O₂) dan fuel staging OEM tidak dimodelkan (fixed premix split)', () => {
     const t = STR.assumptions.turbine.items.join(' ');
-    expect(t).toMatch(/coDLN dinyatakan sebagai ppmvd @ 15 % O₂/);
-    expect(t).toMatch(/fuel staging OEM tidak dimodelkan \(fixed premix split\)/);
+    expect(t).toMatch(/CO from coDLN is read as ppmvd @ 15 % O₂/);
+    expect(t).toMatch(/OEM fuel-staging schedule is not modeled \(fixed premix split\)/);
   });
 });
 
@@ -122,9 +122,9 @@ describe('Scene 6: kalibrasi DLN per konfigurasi', () => {
     expect(g.single.curve.nox).toEqual(base.single.curve.nox);
     expect(g.twin.point.nox).toBeGreaterThan(base.twin.point.nox);
     const cal = hudItems(g, 'twin').find((x) => x.id === 'cal');
-    expect(cal.value(g)).toBe('×8,00');
+    expect(cal.value(g)).toBe('×8.00');
     expect(cal.sub).toBe(STR.scene6.hud.calib.sub(false));
-    expect(hudItems(base, 'single').find((x) => x.id === 'cal').value(base)).toBe('×14,33');
+    expect(hudItems(base, 'single').find((x) => x.id === 'cal').value(base)).toBe('×14.33');
   });
 });
 
@@ -132,8 +132,8 @@ describe('Scene 6: HUD, pesan kunci, teks', () => {
   it('ppm di HUD dengan basis lengkap NO₂ / CO; penanda bila basis ≠ default', () => {
     const f = deriveLoad(st({ emRefO2: 5 }));
     const it2 = hudItems(f, 'single');
-    expect(it2.find((x) => x.id === 'nox').sub).toBe('sebagai NO₂, dry (ppmvd), @ 5 % O₂, 0 °C');
-    expect(it2.find((x) => x.id === 'co').sub).toBe('sebagai CO, dry (ppmvd), @ 5 % O₂, 0 °C');
+    expect(it2.find((x) => x.id === 'nox').sub).toBe('as NO₂, dry (ppmvd), @ 5 % O₂, 0 °C');
+    expect(it2.find((x) => x.id === 'co').sub).toBe('as CO, dry (ppmvd), @ 5 % O₂, 0 °C');
     expect(it2.find((x) => x.id === 'nox').flag).toBe(STR.common.basis.flag);
     expect(hudItems(deriveLoad(st()), 'twin').find((x) => x.id === 'nox').flag).toBeUndefined();
   });
@@ -141,21 +141,21 @@ describe('Scene 6: HUD, pesan kunci, teks', () => {
     const f = deriveLoad(st());
     const m = keyMessage(f);
     expect(m).toBe(STR.scene6.messageCurves(f.facts));
-    expect(m).toMatch(/hingga 70 % beban/);
-    expect(m).toMatch(/CO ×14 di 60 %/);
+    expect(m).toMatch(/down to 70 % load/);
+    expect(m).toMatch(/CO rises ×14 at 60 %/);
     expect(m).toMatch(/88 K/);
   });
   it('dengan batas: pesan menyebut batas, basis, dan jendela hasil model', () => {
     const m = keyMessage(deriveLoad(st(TEST_LIMITS)));
-    expect(m).toMatch(/NOx 10,0 dan CO 25,0 ppmvd @ 15 % O₂ dry, 0 °C/);
+    expect(m).toMatch(/NOx 10\.0 and CO 25\.0 ppmvd @ 15 % O₂ dry, 0 °C/);
     expect(m).toMatch(/Generator = 67–68 %/);
     expect(m).toMatch(/Compressor drive = 44–90 %/);
   });
   it('tidak ada klaim "CO meledak" atau nama vendor; catatan akurasi fixed premix fuel split', () => {
     const all = JSON.stringify(STR.scene6) + STR.scene6.messageCurves({ holdT: 1, holdLoad: 1, nextLoad: 1, coRatio: 1, twinDT: 1, twinNoxRatio: 1, twinCoRatio: 1 });
-    expect(all).not.toMatch(/meledak/i);
+    expect(all).not.toMatch(/meledak|explod|blow up/i);
     expect(STR.scene6.note).toMatch(/fixed premix fuel split/);
-    expect(STR.scene6.windowText([])).toBe('tidak ada');
+    expect(STR.scene6.windowText([])).toBe('none');
   });
   it('tidak ada angka batas baku mutu di kode aplikasi (default kosong)', () => {
     for (const p of ['../src/scenes/partload.js', '../src/state/deriveLoad.js', '../src/ui/limitsInput.js', '../src/model/presets.js']) {

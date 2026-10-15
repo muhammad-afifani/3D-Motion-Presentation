@@ -23,8 +23,8 @@ describe('Animation speed', () => {
   });
   it('label konsisten: "Animation speed" dan nilai ×0,5', () => {
     expect(STR.common.animSpeed).toBe('Animation speed');
-    expect(STR.common.animSpeedValue(0.5)).toBe('×0,5');
-    expect(STR.common.animSpeedValue(2)).toBe('×2,0');
+    expect(STR.common.animSpeedValue(0.5)).toBe('×0.5');
+    expect(STR.common.animSpeedValue(2)).toBe('×2.0');
   });
   it('R (resetPatch) mengembalikan Animation speed ke 1×', () => {
     expect(resetPatch({ ...defaultState('diesel'), animSpeed: 0.3 }).animSpeed).toBe(1);

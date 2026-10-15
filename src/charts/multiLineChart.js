@@ -20,8 +20,8 @@ import { createChartBase, makeScale, niceTicks, logTicks, drawAxes, CHART_FONT, 
  */
 
 /** @param {HTMLElement} container */
-export function createMultiLineChart(container, { title, modelLevel, xLabel, yLabel, logY = false, indicative = true, pad = { l: 60, r: 18, t: 74, b: 40 } }) {
-  const base = createChartBase(container, { title, modelLevel, pad, indicative });
+export function createMultiLineChart(container, { title, modelLevel, basis = null, xLabel, yLabel, logY = false, indicative = true, pad = { l: 60, r: 18, t: 74, b: 40 } }) {
+  const base = createChartBase(container, { title, modelLevel, basis, pad, indicative });
   /** @type {MultiData|null} */
   let data = null;
   let sx = null, sy = null, yl = yLabel, xl = xLabel, logNow = logY;

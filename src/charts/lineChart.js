@@ -18,8 +18,8 @@ import { createChartBase, makeScale, niceTicks, drawAxes, CHART_FONT } from './c
  */
 
 /** @param {HTMLElement} container */
-export function createLineChart(container, { title, modelLevel, xLabel, yLabel, color = '#ffb15c' }) {
-  const base = createChartBase(container, { title, modelLevel, pad: { l: 56, r: 16, t: 58, b: 40 } });
+export function createLineChart(container, { title, modelLevel, basis = null, xLabel, yLabel, color = '#ffb15c' }) {
+  const base = createChartBase(container, { title, modelLevel, basis, pad: { l: 56, r: 16, t: 58, b: 40 } });
   /** @type {LineData|null} */
   let data = null;
   let sx = null, sy = null;

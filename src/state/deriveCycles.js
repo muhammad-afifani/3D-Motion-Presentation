@@ -222,6 +222,7 @@ export function deriveCycles(s, { sim = null, waterfall = null } = {}) {
     const pt = braytonPoint(main.procs, theta);
     Object.assign(out, {
       modelLevel: real ? 'real' : 'ideal',
+      basis: real ? 'realCycles' : 'idealCycles', // kelompok Basis (kunci) untuk tag di grafik
       procSet: real ? 'braytonReal' : 'brayton',
       procs: main.procs, states: main.states, ghost: real ? ideal.procs : null,
       point: { ...pt, visible: true, labelKey: 'proc' },
@@ -238,6 +239,7 @@ export function deriveCycles(s, { sim = null, waterfall = null } = {}) {
         ...(real ? [{ key: 'braytonReal', eta: real.cycle.eta, delta: real.cycle.eta - ideal.cycle.eta }] : []),
       ],
       waterfallLevel: real ? 'real' : 'ideal',
+      waterfallBasis: real ? 'realCycles' : 'idealCycles',
     });
     return out;
   }
@@ -262,6 +264,7 @@ export function deriveCycles(s, { sim = null, waterfall = null } = {}) {
     };
     Object.assign(out, {
       modelLevel: 'ideal',
+      basis: 'idealCycles',
       procSet: kind,
       procs: ideal.procs, states: ideal.states, ghost: null,
       point: { ...pt, visible: true, labelKey: pt.stroke === 'exchange' ? 'exchangeIdeal' : 'proc' },
@@ -282,6 +285,7 @@ export function deriveCycles(s, { sim = null, waterfall = null } = {}) {
     if (kind === 'dual') notes.push({ key: 'dualRef' });
     Object.assign(out, {
       modelLevel: 'semiEmpirical',
+      basis: 'engineCycle',
       procSet: 'real',
       procs: pack.procs, states: pack.states, ghost: ghost ? ghost.procs : null,
       point: pt ? { ...pt, visible: true, labelKey: 'closedReal' } : { visible: false, labelKey: 'exchangeReal' },
@@ -293,6 +297,7 @@ export function deriveCycles(s, { sim = null, waterfall = null } = {}) {
   }
   out.waterfall = waterfall;
   out.waterfallLevel = 'semiEmpirical';
+  out.waterfallBasis = 'lossWaterfall';
   out.waterfallEngine = engine;
   out.rEngine = rEngine(s);
   return out;

@@ -99,7 +99,7 @@ export function createScene(ctx) {
         <div class="pl-hud">
           <div class="pl-hud__row"><div class="pl-hud__title" data-k="demo"></div><div class="pl-hud__body" data-hud="comp"></div></div>
           <div class="pl-hud__row"><div class="pl-hud__title">${S.driveRow}</div><div class="pl-hud__body" data-hud="drive"></div></div>
-          <div class="hud__note"><span class="level">${C.level.real}</span><span data-k="designLine"></span></div>
+          <div class="hud__note"><span class="level" role="button" tabindex="0" data-basis="compressor" data-tip="${STR.basis.tagTip}">${STR.basis.tag} · ${C.level.real}</span><span data-k="designLine"></span></div>
         </div>
       </section>`);
     q('.overlay--note').textContent = S.note;
@@ -238,8 +238,8 @@ export function createScene(ctx) {
     mount() {
       buildDom();
       buildControls();
-      hq = createMultiLineChart(q('.pl-emis'), { title: S.charts.hq.title, modelLevel: 'real', xLabel: S.charts.hq.xLabel, yLabel: S.charts.hq.yLabel, indicative: false });
-      pn = createMultiLineChart(q('.pl-aux'), { title: S.charts.pn.title, modelLevel: 'ideal', xLabel: S.charts.pn.xLabel, yLabel: S.charts.pn.yLabel, indicative: false });
+      hq = createMultiLineChart(q('.pl-emis'), { title: S.charts.hq.title, modelLevel: 'real', basis: 'compressor', xLabel: S.charts.hq.xLabel, yLabel: S.charts.hq.yLabel, indicative: false });
+      pn = createMultiLineChart(q('.pl-aux'), { title: S.charts.pn.title, modelLevel: 'ideal', basis: 'compressor', xLabel: S.charts.pn.xLabel, yLabel: S.charts.pn.yLabel, indicative: false });
       legend = createTempLegend(q('.overlay--legend'), { title: S.tempLegend, tickStep: 50 });
       try {
         gfx = createRenderer(q('.view3d'), { camPos: [1.6, 0.9, 3.4], target: [0.1, 0.25, 0] });

@@ -485,3 +485,38 @@ body.pres-page { display: block; height: auto; min-height: 100vh; overflow: auto
 .ptr--laser .ptr__dot { display: block; }
 .ptr--spot { background: radial-gradient(circle at var(--px) var(--py), transparent 0 150px, rgba(0, 0, 0, 0.72) 210px); }
 body.is-laser, body.is-laser * { cursor: none !important; }
+
+/* ── Basis tag, Basis card, References page (M9 Step 02) ── */
+button.chart__level { font-family: inherit; cursor: pointer; }
+button.chart__level:hover, .hud__note .level[data-basis]:hover, .cyc-level[data-basis]:hover { color: var(--text); border-color: var(--accent-cold); }
+.hud__note .level[data-basis], .cyc-level[data-basis], .cyc-level[data-k="level"] { cursor: pointer; }
+.bcard, .refs { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; background: rgba(5, 8, 12, 0.6); }
+.bcard[hidden], .refs[hidden] { display: none; }
+.bcard__box, .refs__box { width: min(820px, calc(100vw - 32px)); max-height: calc(100vh - 48px); overflow: auto; padding: 16px 20px; border-radius: 14px; background: var(--bg-1); border: 1px solid var(--line); box-shadow: 0 20px 60px rgba(0,0,0,0.6); font-size: 13px; line-height: 1.45; }
+.refs__box { width: min(900px, calc(100vw - 32px)); }
+.bcard__head, .refs__head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.bcard__head h2, .refs__head h2 { margin: 0; font-size: 18px; }
+.bcard__levels { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 8px 0; }
+.bcard__label { color: var(--muted); font-weight: 600; }
+.bcard__chip { display: inline-block; font-size: 11px; font-weight: 600; border: 1px solid var(--line); border-radius: 999px; padding: 0 7px; color: var(--muted); background: var(--bg-0); }
+.bcard__chip--ok { color: var(--text); border-color: var(--accent-cold); }
+.bcard__chip--warn { color: #1a0d00; background: var(--accent-hot); border-color: var(--accent-hot); }
+.bcard__warn { color: var(--accent-hot); font-weight: 600; }
+.bcard__entry { border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; margin: 8px 0; }
+.bcard__name { display: flex; gap: 8px; align-items: center; margin-bottom: 4px; }
+.bcard__name code { font-family: var(--font-num); color: var(--accent-cold); font-size: 13px; }
+.bcard__entry p { margin: 4px 0; }
+.bcard__entry ul { margin: 2px 0 4px; padding-left: 18px; }
+.bcard__foot { display: flex; gap: 12px; justify-content: space-between; align-items: center; margin-top: 8px; color: var(--muted); font-size: 12px; }
+.refs__intro { color: var(--muted); margin: 6px 0 10px; }
+.refs__banner { border: 1px solid var(--accent-hot); border-radius: 10px; padding: 6px 10px; margin: 8px 0; color: var(--accent-hot); font-weight: 600; }
+.refs__group h3 { margin: 14px 0 6px; font-size: 14px; color: var(--accent-cold); }
+.refs__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.refs__item { border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; }
+.refs__cite { font-weight: 600; }
+.refs__use, .refs__cited { color: var(--muted); margin-top: 2px; }
+.refs__loc { margin-top: 2px; }
+.refs__id { font-family: var(--font-num); color: var(--muted); font-size: 11px; }
+.asm-fn { cursor: pointer; }
+.asm-fn:hover td { background: var(--bg-2); }
+.asm-fn code { font-family: var(--font-num); color: var(--accent-cold); }

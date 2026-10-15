@@ -126,9 +126,9 @@ describe('Scene 4: Arrhenius (zeldovichRate)', () => {
     expect(A.engineBand).toEqual([2200, 3000]);
     expect(A.dlnBand).toEqual([1500, 2000]);
     const cap = STR.scene4.arrhenius.caption(7.1, 1800, 3, 2750);
-    expect(cap).toMatch(/2200–3000 K/);
-    expect(cap).toMatch(/1500–2000 K/);
-    expect(cap).toMatch(/noxCoTradeoff/);
+    expect(cap).toMatch(/2,200–3,000 K/);
+    expect(cap).toMatch(/1,500–2,000 K/);
+    expect(cap).toMatch(/see Scenes 6 and 9/);
   });
 });
 
@@ -192,16 +192,16 @@ describe('Scene 4: istilah, label indikatif, basis O₂ & volume', () => {
     expect(STR.scene3.hud.tflame.tip(true)).toMatch(/Peak burned-zone temperature/);
   });
   it('semua label NOx berlabel indikatif; ppm & mg/Nm³ menampilkan basis O₂ dan volume', () => {
-    for (const k of ['noxG', 'noxPpm', 'noxMg']) expect(H[k].label).toMatch(/indikatif/);
-    expect(STR.scene4.tradeoff.yLabel).toMatch(/indikatif/);
+    for (const k of ['noxG', 'noxPpm', 'noxMg']) expect(H[k].label).toMatch(/indicative/);
+    expect(STR.scene4.tradeoff.yLabel).toMatch(/indicative/);
     expect(H.noxPpm.unit).toBe('ppmvd');
     expect(H.noxMg.unit).toBe('mg/Nm³');
-    expect(STR.common.basis.full(15, 0)).toBe('sebagai NO₂, dry (ppmvd), @ 15 % O₂, 0 °C');
-    expect(STR.common.basis.full(3.5, 25)).toBe('sebagai NO₂, dry (ppmvd), @ 3,5 % O₂, 25 °C');
-    expect(H.calib.value(0.17)).toBe('×0,17');
+    expect(STR.common.basis.full(15, 0)).toBe('as NO₂, dry (ppmvd), @ 15 % O₂, 0 °C');
+    expect(STR.common.basis.full(3.5, 25)).toBe('as NO₂, dry (ppmvd), @ 3.5 % O₂, 25 °C');
+    expect(H.calib.value(0.17)).toBe('×0.17');
   });
   it('Scene 5: label model pada angka derating', () => {
-    expect(STR.scene5.hud.derateModel).toEqual({ generator: 'Generator · braytonDerated', compressorDrive: 'Compressor drive · twinShaft' });
+    expect(STR.scene5.hud.derateModel).toEqual({ generator: 'Generator model', compressorDrive: 'Compressor-drive model' });
     expect(readFileSync(new URL('../src/scenes/turbine.js', import.meta.url), 'utf8')).toMatch(/model: H\.derateModel\[cfg\]/);
   });
 });
@@ -241,7 +241,7 @@ describe('M4b: basis O₂ & volume (global, panel H)', () => {
   it('basis default: tanpa penanda; ppm tile tetap memuat basis lengkap', () => {
     const f = deriveNox(st('gas'), SIMS.gas, SWEEPS.gas);
     expect(hudVal(f, 'noxppm').flag).toBeUndefined();
-    expect(hudVal(f, 'noxppm').sub).toBe('sebagai NO₂, dry (ppmvd), @ 15 % O₂, 0 °C');
+    expect(hudVal(f, 'noxppm').sub).toBe('as NO₂, dry (ppmvd), @ 15 % O₂, 0 °C');
   });
   it('basis tidak memicu cylinderSim ulang (kunci sim tidak berubah)', () => {
     expect(noxSimKey(st('diesel', { emRefO2: 3 }))).toBe(noxSimKey(st('diesel')));
@@ -308,10 +308,10 @@ describe('M4b: kalibrasi NOx (panel Calibration, store global)', () => {
     near(s.calDln.single, 14.33, 0.005);
     near(s.calDln.twin, 4.38, 0.005);
     const f2 = deriveNox(s, run(s), SWEEPS.diesel);
-    expect(hudVal(f2, 'calib').value(f2)).toBe('×0,17');
+    expect(hudVal(f2, 'calib').value(f2)).toBe('×0.17');
     expect(hudVal(f2, 'calib').sub).toBe(STR.scene4.hud.calib.sub(true));
-    expect(STR.scene4.hud.note(0.17, { single: 14.33, twin: 4.38 })).toMatch(/×0,17 · DLN single ×14,33 \/ twin ×4,38/);
-    expect(STR.scene4.calib.note).toMatch(/nilai tipikal literatur, bukan data unit atau vendor/);
+    expect(STR.scene4.hud.note(0.17, { single: 14.33, twin: 4.38 })).toMatch(/×0\.17 · DLN single ×14\.33 \/ twin ×4\.38/);
+    expect(STR.scene4.calib.note).toMatch(/typical literature values, not to unit or vendor data/);
   });
 });
 
@@ -336,7 +336,7 @@ describe('M4b: panel asumsi (data dari store / thermo.js)', () => {
   });
   it('isi teks: Zeldovich, air-standard/Wiebe, fixed premix fuel split, bukan data unit/vendor, ±100 K', () => {
     const A = STR.assumptions;
-    const all = JSON.stringify(A) + A.zeldovich.formula('6×10¹⁶', '69.090');
-    for (const re of [/air-standard/, /Wiebe/, /Fixed premix fuel split/, /bukan data unit\/vendor/i, /±100 K/, /exp\(−69\.090\/T\)/]) expect(all).toMatch(re);
+    const all = JSON.stringify(A) + A.zeldovich.formula('6×10¹⁶', '69,090');
+    for (const re of [/air-standard/, /Wiebe/, /Fixed premix fuel split/, /not unit or vendor data/i, /±100 K/, /exp\(−69,090\/T\)/]) expect(all).toMatch(re);
   });
 });

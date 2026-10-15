@@ -113,7 +113,7 @@ export function createScene(ctx) {
           <div class="overlay overlay--legend"></div>
           <div class="overlay overlay--notes"></div>
           <div class="overlay overlay--status num"></div>
-          <div class="cyc-level" data-k="level"></div>
+          <div class="cyc-level" data-k="level" role="button" tabindex="0"></div>
         </div>
         <div class="cyc-pv chart-slot"></div>
         <div class="cyc-ts chart-slot"></div>
@@ -196,12 +196,12 @@ export function createScene(ctx) {
   }
 
   function updateHud(f) {
-    const key = `${f.kind}|${f.mode}|${f.modelLevel}`;
+    const key = `${f.kind}|${f.mode}|${f.modelLevel}|${f.basis}`;
     if (key !== hudKey) {
       hud?.dispose();
       hudKey = key;
       hud = createHud(q('.cyc-hud'), hudItems(f.kind, f.mode), {
-        level: C.level[f.modelLevel],
+        level: C.level[f.modelLevel], basis: f.basis,
         note: f.isPiston ? H.notePiston : H.noteBrayton,
       });
     }
@@ -220,9 +220,9 @@ export function createScene(ctx) {
   function updateWaterfall(f) {
     const W = S.waterfall;
     if (f.isPiston) {
-      wf.setData(waterfallSteps(f), { title: W.title(f.waterfallEngine, f.rEngine), level: f.waterfallLevel, caption: W.caption });
+      wf.setData(waterfallSteps(f), { title: W.title(f.waterfallEngine, f.rEngine), level: f.waterfallLevel, basis: f.waterfallBasis, caption: W.caption });
     } else {
-      wf.setData(waterfallSteps(f), { title: W.braytonTitle, level: f.waterfallLevel, caption: W.braytonCaption });
+      wf.setData(waterfallSteps(f), { title: W.braytonTitle, level: f.waterfallLevel, basis: f.waterfallBasis, caption: W.braytonCaption });
     }
     wf.update();
   }
@@ -235,7 +235,7 @@ export function createScene(ctx) {
       else if (k === 'proc') v = pointLabel(f);
       else if (k === 'T') v = f.point.visible ? `${fmt(f.point.T, 0)} ${U.K}` : '–';
       else if (k === 'P') v = f.point.visible ? `${fmt(f.point.P / 1e5, 2)} ${U.bar}` : '–';
-      else if (k === 'level') v = C.level[f.modelLevel];
+      else if (k === 'level') { v = `${STR.basis.tag} · ${C.level[f.modelLevel]}`; n.dataset.basis = f.basis; }
       else continue;
       setText(n, v);
     }
@@ -256,10 +256,10 @@ export function createScene(ctx) {
     mount() {
       buildDom();
       buildControls();
-      pv = createCycleChart(q('.cyc-pv'), 'pv', { onHover: (i) => ts.highlight(i) });
-      ts = createCycleChart(q('.cyc-ts'), 'ts', { onHover: (i) => pv.highlight(i) });
-      wf = createWaterfall(q('.cyc-wf'));
-      schem = createBraytonSchematic(q('.cyc-schem'));
+      pv = createCycleChart(q('.cyc-pv'), 'pv', { onHover: (i) => ts.highlight(i), basis: 'idealCycles' });
+      ts = createCycleChart(q('.cyc-ts'), 'ts', { onHover: (i) => pv.highlight(i), basis: 'idealCycles' });
+      wf = createWaterfall(q('.cyc-wf'), { basis: 'lossWaterfall' });
+      schem = createBraytonSchematic(q('.cyc-schem'), { basis: 'idealCycles' });
       legend = createTempLegend(q('.overlay--legend'));
       try {
         gfx = createRenderer(q('.view3d'), { camPos: [1.25, 1.0, 2.1], target: [0, 0.55, 0] });

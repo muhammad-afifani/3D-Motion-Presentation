@@ -1,6 +1,6 @@
 /**
  * content.js — konten presenter: Scene 10–11 (content/controls.json, content/closing.json) dan catatan
- * mode presenter (content/presenter.json, M8a).
+ * mode presenter (content/presenter.json, M8a), dan daftar sumber (content/references.json, M9).
  * Dimuat saat runtime dari `${BASE_URL}content/…` (bisa diedit di dist/content/ tanpa build ulang), dengan
  * fallback bawaan yang dibundel dari file sumber yang sama. Tidak pernah throw:
  *   - file tidak bisa di-fetch (tanpa server, 404, atau fallback SPA index.html) → fallback bawaan, TANPA galat
@@ -10,11 +10,14 @@
 import controlsFallback from '../../content/controls.json';
 import closingFallback from '../../content/closing.json';
 import presenterFallback from '../../content/presenter.json';
+import referencesFallback from '../../content/references.json';
 
-export const CONTENT_FILES = Object.freeze({ controls: 'controls.json', closing: 'closing.json', presenter: 'presenter.json' });
+export const CONTENT_FILES = Object.freeze({ controls: 'controls.json', closing: 'closing.json', presenter: 'presenter.json', references: 'references.json' });
 export const MACHINES = Object.freeze(['diesel', 'gas', 'turbine']);
 export const CARD_FIELDS = Object.freeze(['lowers', 'raises', 'efficiency', 'operation']);
-const FALLBACK = { controls: controlsFallback, closing: closingFallback, presenter: presenterFallback };
+const FALLBACK = { controls: controlsFallback, closing: closingFallback, presenter: presenterFallback, references: referencesFallback };
+/** Jenis sumber di references.json (urutan = urutan kelompok di halaman References). */
+export const REFERENCE_TYPES = Object.freeze(['book', 'paper', 'standard', 'regulation', 'database', 'report']);
 /** Batas atas target durasi per scene (menit) di presenter.json. */
 export const TARGET_MIN_MAX = 120;
 const DEFAULT_SCENES = Array.from({ length: 11 }, (_, i) => i + 1);
@@ -94,13 +97,39 @@ export function validatePresenter(j, sceneNumbers = DEFAULT_SCENES) {
   return e;
 }
 
+/**
+ * Validasi references.json: { version: 1, references: [{ id, type, cite, use, locator, locatorVerified }] }.
+ * id unik (huruf kecil/angka/-); locator boleh kosong; locatorVerified wajib boolean (hanya pemilik proyek yang
+ * mengubahnya menjadi true).
+ */
+export function validateReferences(j) {
+  const e = [];
+  if (!j || typeof j !== 'object' || Array.isArray(j)) return [{ field: '(root)', code: 'notObject' }];
+  if (j.version !== 1) e.push({ field: 'version', code: 'version' });
+  if (!Array.isArray(j.references) || !j.references.length) return [...e, { field: 'references', code: 'array' }];
+  const ids = new Set();
+  j.references.forEach((r, i) => {
+    const f = (k) => `references[${i}].${k}`;
+    if (!r || typeof r !== 'object') { e.push({ field: `references[${i}]`, code: 'notObject' }); return; }
+    if (!isText(r.id) || !/^[a-z0-9][a-z0-9-]*$/.test(r.id)) e.push({ field: f('id'), code: 'refId' });
+    else if (ids.has(r.id)) e.push({ field: f('id'), code: 'duplicate' });
+    else ids.add(r.id);
+    if (!REFERENCE_TYPES.includes(r.type)) e.push({ field: f('type'), code: 'refType' });
+    if (!isText(r.cite)) e.push({ field: f('cite'), code: 'text' });
+    if (!isText(r.use)) e.push({ field: f('use'), code: 'text' });
+    if (typeof r.locator !== 'string') e.push({ field: f('locator'), code: 'string' });
+    if (typeof r.locatorVerified !== 'boolean') e.push({ field: f('locatorVerified'), code: 'boolean' });
+  });
+  return e;
+}
+
 /** Catatan presenter untuk scene n (null bila tidak ada). */
 export const presenterNotes = (data, n) => data?.scenes?.find((x) => x.number === n) ?? null;
 
-const VALIDATE = { controls: validateControls, closing: (j) => validateClosing(j), presenter: validatePresenter };
+const VALIDATE = { controls: validateControls, closing: (j) => validateClosing(j), presenter: validatePresenter, references: (j) => validateReferences(j) };
 
 /**
- * Muat konten. @param {'controls'|'closing'|'presenter'} kind
+ * Muat konten. @param {'controls'|'closing'|'presenter'|'references'} kind
  * @returns {Promise<{data:any, source:'file'|'fallback', file:string, errors:{field:string, code:string, detail?:string}[]}>}
  */
 export async function loadContent(kind, { fetchFn = globalThis.fetch, base, sceneNumbers } = {}) {
@@ -119,7 +148,7 @@ export async function loadContent(kind, { fetchFn = globalThis.fetch, base, scen
   }
   let json;
   try { json = JSON.parse(text); } catch (err) { return fallback([{ field: '(json)', code: 'parse', detail: String(err.message ?? err) }]); }
-  const errors = kind === 'closing' ? VALIDATE.closing(json) : VALIDATE[kind](json, sceneNumbers);
+  const errors = VALIDATE[kind](json, sceneNumbers);
   return errors.length ? fallback(errors) : { data: json, source: 'file', file, errors: [] };
 }
 

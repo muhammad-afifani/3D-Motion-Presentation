@@ -12,8 +12,8 @@ const S = STR.charts.brayton;
 const rgb = (c) => `rgb(${c.map((v) => Math.round(v * 255)).join(',')})`;
 
 /** @param {HTMLElement} container */
-export function createBraytonSchematic(container) {
-  const base = createChartBase(container, { title: S.title, modelLevel: 'ideal', pad: { l: 20, r: 20, t: 50, b: 30 } });
+export function createBraytonSchematic(container, { basis = null } = {}) {
+  const base = createChartBase(container, { title: S.title, modelLevel: 'ideal', basis, pad: { l: 20, r: 20, t: 50, b: 30 } });
   base.setCaption(S.note);
 
   /** Lintasan aliran: 4 ruas (1→2 kompresor, 2→3 combustor, 3→4 turbin, 4→1 lingkungan). */
@@ -50,7 +50,7 @@ export function createBraytonSchematic(container) {
     update(f) {
       const sc = f.schematic;
       if (!sc) return;
-      base.setLevel(f.modelLevel);
+      base.setLevel(f.modelLevel, f.basis);
       base.beginStatic();
       const ctx = base.beginDynamic();
       const g = layout();

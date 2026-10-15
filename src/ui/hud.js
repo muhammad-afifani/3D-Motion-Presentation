@@ -1,3 +1,5 @@
+import { STR } from './strings.js';
+
 /**
  * hud.js — panel angka. Tiap item: label, nilai (fungsi dari frame), satuan, tooltip rumus.
  * DOM hanya disentuh bila teks berubah.
@@ -9,9 +11,10 @@
  *   sub = baris kecil di bawah angka (mis. basis emisi); flag = penanda menonjol (mis. basis ≠ default).
  * @param {HTMLElement} container
  * @param {HudItem[]} items
- * @param {{level?:string, note?:string}} [opts]
+ * @param {{level?:string, basis?:string|string[], note?:string}} [opts] level = kata level model; basis = kelompok Basis
+ *   (tag "Basis · level" membuka kartu Basis lewat penangan klik global ui/basisCard.js)
  */
-export function createHud(container, items, { level, note } = {}) {
+export function createHud(container, items, { level, basis, note } = {}) {
   const root = document.createElement('div');
   root.className = 'hud';
   const cells = items.map((it) => {
@@ -27,7 +30,19 @@ export function createHud(container, items, { level, note } = {}) {
   if (level || note) {
     const n = document.createElement('div');
     n.className = 'hud__note';
-    n.innerHTML = `${level ? `<span class="level">${level}</span>` : ''}${note ?? ''}`;
+    if (level) {
+      const tag = document.createElement('span');
+      tag.className = 'level';
+      tag.textContent = `${STR.basis.tag} · ${level}`;
+      if (basis) {
+        tag.setAttribute('role', 'button');
+        tag.tabIndex = 0;
+        tag.dataset.basis = Array.isArray(basis) ? basis.join(',') : basis;
+        tag.dataset.tip = STR.basis.tagTip;
+      }
+      n.appendChild(tag);
+    }
+    if (note) n.insertAdjacentHTML('beforeend', note);
     root.appendChild(n);
   }
   container.appendChild(root);

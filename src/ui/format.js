@@ -1,4 +1,4 @@
-/** Format angka tampilan: locale id-ID (koma desimal). Konversi satuan hanya di lapisan ini. */
+/** Display number format: locale en-US (decimal point, thousands comma). Unit conversion happens only in this layer. */
 const cache = new Map();
 
 /** @param {number|null|undefined} x @param {number} [digits=1] */
@@ -6,13 +6,13 @@ export function fmt(x, digits = 1) {
   if (x == null || !Number.isFinite(x)) return '–';
   let f = cache.get(digits);
   if (!f) {
-    f = new Intl.NumberFormat('id-ID', { minimumFractionDigits: digits, maximumFractionDigits: digits });
+    f = new Intl.NumberFormat('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits });
     cache.set(digits, f);
   }
   return f.format(x);
 }
 
-/** Persen dari fraksi (0,441 → "44,1"). */
+/** Percent from a fraction (0.441 → "44.1"). */
 export const pct = (x, digits = 1) => fmt(x * 100, digits);
 
 export const toBar = (Pa) => Pa / 1e5;
@@ -38,9 +38,9 @@ export function clock(ms) {
   return h ? `${h}:${two(m)}:${two(s)}` : `${two(m)}:${two(s)}`;
 }
 
-/** Tanggal + jam tampilan (id-ID): "14 Okt 2026, 08.30". */
+/** Display date + time (en-US): "Oct 14, 2026, 8:30 AM". */
 let dtf = null;
 export function dateTime(d) {
-  dtf ??= new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+  dtf ??= new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' });
   return dtf.format(d);
 }

@@ -52,25 +52,25 @@ describe('Scene 8: chart, HUD, pesan, label', () => {
     expect(n[2].sub).toMatch(/ppmvd @ 15 % O₂ dry, 0 °C/);
   });
   it('label permanen NOx dikalibrasi + faktor aktif & target di bawah grafik NOx dan di HUD', () => {
-    expect(noxNote(f)).toMatch(/^NOx dikalibrasi ke nilai tipikal literatur, bukan data unit atau vendor/);
-    expect(noxNote(f)).toMatch(/engine ×0,17 \(diesel\) \/ ×0,17 \(gas\), target ≈ 11 \/ 2,5 g\/kWh · DLN ×14,33, target 15 ppmvd @ 15 % O₂/);
-    expect(STR.scene8.hud.note).toMatch(/NOx dikalibrasi ke nilai tipikal literatur, bukan data unit atau vendor/);
+    expect(noxNote(f)).toMatch(/^NOx is calibrated to typical literature values, not to unit or vendor data/);
+    expect(noxNote(f)).toMatch(/engine ×0\.17 \(diesel\) \/ ×0\.17 \(gas\), target ≈ 11 \/ 2\.5 g\/kWh · DLN ×14\.33, target 15 ppmvd @ 15 % O₂/);
+    expect(STR.scene8.hud.note).toMatch(/NOx is calibrated to typical literature values, not to unit or vendor data/);
     const cal = hudItems().find((x) => x.id === 'cal');
-    expect(cal.value(f)).toBe('×0,17 / ×14,33');
+    expect(cal.value(f)).toBe('×0.17 / ×14.33');
   });
   it('PM kualitatif, tidak dimodelkan (tanpa angka); GWP dengan horizon', () => {
     const pm = hudItems().find((x) => x.id === 'pm');
-    expect(pm.value(f)).toBe('kualitatif'); expect(pm.sub).toBe('kualitatif, tidak dimodelkan');
-    expect(hudItems().find((x) => x.id === 'gwp').sub).toMatch(/AR6 · horizon 100 tahun · fosil/);
+    expect(pm.value(f)).toBe('qualitative'); expect(pm.sub).toBe('qualitative, not modeled');
+    expect(hudItems().find((x) => x.id === 'gwp').sub).toMatch(/AR6 · 100-year horizon · fossil/);
   });
   it('pesan kunci dari model: "slip x % menambah y % CO₂e"', () => {
-    expect(keyMessage(f)).toMatch(/^Slip 1,0 % menambah 11,1 % CO₂e/);
-    expect(keyMessage(deriveEmis(st({ eSlip: 0 })))).toMatch(/21 % lebih rendah dari diesel/);
+    expect(keyMessage(f)).toMatch(/^Slip of 1\.0 % adds 11\.1 % CO₂e/);
+    expect(keyMessage(deriveEmis(st({ eSlip: 0 })))).toMatch(/21 % lower than diesel/);
   });
   it('panel H: basis ppmToGkWh dan GWP AR6 100 tahun fosil + horizon lain berbeda', () => {
     const t = STR.assumptions.ghg.items.join(' ');
-    expect(t).toMatch(/O₂ acuan \(default 15 %\)/); expect(t).toMatch(/F-factor kering stoikiometrik/);
-    expect(t).toMatch(/GWP CH₄ = 29,8 \(AR6, horizon 100 tahun, CH₄ fosil\)\. Horizon waktu lain memberi hasil berbeda\./);
+    expect(t).toMatch(/reference O₂ \(default 15 %\)/); expect(t).toMatch(/dry stoichiometric F-factor/);
+    expect(t).toMatch(/GWP CH₄ = 29\.8 \(AR6, 100-year horizon, fossil CH₄\)\. Other time horizons give different results\./);
   });
 });
 

@@ -156,7 +156,7 @@ export function createScene(ctx) {
 
   function updateHud(f) {
     const key = `${f.tab}|${f.A?.engine}|${f.C.unit}|${f.C.basis.refO2}|${f.C.basis.TrefC}|${f.C.limits.nox == null}|${f.C.limits.co == null}`;
-    if (key !== hudKey) { hud?.dispose(); hudKey = key; hud = createHud(q('.scene__hud'), hudItems(f), { level: C.level.semiEmpirical, note: STR.common.indicative }); }
+    if (key !== hudKey) { hud?.dispose(); hudKey = key; hud = createHud(q('.scene__hud'), hudItems(f), { level: C.level.semiEmpirical, basis: 'policy', note: STR.common.indicative }); }
     hud.update(f);
   }
 
@@ -243,8 +243,8 @@ export function createScene(ctx) {
     mount() {
       buildDom();
       buildControls();
-      main = createMultiLineChart(q('.pl-emis'), { title: S.A.main.title, modelLevel: 'semiEmpirical', xLabel: S.A.main.xLabel, yLabel: S.A.main.yLabel, pad: { l: 64, r: 18, t: 86, b: 40 } });
-      sub = createMultiLineChart(q('.pl-aux'), { title: S.A.sub.title, modelLevel: 'semiEmpirical', xLabel: S.A.main.xLabel, yLabel: S.A.sub.yLabel, pad: { l: 120, r: 18, t: 74, b: 40 } });
+      main = createMultiLineChart(q('.pl-emis'), { title: S.A.main.title, modelLevel: 'semiEmpirical', basis: 'policy', xLabel: S.A.main.xLabel, yLabel: S.A.main.yLabel, pad: { l: 64, r: 18, t: 86, b: 40 } });
+      sub = createMultiLineChart(q('.pl-aux'), { title: S.A.sub.title, modelLevel: 'semiEmpirical', basis: 'policy', xLabel: S.A.main.xLabel, yLabel: S.A.sub.yLabel, pad: { l: 120, r: 18, t: 74, b: 40 } });
       const s0 = store.get();
       sweepClient.runNow(s0);
       disposers.push(store.subscribe((s, prev, changed) => {

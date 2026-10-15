@@ -9,6 +9,7 @@ import { deriveAssumptions } from '../state/deriveAssumptions.js';
 import { basisPatch, basisResetPatch, displayPatch, QUALITY_ORDER, BLOOM_ORDER } from '../state/store.js';
 import { QUALITY_TUNING, TIER_MAX, displayState } from '../gfx/quality.js';
 import { rendererStats } from '../gfx/renderer.js';
+import { BASIS } from '../model/basis.js';
 
 const A = STR.assumptions, C = STR.common;
 const WATCH = ['emRefO2', 'emTrefC', 'calEngine', 'calDln', 'quality', 'bloomMode', 'qTier'];
@@ -87,6 +88,8 @@ export function createAssumptionsPanel(store, parent = document.body, saved = nu
         <section><h3>${A.calib.title}</h3><table data-v="calib"></table><div class="asm__intro">${A.calib.notUnit}</div></section>
         <section><h3>${A.flame.title}</h3><table data-v="flame"></table><div class="asm__intro" data-v="flameNote"></div></section>
         <section style="grid-column: 1 / -1"><h3>${A.levels.title}</h3><table data-v="levels"></table></section>
+        <section style="grid-column: 1 / -1" data-section="functions"><h3>${A.functions.title}</h3><div class="asm__intro">${A.functions.intro}</div>
+          <table data-v="functions"></table></section>
         ${saved ? `<section style="grid-column: 1 / -1"><h3>${A.saved.title}</h3>
           <div class="asm__intro">${saved.available ? A.saved.note : A.saved.unavailable}</div>
           <button type="button" class="btn btn--sm" data-reset-saved data-tip="${A.saved.resetTip}">${A.saved.reset}</button></section>` : ''}
@@ -155,6 +158,13 @@ export function createAssumptionsPanel(store, parent = document.body, saved = nu
     V('levels').innerHTML = row(A.levels.head, 'th')
       + d.chartLevels.map((x) => row([String(x.scene), CHART_TITLES[x.chart](), x.levels.map((k) => C.level[k]).join(A.levels.sep)])).join('');
   }
+
+  // Theory basis per function: rows come straight from src/model/basis.js (clicking a row opens its Basis card)
+  const fnRows = Object.entries(BASIS).map(([name, b]) => {
+    const src = b.refs.length ? b.refs.join(', ') : A.functions.none;
+    return `<tr class="asm-fn" role="button" tabindex="0" data-basis="${name}"><td><code>${name}</code></td><td>${b.level}</td><td>${src}${b.toVerify.length ? ` · <b>${A.functions.toVerify}</b>` : ''}</td></tr>`;
+  });
+  V('functions').innerHTML = row(A.functions.head, 'th') + fnRows.join('');
 
   function setOpen(on) {
     el.hidden = !on;

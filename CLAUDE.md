@@ -1,11 +1,12 @@
 # Engine & Turbine Emission Lab
 
-Presentasi web 3D interaktif untuk staf produksi migas: diesel engine, gas engine, turbin generator (single-shaft), turbin kompresor (twin-shaft). Menghubungkan siklus termodinamika → efisiensi → emisi (NOx, CO, CO₂, methane slip) → argumen baku mutu. Bahasa UI: **campuran terarah**: istilah teknis engineering dan label kontrol/menu dalam bahasa **Inggris**; kalimat penjelasan, pesan kunci, dan tooltip dalam bahasa **Indonesia** (lihat Konvensi).
+Presentasi web 3D interaktif untuk staf produksi migas: diesel engine, gas engine, turbin generator (single-shaft), turbin kompresor (twin-shaft). Menghubungkan siklus termodinamika → efisiensi → emisi (NOx, CO, CO₂, methane slip) → argumen baku mutu. Bahasa UI: **English** (seluruh teks di layar); catatan presenter (`content/presenter.json`) tetap **Indonesia** karena itu naskah lisan; nama resmi regulasi tetap Indonesia (lihat Konvensi).
 
 ## Dokumen acuan (baca sebelum mengerjakan milestone)
 - `docs/PROMPT_simulasi_3D.md`: spesifikasi lengkap (scene, arsitektur, mapping variabel→visual, golden test, milestone M1–M8)
 - `docs/ALUR_SLIDE_presentasi.md`: alur presentasi dan angka demo per scene
 - `src/model/thermo.js`: satu-satunya sumber perhitungan
+- `src/model/basis.js` + `content/references.json`: dasar teori tiap fungsi `thermo.js` dan daftar sumber (lihat Aturan referensi)
 
 ## Stack
 Vite + JavaScript ES modules (JSDoc untuk tipe), three.js, vitest. Tanpa backend dan tanpa API eksternal saat runtime. Harus jalan offline lewat `npm run build:offline` + server statis lokal (mis. `npm run preview:offline`; lihat README "Cara presentasi offline"; `file://` tidak didukung karena ES module/Web Worker), dan ter-deploy ke GitHub Pages lewat `.github/workflows/deploy.yml` (`npm run build`, base `/<nama-repo>/`). Semua model 3D prosedural (tanpa file aset berhak cipta). Grafik 2D memakai canvas buatan sendiri atau uPlot.
@@ -35,18 +36,25 @@ Alur data satu arah: `UI control → store.set → derive() → frame → { rig 
 - Selalu tampilkan basis koreksi O₂ (mis. 15%) dan basis volume (0 °C / 25 °C) di samping angka ppm atau mg/Nm³.
 - Angka baku mutu **diisi presenter lewat input**, tidak ditulis di kode.
 - Tidak menyebut vendor, merek, atau tipe turbin tertentu.
-- Tingkat model berlabel di pojok tiap grafik: `Ideal` / `Real (component efficiency)` / `Semi-empirical` / `Site data`.
+- Tingkat model berlabel di pojok tiap grafik lewat tag **Basis** (`Basis · <level>`): `Ideal` / `Real (component efficiency)` / `Semi-empirical` / `Site data`. Klik tag membuka kartu Basis (level, asal rumus, sumber, asumsi). Tag juga ada di HUD yang menampilkan angka model.
+
+## Aturan referensi (M9)
+- Hanya id dari `content/references.json` yang boleh dikutip di UI. Sumber yang belum ada di file itu tampil sebagai **"source to verify"**, tidak pernah dikarang; catat di `toVerify` pada entri `basis.js`.
+- Setiap ekspor `thermo.js` wajib punya entri di `src/model/basis.js` (`level`, `refs`, `derivation`, `assumptions`), atau tercatat di `UTILITY` bila hanya helper matematika/gambar (dijaga `tests/basis.test.js`). Mengubah rumus di `thermo.js` berarti memperbarui entrinya.
+- Flag `locatorVerified` di `references.json` hanya diubah pemilik proyek setelah mencocokkan bab/persamaan dengan salinan cetak. Selama `false`, halaman References (tombol `?`, alamat `#/references`) menampilkan "locator not verified".
+- Nama fungsi/konstanta kode hanya boleh tampil di kartu Basis dan panel asumsi (`H`), tidak di caption, tooltip, atau HUD (dijaga `tests/language.test.js`).
 
 ## Konvensi
 - Satuan SI di dalam model; konversi hanya di lapisan tampilan.
 - Sudut engkol dalam derajat, 0 = TDC pembakaran; 4-tak −360…+360.
 - Kode warna spesies konsisten di semua scene: NOx oranye, CO merah-magenta, CO₂ abu-biru, CH₄ hijau, PM abu gelap. Skala suhu (`tempToRGB`) selalu disertai legenda K.
-- Angka UI: font tabular-nums; pemisah desimal koma (id-ID) pada teks tampilan.
+- Angka UI: font tabular-nums; format en-US (titik desimal, koma ribuan, mis. 1,500 dan 0.87). Sejak M9 Step 02 pemisah desimal koma (id-ID) tidak dipakai lagi di layar; `presenter.json` tetap menulis angka gaya Indonesia di naskah lisan.
 - Bahasa UI:
-  - **Inggris**: istilah teknis (part-load, base load, heat rate, back-work ratio, derating, lean-burn, premix, methane slip, knocking, swirler, combustor, waterfall, compression ratio, dll.) dan label kontrol/menu/HUD/judul grafik/sumbu/status (mis. Play, Pause, Freeze, Reset, Replay, Animation speed, PAUSED, FROZEN).
-  - **Indonesia**: kalimat penjelasan, pesan kunci, judul scene, tooltip, catatan/caption penjelas, dan toast. Label "indikatif" untuk korelasi emisi tetap.
-  - Jangan memaksakan terjemahan bila terasa canggung.
-  - Semua teks UI ada di `src/ui/strings.js` (dikelompokkan per scene). `scenes/`, `charts/`, `ui/`, `main.js`, dan `state/derive*.js` tidak menulis teks UI langsung (dijaga `tests/strings.test.js`).
+  - **English** untuk semua teks di layar: label, tombol, legenda, tooltip, catatan, toast, pesan galat, HUD, kartu, judul scene, pesan kunci. `index.html` dan `presenter.html` memakai `lang="en"`.
+  - **Indonesia** hanya untuk catatan presenter (`content/presenter.json`; blok catatan di jendela presenter diberi `lang="id"`) dan nama resmi regulasi (apa adanya, disertai penjelasan English singkat). README, `BACA-SAYA.txt`, dan `docs/` tetap Indonesia.
+  - Gaya: kalimat pendek, angka dan satuan di depan, tanpa kata hiasan, bentuk aktif, jangan menjelaskan yang sudah terlihat. Tanpa nama fungsi/konstanta kode di caption, tooltip, atau HUD.
+  - Kalimat kejujuran model tidak boleh berubah makna: korelasi emisi berlabel "indicative"; twin-shaft = jendela operasi bergeser dan menyempit; single-shaft = "cliff" CO setelah IGV habis; basis O₂ dan volume selalu di samping angka ppm / mg/Nm³.
+  - Semua teks UI ada di `src/ui/strings.js` (dikelompokkan per scene). `scenes/`, `charts/`, `ui/`, `main.js`, dan `state/derive*.js` tidak menulis teks UI langsung (dijaga `tests/strings.test.js`). `tests/language.test.js` gagal bila kata Indonesia tertinggal di `strings.js`, `content/controls.json`, `closing.json`, `basis.js`, atau `references.json`, atau bila identifier kode muncul di teks layar di luar panel `H`.
 - Dispose geometri, material, dan listener saat pindah scene. `InstancedMesh` untuk bilah dan partikel.
 - `cylinderSim` berjalan di Web Worker, dengan debounce saat slider digeser.
 
@@ -71,6 +79,11 @@ Alur data satu arah: `UI control → store.set → derive() → frame → { rig 
 - [x] M7b Pengendali emisi dan penutup (Scene 10–11)
 - [x] M8a Fitur presentasi: mode presenter (P, jendela kedua + BroadcastChannel, panel pengganti), content/presenter.json, snapshot PNG 2× tema gelap (S), persistensi ringan (localStorage), dock panel Calibration, Animation speed 0,1×–2× bersama
 - [x] M8b Finishing: overlay debug (Shift+D), kualitas adaptif Auto/High/Low + bloom global (Q/B), uji dispose e2e (npm run e2e), transisi fade-through, paket offline (npm run package:offline), cek Pages & bundle, laser pointer/spotlight (K/Shift+K); ekspor PNG tema terang belum dikerjakan
+
+- [ ] M9 Perbaikan dan kedalaman (pack `docs/m9_pack/`, satu Step per permintaan)
+  - [x] Step 01 Perbaikan Scene 7 dan Scene 9 (smoke test tampilan `npm run e2e:smoke`)
+  - [x] Step 02 Bahasa English + gaya, format en-US, `content/references.json`, `basis.js`, tag Basis, halaman References
+  - [ ] Step 03–06 (data regulasi, model bahan bakar dan tuas, redesain Scene 9, mode Explore)
 
 ## Golden test acuan (ringkas; tabel lengkap di `docs/PROMPT_simulasi_3D.md` bagian 12)
 Otto r=10 η 0,602 · Diesel r=18 rc=2 η 0,632 · Brayton ideal rp=15 η 0,539 · Brayton real η 0,378 · CO₂ gas η=0,35 → 577 g/kWh · preset diesel Pmax ≈ 116 bar, η rem 0,441 · preset gas Pmax ≈ 109 bar, η rem 0,423.

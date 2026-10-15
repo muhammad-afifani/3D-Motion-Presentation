@@ -2,6 +2,7 @@
  * presenterView.js — tampilan presenter (DOM murni): catatan scene aktif, timer, pratinjau scene berikutnya
  * (teks), tombol Prev/Next. Dipakai jendela presenter (presenter.js) dan panel pengganti di halaman (main.js).
  * Tidak menghitung model; teks dari strings.js dan content/presenter.json (di-escape).
+ * Chrome (judul, tombol, label) English; catatan presenter dari presenter.json tetap Indonesia dan diberi lang="id".
  */
 import { STR } from './strings.js';
 import { escapeHtml as esc, clock } from './format.js';
@@ -19,7 +20,7 @@ export function nextPreviewHtml(data, n) {
   if (nx == null) return `<p class="pres-dim">${T.end}</p>`;
   const c = presenterNotes(data, nx);
   return `<div class="pres-next__title">${T.nextLine(nx, sceneTitle(nx))}</div>`
-    + (c ? `<p class="pres-next__key">${esc(c.keyMessage)}</p><p class="pres-dim">${esc(c.notes[0])}</p>` : '');
+    + (c ? `<p class="pres-next__key" lang="id">${esc(c.keyMessage)}</p><p class="pres-dim" lang="id">${esc(c.notes[0])}</p>` : '');
 }
 
 /**
@@ -41,8 +42,8 @@ export function createPresenterView(container, o) {
     <div class="pres__banner"></div>
     <div class="pres__grid">
       <div class="pres__main">
-        <h3>${T.keyMessage}</h3><p class="pres__key" data-v="key"></p>
-        <h3>${T.notes}</h3><div class="pres__notes" data-v="notes"></div>
+        <h3>${T.keyMessage}</h3><p class="pres__key" data-v="key" lang="id"></p>
+        <h3>${T.notes}</h3><div class="pres__notes" data-v="notes" lang="id"></div>
       </div>
       <div class="pres__side">
         <h3>${T.timer}</h3>

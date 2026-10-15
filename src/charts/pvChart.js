@@ -14,8 +14,8 @@ const C_GASX = 'rgba(120,170,230,0.75)';
 const C_FILL = 'rgba(255,154,60,0.16)';
 
 /** @param {HTMLElement} container */
-export function createPVChart(container, { modelLevel = 'semiEmpirical' } = {}) {
-  const base = createChartBase(container, { title: S.title, modelLevel });
+export function createPVChart(container, { modelLevel = 'semiEmpirical', basis = null } = {}) {
+  const base = createChartBase(container, { title: S.title, modelLevel, basis });
   let log = false;
   let curve = null, engine = null, yMax = 0;
   let sx = null, sy = null;

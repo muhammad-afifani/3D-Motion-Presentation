@@ -25,8 +25,8 @@ function wrap(ctx, text, w) {
 }
 
 /** @param {HTMLElement} container */
-export function createWaterfall(container, { title = STR.charts.waterfall.title } = {}) {
-  const base = createChartBase(container, { title, modelLevel: 'semiEmpirical', pad: { l: 52, r: 16, t: 50, b: 46 } });
+export function createWaterfall(container, { title = STR.charts.waterfall.title, basis = null } = {}) {
+  const base = createChartBase(container, { title, modelLevel: 'semiEmpirical', basis, pad: { l: 52, r: 16, t: 50, b: 46 } });
   let steps = null, t0 = performance.now(), lastSteps = null;
 
   function draw(now) {
@@ -89,10 +89,10 @@ export function createWaterfall(container, { title = STR.charts.waterfall.title 
   }
 
   return {
-    /** @param {{label:string, eta:number, delta:number}[]|null} s @param {{title?:string, level?:'ideal'|'real'|'semiEmpirical'|'siteData', caption?:string}} [o] */
+    /** @param {{label:string, eta:number, delta:number}[]|null} s @param {{title?:string, level?:'ideal'|'real'|'semiEmpirical'|'siteData', basis?:string, caption?:string}} [o] */
     setData(s, o = {}) {
       if (o.title) base.setTitle(o.title);
-      if (o.level) base.setLevel(o.level);
+      if (o.level) base.setLevel(o.level, o.basis);
       if (o.caption != null) base.setCaption(o.caption);
       if (s === lastSteps) return;
       const changedShape = !steps || !s || s.length !== steps.length || s[0]?.label !== steps[0]?.label;

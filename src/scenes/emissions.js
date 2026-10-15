@@ -139,9 +139,9 @@ export function createScene(ctx) {
     mount() {
       buildDom();
       buildControls();
-      co2Chart = createBarChart(q('.pl-emis'), { title: S.charts.co2.title, xLabel: S.charts.co2.xLabel, unit: U.gkWh, digits: 0, labelWidth: 230, indicative: true, padTop: 64 });
-      noxChart = createBarChart(q('.emis-aux__chart'), { title: S.charts.nox.title, xLabel: S.charts.nox.xLabel, unit: U.gkWh, digits: 2, labelWidth: 230, indicative: true });
-      hud = createHud(q('.scene__hud'), hudItems(), { level: C.level.semiEmpirical, note: H.note });
+      co2Chart = createBarChart(q('.pl-emis'), { basis: 'emissions', title: S.charts.co2.title, xLabel: S.charts.co2.xLabel, unit: U.gkWh, digits: 0, labelWidth: 230, indicative: true, padTop: 64 });
+      noxChart = createBarChart(q('.emis-aux__chart'), { basis: 'emissions', title: S.charts.nox.title, xLabel: S.charts.nox.xLabel, unit: U.gkWh, digits: 2, labelWidth: 230, indicative: true });
+      hud = createHud(q('.scene__hud'), hudItems(), { level: C.level.semiEmpirical, basis: 'emissions', note: H.note });
       try {
         gfx = createRenderer(q('.view3d'), { camPos: [0.3, 2.6, 8.6], target: [0, 1.3, 0] });
         gfx.controls.maxDistance = 14;

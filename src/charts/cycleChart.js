@@ -26,11 +26,11 @@ export const stateInfo = (st) => S.stateInfo(st.label, st.noteKey ? STR.scene2.r
 /**
  * @param {HTMLElement} container
  * @param {'pv'|'ts'} which
- * @param {{onHover?: (idx:number|null) => void}} [opts]
+ * @param {{onHover?: (idx:number|null) => void, basis?: string}} [opts] basis = kelompok Basis awal (frame `basis` menggantinya)
  */
-export function createCycleChart(container, which, { onHover } = {}) {
+export function createCycleChart(container, which, { onHover, basis = null } = {}) {
   const ax = AXES[which];
-  const base = createChartBase(container, { title: ax.title, modelLevel: 'ideal', pad: { l: 58, r: 18, t: 58, b: 40 } });
+  const base = createChartBase(container, { title: ax.title, modelLevel: 'ideal', basis, pad: { l: 58, r: 18, t: 58, b: 40 } });
   const tip = document.createElement('div');
   tip.className = 'chart__tip num';
   tip.hidden = true;
@@ -135,7 +135,7 @@ export function createCycleChart(container, which, { onHover } = {}) {
       if (key !== lastKey || f.ghost !== data?.ghost || base.dirty) {
         lastKey = key;
         data = { procs: f.procs, ghost: f.ghost, states: f.states };
-        base.setLevel(f.modelLevel);
+        base.setLevel(f.modelLevel, f.basis);
         if (hover != null && hover >= f.states.length) hover = null;
         drawStatic();
         showTip(hover);
