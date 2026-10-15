@@ -49,9 +49,8 @@ export const BASIS = Object.freeze({
   R_UNIV: e('Ideal', ['nist-webbook'], 'Universal gas constant.', []),
   GWP_CH4: e('Real', ['ipcc-ar6-wg1-ch7'], '100-year global warming potential of fossil methane (Table 7.15).', ['100-year horizon only; a 20-year view gives a much larger weight to methane.']),
   MW: e('Ideal', ['nist-webbook'], 'Molar masses of the species used in mass and ppm conversions.', []),
-  FUELS: e('Real', ['iso-6976', 'nist-webbook'], 'Per-fuel LHV, stoichiometric air/fuel ratio and CO₂ emission factor for an idealised fuel (natural gas ≈ CH₄, diesel ≈ C₁₂H₂₃).',
-    ['Fixed composition; real fuel gas varies, so LHV and the emission factor shift by a few percent.', 'The adiabatic-temperature offset for diesel (dTad) is a rough correction to the methane table.'],
-    ['Source of the CO₂ emission factors (56.1 and 74.1 g/MJ): not in the reference list.']),
+  FUELS: e('Real', ['iso-6976', 'nist-webbook', 'ipcc-2006-vol2-ch2'], 'Per-fuel LHV, stoichiometric air/fuel ratio and CO₂ emission factor for an idealised fuel (natural gas ≈ CH₄, diesel ≈ C₁₂H₂₃).',
+    ['Fixed composition; real fuel gas varies, so LHV and the emission factor shift by a few percent.', 'The adiabatic-temperature offset for diesel (dTad) is a rough correction to the methane table.', 'CO₂ emission factors 56.1 and 74.1 g/MJ (LHV) are IPCC 2006 default values.']),
 
   // ───────────────────────────── numerical helpers with physics content ─────────────────────────────
   calibrateTo: e('Site data', [], 'Scale factor c so that a model output reaches a target value (c = target / model(1)).',
@@ -70,7 +69,7 @@ export const BASIS = Object.freeze({
   // ───────────────────────────── real gas-turbine cycles ─────────────────────────────
   braytonReal: e('Real', ['saravanamuttoo', 'boyce'], 'Brayton cycle with compressor and turbine isentropic efficiencies, combustor pressure loss and mechanical loss.',
     ['Constant cp and k on the air side and on the hot-gas side.', 'Fuel mass flow is not added to the turbine flow; no cooling-air bleed, no inlet/exhaust losses.', 'Heat added is cpg·(T3 − T2), a mixed-property simplification.']),
-  pressureAtAltitude: e('Ideal', [], 'International-standard-atmosphere pressure at altitude h in the troposphere.', ['Standard atmosphere; no weather variation.'], ['ISA formula: source not in the reference list.']),
+  pressureAtAltitude: e('Ideal', ['iso-2533'], 'International-standard-atmosphere pressure at altitude h in the troposphere.', ['Standard atmosphere; no weather variation.']),
   braytonDerated: e('Real', ['saravanamuttoo', 'boyce'], 'Re-runs braytonReal at the site ambient temperature and pressure; mass flow scales with air density (∝ P/T).',
     ['Mass flow follows density at constant volumetric flow; a corrected-flow (∝ P/√T) scaling would give a different slope.', 'Turbine inlet temperature T3 is held constant (no control limit).']),
   singleShaftLoad: e('Real', ['saravanamuttoo'], 'Part-load of a single-shaft machine at constant speed: first close the IGV to cut air flow with T3 held, then lower T3 once the IGV reaches its minimum.',
@@ -99,8 +98,8 @@ export const BASIS = Object.freeze({
   engineGeometry: e('Ideal', ['heywood'], 'Crank-slider kinematics: piston position and cylinder volume V(θ) from bore, stroke, rod length and compression ratio.', ['Rigid parts; no crevice volume.']),
   wiebe: e('Semi-empirical', ['ghojel-2010', 'heywood'], 'Wiebe function: burned mass fraction x = 1 − exp(−a·((θ − θ0)/Δθ)^(m+1)) with a = 6.908 (99.9 % burned).',
     ['Burn start, duration and shape factor are inputs, not predicted from fuel injection or flame speed.']),
-  chenFlynnFMEP: e('Semi-empirical', ['heywood'], 'Friction mean effective pressure from a fit in peak cylinder pressure and mean piston speed.',
-    ['Empirical fit made for specific engine families; indicative for other engines.'], ['Primary paper for the Chen–Flynn coefficients: not in the reference list.']),
+  chenFlynnFMEP: e('Semi-empirical', ['chen-flynn-1965', 'heywood'], 'Friction mean effective pressure from a fit in peak cylinder pressure and mean piston speed.',
+    ['Empirical fit made for specific engine families; indicative for other engines.']),
   ENGINE_NOX_CALIB: e('Site data', [], 'Engine NOx calibration factor (0.17): scales the Zeldovich rate so that the presets land near typical literature NOx levels.',
     ['Calibrated to typical literature values, not site data.', 'A factor other than the default is shown on the HUD.']),
   ENGINE_PRESETS: e('Semi-empirical', ['heywood'], 'Typical large-bore diesel and lean-burn gas engine parameter sets (geometry, boost, burn timing).',
@@ -155,8 +154,8 @@ export const BASIS = Object.freeze({
   // ───────────────────────────── CO₂, GHG, policy ─────────────────────────────
   qinPerKgAir: e('Ideal', ['turns'], 'Heat released per kg of air: q = φ·LHV·ηcomb / AFRst.', ['Complete energy balance; fixed AFRst and LHV.']),
   phiFromQinPerKgAir: e('Ideal', ['turns'], 'Inverse of qinPerKgAir: equivalence ratio for a given heat per kg air.', []),
-  co2Specific: e('Real', [], 'Specific CO₂ = emission factor × 3.6 / η (g/kWh).', ['Emission factor per MJ of fuel (LHV); complete oxidation of carbon.'], ['Source of the CO₂ emission factors (56.1 and 74.1 g/MJ): not in the reference list.']),
-  co2MassRate: e('Real', [], 'CO₂ mass flow from the fuel mass flow, LHV and emission factor.', ['Same factors as co2Specific.'], ['Source of the CO₂ emission factors: not in the reference list.']),
+  co2Specific: e('Real', ['ipcc-2006-vol2-ch2'], 'Specific CO₂ = emission factor × 3.6 / η (g/kWh).', ['Emission factor per MJ of fuel (LHV); complete oxidation of carbon.']),
+  co2MassRate: e('Real', ['ipcc-2006-vol2-ch2'], 'CO₂ mass flow from the fuel mass flow, LHV and emission factor.', ['Same factors as co2Specific.']),
   fuelPerKWh: e('Ideal', [], 'Fuel mass per kWh = 3600 / (η·LHV).', []),
   co2eWithSlip: e('Real', ['ipcc-ar6-wg1-ch7'], 'CO₂e = CO₂ + GWP·CH₄ slip, with slip as a fraction of the fuel gas.', ['100-year GWP of fossil methane (29.8).', 'Slip fraction is an input, not a prediction.']),
   ghgPenalty: e('Real', [], 'Efficiency and CO₂ change when a NOx measure costs extra fuel: η₂ = η / (1 + penalty).', ['Penalty is an input; the fuel effect is applied directly to efficiency.']),
