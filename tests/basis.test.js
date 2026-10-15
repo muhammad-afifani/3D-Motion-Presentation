@@ -70,9 +70,22 @@ describe('basis.js: isi entri', () => {
     expect(a).not.toMatch(/explod/i);
   });
   it('sumber yang belum ada di references.json tercatat sebagai toVerify (bukan dikarang)', () => {
-    expect(needsVerification('chenFlynnFMEP')).toBe(true);
-    expect(needsVerification('co2Specific')).toBe(true);
+    expect(needsVerification('exhaustFlowNm3h')).toBe(true);
+    expect(needsVerification('cvOfT')).toBe(true);
     expect(needsVerification('otto')).toBe(false);
+  });
+  it('asumsi derating: massa aliran ∝ P/T (debit volume tetap, putaran tetap); P/√T untuk kecepatan terkoreksi tetap', () => {
+    for (const k of ['braytonDerated', 'twinShaftCycle']) {
+      const a = BASIS[k].assumptions.join(' ');
+      expect(a, k).toMatch(/Mass flow ∝ P\/T: constant volumetric flow at constant/);
+      expect(a, k).toMatch(/P\/√T scaling applies instead at constant corrected speed/);
+    }
+  });
+  it('sumber yang ditambahkan (IPCC 2006, ISO 2533, Chen–Flynn 1965) tersambung dan penanda toVerify-nya dihapus', () => {
+    for (const [k, id] of [['FUELS', 'ipcc-2006-vol2-ch2'], ['co2Specific', 'ipcc-2006-vol2-ch2'], ['co2MassRate', 'ipcc-2006-vol2-ch2'], ['pressureAtAltitude', 'iso-2533'], ['chenFlynnFMEP', 'chen-flynn-1965']]) {
+      expect(BASIS[k].refs, k).toContain(id);
+      expect(needsVerification(k), k).toBe(false);
+    }
   });
 });
 
@@ -91,9 +104,13 @@ describe('content/references.json', () => {
     expect(codes({ version: 2, references: [r] })).toContain('version');
     expect(codes(null)).toEqual(['notObject']);
   });
-  it('id konsisten dengan seed (tidak ada sumber yang ditambah di luar daftar seed)', () => {
+  it('semua id seed tetap ada; tambahan di luar seed hanya yang disetujui, dan semuanya locatorVerified:false', () => {
     const seed = JSON.parse(readFileSync(join(ROOT, 'docs/m9_pack/seeds/references.seed.json'), 'utf8'));
-    expect(refsJson.references.map((r) => r.id)).toEqual(seed.references.map((r) => r.id));
+    const ids = refsJson.references.map((r) => r.id);
+    expect(ids.slice(0, seed.references.length)).toEqual(seed.references.map((r) => r.id));
+    const extra = refsJson.references.slice(seed.references.length);
+    expect(extra.map((r) => r.id)).toEqual(['ipcc-2006-vol2-ch2', 'iso-2533', 'chen-flynn-1965']);
+    expect(extra.every((r) => r.locatorVerified === false)).toBe(true);
   });
   it('dimuat lewat loader: fallback bawaan sama dengan file; JSON rusak → fallback + galat', async () => {
     expect(CONTENT_FILES.references).toBe('references.json');

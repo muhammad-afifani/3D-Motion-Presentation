@@ -31,6 +31,7 @@ export const UTILITY = Object.freeze({
   crankAngleAt: 'Crank angle at time t for the animation clock.',
   pvLoop: 'Closes the P-V loop of a simulation for plotting.',
   selfTest: 'Golden-value self-test behind the "Model OK" badge.',
+  complianceStatus: 'Compares a value with a limit on the same basis: within when value ≤ limit, above otherwise, not modeled when either is missing.',
 });
 
 const e = (level, refs, derivation, assumptions = [], toVerify = []) => Object.freeze({ level, refs: Object.freeze(refs), derivation, assumptions: Object.freeze(assumptions), toVerify: Object.freeze(toVerify) });
@@ -49,9 +50,8 @@ export const BASIS = Object.freeze({
   R_UNIV: e('Ideal', ['nist-webbook'], 'Universal gas constant.', []),
   GWP_CH4: e('Real', ['ipcc-ar6-wg1-ch7'], '100-year global warming potential of fossil methane (Table 7.15).', ['100-year horizon only; a 20-year view gives a much larger weight to methane.']),
   MW: e('Ideal', ['nist-webbook'], 'Molar masses of the species used in mass and ppm conversions.', []),
-  FUELS: e('Real', ['iso-6976', 'nist-webbook'], 'Per-fuel LHV, stoichiometric air/fuel ratio and CO₂ emission factor for an idealised fuel (natural gas ≈ CH₄, diesel ≈ C₁₂H₂₃).',
-    ['Fixed composition; real fuel gas varies, so LHV and the emission factor shift by a few percent.', 'The adiabatic-temperature offset for diesel (dTad) is a rough correction to the methane table.'],
-    ['Source of the CO₂ emission factors (56.1 and 74.1 g/MJ): not in the reference list.']),
+  FUELS: e('Real', ['iso-6976', 'nist-webbook', 'ipcc-2006-vol2-ch2'], 'Per-fuel LHV, stoichiometric air/fuel ratio and CO₂ emission factor for an idealised fuel (natural gas ≈ CH₄, diesel ≈ C₁₂H₂₃).',
+    ['Fixed composition; real fuel gas varies, so LHV and the emission factor shift by a few percent.', 'The adiabatic-temperature offset for diesel (dTad) is a rough correction to the methane table.', 'CO₂ emission factors 56.1 and 74.1 g/MJ (LHV) are IPCC 2006 default values.']),
 
   // ───────────────────────────── numerical helpers with physics content ─────────────────────────────
   calibrateTo: e('Site data', [], 'Scale factor c so that a model output reaches a target value (c = target / model(1)).',
@@ -70,9 +70,9 @@ export const BASIS = Object.freeze({
   // ───────────────────────────── real gas-turbine cycles ─────────────────────────────
   braytonReal: e('Real', ['saravanamuttoo', 'boyce'], 'Brayton cycle with compressor and turbine isentropic efficiencies, combustor pressure loss and mechanical loss.',
     ['Constant cp and k on the air side and on the hot-gas side.', 'Fuel mass flow is not added to the turbine flow; no cooling-air bleed, no inlet/exhaust losses.', 'Heat added is cpg·(T3 − T2), a mixed-property simplification.']),
-  pressureAtAltitude: e('Ideal', [], 'International-standard-atmosphere pressure at altitude h in the troposphere.', ['Standard atmosphere; no weather variation.'], ['ISA formula: source not in the reference list.']),
+  pressureAtAltitude: e('Ideal', ['iso-2533'], 'International-standard-atmosphere pressure at altitude h in the troposphere.', ['Standard atmosphere; no weather variation.']),
   braytonDerated: e('Real', ['saravanamuttoo', 'boyce'], 'Re-runs braytonReal at the site ambient temperature and pressure; mass flow scales with air density (∝ P/T).',
-    ['Mass flow follows density at constant volumetric flow; a corrected-flow (∝ P/√T) scaling would give a different slope.', 'Turbine inlet temperature T3 is held constant (no control limit).']),
+    ['Mass flow ∝ P/T: constant volumetric flow at constant shaft speed, so mass flow follows air density. A P/√T scaling applies instead at constant corrected speed (N/√T), which this model does not use.', 'Turbine inlet temperature T3 is held constant (no control limit).']),
   singleShaftLoad: e('Real', ['saravanamuttoo'], 'Part-load of a single-shaft machine at constant speed: first close the IGV to cut air flow with T3 held, then lower T3 once the IGV reaches its minimum.',
     ['Fixed IGV minimum; compressor and turbine efficiencies are held constant off-design (no component map).']),
   twinShaft: e('Real', ['saravanamuttoo', 'boyce'], 'Gas generator plus free power turbine: the gas-generator turbine only drives the compressor, the rest expands in the power turbine.',
@@ -84,7 +84,7 @@ export const BASIS = Object.freeze({
   turbineStages: e('Real', ['saravanamuttoo'], 'Per-stage temperature of the turbine for the 3D colouring: equal expansion-ratio steps through the cycle expansion formula.',
     ['Equal stage expansion ratios; drawing aid whose last stage equals the cycle outlet temperature.']),
   twinShaftCycle: e('Real', ['saravanamuttoo', 'boyce'], 'Twin-shaft cycle states 1, 2, 3, 4.5, 5 with ambient derating (air density ∝ P/T at fixed Ngg).',
-    ['Same limits as twinShaft; the derating uses the density scaling, as in braytonDerated.']),
+    ['Same limits as twinShaft.', 'Mass flow ∝ P/T: constant volumetric flow at constant gas-generator speed (fixed Ngg), so mass flow follows air density. A P/√T scaling applies instead at constant corrected speed (N/√T), which this model does not use.']),
 
   // ───────────────────────────── gas compressor ─────────────────────────────
   gasCompressor: e('Real', ['dixon-hall', 'api-617'], 'Polytropic head H = (Z·R·T1 / m)·(rp^m − 1) with m = (k − 1) / (k·ηp); shaft power = ṁ·H / ηp.',
@@ -99,8 +99,8 @@ export const BASIS = Object.freeze({
   engineGeometry: e('Ideal', ['heywood'], 'Crank-slider kinematics: piston position and cylinder volume V(θ) from bore, stroke, rod length and compression ratio.', ['Rigid parts; no crevice volume.']),
   wiebe: e('Semi-empirical', ['ghojel-2010', 'heywood'], 'Wiebe function: burned mass fraction x = 1 − exp(−a·((θ − θ0)/Δθ)^(m+1)) with a = 6.908 (99.9 % burned).',
     ['Burn start, duration and shape factor are inputs, not predicted from fuel injection or flame speed.']),
-  chenFlynnFMEP: e('Semi-empirical', ['heywood'], 'Friction mean effective pressure from a fit in peak cylinder pressure and mean piston speed.',
-    ['Empirical fit made for specific engine families; indicative for other engines.'], ['Primary paper for the Chen–Flynn coefficients: not in the reference list.']),
+  chenFlynnFMEP: e('Semi-empirical', ['chen-flynn-1965', 'heywood'], 'Friction mean effective pressure from a fit in peak cylinder pressure and mean piston speed.',
+    ['Empirical fit made for specific engine families; indicative for other engines.']),
   ENGINE_NOX_CALIB: e('Site data', [], 'Engine NOx calibration factor (0.17): scales the Zeldovich rate so that the presets land near typical literature NOx levels.',
     ['Calibrated to typical literature values, not site data.', 'A factor other than the default is shown on the HUD.']),
   ENGINE_PRESETS: e('Semi-empirical', ['heywood'], 'Typical large-bore diesel and lean-burn gas engine parameter sets (geometry, boost, burn timing).',
@@ -139,9 +139,17 @@ export const BASIS = Object.freeze({
 
   // ───────────────────────────── concentration, basis, mass emission ─────────────────────────────
   toDryRef: e('Ideal', ['epa-method-19', 'epa-method-3a'], 'Wet mole fraction to dry ppm at a reference O₂: divide by (1 − xH₂O), then multiply by (20.9 − O₂ref)/(20.9 − O₂dry).',
-    ['Uses 20.9 % for O₂ in air; some regulations write 21 %. The difference is small but should match the rule you cite.'], ['Check the O₂ constant (20.9 vs 21) against the regulation annex.']),
-  correctToRefO2: e('Ideal', ['epa-method-19', 'epa-method-3a', 'iso-11042'], 'Reference-O₂ correction C·(20.9 − O₂ref)/(20.9 − O₂meas) on a dry basis.',
-    ['Uses 20.9 % for O₂ in air; some regulations write 21 %.'], ['Check the O₂ constant (20.9 vs 21) against the regulation annex.']),
+    ['Display and model path: 20.9 % for O₂ in dry air (EPA Method 19 convention).', 'Comparisons with a limit never use this path; they use the regulation correction with 21 %.']),
+  correctToRefO2: e('Ideal', ['epa-method-19', 'epa-method-3a', 'iso-11042'], 'Reference-O₂ correction C·(20.9 − O₂ref)/(20.9 − O₂meas) on a dry basis (display path).',
+    ['Display path only: 20.9 % for O₂ in dry air.', 'Gives the same result as the regulation correction (21 %) when measured O₂ equals the reference O₂; differs otherwise.', 'Comparisons with a limit never use this path.']),
+  O2_AIR_REG: e('Ideal', ['permen-lhk-11-2021'], 'Ambient O₂ term (21 %) in the O₂ correction formula of the regulation annex.', ['Read from the annex text, whose PDF extraction was poor.'], ['Confirm the 21 % term against the official regulation text.']),
+  correctToRefO2Reg: e('Ideal', ['permen-lhk-11-2021'], 'Regulation O₂ correction: C_ref = C_meas·(21 − O₂ref)/(21 − O₂meas) on a dry basis.',
+    ['The only O₂ correction used for comparisons with a limit (Within / Above chips).', 'Same result as the display path (20.9) when measured O₂ equals the reference O₂.'], ['Confirm the 21 % term against the official regulation text.']),
+  molarVolumeReg: e('Ideal', ['nist-webbook'], 'Ideal-gas molar volume V = R·T/P: 22.414 L/mol at 0 °C and 24.465 L/mol at 25 °C, 1 atm.', ['Ideal gas.']),
+  ppmToMgNm3Reg: e('Ideal', ['permen-lh-13-2009', 'permen-lhk-11-2021'], 'ppm to mg/Nm³ at the regulation volume basis (dry, 25 °C, 1 atm): mg = ppm·M / V.', ['NOx expressed as NO₂ (M = 46.005).', 'The regulation basis comes from the footnotes of the regulation text; confirm it.']),
+  mgNm3ToPpmReg: e('Ideal', ['permen-lh-13-2009', 'permen-lhk-11-2021'], 'Inverse of ppmToMgNm3Reg: a mg/Nm³ limit as ppm at the regulation basis.', ['NOx expressed as NO₂.']),
+  toRegulationBasis: e('Ideal', ['permen-lh-13-2009', 'permen-lhk-11-2021'], 'Model or site value moved to the regulation basis: O₂ correction with 21 %, then mg/Nm³ at the regulation volume basis.',
+    ['Basis values (reference O₂, temperature) are read from content/regulations.json, not from code.']),
   molarVolume: e('Ideal', ['nist-webbook'], 'Molar volume of an ideal gas at 1 atm: 22.414 m³/kmol at 0 °C, scaled linearly with temperature.', ['Ideal gas at 1 atm.']),
   ppmToMgNm3: e('Ideal', ['epa-method-19'], 'ppm to mg/Nm³ with the species molar mass and the molar volume at the chosen volume basis.', ['Dry basis; the volume basis (0 °C or 25 °C) must match the limit being compared.']),
   mgNm3ToPpm: e('Ideal', ['epa-method-19'], 'Inverse of ppmToMgNm3.', ['Dry basis; the volume basis must match.']),
@@ -155,8 +163,8 @@ export const BASIS = Object.freeze({
   // ───────────────────────────── CO₂, GHG, policy ─────────────────────────────
   qinPerKgAir: e('Ideal', ['turns'], 'Heat released per kg of air: q = φ·LHV·ηcomb / AFRst.', ['Complete energy balance; fixed AFRst and LHV.']),
   phiFromQinPerKgAir: e('Ideal', ['turns'], 'Inverse of qinPerKgAir: equivalence ratio for a given heat per kg air.', []),
-  co2Specific: e('Real', [], 'Specific CO₂ = emission factor × 3.6 / η (g/kWh).', ['Emission factor per MJ of fuel (LHV); complete oxidation of carbon.'], ['Source of the CO₂ emission factors (56.1 and 74.1 g/MJ): not in the reference list.']),
-  co2MassRate: e('Real', [], 'CO₂ mass flow from the fuel mass flow, LHV and emission factor.', ['Same factors as co2Specific.'], ['Source of the CO₂ emission factors: not in the reference list.']),
+  co2Specific: e('Real', ['ipcc-2006-vol2-ch2'], 'Specific CO₂ = emission factor × 3.6 / η (g/kWh).', ['Emission factor per MJ of fuel (LHV); complete oxidation of carbon.']),
+  co2MassRate: e('Real', ['ipcc-2006-vol2-ch2'], 'CO₂ mass flow from the fuel mass flow, LHV and emission factor.', ['Same factors as co2Specific.']),
   fuelPerKWh: e('Ideal', [], 'Fuel mass per kWh = 3600 / (η·LHV).', []),
   co2eWithSlip: e('Real', ['ipcc-ar6-wg1-ch7'], 'CO₂e = CO₂ + GWP·CH₄ slip, with slip as a fraction of the fuel gas.', ['100-year GWP of fossil methane (29.8).', 'Slip fraction is an input, not a prediction.']),
   ghgPenalty: e('Real', [], 'Efficiency and CO₂ change when a NOx measure costs extra fuel: η₂ = η / (1 + penalty).', ['Penalty is an input; the fuel effect is applied directly to efficiency.']),

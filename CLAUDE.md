@@ -7,6 +7,7 @@ Presentasi web 3D interaktif untuk staf produksi migas: diesel engine, gas engin
 - `docs/ALUR_SLIDE_presentasi.md`: alur presentasi dan angka demo per scene
 - `src/model/thermo.js`: satu-satunya sumber perhitungan
 - `src/model/basis.js` + `content/references.json`: dasar teori tiap fungsi `thermo.js` dan daftar sumber (lihat Aturan referensi)
+- `content/regulations.json`: baku mutu (Permen LH 13/2009 turbin gas, Permen LHK 11/2021 mesin), basis, catatan; halaman Regulations (tombol `G`, alamat `#/regulations`)
 
 ## Stack
 Vite + JavaScript ES modules (JSDoc untuk tipe), three.js, vitest. Tanpa backend dan tanpa API eksternal saat runtime. Harus jalan offline lewat `npm run build:offline` + server statis lokal (mis. `npm run preview:offline`; lihat README "Cara presentasi offline"; `file://` tidak didukung karena ES module/Web Worker), dan ter-deploy ke GitHub Pages lewat `.github/workflows/deploy.yml` (`npm run build`, base `/<nama-repo>/`). Semua model 3D prosedural (tanpa file aset berhak cipta). Grafik 2D memakai canvas buatan sendiri atau uPlot.
@@ -34,7 +35,8 @@ Alur data satu arah: `UI control → store.set → derive() → frame → { rig 
 - Level NOx absolut dikalibrasi ke nilai tipikal literatur, bukan data unit. Jangan menyajikannya sebagai prediksi vendor atau data lapangan.
 - Model part-load memakai fuel split premix tetap. Jangan menampilkan klaim "CO meledak di twin-shaft". Kalimat yang didukung model: jendela operasi twin-shaft bergeser dan menyempit. Single-shaft menunjukkan "tebing" CO setelah IGV habis.
 - Selalu tampilkan basis koreksi O₂ (mis. 15%) dan basis volume (0 °C / 25 °C) di samping angka ppm atau mg/Nm³.
-- Angka baku mutu **diisi presenter lewat input**, tidak ditulis di kode.
+- Limits live in `content/regulations.json` and are never written in code. Values are transcribed from the published tables and carry a `verified` flag. (Pemilik proyek yang mengubah `verified` menjadi `true` per grup setelah dicek ke teks resmi; selama `false`, banner "Transcribed from the published tables…" tampil di halaman Regulations, Scene 6, dan Scene 9.)
+- Perbandingan ke limit (chip `Within` / `Above` / `Not modeled`, jendela operasi) **hanya** lewat jalur regulasi di `thermo.js`: `correctToRefO2Reg` (konstanta 21) dan konversi volume pada basis grup (`toRegulationBasis`, 25 °C). Jalur tampilan (`correctToRefO2`, 20,9) tidak dipakai untuk membandingkan. Chip tidak pernah menyatakan "compliant"/"lulus": teksnya "Model value vs limit (indicative)". Override presenter ditandai "limit: user override"; CO turbin hanya dari isian "permit/OEM value (user input)" (tabel turbin tidak punya limit CO). Site data diutamakan dan ditandai.
 - Tidak menyebut vendor, merek, atau tipe turbin tertentu.
 - Tingkat model berlabel di pojok tiap grafik lewat tag **Basis** (`Basis · <level>`): `Ideal` / `Real (component efficiency)` / `Semi-empirical` / `Site data`. Klik tag membuka kartu Basis (level, asal rumus, sumber, asumsi). Tag juga ada di HUD yang menampilkan angka model.
 
@@ -55,6 +57,7 @@ Alur data satu arah: `UI control → store.set → derive() → frame → { rig 
   - Gaya: kalimat pendek, angka dan satuan di depan, tanpa kata hiasan, bentuk aktif, jangan menjelaskan yang sudah terlihat. Tanpa nama fungsi/konstanta kode di caption, tooltip, atau HUD.
   - Kalimat kejujuran model tidak boleh berubah makna: korelasi emisi berlabel "indicative"; twin-shaft = jendela operasi bergeser dan menyempit; single-shaft = "cliff" CO setelah IGV habis; basis O₂ dan volume selalu di samping angka ppm / mg/Nm³.
   - Semua teks UI ada di `src/ui/strings.js` (dikelompokkan per scene). `scenes/`, `charts/`, `ui/`, `main.js`, dan `state/derive*.js` tidak menulis teks UI langsung (dijaga `tests/strings.test.js`). `tests/language.test.js` gagal bila kata Indonesia tertinggal di `strings.js`, `content/controls.json`, `closing.json`, `basis.js`, atau `references.json`, atau bila identifier kode muncul di teks layar di luar panel `H`.
+- Tombol cepat global (H, ?, G, P, S, Q, B, K, F, R, angka) tidak aktif saat fokus di kolom isian (`ui/keys.js` `isTypingTarget`; dijaga `tests/keys.test.js`).
 - Dispose geometri, material, dan listener saat pindah scene. `InstancedMesh` untuk bilah dan partikel.
 - `cylinderSim` berjalan di Web Worker, dengan debounce saat slider digeser.
 
@@ -83,7 +86,8 @@ Alur data satu arah: `UI control → store.set → derive() → frame → { rig 
 - [ ] M9 Perbaikan dan kedalaman (pack `docs/m9_pack/`, satu Step per permintaan)
   - [x] Step 01 Perbaikan Scene 7 dan Scene 9 (smoke test tampilan `npm run e2e:smoke`)
   - [x] Step 02 Bahasa English + gaya, format en-US, `content/references.json`, `basis.js`, tag Basis, halaman References
-  - [ ] Step 03–06 (data regulasi, model bahan bakar dan tuas, redesain Scene 9, mode Explore)
+  - [x] Step 03 Data regulasi: `content/regulations.json`, jalur regulasi (O₂ 21, 25 °C) + `complianceStatus`, pemilih equipment/kelas/bahan bakar, chip Scene 6 dan 9, site data, Permit/OEM CO, halaman Regulations (`G`)
+  - [ ] Step 04–06 (model bahan bakar dan tuas, redesain Scene 9, mode Explore)
 
 ## Golden test acuan (ringkas; tabel lengkap di `docs/PROMPT_simulasi_3D.md` bagian 12)
 Otto r=10 η 0,602 · Diesel r=18 rc=2 η 0,632 · Brayton ideal rp=15 η 0,539 · Brayton real η 0,378 · CO₂ gas η=0,35 → 577 g/kWh · preset diesel Pmax ≈ 116 bar, η rem 0,441 · preset gas Pmax ≈ 109 bar, η rem 0,423.

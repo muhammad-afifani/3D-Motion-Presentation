@@ -76,6 +76,12 @@
       "use": "Gas turbine emission limits (Lampiran I, 1.b); reference O2 and volume basis.", "locator": "Lampiran I", "locatorVerified": false },
     { "id": "permen-lhk-11-2021", "type": "regulation", "cite": "Peraturan Menteri Lingkungan Hidup dan Kehutanan No. 11 Tahun 2021 tentang Baku Mutu Emisi Mesin dengan Pembakaran Dalam (Genset).",
       "url": "https://peraturan.bpk.go.id/Download/288580/Permen%20LHK%20Nomor%2011%20Tahun%202021.pdf",
-      "use": "Diesel and gas engine emission limits by capacity; reference O2 and volume basis; O2 correction formula (annex).", "locator": "Lampiran I, Lampiran V", "locatorVerified": false }
+      "use": "Diesel and gas engine emission limits by capacity; reference O2 and volume basis; O2 correction formula (annex).", "locator": "Lampiran I, Lampiran V", "locatorVerified": false },
+    { "id": "ipcc-2006-vol2-ch2", "type": "report", "cite": "IPCC (2006). 2006 IPCC Guidelines for National Greenhouse Gas Inventories, Volume 2: Energy, Chapter 2: Stationary Combustion. IGES, Japan.",
+      "use": "Default CO2 emission factors per unit of fuel energy (natural gas, diesel oil), used for specific CO2 in g/kWh.", "locator": "Vol. 2, Ch. 2, default emission factor tables", "locatorVerified": false },
+    { "id": "iso-2533", "type": "standard", "cite": "ISO 2533:1975. Standard Atmosphere. International Organization for Standardization.",
+      "use": "Pressure of the standard atmosphere versus altitude in the troposphere, used for altitude derating.", "locator": "", "locatorVerified": false },
+    { "id": "chen-flynn-1965", "type": "paper", "cite": "Chen, S.K. and Flynn, P.F. (1965). Development of a Single Cylinder Compression Ignition Research Engine. SAE Technical Paper 650733.",
+      "use": "Friction mean effective pressure correlation in peak cylinder pressure and mean piston speed.", "locator": "SAE 650733", "locatorVerified": false }
   ]
 }

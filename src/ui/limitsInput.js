@@ -17,7 +17,7 @@ export function createLimitsInput(container, cb) {
     <span class="ctl__label">${T.title}</span>
     <div class="lim__row">
       <label class="lim__in"><span data-lbl="nox">${T.nox}</span><input type="number" min="0" step="0.5" inputmode="decimal" placeholder="${T.placeholder}" data-lim="nox" /></label>
-      <label class="lim__in"><span data-lbl="co">${T.co}</span><input type="number" min="0" step="1" inputmode="decimal" placeholder="${T.placeholder}" data-lim="co" /></label>
+      <label class="lim__in"><span data-lbl="co">${T.co}</span><input type="number" min="0" step="1" inputmode="decimal" placeholder="${T.placeholderCo}" data-lim="co" /></label>
       <button type="button" class="btn btn--sm" data-clear>${T.clear}</button>
     </div>
     <div class="lim__basis" data-v="basis"></div>`;
