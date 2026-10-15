@@ -95,6 +95,10 @@ Skrip Playwright terpisah (Playwright **bukan** dependensi proyek dan tidak dija
 ```bash
 npm run e2e        # build + uji dispose: siklus scene 1→11→1 ×3; listener, ResizeObserver, Worker,
                    # konteks WebGL, subscriber store kembali ke baseline; renderer menyisakan 0 geometry/texture
+npm run e2e:smoke  # build + smoke test tampilan: tiap scene (dan tiap tab Scene 9) di 1366×768, 1920×1080,
+                   # 1280×720; tiap grafik yang tampil harus berukuran > 0 dan terisi ≥ 1 % piksel, tanpa teks
+                   # meluber dan tanpa galat konsol. Gagal (exit 1) bila ada yang kosong/meluber. Screenshot
+                   # Scene 7 dan 9 disimpan di scripts/e2e/shots/after/ (di-.gitignore, tidak di-commit)
 npm run e2e:perf   # build + tabel per scene: fps, draw calls, triangles, geometries, textures
                    # (E2E_QUALITY=auto|high|low, E2E_SECONDS=4)
 ```

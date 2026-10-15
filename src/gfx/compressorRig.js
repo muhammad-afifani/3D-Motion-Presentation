@@ -2,6 +2,7 @@
  * compressorRig.js — rig prosedural kompresor sentrifugal (Scene 7). Sumbu poros = +X.
  *   impeller : hub (Lathe) + bilah backswept (InstancedMesh), berputar dengan frame.rotor.angle (speed dibutuhkan)
  *   casing   : shroud cutaway (Lathe sebagian) + volute (torus sebagian) + bidang potong berwarna
+ *   discharge: pipa tangensial; posisi, arah, dan jari-jari dari voluteNozzle() (voluteGeometry.js), bukan angka tetap
  *   aliran   : partikel gas (InstancedMesh) inlet → impeller → volute → discharge; warna dari frame.gasRGB
  *   kopling  : poros + flange ke power turbine (tanpa rig turbin; label saja)
  * Hanya membaca frame; gerak partikel murni visual (tanpa thermo.js).
@@ -9,12 +10,16 @@
 import * as THREE from 'three';
 import { createMaterials } from './materials.js';
 import { particleScale } from './quality.js';
+import { VOLUTE, voluteNozzle, pipePoint } from './voluteGeometry.js';
 
 const CUT0 = 0.55 * Math.PI, CUT_LEN = 1.45 * Math.PI;  // jendela cutaway menghadap kamera (+Z)
 export const N_BLADES = 14;
 export const N_PARTICLES = 220;
 
-/** Titik lintasan partikel u ∈ [0,1): inlet (aksial) → impeller (radial) → volute (keliling) → discharge (+Y). */
+/** Nozzle discharge (satu sumber dengan mesh pipa): lintasan partikel keluar lewat garis tengahnya. */
+const NOZZLE = voluteNozzle();
+
+/** Titik lintasan partikel u ∈ [0,1): inlet (aksial) → impeller (radial) → volute (keliling, θ menurun) → discharge. */
 function pathPoint(u, jitter, out) {
   const [jr, ja, jz] = jitter;
   if (u < 0.3) {                       // pipa inlet, sumbu −X
@@ -23,12 +28,12 @@ function pathPoint(u, jitter, out) {
   } else if (u < 0.45) {               // impeller: belok radial
     const t = (u - 0.3) / 0.15, r = 0.12 + 0.36 * t, a = ja * 6.283 + t * 1.2;
     out.set(-0.2 + 0.2 * t, r * Math.cos(a), r * Math.sin(a));
-  } else if (u < 0.8) {                // volute: mengelilingi
-    const t = (u - 0.45) / 0.35, a = ja * 6.283 + 1.2 + t * 5.2, r = 0.6 + 0.04 * jz;
-    out.set(0.02 + 0.06 * (jz - 0.5), r * Math.cos(a), r * Math.sin(a));
-  } else {                             // discharge: ke atas (+Y) dari volute
-    const t = (u - 0.8) / 0.2;
-    out.set(0.02 + 0.08 * (jz - 0.5), 0.62 + 0.9 * t, 0.62 + 0.08 * (jr - 0.5));
+  } else if (u < 0.8) {                // volute: mengelilingi, berakhir di θ nozzle (aliran θ menurun)
+    const t = (u - 0.45) / 0.35, a = VOLUTE.outletAngle + 5.2 * (1 - t), r = VOLUTE.radius + 0.04 * (jz - 0.5);
+    out.set(VOLUTE.xCenter + 0.06 * (jz - 0.5), r * Math.cos(a), r * Math.sin(a));
+  } else {                             // discharge: sepanjang garis tengah pipa dari nozzle
+    const t = (u - 0.8) / 0.2, c = pipePoint(NOZZLE, t), w = NOZZLE.nozzleRadius * 0.6 * (jr - 0.5);
+    out.set(c[0] + 0.08 * (jz - 0.5) + w, c[1], c[2] + 0.08 * (jr - 0.5));
   }
   return out;
 }
@@ -78,15 +83,21 @@ export function createCompressorRig({ particles = N_PARTICLES, random = Math.ran
   shroudGeo.rotateZ(-Math.PI / 2);
   const shroud = new THREE.Mesh(shroudGeo, casingMat);
   shroud.renderOrder = 5;
-  const voluteGeo = G(new THREE.TorusGeometry(0.62, 0.12, 16, 64, CUT_LEN));
+  const voluteGeo = G(new THREE.TorusGeometry(VOLUTE.radius, VOLUTE.tube, 16, 64, CUT_LEN));
   voluteGeo.rotateY(Math.PI / 2);
   const volute = new THREE.Mesh(voluteGeo, casingMat);
   volute.rotation.x = CUT0 - Math.PI / 2;
-  volute.position.x = 0.02;
+  volute.position.x = VOLUTE.xCenter;
   volute.renderOrder = 5;
-  const disch = new THREE.Mesh(G(new THREE.CylinderGeometry(0.12, 0.12, 0.9, 24, 1, true)), casingMat);
-  disch.position.set(0.02, 1.07, 0.62);
+  // pipa discharge: dari nozzle volute, tangensial, jari-jari = jari-jari tabung volute (tanpa celah)
+  const Y = new THREE.Vector3(0, 1, 0), nozzleDir = new THREE.Vector3(...NOZZLE.nozzleDir);
+  const disch = new THREE.Mesh(G(new THREE.CylinderGeometry(NOZZLE.nozzleRadius, NOZZLE.nozzleRadius, NOZZLE.pipeLength, 24, 1, true)), casingMat);
+  disch.position.set(...pipePoint(NOZZLE, 0.5));
+  disch.quaternion.setFromUnitVectors(Y, nozzleDir);
   disch.renderOrder = 5;
+  const dischFlange = new THREE.Mesh(G(new THREE.CylinderGeometry(NOZZLE.nozzleRadius * 1.3, NOZZLE.nozzleRadius * 1.3, 0.04, 28)), mat.steelDark);
+  dischFlange.position.set(...NOZZLE.pipeEnd);
+  dischFlange.quaternion.copy(disch.quaternion);
   // bidang potong (cut plane) berwarna di kedua ujung busur volute (koordinat lokal volute setelah rotateY)
   const cutGeo = G(new THREE.CircleGeometry(0.12, 24));
   const zAxis = new THREE.Vector3(0, 0, 1);
@@ -96,7 +107,7 @@ export function createCompressorRig({ particles = N_PARTICLES, random = Math.ran
     c.quaternion.setFromUnitVectors(zAxis, new THREE.Vector3(0, Math.cos(phi), Math.sin(phi)).normalize());
     volute.add(c);
   }
-  root.add(shroud, volute, disch);
+  root.add(shroud, volute, disch, dischFlange);
 
   // ── partikel gas ──
   const pGeo = G(new THREE.SphereGeometry(1, 8, 6));
@@ -112,7 +123,7 @@ export function createCompressorRig({ particles = N_PARTICLES, random = Math.ran
   anchor('impeller', -0.1, 0.62, 0.3);
   anchor('volute', 0.1, -0.4, 0.7);
   anchor('inlet', -1.1, 0.3, 0.2);
-  anchor('discharge', 0.02, 1.55, 0.62);
+  anchor('discharge', NOZZLE.pipeEnd[0], NOZZLE.pipeEnd[1] + 0.12, NOZZLE.pipeEnd[2]);
   anchor('coupling', 1.25, 0.25, 0);
 
   /** Warna pada posisi lintasan (kenaikan suhu terjadi di impeller → volute). */
@@ -126,7 +137,14 @@ export function createCompressorRig({ particles = N_PARTICLES, random = Math.ran
   return {
     group: root,
     anchors,
-    get parts() { return { rotor, blades, particles: pts, P }; },
+    get parts() { return { rotor, blades, particles: pts, P, disch, volute }; },
+    /** Box3 seluruh rakitan (tanpa partikel; rotor pada sudut 0) untuk membingkai kamera. */
+    bounds() {
+      root.updateMatrixWorld(true);
+      const box = new THREE.Box3();
+      for (const c of root.children) if (c !== pts) box.expandByObject(c);
+      return box;
+    },
     /**
      * @param {any} f frame deriveComp
      * @param {number} dt detik animasi (0 saat jeda/beku)

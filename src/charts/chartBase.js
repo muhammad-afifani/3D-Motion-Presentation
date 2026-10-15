@@ -15,6 +15,18 @@ export const CHART_COLORS = {
   title: '#e6ebf3',
 };
 
+/**
+ * Pengaman redraw: ukuran grafik diukur ulang bila container berubah ukuran (ResizeObserver) DAN pada saat
+ * container tampil kembali (IntersectionObserver / tab dibuka / jendela kembali terlihat), sehingga grafik tidak
+ * tertinggal berukuran 0 atau kosong setelah container sempat disembunyikan.
+ */
+const syncAll = () => { for (const b of BASES) b.resize(); };
+if (typeof window !== 'undefined') {
+  window.addEventListener('resize', syncAll);
+  window.addEventListener('pageshow', syncAll);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') syncAll(); });
+}
+
 /** Grafik aktif + skala ekspor (snapshot PNG 2×). null = devicePixelRatio normal (maks 2). */
 const BASES = new Set();
 let exportScale = null;
@@ -51,19 +63,25 @@ export function createChartBase(container, { title, modelLevel, pad = { l: 56, r
   const ctxD = cd.getContext('2d');
 
   const box = { w: 0, h: 0, dpr: 1, pad, plotW: 0, plotH: 0 };
-  let dirty = true;
+  let dirty = true, wasHidden = false;
 
   function resize() {
     const r = root.getBoundingClientRect();
+    // container sedang disembunyikan (display: none → 0×0): pertahankan ukuran terakhir, gambar ulang saat tampil lagi
+    if ((!r.width || !r.height) && box.w) { wasHidden = true; return; }
     const dpr = exportScale ?? Math.min(window.devicePixelRatio || 1, 2);
     const w = Math.max(50, Math.floor(r.width)), h = Math.max(50, Math.floor(r.height));
-    if (w === box.w && h === box.h && dpr === box.dpr) return;
+    if (w === box.w && h === box.h && dpr === box.dpr) { if (wasHidden) { dirty = true; wasHidden = false; } return; }
+    wasHidden = false;
     Object.assign(box, { w, h, dpr, plotW: w - pad.l - pad.r, plotH: h - pad.t - pad.b });
     for (const c of [cs, cd]) { c.width = w * dpr; c.height = h * dpr; c.style.width = `${w}px`; c.style.height = `${h}px`; }
     dirty = true;
   }
   const ro = new ResizeObserver(resize);
   ro.observe(root);
+  // tab/panel yang tadinya tersembunyi lalu ditampilkan: ukur ulang dan tandai gambar ulang
+  const io = typeof IntersectionObserver === 'function' ? new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { resize(); dirty = true; } }) : null;
+  io?.observe(root);
   resize();
   const entry = { resize };
   BASES.add(entry);
@@ -72,6 +90,8 @@ export function createChartBase(container, { title, modelLevel, pad = { l: 56, r
     root, box, ctxS, ctxD, caption,
     get dirty() { return dirty; },
     markDirty() { dirty = true; },
+    /** Ukur ulang sekarang dan gambar ulang lapis statis (dipanggil saat tab dibuka). */
+    sync() { resize(); dirty = true; },
     /** Mulai menggambar lapis statis (reset transform + clear). */
     beginStatic() { ctxS.setTransform(box.dpr, 0, 0, box.dpr, 0, 0); ctxS.clearRect(0, 0, box.w, box.h); dirty = false; return ctxS; },
     beginDynamic() { ctxD.setTransform(box.dpr, 0, 0, box.dpr, 0, 0); ctxD.clearRect(0, 0, box.w, box.h); return ctxD; },
@@ -79,7 +99,7 @@ export function createChartBase(container, { title, modelLevel, pad = { l: 56, r
     setTitle(text) { if (titleEl.textContent !== text) titleEl.textContent = text; },
     /** @param {'ideal'|'real'|'semiEmpirical'|'siteData'} key */
     setLevel(key) { const t = levelText(key); if (levelEl.textContent !== t) levelEl.textContent = t; },
-    dispose() { BASES.delete(entry); ro.disconnect(); root.remove(); },
+    dispose() { BASES.delete(entry); ro.disconnect(); io?.disconnect(); root.remove(); },
   };
 }
 

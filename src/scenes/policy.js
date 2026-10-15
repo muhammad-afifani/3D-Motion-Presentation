@@ -249,7 +249,7 @@ export function createScene(ctx) {
       sweepClient.runNow(s0);
       disposers.push(store.subscribe((s, prev, changed) => {
         if (changed.includes('pEngine') || changed.includes('calEngine')) sweepClient.request(s);
-        if (changed.includes('pTab')) mainKey = '';
+        if (changed.includes('pTab')) { mainKey = ''; requestAnimationFrame(() => { main?.sync(); sub?.sync(); }); } // tab dibuka: ukur ulang + gambar ulang
         syncControls(s, changed);
       }));
       syncControls(s0, ['pEngine']);

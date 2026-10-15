@@ -111,6 +111,7 @@ export function createMultiLineChart(container, { title, modelLevel, xLabel, yLa
       }
     },
     setCaption: base.setCaption,
+    sync: base.sync,
     dispose() { base.dispose(); },
   };
 }
