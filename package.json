@@ -13,7 +13,8 @@
     "test": "vitest run",
     "e2e": "vite build && node scripts/e2e/dispose.mjs",
     "e2e:perf": "vite build && node scripts/e2e/perf.mjs",
-    "package:offline": "node scripts/package-offline.mjs"
+    "package:offline": "node scripts/package-offline.mjs",
+    "e2e:smoke": "vite build && node scripts/e2e/smoke.mjs"
   },
   "devDependencies": {
     "vite": "^6.4.4",

@@ -353,7 +353,7 @@ kbd {
   background: var(--bg-0); border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; cursor: pointer;
 }
 .chart__toggle:hover { color: var(--text); }
-.chart__caption { position: absolute; left: 12px; top: 27px; z-index: 1; max-width: calc(100% - 24px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 11.5px; color: var(--muted); font-family: var(--font-ui); }
+.chart__caption { position: absolute; left: 12px; top: 27px; z-index: 1; max-width: calc(100% - 24px); white-space: normal; overflow-wrap: anywhere; line-height: 1.35; font-size: 11.5px; color: var(--muted); font-family: var(--font-ui); }
 .chart__caption:empty { display: none; }
 .chart__caption b { color: var(--text); font-variant-numeric: tabular-nums; }
 .sw { display: inline-block; width: 12px; height: 10px; border-radius: 2px; border: 1px solid transparent; margin-right: 5px; vertical-align: -1px; }
