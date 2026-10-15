@@ -543,7 +543,7 @@ button.chart__level:hover, .hud__note .level[data-basis]:hover, .cyc-level[data-
 .reg__table th, .reg__table td { text-align: left; padding: 3px 4px; border-bottom: 1px solid var(--line); vertical-align: top; }
 .reg__table th { color: var(--muted); font-weight: 600; }
 .reg__param { font-weight: 700; }
-.overlay--reg { right: 12px; top: 12px; z-index: 2; max-width: min(36%, 360px); font-size: 11px !important; display: grid; gap: 4px; padding: 6px 10px; border-radius: 8px; background: rgba(11, 15, 22, 0.8); border: 1px solid var(--line); font-size: 12px; line-height: 1.35; pointer-events: auto; }
+.overlay--reg { right: 12px; top: 12px; z-index: 2; max-width: min(36%, 360px); font-size: 11px; display: grid; gap: 4px; padding: 6px 10px; border-radius: 8px; background: rgba(11, 15, 22, 0.8); border: 1px solid var(--line); line-height: 1.35; pointer-events: auto; }
 .overlay--reg:empty { display: none; }
 .reg__banner--sm { font-size: 11px; padding: 2px 6px; font-weight: 600; }
 .refs a { color: var(--accent-cold); }
