@@ -20,7 +20,7 @@ Vite + JavaScript ES modules (JSDoc untuk tipe), three.js, vitest. Tanpa backend
 - `npm run preview`: uji build Pages di `http://localhost:4173/<nama-repo>/`
 - `npm run e2e`: uji dispose antar-scene (siklus 1→11→1) di browser lewat Playwright terpisah (bukan dependensi, bukan CI); `npm run e2e:perf` untuk tabel performa per scene
 - `npm run package:offline`: paket presentasi offline di `release/` (build base `./` + server Node/Python/PowerShell + `start.bat`/`start.sh` + `BACA-SAYA.txt`)
-- `node -e "import('./src/model/thermo.js').then(t=>console.log(t.selfTest()))"`: validasi cepat model (harus `failed: 0`, saat ini 14 tes)
+- `node -e "import('./src/model/thermo.js').then(t=>console.log(t.selfTest()))"`: validasi cepat model (harus `failed: 0`, saat ini 19 tes)
 
 ## Arsitektur (wajib)
 Alur data satu arah: `UI control → store.set → derive() → frame → { rig 3D, chart, HUD }`.
@@ -88,6 +88,7 @@ Alur data satu arah: `UI control → store.set → derive() → frame → { rig 
   - [x] Step 02 Bahasa English + gaya, format en-US, `content/references.json`, `basis.js`, tag Basis, halaman References
   - [x] Step 03 Data regulasi: `content/regulations.json`, jalur regulasi (O₂ 21, 25 °C) + `complianceStatus`, pemilih equipment/kelas/bahan bakar, chip Scene 6 dan 9, site data, Permit/OEM CO, halaman Regulations (`G`)
   - [ ] Step 04–06 (model bahan bakar dan tuas, redesain Scene 9, mode Explore)
+- [ ] M10 cv(T) correction + recalibration: ganti `cvOfT` linear (menyimpang sampai −7,5 % di 1200–1400 K dibanding polinomial NASA, lihat `basis.js`) dengan data tabel, lalu kalibrasi ulang preset, `ENGINE_NOX_CALIB`, dan golden yang bergantung (Pmax, η rem, waterfall, NOx, retardSweep, angka Step 03 berbasis model). Perlu persetujuan pemilik proyek.
 
 ## Golden test acuan (ringkas; tabel lengkap di `docs/PROMPT_simulasi_3D.md` bagian 12)
 Otto r=10 η 0,602 · Diesel r=18 rc=2 η 0,632 · Brayton ideal rp=15 η 0,539 · Brayton real η 0,378 · CO₂ gas η=0,35 → 577 g/kWh · preset diesel Pmax ≈ 116 bar, η rem 0,441 · preset gas Pmax ≈ 109 bar, η rem 0,423.

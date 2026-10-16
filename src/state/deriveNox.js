@@ -3,6 +3,7 @@
  * Semua angka dari thermo.js: cylinderSim (TbTrace/noTrace, NOx_*), retardSweep, zeldovichCurve, noxRateRatio.
  * Nilai visual (warna, ukuran gelembung, laju partikel) disiapkan di sini; rig/chart/HUD hanya membaca frame.
  */
+import { leverOverrides, leverKey } from './levers.js';
 import { zeldovichCurve, noxRateRatio, tempToRGB, logNorm, emissionAtBasis, MW } from '../model/thermo.js';
 import { ENGINES, NOX_TIMING, NOX_ARRHENIUS, NOX_CALIB_DEFAULTS } from '../model/presets.js';
 import { isDefaultBasis } from './store.js';
@@ -18,8 +19,8 @@ export const NOX_TEMP_SCALE = { min: 300, max: 3000 };
 export const engineCalib = (s) => s.calEngine?.[s.nEngine] ?? NOX_CALIB_DEFAULTS.engine[s.nEngine];
 
 /** Parameter cylinderSim Scene 4: preset engine (sama dengan retardSweep) + timing dari slider + kalibrasi. */
-export const noxSimParams = (s) => ({ ...ENGINES[s.nEngine].params, theta0: s.nTheta0, calib: engineCalib(s) });
-export const noxSimKey = (s) => `${s.nEngine}|${s.nTheta0}|${engineCalib(s)}`;
+export const noxSimParams = (s) => ({ ...ENGINES[s.nEngine].params, theta0: s.nTheta0, calib: engineCalib(s), ...leverOverrides(s) });
+export const noxSimKey = (s) => `${s.nEngine}|${s.nTheta0}|${engineCalib(s)}|${leverKey(s)}`;
 
 /** Parameter retardSweep: semua langkah slider timing (preset yang sama, kalibrasi yang sama). */
 export const noxSweepParams = (s) => ({ kind: s.nEngine, thetas: NOX_TIMING[s.nEngine].sweep, over: { calib: engineCalib(s) } });

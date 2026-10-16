@@ -846,6 +846,129 @@ export function co2eWithSlip({ eta, slipFrac = 0.01, fuel = 'gas', gwp = GWP_CH4
   return { co2, ch4_g, co2e: co2 + gwp * ch4_g, slipShare: (gwp * ch4_g) / (co2 + gwp * ch4_g) };
 }
 
+// ───────────── Komposisi bahan bakar, SO₂, O₂ buang (M9 Step 04; neraca atom, tanpa korelasi emisi) ─────────────
+
+/** Massa atom (g/mol): C, H, O, N dari data GRI-Mech 3.0 (Cantera); S = 32,06 (nilai konvensional). */
+export const ATOMIC_WEIGHT = Object.freeze({ C: 12.011, H: 1.008, O: 15.999, N: 14.007, S: 32.06 });
+/** Massa molar udara kering (g/mol) untuk AFR massa; udara stoikiometri dihitung sebagai O₂ + 3,76 N₂ (n_air = 4,76·n_O₂). */
+export const MW_AIR_DRY = 28.965;
+const AIR_N2_PER_O2 = 3.76;
+
+/**
+ * Komponen gas bakar: atom per molekul dan ΔHf(298,15 K) gas [kJ/mol]. LHV molar dihitung dengan hukum Hess
+ * (produk CO₂, H₂O uap, SO₂). Sumber ΔHf:
+ *   CH₄, C₂H₆, C₃H₈, H₂, CO₂, H₂O  : GRI-Mech 3.0 thermo (polinomial NASA, dibaca lewat Cantera 3.2) → gri-mech-3
+ *   n-C₄H₁₀ −125,6 ; H₂S −20,6     : nilai dari pemilik proyek (TO VERIFY; NASA Glenn: −125,79 dan −20,50)
+ *   SO₂ −296,833                   : NASA Glenn (nasa_gas.yaml di Cantera), tidak ada di GRI-Mech (TO VERIFY)
+ */
+export const FUEL_GAS_SPECIES = Object.freeze({
+  CH4: Object.freeze({ C: 1, H: 4, O: 0, N: 0, S: 0, dHf: -74.5996 }),
+  C2H6: Object.freeze({ C: 2, H: 6, O: 0, N: 0, S: 0, dHf: -83.8511 }),
+  C3H8: Object.freeze({ C: 3, H: 8, O: 0, N: 0, S: 0, dHf: -103.8533 }),
+  C4H10: Object.freeze({ C: 4, H: 10, O: 0, N: 0, S: 0, dHf: -125.6 }),
+  H2: Object.freeze({ C: 0, H: 2, O: 0, N: 0, S: 0, dHf: 0 }),
+  N2: Object.freeze({ C: 0, H: 0, O: 0, N: 2, S: 0, dHf: 0 }),
+  CO2: Object.freeze({ C: 1, H: 0, O: 2, N: 0, S: 0, dHf: -393.5078 }),
+  H2S: Object.freeze({ C: 0, H: 2, O: 0, N: 0, S: 1, dHf: -20.6 }),
+});
+/** ΔHf(298,15 K) produk pembakaran [kJ/mol]: CO₂, H₂O (uap) dari GRI-Mech 3.0; SO₂ dari NASA Glenn (to verify). */
+export const PRODUCT_DHF = Object.freeze({ CO2: -393.5078, H2O: -241.8246, SO2: -296.833 });
+
+const mwOf = (a) => a.C * ATOMIC_WEIGHT.C + a.H * ATOMIC_WEIGHT.H + a.O * ATOMIC_WEIGHT.O + a.N * ATOMIC_WEIGHT.N + a.S * ATOMIC_WEIGHT.S;
+
+/**
+ * Sifat gas bakar dari komposisi (fraksi mol). Neraca atom C, H, O, N, S untuk pembakaran stoikiometri dengan udara
+ * O₂ + 3,76 N₂; LHV dengan hukum Hess dari ΔHf(298 K) (FUEL_GAS_SPECIES). Normalisasi otomatis.
+ * @param {{CH4?:number, C2H6?:number, C3H8?:number, C4H10?:number, N2?:number, CO2?:number, H2?:number, H2S_ppmv?:number}} composition
+ *   fraksi mol atau persen (dinormalkan); H₂S dalam ppmv (bagian dari campuran, tidak ikut dinormalkan ulang)
+ * @returns {{MW:number, LHV_kJ_per_mol:number, LHV_MJ_per_kg:number, AFR_stoich_mass:number, CO2_kg_per_kg_fuel:number,
+ *   CO2_kg_per_GJ_LHV:number, dryFlueV0_Nm3_per_kg:{C0:number, C25:number}, airMolPerMolFuel:number, dryFlueMolPerMolFuel:number,
+ *   O2MolPerMolFuel:number, x:Record<string, number>}}
+ * @throws bila ada fraksi negatif / bukan angka, kunci tidak dikenal, atau total nol
+ */
+export function fuelGasProps(composition = { CH4: 1 }) {
+  const raw = { ...composition };
+  const xH2S = (raw.H2S_ppmv ?? 0) * 1e-6;
+  delete raw.H2S_ppmv;
+  for (const [k, v] of Object.entries(raw)) {
+    if (!FUEL_GAS_SPECIES[k] || k === 'H2S') throw new Error(`fuelGasProps: unknown component ${k}`);
+    if (!Number.isFinite(v) || v < 0) throw new Error(`fuelGasProps: negative or invalid fraction for ${k}`);
+  }
+  if (!Number.isFinite(xH2S) || xH2S < 0 || xH2S >= 1) throw new Error('fuelGasProps: invalid H2S_ppmv');
+  const total = Object.values(raw).reduce((a, b) => a + b, 0);
+  if (!(total > 0)) throw new Error('fuelGasProps: total fraction is zero');
+  const x = Object.fromEntries(Object.entries(raw).map(([k, v]) => [k, (v / total) * (1 - xH2S)]));
+  if (xH2S > 0) x.H2S = xH2S;
+  let C = 0, H = 0, O = 0, N = 0, S = 0, MW = 0, LHV = 0;
+  for (const [k, xi] of Object.entries(x)) {
+    const a = FUEL_GAS_SPECIES[k];
+    C += xi * a.C; H += xi * a.H; O += xi * a.O; N += xi * a.N; S += xi * a.S; MW += xi * mwOf(a);
+    if (k !== 'CO2' && k !== 'N2') LHV += xi * (a.dHf - a.C * PRODUCT_DHF.CO2 - (a.H / 2) * PRODUCT_DHF.H2O - a.S * PRODUCT_DHF.SO2);
+  }
+  const O2st = C + H / 4 + S - O / 2;                      // CO₂ di bahan bakar membawa O-nya sendiri
+  const nAir = O2st * (1 + AIR_N2_PER_O2);
+  const nDry = C + S + N / 2 + AIR_N2_PER_O2 * O2st;       // CO₂ + SO₂ + N₂ (kering, stoikiometri)
+  const co2kg = (C * (ATOMIC_WEIGHT.C + 2 * ATOMIC_WEIGHT.O)) / MW;
+  const lhvMJkg = LHV / MW;
+  return {
+    x, MW, LHV_kJ_per_mol: LHV, LHV_MJ_per_kg: lhvMJkg, AFR_stoich_mass: (nAir * MW_AIR_DRY) / MW,
+    CO2_kg_per_kg_fuel: co2kg, CO2_kg_per_GJ_LHV: (co2kg / lhvMJkg) * 1000,
+    dryFlueV0_Nm3_per_kg: { C0: (nDry / MW) * molarVolumeReg(0), C25: (nDry / MW) * molarVolumeReg(25) },
+    airMolPerMolFuel: nAir, dryFlueMolPerMolFuel: nDry, O2MolPerMolFuel: O2st,
+  };
+}
+
+/** Komposisi massa solar default (% berat), C 86,5 dan H 13 (kasus golden pack); S diberikan terpisah. */
+export const OIL_DEFAULT = Object.freeze({ C: 86.5, H: 13 });
+
+/** Neraca stoikiometri per kg solar (komposisi massa % berat C, H, S; O dan N bahan bakar diabaikan). [mol/kg] */
+function oilStoich({ C = OIL_DEFAULT.C, H = OIL_DEFAULT.H, S = 0 } = {}) {
+  const nC = (C * 10) / ATOMIC_WEIGHT.C, nH = (H * 10) / ATOMIC_WEIGHT.H, nS = (S * 10) / ATOMIC_WEIGHT.S;
+  const O2st = nC + nH / 4 + nS;
+  return { nAir: O2st * (1 + AIR_N2_PER_O2), nDry: nC + nS + AIR_N2_PER_O2 * O2st, nS };
+}
+
+/**
+ * SO₂ dari sulfur bahan bakar (neraca massa): semua S → SO₂ (tanpa SO₃ / sulfat). SO₂ = (64,06/32,06)·massa S.
+ * Volume gas buang kering stoikiometri V₀ diencerkan ke O₂ acuan dengan konstanta 21 (jalur regulasi):
+ *   V_ref = V₀·21/(21 − O2ref);  mg/Nm³ = massa SO₂ / V_ref, volume pada TrefC (°C), 1 atm, kering.
+ * @param {{fuel:'oil'|'gas', sulfur:number, oil?:{C?:number, H?:number}, composition?:object}} p
+ *   oil: sulfur = % berat S; gas: sulfur = H₂S [ppmv] dalam gas bakar (composition default CH₄ murni)
+ * @param {number} [o2RefPct] O₂ acuan (%) @param {number} [TrefC] basis volume (°C)
+ * @returns {{mgNm3:number, so2_g_per_kg_fuel:number, V0dry_Nm3_per_kg:number, Vref_Nm3_per_kg:number, o2RefPct:number, TrefC:number}}
+ */
+export function so2FromFuelSulfur({ fuel, sulfur, oil = {}, composition = { CH4: 1 } }, o2RefPct = 15, TrefC = 25) {
+  if (!Number.isFinite(sulfur) || sulfur < 0) throw new Error('so2FromFuelSulfur: invalid sulfur');
+  const MWSO2 = ATOMIC_WEIGHT.S + 2 * ATOMIC_WEIGHT.O;
+  let so2g, nDry;
+  if (fuel === 'oil') {
+    const st = oilStoich({ ...oil, S: sulfur });
+    so2g = st.nS * MWSO2; nDry = st.nDry;                        // per kg bahan bakar
+  } else {
+    const g = fuelGasProps({ ...composition, H2S_ppmv: sulfur });
+    const xS = g.x.H2S ?? 0;
+    so2g = (xS * MWSO2 * 1000) / g.MW; nDry = (g.dryFlueMolPerMolFuel * 1000) / g.MW; // per kg bahan bakar
+  }
+  const V0 = (nDry / 1000) * molarVolumeReg(TrefC);
+  const Vref = V0 * (O2_AIR_REG / (O2_AIR_REG - o2RefPct));
+  return { mgNm3: (so2g * 1000) / Vref, so2_g_per_kg_fuel: so2g, V0dry_Nm3_per_kg: V0, Vref_Nm3_per_kg: Vref, o2RefPct, TrefC };
+}
+
+/**
+ * O₂ kering di gas buang dari lambda (neraca udara berlebih):
+ *   x_O₂,kering = 0,2095·(λ−1)·n_air / (n_dry,st + (λ−1)·n_air)   [hasil dalam %]
+ * n_air dan n_dry,st dari fuelGasProps (gas) atau neraca solar ({ oil: {C, H, S} }). λ ≤ 1 → 0 (tidak ada O₂ berlebih).
+ * Menyambungkan lambda mesin (yang disetel) ke O₂ buang (yang dipakai koreksi baku mutu).
+ * @param {number} lambda @param {object} [composition] komposisi gas, atau { oil: {C, H, S} }
+ */
+export function exhaustO2FromLambda(lambda, composition = { CH4: 1 }) {
+  if (!Number.isFinite(lambda) || lambda <= 0) throw new Error('exhaustO2FromLambda: invalid lambda');
+  if (lambda <= 1) return 0;
+  const { nAir, nDry } = composition.oil ? oilStoich(composition.oil) : (() => { const g = fuelGasProps(composition); return { nAir: g.airMolPerMolFuel, nDry: g.dryFlueMolPerMolFuel }; })();
+  const ex = (lambda - 1) * nAir;
+  return (100 * 0.2095 * ex) / (nDry + ex);
+}
+
 /** Penalti GHG langsung dari penalti bahan bakar (%) hasil modifikasi demi NOx. */
 export function ghgPenalty({ eta, fuelPenaltyPct, fuel = 'gas' }) {
   const f = 1 + fuelPenaltyPct / 100, eta2 = eta / f;
@@ -876,22 +999,47 @@ export function calibrateEngineNOx(kind = 'diesel', targetGkWh, over = {}, { cal
 }
 
 /**
- * Waterfall: dari batas ideal ke efisiensi rem (5 langkah). Nilai = η kumulatif.
+ * Batas ideal siklus dual untuk preset CI (diesel), dapat dilacak ke preset (M9 Step 04):
+ *   q_in  = φ·LHV/AFRst per kg muatan (= Efuel/massa cylinderSim pada combEff 1, tanpa rugi panas)
+ *   T₂    = T_ivc·r^(k−1); fraksi panas volume-tetap = premixFrac preset (ASUMSI pemetaan, lihat basis.js)
+ *   rp    = 1 + premixFrac·q_in/(cv·T₂);  rc = 1 + (1 − premixFrac)·q_in/(cp·T₂·rp)
+ *   η     = dual({ r, rp, rc }) dengan k = 1,4 (air-standard).
+ * Batas: premixFrac 1 → rc = 1 → Otto; premixFrac 0 → rp = 1 → Diesel.
+ * @param {{r:number, Tivc:number, Pivc?:number, phi:number, fuel?:string, premixFrac:number}} p
+ * @returns {{eta:number, rp:number, rc:number, qin:number}}
+ */
+export function dualIdealLimit({ r, Tivc, Pivc = 101325, phi, fuel = 'diesel', premixFrac, k = K_AIR }) {
+  const cv = R_AIR / (k - 1), cp = k * cv;
+  const qin = qinPerKgAir(phi, fuel, 1);
+  const T2 = Tivc * Math.pow(r, k - 1);
+  const rp = 1 + (premixFrac * qin) / (cv * T2);
+  const rc = 1 + ((1 - premixFrac) * qin) / (cp * T2 * rp);
+  return { eta: dual({ r, T1: Tivc, P1: Pivc, rp, rc, k }).eta, rp, rc, qin };
+}
+
+/**
+ * Waterfall: dari batas ideal ke efisiensi rem (5 langkah). Nilai = η kumulatif; key = kunci label (teks di UI).
  * window: 'full' (default) = fase tertutup penuh ±180°; 'preset' = IVC/EVO preset (±150°),
  * sehingga langkah terakhir sama dengan η rem cylinderSim preset (HUD Scene 1).
+ * Batas ideal (M9 Step 04): gas engine (SI) = Otto (k = 1,4); diesel (CI) = siklus dual dari preset (dualIdealLimit).
+ * Alasan perubahan: Otto adalah batas volume-tetap; untuk mesin CI batas yang dapat dilacak ke preset adalah dual.
+ * Dulu diesel 67,0 % (Otto r = 16), kini 63,2 %; langkah lain tidak berubah. Untuk diesel, langkah kedua mencampur
+ * efek k(T) dan beda pembakaran volume-tetap (simulasi pembanding) vs dual.
  */
 export function lossWaterfall(kind = 'diesel', over = {}, { window = 'full' } = {}) {
   const base = { ...ENGINE_PRESETS[kind], ...over, nox: false, ...(window === 'full' ? { ivc: -180, evo: 180 } : {}) };
-  const eta0 = 1 - 1 / Math.pow(base.r, K_AIR - 1);
+  const ci = kind === 'diesel';
+  const eta0 = ci ? dualIdealLimit({ r: base.r, Tivc: base.Tivc, Pivc: base.Pivc, phi: base.phi, fuel: base.fuel, premixFrac: base.premixFrac }).eta
+    : 1 - 1 / Math.pow(base.r, K_AIR - 1);
   const s1 = cylinderSim({ ...base, theta0: -1, dur: 2, premixFrac: 0, lossFrac: 0, combEff: 1 });
   const s2 = cylinderSim({ ...base, lossFrac: 0, combEff: 1 });
   const s3 = cylinderSim({ ...base });
   const steps = [
-    { label: 'Ideal limit (Otto, k = 1.4)', eta: eta0 },
-    { label: 'Specific heat rises with T (k falls)', eta: s1.etaInd },
-    { label: 'Combustion takes time (Wiebe)', eta: s2.etaInd },
-    { label: 'Wall heat loss + unburned fuel', eta: s3.etaInd },
-    { label: 'Mechanical friction (brake efficiency)', eta: s3.etaBrake },
+    { key: ci ? 'idealDual' : 'idealOtto', label: ci ? 'Ideal limit (dual, k = 1.4)' : 'Ideal limit (Otto, k = 1.4)', eta: eta0 },
+    { key: 'kT', label: 'Specific heat rises with T (k falls)', eta: s1.etaInd },
+    { key: 'burn', label: 'Combustion takes time (Wiebe)', eta: s2.etaInd },
+    { key: 'heat', label: 'Wall heat loss + unburned fuel', eta: s3.etaInd },
+    { key: 'friction', label: 'Mechanical friction (brake efficiency)', eta: s3.etaBrake },
   ];
   return steps.map((s, i) => ({ ...s, delta: i ? s.eta - steps[i - 1].eta : 0 }));
 }
@@ -987,6 +1135,13 @@ export function selfTest() {
   const sim = cylinderSim({ ...ENGINE_PRESETS.diesel, nox: false });
   results.push({ name: 'Sim diesel: Pmax 100–220 bar', got: sim.Pmax / 1e5, want: '100–220', ok: sim.Pmax / 1e5 > 100 && sim.Pmax / 1e5 < 220 });
   results.push({ name: 'Sim diesel: η rem 0,35–0,50', got: sim.etaBrake, want: '0,35–0,50', ok: sim.etaBrake > 0.35 && sim.etaBrake < 0.5 });
+  // M9 Step 04: batas dual (rp = 1 → Diesel) dan fungsi bahan bakar (golden pack, hitung tangan)
+  near('Dual rp=1 = Diesel r=18 rc=2', dual({ r: 18, rp: 1, rc: 2 }).eta, 0.6316, 1e-3);
+  const ch4 = fuelGasProps({ CH4: 1 });
+  near('CH4 LHV [MJ/kg]', ch4.LHV_MJ_per_kg, 50.0, 0.25);
+  near('CH4 AFR stoich [kg/kg]', ch4.AFR_stoich_mass, 17.19, 0.09);
+  near('Solar S 0,5 % → SO2 @15 % O2, 25 °C [mg/Nm³]', so2FromFuelSulfur({ fuel: 'oil', sulfur: 0.5 }).mgNm3, 251, 1.3);
+  near('CH4 λ=2 → O2 kering [%]', exhaustO2FromLambda(2), 11.06, 0.06);
   const passed = results.filter((r) => r.ok).length;
   return { passed, failed: results.length - passed, results };
 }

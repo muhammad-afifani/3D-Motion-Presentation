@@ -82,6 +82,8 @@
     { "id": "iso-2533", "type": "standard", "cite": "ISO 2533:1975. Standard Atmosphere. International Organization for Standardization.",
       "use": "Pressure of the standard atmosphere versus altitude in the troposphere, used for altitude derating.", "locator": "", "locatorVerified": false },
     { "id": "chen-flynn-1965", "type": "paper", "cite": "Chen, S.K. and Flynn, P.F. (1965). Development of a Single Cylinder Compression Ignition Research Engine. SAE Technical Paper 650733.",
-      "use": "Friction mean effective pressure correlation in peak cylinder pressure and mean piston speed.", "locator": "SAE 650733", "locatorVerified": false }
+      "use": "Friction mean effective pressure correlation in peak cylinder pressure and mean piston speed.", "locator": "SAE 650733", "locatorVerified": false },
+    { "id": "gri-mech-3", "type": "database", "cite": "Smith, G.P., Golden, D.M., Frenklach, M., et al. GRI-Mech 3.0 (thermodynamic data, NASA 7-coefficient polynomials). http://combustion.berkeley.edu/gri-mech/ (read through Cantera 3.2, gri30.yaml).",
+      "use": "Standard enthalpies of formation (298 K) of CH4, C2H6, C3H8, H2, CO2 and H2O for heating values; NASA polynomials for air cv(T) used to check the linear cv(T) fit.", "locator": "thermo data, gri30.yaml", "locatorVerified": false }
   ]
 }

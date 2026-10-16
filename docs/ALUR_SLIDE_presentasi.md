@@ -30,13 +30,13 @@ Alur cerita: **mesinnya apa → energi jadi kerja dan panas → suhu menentukan 
 - **Naskah:** "Garis ini bukan gambar. Titik di grafik dan posisi piston dihitung dari sudut engkol yang sama."
 
 ## S2 · Siklus ideal vs real (6 menit)
-- **Pesan kunci:** Teori 60–67%, lapangan 42–45%. Selisihnya bukan "kesalahan", tapi fisika.
+- **Pesan kunci:** Teori 62–63% (batas ideal: Otto untuk gas engine, siklus dual untuk diesel), lapangan 42–45%. Selisihnya bukan "kesalahan", tapi fisika.
 - **Visual 3D + P-V + T-s sinkron;** toggle Ideal ↔ Real; waterfall rugi.
 - **Rumus:** `η_Otto = 1 − 1/r^(k−1)`, `η_Diesel = 1 − (1/r^(k−1))·(r_c^k − 1)/(k(r_c − 1))`.
 - **Angka demo:**
   - Otto r=10: **60,2%**; Diesel r=18, r_c=2: **63,2%**; Otto r=18: **68,5%**.
   - Pada r yang sama Otto lebih efisien. Diesel unggul karena r jauh lebih tinggi.
-  - Waterfall diesel: 67,0 → 62,3 (k turun) → 58,3 (pembakaran butuh waktu) → 50,6 (rugi panas) → 44,9% (friksi).
+  - Waterfall diesel: 63,2 (batas ideal siklus dual dari preset; dulu 67,0 dengan rumus Otto) → 62,3 (k turun, bercampur beda volume-tetap vs dual) → 58,3 (pembakaran butuh waktu) → 50,6 (rugi panas) → 44,9% (friksi).
   - Waterfall gas: 61,7 → 56,6 → 53,9 → 47,1 → 43,1%.
 - **Naskah:** "Tiga langkah pertama adalah fisika gas dan waktu pembakaran. Dua terakhir adalah panas yang lari ke dinding dan gesekan."
 
@@ -175,7 +175,7 @@ Alur cerita: **mesinnya apa → energi jadi kerja dan panas → suhu menentukan 
 | Angka | Nilai |
 |---|---|
 | Otto r=10 / Diesel r=18 | 60,2% / 63,2% |
-| Teori → lapangan (piston) | ±60–67% → ±42–45% |
+| Teori → lapangan (piston) | ±62–63% → ±42–45% |
 | Brayton ideal → real (r_p 15) | 53,9% → 37,8% |
 | Derating ambient | ±0,68% per °C |
 | +100 K suhu nyala | NOx ×6–7 |

@@ -36,6 +36,7 @@ export function cardData(spec, refsData) {
         return r ? { id: rid, known: true, cite: r.cite, locator: r.locator, locatorVerified: r.locatorVerified === true } : { id: rid, known: false };
       }),
       noSource: b.refs.length === 0,
+      knownIssue: b.knownIssue ?? null,
     };
   });
   return { id, entries, levels: [...new Set(entries.map((x) => x.level))] };

@@ -7,6 +7,7 @@
 import { deriveEmis } from './deriveEmis.js';
 import { EQUIPMENT, regSelection, rowsFor, complianceRows, sourceOf } from './regulations.js';
 import { emissionBasis } from './deriveNox.js';
+import { deriveFuel } from './deriveFuel.js';
 
 /**
  * @param {any} s state store (regEquip, regClass, regFuel, siteData, limNOx, limCO, emRefO2, emTrefC, calEngine, calDln)
@@ -21,6 +22,14 @@ export function deriveCompliance(s, regData) {
   const model = {};
   if (params.includes('NOx')) model.NOx = r.noxPpm15 ?? null;
   if (params.includes('CO')) model.CO = r.coPpm15 ?? null;
+  // SO₂: neraca massa sulfur bahan bakar, dihitung @15 % O₂ (basis mentah model) pada suhu grup; baris kepatuhan lalu
+  // mengonversi ke basis grup lewat jalur regulasi. null sampai presenter mengisi sulfur (tanpa nilai default di kode).
+  const fuel = deriveFuel(s, { refO2Pct: 15, TrefC: sel.group?.basis?.TrefC ?? 25 });
+  const needsInput = [];
+  if (params.includes('SO2')) {
+    const so = fuel.so2[sel.fuel];
+    if (so) model.SO2 = so.ppmAtRef; else needsInput.push('SO2');
+  }
   const turbine = sel.equip === 'gasTurbine';
   const hasRegCo = rowsFor(sel.group, sel.cls, sel.fuel).some((x) => x.param === 'CO');
   const rows = complianceRows(sel, model, {
@@ -28,6 +37,7 @@ export function deriveCompliance(s, regData) {
     overrides: turbine ? { NOx: s.limNOx ?? null, CO: s.limCO ?? null } : {},
     overrideKind: { NOx: 'override', CO: hasRegCo ? 'override' : 'permit' },
     displayO2: s.emRefO2,
+    needsInput,
   });
   const basis = sel.group?.basis ?? null;
   const display = emissionBasis(s);
@@ -40,6 +50,7 @@ export function deriveCompliance(s, regData) {
     displayDiffers: !!basis && (display.refO2 !== basis.refO2Pct || display.TrefC !== basis.TrefC),
     display,
     isEngine: E.group === 'engine', turbine, turbineOil: turbine && sel.fuel === 'oil',
-    calibrated: rows.some((x) => x.valueSource === 'model'),
+    calibrated: rows.some((x) => x.valueSource === 'model' && x.param !== 'SO2'),
+    fuel: { kind: sel.fuel, sulfur: fuel.sulfur[sel.fuel], so2: fuel.so2[sel.fuel], exhaustO2: E.model === 'turbine' ? null : fuel.exhaustO2[E.model], lambda: E.model === 'turbine' ? null : fuel.lambda[E.model] },
   };
 }

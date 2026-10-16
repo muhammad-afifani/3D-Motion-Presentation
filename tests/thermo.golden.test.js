@@ -3,7 +3,7 @@ import { describe, it, expect } from 'vitest';
 import {
   otto, diesel, dual, braytonIdeal, braytonReal, braytonDerated, co2Specific,
   cylinderSim, ENGINE_PRESETS, noxThermal, twinShaft, gasCompressor, selfTest,
-  lossWaterfall, simStates, flameTemperature, qinPerKgAir, phiFromQinPerKgAir,
+  lossWaterfall, dualIdealLimit, simStates, flameTemperature, qinPerKgAir, phiFromQinPerKgAir,
   compressorStages, turbineStages, twinShaftCycle,
   zeldovichRate, noxRateRatio, zeldovichCurve, calibrateDLN, calibrateEngineNOx, ENGINE_NOX_CALIB,
   retardSweep, noxCoTradeoff, emissionAtBasis, ZELDOVICH, MW, loadSweep,
@@ -83,11 +83,31 @@ describe('Emisi & turbin', () => {
 describe('Waterfall (lossWaterfall)', () => {
   const pct = (wf) => wf.map((x) => x.eta * 100);
   const nearAll = (got, want) => { expect(got.length).toBe(want.length); got.forEach((g, i) => near(g, want[i], 0.1)); };
-  // window 'full' (default, fase tertutup ±180°) — golden lama dipertahankan
-  it('full: diesel 67,0 → 62,3 → 58,3 → 50,6 → 44,9 %', () => nearAll(pct(lossWaterfall('diesel')), [67.0, 62.3, 58.3, 50.6, 44.9]));
+  // window 'full' (default, fase tertutup ±180°).
+  // M9 Step 04: batas ideal diesel diganti Otto 67,0 → dual dari preset 63,2 % (alasan: Otto = batas volume-tetap;
+  // untuk mesin CI batas yang dapat dilacak ke preset adalah siklus dual). Langkah 2–5 diesel dan seluruh gas tidak berubah.
+  it('full: diesel 63,2 → 62,3 → 58,3 → 50,6 → 44,9 % (dulu 67,0 → …)', () => nearAll(pct(lossWaterfall('diesel')), [63.2, 62.3, 58.3, 50.6, 44.9]));
   it('full: gas 61,7 → 56,6 → 53,9 → 47,1 → 43,1 %', () => nearAll(pct(lossWaterfall('gas')), [61.7, 56.6, 53.9, 47.1, 43.1]));
   // window 'preset' (IVC/EVO preset) — dipakai Scene 2, langkah terakhir = η rem HUD
-  it('preset: diesel 67,0 → 61,7 → 57,5 → 49,9 → 44,1 %', () => nearAll(pct(lossWaterfall('diesel', {}, { window: 'preset' })), [67.0, 61.7, 57.5, 49.9, 44.1]));
+  it('preset: diesel 63,2 → 61,7 → 57,5 → 49,9 → 44,1 % (dulu 67,0 → …)', () => nearAll(pct(lossWaterfall('diesel', {}, { window: 'preset' })), [63.2, 61.7, 57.5, 49.9, 44.1]));
+  it('batas ideal: gas = Otto r = 11; diesel = dualIdealLimit(preset) dengan rp 1,406 dan rc 1,826', () => {
+    near(lossWaterfall('gas')[0].eta, otto({ r: 11 }).eta, 1e-12);
+    const d = dualIdealLimit({ ...ENGINE_PRESETS.diesel });
+    near(d.eta, 0.6321, 5e-4); near(d.rp, 1.406, 1e-3); near(d.rc, 1.826, 1e-3);
+    for (const w of ['full', 'preset']) near(lossWaterfall('diesel', {}, { window: w })[0].eta, d.eta, 1e-12);
+    expect(lossWaterfall('diesel')[0].key).toBe('idealDual'); expect(lossWaterfall('gas')[0].key).toBe('idealOtto');
+  });
+  it('batas siklus dual: rc = 1 → Otto (r 10: 0,602); rp = 1 → Diesel (golden r 18, rc 2: 0,632)', () => {
+    near(dual({ r: 10, rp: 1.7, rc: 1 }).eta, otto({ r: 10 }).eta, 1e-12);
+    near(dual({ r: 10, rp: 1.7, rc: 1 }).eta, 0.6019, 5e-4);
+    near(dual({ r: 18, rp: 1, rc: 2 }).eta, diesel({ r: 18, rc: 2 }).eta, 1e-12);
+    near(dual({ r: 18, rp: 1, rc: 2 }).eta, 0.632, 1e-3);
+    // pemetaan premixFrac: 1 → Otto, 0 → Diesel dengan q_in yang sama
+    const P = ENGINE_PRESETS.diesel;
+    near(dualIdealLimit({ ...P, premixFrac: 1 }).eta, otto({ r: P.r }).eta, 1e-12);
+    const d0 = dualIdealLimit({ ...P, premixFrac: 0 });
+    near(d0.rp, 1, 1e-12); near(d0.eta, diesel({ r: P.r, T1: P.Tivc, qin: d0.qin }).eta, 1e-9);
+  });
   it('preset: gas 61,7 → 55,8 → 53,1 → 46,4 → 42,3 %', () => nearAll(pct(lossWaterfall('gas', {}, { window: 'preset' })), [61.7, 55.8, 53.1, 46.4, 42.3]));
   it('preset: langkah terakhir = η rem cylinderSim preset', () => {
     for (const k of ['diesel', 'gas']) {
@@ -372,6 +392,6 @@ describe('selfTest', () => {
   it('selfTest().failed = 0', () => {
     const r = selfTest();
     expect(r.failed, JSON.stringify(r.results.filter((x) => !x.ok))).toBe(0);
-    expect(r.passed).toBe(14);
+    expect(r.passed).toBe(19); // M9 Step 04: 14 → 19 (dual, CH4 LHV & AFR, SO2 solar, O2 dari λ)
   });
 });

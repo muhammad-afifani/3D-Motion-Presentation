@@ -109,7 +109,7 @@ describe('content/references.json', () => {
     const ids = refsJson.references.map((r) => r.id);
     expect(ids.slice(0, seed.references.length)).toEqual(seed.references.map((r) => r.id));
     const extra = refsJson.references.slice(seed.references.length);
-    expect(extra.map((r) => r.id)).toEqual(['ipcc-2006-vol2-ch2', 'iso-2533', 'chen-flynn-1965']);
+    expect(extra.map((r) => r.id)).toEqual(['ipcc-2006-vol2-ch2', 'iso-2533', 'chen-flynn-1965', 'gri-mech-3']); // gri-mech-3: disetujui Step 04
     expect(extra.every((r) => r.locatorVerified === false)).toBe(true);
   });
   it('dimuat lewat loader: fallback bawaan sama dengan file; JSON rusak → fallback + galat', async () => {

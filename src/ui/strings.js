@@ -239,7 +239,11 @@ export const STR = {
     waterfall: {
       title: (engine, r) => `${engine === 'gas' ? 'Gas engine' : 'Diesel'} waterfall: ideal limit → brake η (r = ${fmt(r, 1)})`,
       caption: 'Efficiency lost between the ideal limit and brake efficiency, at preset valve timing (IVC to EVO)',
-      steps: ['Ideal limit (Otto, k = 1.4)', 'Variable specific heat k(T)', 'Finite combustion duration (Wiebe)', 'Wall heat loss + unburned', 'Mechanical friction (brake η)'],
+      captionDiesel: 'Efficiency lost between the ideal limit and brake efficiency, at preset valve timing (IVC to EVO). Diesel ideal limit = dual cycle; its constant-volume heat share is set equal to the preset premix fraction (assumption). The second bar mixes k(T) with the constant-volume vs dual difference.',
+      steps: {
+        idealOtto: 'Ideal limit (Otto, k = 1.4)', idealDual: 'Ideal limit (dual, k = 1.4)', kT: 'Variable specific heat k(T)',
+        burn: 'Finite combustion duration (Wiebe)', heat: 'Wall heat loss + unburned', friction: 'Mechanical friction (brake η)',
+      },
       braytonTitle: 'Brayton: ideal → real',
       braytonCaption: 'Two bars only: the Brayton model has no step-by-step loss breakdown',
       brayton: { braytonIdeal: 'Brayton ideal', braytonReal: 'Real: ηc, ηt, combustor ΔP, mechanical loss' },
@@ -789,7 +793,10 @@ export const STR = {
     head: ['Parameter', 'Model', 'Site data', 'Limit', 'Status'],
     status: { within: 'Within', above: 'Above', notModeled: 'Not modeled' },
     statusTip: 'Model value vs limit (indicative). Not a test result.',
-    reason: { noLimit: 'no limit in this table', noValue: 'not computed by the model' },
+    reason: { noLimit: 'no limit in this table', noValue: 'not computed by the model', needsInput: 'enter the fuel sulfur (mass balance)' },
+    fuelSulfur: { oil: 'Fuel sulfur [wt %]', gas: 'Fuel H₂S [ppmv]', placeholder: 'empty' },
+    fuelSulfurTip: 'SO₂ by mass balance: all fuel sulfur leaves as SO₂ (no SO₃, no sulfate). Enter the value from the fuel analysis. Not saved.',
+    exhaustO2: (o2, lam) => `Exhaust O₂ at the preset λ ${fmt(lam, 2)}: ${fmt(o2, 1)} % dry (model, excess-air balance).`,
     limitSource: {
       regulation: (short) => `limit: ${short}`,
       override: 'limit: user override',
@@ -848,6 +855,7 @@ export const STR = {
       locatorUnchecked: 'locator not verified', locatorChecked: 'locator checked',
       locator: (l) => `Location: ${l}`,
       allRefs: 'All references',
+      knownIssue: 'Known deviation',
       note: 'Chapter and equation numbers marked "locator not verified" have not been checked against a printed copy.',
     },
     refs: {
@@ -911,6 +919,9 @@ export const STR = {
     },
     engine: {
       title: 'Engine model (cylinderSim)',
+      leversTitle: 'Engine levers',
+      leverNames: { lambda: 'λ (air/fuel)', timing: 'Injection / spark timing', compressionRatio: 'Compression ratio', intakeT: 'Intake temperature', boost: 'Boost pressure', rpm: 'Engine speed', load: 'Load', egr: 'EGR' },
+      leverStatus: { slider: 'available (slider)', model: 'in the model, no slider yet (default = preset)', indirect: 'not a separate lever: diesel through λ, gas engine through boost', notAvailable: 'not available in this model' },
       items: [
         'Closed cycle IVC→EVO, air-standard gas with k(T). Pumping work and work after EVO are ignored.',
         'Wiebe heat release (diesel: premix + diffusion; gas: one Wiebe).',
@@ -972,6 +983,10 @@ export const STR = {
       none: 'definition / calibration',
       toVerify: 'source to verify',
       refs: 'All references',
+    },
+    issues: {
+      title: 'Known model deviations (planned fixes)',
+      intro: 'From the basis registry. These are known limits of the current model, not hidden corrections.',
     },
   },
 };

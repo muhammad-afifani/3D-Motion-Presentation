@@ -4,13 +4,14 @@
  */
 import { cylinderSim, sampleSim, valveLift, engineGeometry, tempToRGB, flameColor } from '../model/thermo.js';
 import { ENGINES } from '../model/presets.js';
+import { leverOverrides } from './levers.js';
 
 /** Kunci state yang memicu hitung ulang cylinderSim (perubahan θ saja tidak). */
-export const SIM_KEYS = ['engine', 'r', 'phi', 'theta0'];
+export const SIM_KEYS = ['engine', 'r', 'phi', 'theta0', 'levTivc', 'levPivc', 'levN'];
 
-/** Parameter cylinderSim dari state UI. */
+/** Parameter cylinderSim dari state UI. Tuas intake T / boost / rpm (levers.js) hanya menimpa bila diisi (default = preset). */
 export function simParams(state) {
-  return { ...ENGINES[state.engine].params, r: state.r, phi: state.phi, theta0: state.theta0 };
+  return { ...ENGINES[state.engine].params, r: state.r, phi: state.phi, theta0: state.theta0, ...leverOverrides(state) };
 }
 
 export const simKey = (state) => SIM_KEYS.map((k) => state[k]).join('|');
