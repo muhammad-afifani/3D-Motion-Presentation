@@ -1,0 +1,136 @@
+{
+  "version": 1,
+  "note": "Append these entries to content/references.json (M11 Step 01). New type 'web'; optional fields 'level' and 'accessed'. locatorVerified stays false until the presenter checks them.",
+  "references": [
+    {
+      "id": "openstax-up2",
+      "type": "book",
+      "level": "intro",
+      "cite": "Ling, S.J., Sanny, J., Moebs, W. (2016). University Physics Volume 2. OpenStax, Rice University. Free online textbook.",
+      "url": "https://openstax.org/books/university-physics-volume-2/pages/3-2-work-heat-and-internal-energy",
+      "use": "Beginner reading on work, heat and internal energy (work as the area under a pV curve, Sec. 3.2), the first law (Sec. 3.3), heat engines (Sec. 4.2) and the Carnot cycle (Sec. 4.5).",
+      "locator": "Sec. 3.2, 3.3, 4.2, 4.5",
+      "locatorVerified": false,
+      "accessed": "2026-10-16"
+    },
+    {
+      "id": "mit-unified-thermo",
+      "type": "book",
+      "level": "intro",
+      "cite": "Greitzer, E.M., Spakovszky, Z.S., Waitz, I.A. 16.Unified: Thermodynamics and Propulsion (lecture notes). Massachusetts Institute of Technology.",
+      "url": "https://web.mit.edu/16.unified/www/FALL/thermodynamics/notes/",
+      "use": "Free notes at the next step up from an intro physics book: Otto, Diesel and Brayton cycles (Ch. 3), entropy (Ch. 5) and the Brayton cycle on T-s coordinates (Ch. 6.4).",
+      "locator": "Ch. 3.5-3.7, 5, 6.4",
+      "locatorVerified": false,
+      "accessed": "2026-10-16"
+    },
+    {
+      "id": "nasa-grc-brayton",
+      "type": "web",
+      "level": "intro",
+      "cite": "NASA Glenn Research Center. Beginner's Guide to Propulsion: Turbine Engine Thermodynamic Cycle - Brayton Cycle.",
+      "url": "https://www.grc.nasa.gov/www/k-12/airplane/brayton.html",
+      "use": "Short illustrated explanation of the Brayton cycle stations and the T-s diagram.",
+      "locator": "",
+      "locatorVerified": false,
+      "accessed": "2026-10-16"
+    },
+    {
+      "id": "doe-gas-turbine",
+      "type": "web",
+      "level": "intro",
+      "cite": "U.S. Department of Energy, Hydrocarbons and Geothermal Energy Office. How Gas Turbine Power Plants Work.",
+      "url": "https://www.energy.gov/hgeo/how-gas-turbine-power-plants-work",
+      "use": "Plain-language description of compressor, combustor and turbine, and why higher firing temperature raises efficiency.",
+      "locator": "",
+      "locatorVerified": false,
+      "accessed": "2026-10-16"
+    },
+    {
+      "id": "afdc-diesel",
+      "type": "web",
+      "level": "intro",
+      "cite": "U.S. Department of Energy, Alternative Fuels Data Center. How Do Diesel Vehicles Work?",
+      "url": "https://afdc.energy.gov/vehicles/how-do-diesel-cars-work",
+      "use": "Compression ignition explained for non-specialists.",
+      "locator": "",
+      "locatorVerified": false,
+      "accessed": "2026-10-16"
+    },
+    {
+      "id": "epa-no2-basics",
+      "type": "web",
+      "level": "intro",
+      "cite": "U.S. Environmental Protection Agency. Basic Information about NO2.",
+      "url": "https://www.epa.gov/no2-pollution/basic-information-about-no2",
+      "use": "What NOx is, where it comes from, and its health and environmental effects.",
+      "locator": "",
+      "locatorVerified": false,
+      "accessed": "2026-10-16"
+    },
+    {
+      "id": "epa-co-basics",
+      "type": "web",
+      "level": "intro",
+      "cite": "U.S. Environmental Protection Agency. Basic Information about Carbon Monoxide (CO) Outdoor Air Pollution.",
+      "url": "https://www.epa.gov/co-pollution/basic-information-about-carbon-monoxide-co-outdoor-air-pollution",
+      "use": "What CO is, its sources and health effects.",
+      "locator": "",
+      "locatorVerified": false,
+      "accessed": "2026-10-16"
+    },
+    {
+      "id": "epa-pm-basics",
+      "type": "web",
+      "level": "intro",
+      "cite": "U.S. Environmental Protection Agency. Particulate Matter (PM) Basics.",
+      "url": "https://www.epa.gov/pm-pollution/particulate-matter-pm-basics",
+      "use": "Definitions of PM10 and PM2.5 and why fine particles matter.",
+      "locator": "",
+      "locatorVerified": false,
+      "accessed": "2026-10-16"
+    },
+    {
+      "id": "epa-so2-basics",
+      "type": "web",
+      "level": "intro",
+      "cite": "U.S. Environmental Protection Agency. Sulfur Dioxide Basics.",
+      "url": "https://www.epa.gov/so2-pollution/sulfur-dioxide-basics",
+      "use": "Sources of SO2 (fuel sulfur) and its effects.",
+      "locator": "",
+      "locatorVerified": false,
+      "accessed": "2026-10-16"
+    },
+    {
+      "id": "epa-gwp",
+      "type": "web",
+      "level": "intro",
+      "cite": "U.S. Environmental Protection Agency. Understanding Global Warming Potentials.",
+      "url": "https://www.epa.gov/ghgemissions/understanding-global-warming-potentials",
+      "use": "Plain explanation of GWP and CO2 equivalent; lists the 100-year GWP of methane from the IPCC Sixth Assessment Report as 27-30.",
+      "locator": "",
+      "locatorVerified": false,
+      "accessed": "2026-10-16"
+    },
+    {
+      "id": "eia-co2-coefficients",
+      "type": "database",
+      "level": "intro",
+      "cite": "U.S. Energy Information Administration. Carbon Dioxide Emissions Coefficients.",
+      "url": "https://www.eia.gov/environment/emissions/co2_vol_mass.php",
+      "use": "CO2 per unit of heat for common fuels (natural gas vs distillate fuel oil), used to show that gas has less carbon per unit of energy.",
+      "locator": "",
+      "locatorVerified": false,
+      "accessed": "2026-10-16"
+    },
+    {
+      "id": "epa-catc-nox-1999",
+      "type": "report",
+      "level": "intro",
+      "cite": "U.S. Environmental Protection Agency, Clean Air Technology Center (1999). Nitrogen Oxides (NOx), Why and How They Are Controlled. EPA-456/F-99-006R.",
+      "use": "Overview of NOx formation and control techniques (combustion modification and post-combustion such as SCR) for a non-specialist reader.",
+      "locator": "",
+      "locatorVerified": false
+    }
+  ]
+}
