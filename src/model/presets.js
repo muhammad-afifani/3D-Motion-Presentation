@@ -105,6 +105,30 @@ export const NOX_TIMING = {
 };
 for (const r of Object.values(NOX_TIMING)) r.sweep = steps(r);
 
+/**
+ * Grid tuas Scene 9 (tab Levers, leverSweep). Nilai preset selalu tepat di grid, sehingga titik operasi selalu
+ * berada di kurva sapuan. phi = 1/λ; Pivc dalam Pa; N rpm. Angka ini rentang tampilan, bukan hasil model.
+ */
+const r6 = (x) => Math.round(x * 1e6) / 1e6;
+const grid = (r) => ({ ...r, sweep: steps(r).map(r6) });
+export const LEVER_GRID = Object.freeze({
+  diesel: Object.freeze({
+    theta0: NOX_TIMING.diesel,
+    phi: grid({ min: 0.35, max: 0.75, step: 0.05 }),
+    Tivc: grid({ min: 290, max: 370, step: 10 }),
+    Pivc: grid({ min: 1.6e5, max: 2.4e5, step: 0.1e5 }),
+    N: grid({ min: 700, max: 1300, step: 75 }),
+  }),
+  gas: Object.freeze({
+    theta0: NOX_TIMING.gas,
+    phi: grid({ min: 0.5, max: 0.74, step: 0.02 }),
+    Tivc: grid({ min: 295, max: 365, step: 10 }),
+    Pivc: grid({ min: 1.8e5, max: 2.6e5, step: 0.1e5 }),
+    N: grid({ min: 700, max: 1300, step: 75 }),
+  }),
+});
+export const LEVER_AXES = Object.freeze(['theta0', 'phi', 'Tivc', 'Pivc', 'N']);
+
 /** Grafik Arrhenius (zeldovichCurve): rentang T, acuan laju relatif, dan rentang yang dibandingkan. */
 export const NOX_ARRHENIUS = { Tmin: 1500, Tmax: 3100, Tref: 1800, engineBand: [2200, 3000], dlnBand: [1500, 2000] };
 
