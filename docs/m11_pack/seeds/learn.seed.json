@@ -1,0 +1,3633 @@
+{
+  "version": 1,
+  "note": "Learn section (landing page Scene 0). Bilingual: every text is {en, id}. No model outputs: numbers appear only as unit definitions, published constants with a source, or made-up examples labelled as such. Sources are ids from references.json. Draft content: the presenter reviews it before use.",
+  "defaultLang": "id",
+  "reviewed": false,
+  "landing": {
+    "kicker": {
+      "en": "Diesel engine · Gas engine · Gas turbine",
+      "id": "Mesin diesel · Mesin gas · Turbin gas"
+    },
+    "title": {
+      "en": "Engine & Turbine Emission Lab",
+      "id": "Engine & Turbine Emission Lab"
+    },
+    "tagline": {
+      "en": "From fuel to shaft power to the stack. See how each machine works, why its emissions behave the way they do, and what that means for one emission limit applied to all of them.",
+      "id": "Dari bahan bakar ke putaran poros sampai ke cerobong. Lihat cara kerja tiap mesin, kenapa emisinya berperilaku seperti itu, dan apa artinya bagi satu baku mutu yang diterapkan ke semuanya."
+    },
+    "cards": [
+      {
+        "id": "learn",
+        "route": "#/learn",
+        "title": {
+          "en": "Learn from zero",
+          "id": "Belajar dari nol"
+        },
+        "text": {
+          "en": "No engineering background needed. Short lessons, in order, each linked to the scene that shows the idea.",
+          "id": "Tanpa latar belakang teknik. Pelajaran singkat dan berurutan, masing-masing tersambung ke scene yang memperlihatkan konsepnya."
+        }
+      },
+      {
+        "id": "explore",
+        "route": "#/scene/1",
+        "title": {
+          "en": "Explore the lab",
+          "id": "Jelajahi lab"
+        },
+        "text": {
+          "en": "Open any scene, move the sliders, and read the charts at your own pace.",
+          "id": "Buka scene mana saja, geser slider, dan baca grafiknya dengan kecepatan sendiri."
+        }
+      },
+      {
+        "id": "present",
+        "route": "present",
+        "title": {
+          "en": "Present",
+          "id": "Presentasi"
+        },
+        "text": {
+          "en": "Clean full-screen view for a room, starting at Scene 1. Press M to return to Explore.",
+          "id": "Tampilan layar penuh yang bersih untuk audiens, mulai dari Scene 1. Tekan M untuk kembali ke Explore."
+        }
+      },
+      {
+        "id": "about",
+        "route": "#/about",
+        "title": {
+          "en": "What is this tool for?",
+          "id": "Untuk apa alat ini?"
+        },
+        "text": {
+          "en": "The question behind it, who it is for, what it can and cannot tell you.",
+          "id": "Pertanyaan di baliknya, untuk siapa, dan apa yang bisa serta tidak bisa disampaikannya."
+        }
+      }
+    ],
+    "continue": {
+      "en": "Continue at Scene {n}",
+      "id": "Lanjutkan di Scene {n}"
+    },
+    "honesty": {
+      "en": "Emission numbers in this app come from calibrated textbook correlations. They show trends, not measurements of any real unit.",
+      "id": "Angka emisi di aplikasi ini berasal dari korelasi buku teks yang dikalibrasi. Angka itu menunjukkan tren, bukan hasil ukur unit nyata mana pun."
+    },
+    "links": {
+      "en": "References · Glossary · Regulations · Assumptions",
+      "id": "References · Glossary · Regulations · Assumptions"
+    },
+    "learnIntro": {
+      "en": "Six levels, from everyday physics to the regulation argument. Go in order if engineering is new to you. Each lesson ends with a link into the app and a few questions to check yourself.",
+      "id": "Enam level, dari fisika sehari-hari sampai argumen regulasi. Ikuti berurutan bila teknik masih baru bagi Anda. Setiap pelajaran diakhiri tautan ke aplikasi dan beberapa pertanyaan untuk menguji diri."
+    },
+    "chartsIntro": {
+      "en": "One page for every chart in the app: what it shows, how to read it, what to look for, and the mistakes people often make.",
+      "id": "Satu halaman untuk setiap grafik di aplikasi: apa yang ditampilkan, cara membacanya, apa yang perlu diperhatikan, dan kesalahan baca yang sering terjadi."
+    },
+    "draftBanner": {
+      "en": "Draft learning content. It is being reviewed before use; report anything that looks wrong.",
+      "id": "Materi belajar masih draf. Sedang ditinjau sebelum dipakai; laporkan bila ada yang tampak keliru."
+    }
+  },
+  "about": {
+    "title": {
+      "en": "What this tool is for",
+      "id": "Untuk apa alat ini dibuat"
+    },
+    "sections": [
+      {
+        "id": "problem",
+        "title": {
+          "en": "The question behind it",
+          "id": "Pertanyaan di baliknya"
+        },
+        "body": [
+          {
+            "en": "Oil and gas facilities run several kinds of machines that burn fuel: diesel engines, gas engines, and gas turbines. Some drive generators. Others drive gas compressors. Each one is checked against an emission limit.",
+            "id": "Fasilitas migas menjalankan beberapa jenis mesin yang membakar bahan bakar: mesin diesel, mesin gas, dan turbin gas. Sebagian memutar generator listrik, sebagian lagi memutar kompresor gas. Masing-masing diperiksa terhadap baku mutu emisi."
+          },
+          {
+            "en": "These machines do not work the same way. A generator turbine usually runs at a steady speed and steady load. A compressor turbine follows the gas process, so its speed and load change all day. A single limit value treats them as if they behave alike.",
+            "id": "Mesin-mesin ini tidak bekerja dengan cara yang sama. Turbin generator biasanya berputar pada kecepatan dan beban yang stabil. Turbin kompresor mengikuti proses gas, jadi kecepatan dan bebannya berubah sepanjang hari. Satu angka baku mutu memperlakukan keduanya seolah perilakunya sama."
+          },
+          {
+            "en": "This tool shows why they differ, starting from how fuel becomes shaft power and ending at the numbers a regulator reads from the stack.",
+            "id": "Alat ini menunjukkan kenapa mereka berbeda, mulai dari bagaimana bahan bakar menjadi putaran poros sampai angka yang dibaca regulator dari cerobong."
+          }
+        ]
+      },
+      {
+        "id": "audience",
+        "title": {
+          "en": "Who it is for",
+          "id": "Untuk siapa"
+        },
+        "body": [
+          {
+            "en": "Production and operations staff who run these machines every day, and anyone who has to discuss emission limits with them. No engineering background is assumed in the Learn section.",
+            "id": "Staf produksi dan operasi yang menjalankan mesin-mesin ini setiap hari, dan siapa pun yang perlu membahas baku mutu emisi bersama mereka. Bagian Learn tidak mengandaikan latar belakang teknik."
+          }
+        ]
+      },
+      {
+        "id": "what-you-get",
+        "title": {
+          "en": "What you can do with it",
+          "id": "Apa yang bisa dilakukan"
+        },
+        "body": [
+          {
+            "en": "Watch a piston or a turbine run in 3D while the charts beside it update from the same calculation.",
+            "id": "Melihat piston atau turbin bergerak dalam 3D, sementara grafik di sampingnya berubah dari perhitungan yang sama."
+          },
+          {
+            "en": "Move a slider (timing, mixture, load, air temperature) and see what happens to NOx, CO, CO₂ and efficiency at the same time. Most changes that lower one emission raise something else.",
+            "id": "Menggeser slider (timing, campuran, beban, suhu udara) lalu melihat apa yang terjadi pada NOx, CO, CO₂, dan efisiensi sekaligus. Hampir setiap perubahan yang menurunkan satu emisi akan menaikkan hal lain."
+          },
+          {
+            "en": "Compare a model value against the Indonesian limit for the selected machine, capacity class and fuel, on the same measurement basis the regulation uses.",
+            "id": "Membandingkan nilai model dengan baku mutu Indonesia untuk mesin, kelas kapasitas, dan bahan bakar yang dipilih, pada basis pengukuran yang sama dengan regulasi."
+          },
+          {
+            "en": "Present it to a room (Present mode), or explore it on your own (Explore mode).",
+            "id": "Mempresentasikannya di depan audiens (mode Present), atau menjelajahinya sendiri (mode Explore)."
+          }
+        ]
+      },
+      {
+        "id": "what-it-is-not",
+        "title": {
+          "en": "What it is not",
+          "id": "Apa yang bukan"
+        },
+        "body": [
+          {
+            "en": "It is not a measurement and not a vendor prediction. The emission numbers come from textbook correlations calibrated to typical literature values. The direction of a trend is physics. The exact level is not a measurement of any real unit. That is why every emission number carries the word \"indicative\".",
+            "id": "Alat ini bukan hasil pengukuran dan bukan prediksi vendor. Angka emisinya berasal dari korelasi buku teks yang dikalibrasi ke nilai tipikal di literatur. Arah tren adalah fisika. Level persisnya bukan hasil ukur unit mana pun. Karena itu setiap angka emisi diberi label \"indicative\"."
+          },
+          {
+            "en": "A \"Within\" chip does not mean a unit passes a stack test. It means the model value sits under the limit, and when the margin is small, the app says so.",
+            "id": "Chip \"Within\" tidak berarti unit lulus uji cerobong. Artinya nilai model berada di bawah limit, dan bila selisihnya tipis, aplikasi menyebutkannya."
+          },
+          {
+            "en": "Measured data (CEMS, stack tests, manufacturer guarantees) always wins over the model. The app has fields to enter it.",
+            "id": "Data ukur (CEMS, uji cerobong, jaminan pabrikan) selalu lebih kuat daripada model. Aplikasi menyediakan isian untuk data itu."
+          }
+        ]
+      },
+      {
+        "id": "goal",
+        "title": {
+          "en": "What we hope it changes",
+          "id": "Harapannya"
+        },
+        "body": [
+          {
+            "en": "Better conversations, not looser limits. If operators, environmental staff and regulators share the same picture of how each machine works, they can talk about the load range a limit applies to, how long values are averaged, and how NOx and greenhouse gases are weighed together.",
+            "id": "Diskusi yang lebih baik, bukan baku mutu yang lebih longgar. Bila operator, staf lingkungan, dan regulator punya gambaran yang sama tentang cara kerja tiap mesin, mereka bisa membahas rentang beban tempat limit berlaku, berapa lama nilai dirata-rata, dan bagaimana NOx serta gas rumah kaca ditimbang bersama."
+          },
+          {
+            "en": "The closing scene lists discussion options. They are options, not conclusions.",
+            "id": "Scene penutup memuat opsi diskusi. Itu pilihan untuk dibahas, bukan kesimpulan."
+          }
+        ]
+      },
+      {
+        "id": "trust",
+        "title": {
+          "en": "How to check what you see",
+          "id": "Cara mengecek yang Anda lihat"
+        },
+        "body": [
+          {
+            "en": "Every chart has a model-level tag in its corner: Ideal, Real (component efficiency), Semi-empirical, or Site data. Click the Basis tag to read the assumption and the source behind it.",
+            "id": "Setiap grafik punya tag tingkat model di pojoknya: Ideal, Real (efisiensi komponen), Semi-empiris, atau Site data. Klik tag Basis untuk membaca asumsi dan sumbernya."
+          },
+          {
+            "en": "The References page lists every book, paper, standard and regulation used. Entries marked \"to verify\" have not yet been checked against the original document.",
+            "id": "Halaman References memuat semua buku, paper, standar, dan regulasi yang dipakai. Entri bertanda \"to verify\" belum dicocokkan dengan dokumen aslinya."
+          },
+          {
+            "en": "Press H at any time for the list of model assumptions.",
+            "id": "Tekan H kapan saja untuk melihat daftar asumsi model."
+          }
+        ]
+      }
+    ]
+  },
+  "levels": [
+    {
+      "id": "L0",
+      "title": {
+        "en": "Start here",
+        "id": "Mulai dari sini"
+      },
+      "summary": {
+        "en": "How this learning path works and the story of the whole presentation in a few minutes.",
+        "id": "Cara memakai jalur belajar ini dan cerita seluruh presentasi dalam beberapa menit."
+      },
+      "lessons": [
+        {
+          "id": "l0-1",
+          "title": {
+            "en": "How to use this path",
+            "id": "Cara memakai jalur ini"
+          },
+          "minutes": 5,
+          "goal": {
+            "en": "Know how the levels are arranged and how to move between Learn and the scenes.",
+            "id": "Tahu susunan level dan cara berpindah antara Learn dan scene."
+          },
+          "body": [
+            {
+              "en": "There are six levels. Level 0 is orientation. Levels 1 and 2 cover the basic physics and the machines. Level 3 is about efficiency, level 4 about emissions, and level 5 about measurement and regulation. Each level builds on the one before, so if you have no engineering background, go in order.",
+              "id": "Ada enam level. Level 0 adalah orientasi. Level 1 dan 2 membahas fisika dasar dan mesinnya. Level 3 tentang efisiensi, level 4 tentang emisi, dan level 5 tentang pengukuran dan regulasi. Tiap level dibangun di atas level sebelumnya, jadi bila tidak punya latar belakang teknik, ikuti urutannya."
+            },
+            {
+              "en": "Most lessons end with a \"Try it\" link. It opens the scene where the idea is shown, in Explore mode, so you can move the sliders yourself. Use the Back button or the Learn link in the navigation to return.",
+              "id": "Sebagian besar pelajaran diakhiri tautan \"Try it\". Tautan itu membuka scene tempat konsep tersebut diperlihatkan, dalam mode Explore, sehingga Anda bisa menggeser slider sendiri. Pakai tombol Back atau tautan Learn di navigasi untuk kembali."
+            },
+            {
+              "en": "Each lesson has two or three short questions at the end. They are not graded. They are there so you can tell whether the idea landed before moving on.",
+              "id": "Setiap pelajaran punya dua atau tiga pertanyaan singkat di akhir. Tidak ada nilai. Pertanyaan itu ada supaya Anda tahu apakah konsepnya sudah dipahami sebelum lanjut."
+            },
+            {
+              "en": "Words in bold have a short definition in the word list of the lesson. The full list is on the Glossary page.",
+              "id": "Kata yang ditebalkan punya definisi singkat di daftar kata pelajaran itu. Daftar lengkapnya ada di halaman Glossary."
+            },
+            {
+              "en": "The app has two modes. Explore shows the navigation and lets you open any page. Present hides the navigation for a clean screen in front of an audience. Press M to switch.",
+              "id": "Aplikasi punya dua mode. Explore menampilkan navigasi dan semua halaman bisa dibuka. Present menyembunyikan navigasi supaya layar bersih di depan audiens. Tekan M untuk berpindah."
+            }
+          ],
+          "terms": [
+            "model"
+          ],
+          "tryIt": {
+            "route": "#/scene/1",
+            "text": {
+              "en": "Open Scene 1 and press M twice to see both modes.",
+              "id": "Buka Scene 1 lalu tekan M dua kali untuk melihat kedua mode."
+            }
+          },
+          "checks": [
+            {
+              "q": {
+                "en": "You have never studied engineering. Where should you start?",
+                "id": "Anda belum pernah belajar teknik. Mulai dari mana?"
+              },
+              "options": [
+                {
+                  "en": "Level 5, because it is about regulations",
+                  "id": "Level 5, karena isinya regulasi"
+                },
+                {
+                  "en": "Level 0, then in order",
+                  "id": "Level 0, lalu berurutan"
+                },
+                {
+                  "en": "Any scene at random",
+                  "id": "Scene mana saja secara acak"
+                }
+              ],
+              "answer": 1,
+              "why": {
+                "en": "The levels build on each other. Regulation numbers only make sense once units and combustion are clear.",
+                "id": "Level-level ini saling membangun. Angka regulasi baru masuk akal setelah satuan dan pembakaran dipahami."
+              }
+            },
+            {
+              "q": {
+                "en": "Which key switches between Explore and Present?",
+                "id": "Tombol apa untuk berpindah antara Explore dan Present?"
+              },
+              "options": [
+                {
+                  "en": "H",
+                  "id": "H"
+                },
+                {
+                  "en": "M",
+                  "id": "M"
+                },
+                {
+                  "en": "P",
+                  "id": "P"
+                }
+              ],
+              "answer": 1,
+              "why": {
+                "en": "M switches the mode. H opens the assumptions. P opens the separate presenter window.",
+                "id": "M mengganti mode. H membuka daftar asumsi. P membuka jendela presenter terpisah."
+              }
+            }
+          ],
+          "refs": []
+        },
+        {
+          "id": "l0-2",
+          "title": {
+            "en": "The whole story in five minutes",
+            "id": "Seluruh cerita dalam lima menit"
+          },
+          "minutes": 8,
+          "goal": {
+            "en": "See how the eleven scenes connect into one argument.",
+            "id": "Melihat bagaimana sebelas scene tersambung menjadi satu argumen."
+          },
+          "body": [
+            {
+              "en": "Scenes 1 to 3 explain how an engine turns fuel into work. A piston squeezes air, fuel burns, the hot gas pushes the piston back. The mixture of fuel and air decides how hot the flame gets.",
+              "id": "Scene 1 sampai 3 menjelaskan bagaimana mesin mengubah bahan bakar menjadi kerja. Piston memampatkan udara, bahan bakar terbakar, gas panas mendorong piston kembali. Campuran bahan bakar dan udara menentukan seberapa panas nyalanya."
+            },
+            {
+              "en": "Scene 4 shows the first big point: NOx depends on flame temperature, and not in a straight line. A small rise in peak temperature gives a large rise in NOx.",
+              "id": "Scene 4 memperlihatkan poin besar pertama: NOx bergantung pada suhu nyala, dan hubungannya tidak lurus. Kenaikan kecil suhu puncak memberi kenaikan NOx yang besar."
+            },
+            {
+              "en": "Scenes 5 to 7 move to the gas turbine. Scene 6 is the core of the argument: a turbine that drives a generator has a fixed sweet spot, while a turbine that drives a gas compressor keeps moving with the process. Scene 7 shows why the compressor sets the pace.",
+              "id": "Scene 5 sampai 7 pindah ke turbin gas. Scene 6 adalah inti argumennya: turbin yang memutar generator punya titik optimum yang tetap, sedangkan turbin yang memutar kompresor gas terus bergeser mengikuti proses. Scene 7 menunjukkan kenapa kompresor yang menentukan."
+            },
+            {
+              "en": "Scenes 8 and 9 put the emissions side by side and hold them against the Indonesian limits. They also show the trade-offs: cutting one emission usually moves another, including CO₂.",
+              "id": "Scene 8 dan 9 menjajarkan emisi dan membandingkannya dengan baku mutu Indonesia. Keduanya juga menunjukkan trade-off: menekan satu emisi biasanya menggeser emisi lain, termasuk CO₂."
+            },
+            {
+              "en": "Scene 10 lists the control devices, each with what it lowers and what it costs. Scene 11 closes with discussion options for how a limit could fit the way a machine actually runs.",
+              "id": "Scene 10 memuat alat pengendali emisi, masing-masing dengan apa yang diturunkan dan apa biayanya. Scene 11 menutup dengan opsi diskusi tentang bagaimana baku mutu bisa sesuai dengan cara mesin benar-benar beroperasi."
+            }
+          ],
+          "terms": [
+            "load"
+          ],
+          "tryIt": {
+            "route": "#/scene/6",
+            "text": {
+              "en": "Open Scene 6 and drag the load slider. Watch how the two turbines respond differently.",
+              "id": "Buka Scene 6 dan geser slider beban. Perhatikan bagaimana kedua turbin merespons berbeda."
+            }
+          },
+          "checks": [
+            {
+              "q": {
+                "en": "Which scene carries the core of the argument about turbines?",
+                "id": "Scene mana yang memuat inti argumen tentang turbin?"
+              },
+              "options": [
+                {
+                  "en": "Scene 2",
+                  "id": "Scene 2"
+                },
+                {
+                  "en": "Scene 6",
+                  "id": "Scene 6"
+                },
+                {
+                  "en": "Scene 10",
+                  "id": "Scene 10"
+                }
+              ],
+              "answer": 1,
+              "why": {
+                "en": "Scene 6 compares the generator turbine with the compressor turbine at part load.",
+                "id": "Scene 6 membandingkan turbin generator dengan turbin kompresor pada beban sebagian."
+              }
+            },
+            {
+              "q": {
+                "en": "What does the closing scene offer?",
+                "id": "Apa yang ditawarkan scene penutup?"
+              },
+              "options": [
+                {
+                  "en": "A verdict that the limits are wrong",
+                  "id": "Vonis bahwa baku mutu salah"
+                },
+                {
+                  "en": "Discussion options",
+                  "id": "Opsi diskusi"
+                },
+                {
+                  "en": "New limit values",
+                  "id": "Angka baku mutu baru"
+                }
+              ],
+              "answer": 1,
+              "why": {
+                "en": "The tool argues for better measurement and discussion, not for a specific new number.",
+                "id": "Alat ini mendorong pengukuran dan diskusi yang lebih baik, bukan angka baru tertentu."
+              }
+            }
+          ],
+          "refs": []
+        }
+      ]
+    },
+    {
+      "id": "L1",
+      "title": {
+        "en": "Everyday physics you need",
+        "id": "Fisika sehari-hari yang diperlukan"
+      },
+      "summary": {
+        "en": "Energy, power, temperature, pressure, and how to read any chart in the app.",
+        "id": "Energi, daya, suhu, tekanan, dan cara membaca grafik apa pun di aplikasi."
+      },
+      "lessons": [
+        {
+          "id": "l1-1",
+          "title": {
+            "en": "Energy, power, and efficiency",
+            "id": "Energi, daya, dan efisiensi"
+          },
+          "minutes": 10,
+          "goal": {
+            "en": "Tell energy from power, read kW and kWh, and explain what an efficiency percentage means.",
+            "id": "Membedakan energi dan daya, membaca kW dan kWh, dan menjelaskan arti persentase efisiensi."
+          },
+          "body": [
+            {
+              "en": "Energy is the ability to do work. It is measured in joules (J). Power is how fast energy is used or delivered, measured in watts (W). One watt is one joule every second.",
+              "id": "Energi adalah kemampuan melakukan kerja, satuannya joule (J). Daya adalah seberapa cepat energi dipakai atau dihasilkan, satuannya watt (W). Satu watt sama dengan satu joule setiap detik."
+            },
+            {
+              "en": "A kilowatt (kW) is a thousand watts. A kilowatt-hour (kWh) is energy: one kilowatt running for one hour, which is 3.6 million joules. A generator is rated in kW. Its output over a day is counted in kWh.",
+              "id": "Kilowatt (kW) adalah seribu watt. Kilowatt-jam (kWh) adalah energi: satu kilowatt yang berjalan selama satu jam, yaitu 3,6 juta joule. Generator diberi rating dalam kW. Hasilnya selama sehari dihitung dalam kWh."
+            },
+            {
+              "en": "Fuel carries chemical energy. Burning it releases that energy as heat. The heating value tells how much energy one kilogram of fuel gives. This app uses the lower heating value (LHV), which leaves out the heat in the water vapour of the exhaust.",
+              "id": "Bahan bakar menyimpan energi kimia. Pembakaran melepaskan energi itu sebagai panas. Nilai kalor menunjukkan berapa energi yang diberikan satu kilogram bahan bakar. Aplikasi ini memakai nilai kalor bawah (LHV), yang tidak menghitung panas dalam uap air di gas buang."
+            },
+            {
+              "en": "Efficiency is useful output divided by energy input. A made-up example: if 100 units of fuel energy go in and 40 units come out as shaft power, efficiency is 40 %. The other 60 units leave as heat in the exhaust, the cooling water and friction. Nothing is destroyed. It just ends up somewhere you cannot use it.",
+              "id": "Efisiensi adalah keluaran yang berguna dibagi energi masukan. Contoh dengan angka rekaan: bila 100 satuan energi bahan bakar masuk dan 40 satuan keluar sebagai daya poros, efisiensinya 40 %. Sisa 60 satuan keluar sebagai panas di gas buang, air pendingin, dan gesekan. Tidak ada yang hilang. Energinya hanya berakhir di tempat yang tidak bisa dimanfaatkan."
+            },
+            {
+              "en": "Why it matters for emissions: almost all the carbon in the fuel leaves as CO₂. If a machine needs less fuel for each kWh, it emits less CO₂ for each kWh. Higher efficiency means lower CO₂ per kWh.",
+              "id": "Kenapa ini penting untuk emisi: hampir semua karbon dalam bahan bakar keluar sebagai CO₂. Bila mesin butuh lebih sedikit bahan bakar untuk setiap kWh, CO₂ per kWh-nya juga lebih kecil. Efisiensi lebih tinggi berarti CO₂ per kWh lebih rendah."
+            }
+          ],
+          "terms": [
+            "energy",
+            "power",
+            "kwh",
+            "efficiency",
+            "lhv",
+            "brake-efficiency"
+          ],
+          "tryIt": {
+            "route": "#/scene/2",
+            "text": {
+              "en": "In Scene 2, find the brake efficiency value in the HUD. It is the share of fuel energy that reaches the shaft.",
+              "id": "Di Scene 2, cari nilai brake efficiency di HUD. Itu bagian energi bahan bakar yang sampai ke poros."
+            }
+          },
+          "checks": [
+            {
+              "q": {
+                "en": "A generator is rated 1,000 kW and runs for 2 hours at full output. How much energy does it deliver?",
+                "id": "Generator ber-rating 1.000 kW berjalan 2 jam pada keluaran penuh. Berapa energi yang dihasilkan?"
+              },
+              "options": [
+                {
+                  "en": "500 kWh",
+                  "id": "500 kWh"
+                },
+                {
+                  "en": "1,000 kWh",
+                  "id": "1.000 kWh"
+                },
+                {
+                  "en": "2,000 kWh",
+                  "id": "2.000 kWh"
+                }
+              ],
+              "answer": 2,
+              "why": {
+                "en": "Energy = power × time = 1,000 kW × 2 h = 2,000 kWh.",
+                "id": "Energi = daya × waktu = 1.000 kW × 2 jam = 2.000 kWh."
+              }
+            },
+            {
+              "q": {
+                "en": "Machine A has higher efficiency than machine B, same fuel. Which emits less CO₂ per kWh?",
+                "id": "Mesin A lebih efisien daripada mesin B, bahan bakarnya sama. Mana yang CO₂ per kWh-nya lebih kecil?"
+              },
+              "options": [
+                {
+                  "en": "A",
+                  "id": "A"
+                },
+                {
+                  "en": "B",
+                  "id": "B"
+                },
+                {
+                  "en": "The same",
+                  "id": "Sama"
+                }
+              ],
+              "answer": 0,
+              "why": {
+                "en": "Less fuel per kWh means less carbon burned per kWh.",
+                "id": "Lebih sedikit bahan bakar per kWh berarti lebih sedikit karbon yang dibakar per kWh."
+              }
+            }
+          ],
+          "refs": [
+            "openstax-up2",
+            "eia-co2-coefficients"
+          ]
+        },
+        {
+          "id": "l1-2",
+          "title": {
+            "en": "Temperature, pressure, and volume",
+            "id": "Suhu, tekanan, dan volume"
+          },
+          "minutes": 10,
+          "goal": {
+            "en": "Read kelvin, bar and litres, and know why squeezing a gas heats it.",
+            "id": "Membaca kelvin, bar, dan liter, serta tahu kenapa gas yang dimampatkan menjadi panas."
+          },
+          "body": [
+            {
+              "en": "Engineers often use kelvin (K) instead of degrees Celsius. The step size is the same. Only the zero point moves: 0 °C is 273.15 K. So 25 °C is about 298 K, and a flame at 2,000 K is about 1,727 °C.",
+              "id": "Insinyur sering memakai kelvin (K), bukan derajat Celsius. Besar tiap langkahnya sama. Hanya titik nolnya yang bergeser: 0 °C sama dengan 273,15 K. Jadi 25 °C sekitar 298 K, dan nyala 2.000 K sekitar 1.727 °C."
+            },
+            {
+              "en": "Kelvin starts at absolute zero, where there is no thermal motion left. That is why gas laws and chemical rates are written in kelvin. A rate that \"doubles with temperature\" only makes sense on a scale that starts at true zero.",
+              "id": "Kelvin dimulai dari nol mutlak, titik ketika tidak ada lagi gerak termal. Karena itu hukum gas dan laju reaksi ditulis dalam kelvin. Pernyataan seperti \"laju naik dua kali lipat karena suhu\" hanya bermakna pada skala yang dimulai dari nol yang sebenarnya."
+            },
+            {
+              "en": "Pressure is force on an area. The app uses bar. One bar is close to the air pressure at sea level (one standard atmosphere is 1.013 bar). Inside a running engine cylinder the peak pressure is many tens of times higher. Scene 1 shows the value.",
+              "id": "Tekanan adalah gaya per luas. Aplikasi memakai bar. Satu bar mendekati tekanan udara di permukaan laut (satu atmosfer standar = 1,013 bar). Di dalam silinder mesin yang berjalan, tekanan puncaknya puluhan kali lebih tinggi. Scene 1 menunjukkan nilainya."
+            },
+            {
+              "en": "Volume is the space the gas takes up. In the engine scenes it is the space above the piston, in litres.",
+              "id": "Volume adalah ruang yang ditempati gas. Di scene mesin, itu ruang di atas piston, dalam liter."
+            },
+            {
+              "en": "These three are tied together. When a piston pushes gas into a smaller volume quickly, the pressure rises and so does the temperature. A diesel engine relies on this: it squeezes the air until it is hot enough to ignite the fuel without a spark.",
+              "id": "Ketiganya saling terkait. Ketika piston mendorong gas ke volume yang lebih kecil dengan cepat, tekanan naik dan suhu juga naik. Mesin diesel memanfaatkan hal ini: udara dimampatkan sampai cukup panas untuk menyalakan bahan bakar tanpa busi."
+            }
+          ],
+          "terms": [
+            "temperature-k",
+            "pressure-bar",
+            "volume"
+          ],
+          "tryIt": {
+            "route": "#/scene/1",
+            "text": {
+              "en": "In Scene 1, pause the animation (Space) near the top of the stroke and read the pressure.",
+              "id": "Di Scene 1, jeda animasi (Spasi) di dekat puncak langkah dan baca tekanannya."
+            }
+          },
+          "checks": [
+            {
+              "q": {
+                "en": "What is 1,500 K in °C (roughly)?",
+                "id": "Berapa 1.500 K dalam °C (kira-kira)?"
+              },
+              "options": [
+                {
+                  "en": "1,227 °C",
+                  "id": "1.227 °C"
+                },
+                {
+                  "en": "1,500 °C",
+                  "id": "1.500 °C"
+                },
+                {
+                  "en": "1,773 °C",
+                  "id": "1.773 °C"
+                }
+              ],
+              "answer": 0,
+              "why": {
+                "en": "Subtract 273: 1,500 − 273 ≈ 1,227 °C.",
+                "id": "Kurangi 273: 1.500 − 273 ≈ 1.227 °C."
+              }
+            },
+            {
+              "q": {
+                "en": "Why does a diesel engine not need a spark plug?",
+                "id": "Kenapa mesin diesel tidak butuh busi?"
+              },
+              "options": [
+                {
+                  "en": "The fuel is already burning when injected",
+                  "id": "Bahan bakarnya sudah menyala saat disemprotkan"
+                },
+                {
+                  "en": "Compressing the air heats it enough to ignite the fuel",
+                  "id": "Udara yang dimampatkan menjadi cukup panas untuk menyalakan bahan bakar"
+                },
+                {
+                  "en": "Diesel fuel ignites at room temperature",
+                  "id": "Solar menyala pada suhu ruang"
+                }
+              ],
+              "answer": 1,
+              "why": {
+                "en": "Fast compression raises the air temperature above the ignition point of diesel fuel.",
+                "id": "Pemampatan cepat menaikkan suhu udara di atas titik nyala solar."
+              }
+            }
+          ],
+          "refs": [
+            "openstax-up2",
+            "afdc-diesel"
+          ]
+        },
+        {
+          "id": "l1-3",
+          "title": {
+            "en": "How to read any chart in the app",
+            "id": "Cara membaca grafik apa pun di aplikasi"
+          },
+          "minutes": 12,
+          "goal": {
+            "en": "Read axes, units, curves, dots, log scales and the model tag without help.",
+            "id": "Membaca sumbu, satuan, kurva, titik, skala log, dan tag model tanpa bantuan."
+          },
+          "body": [
+            {
+              "en": "Start with the title, then the two axes. The horizontal axis (x) is usually the thing you change: load, crank angle, timing. The vertical axis (y) is the result: pressure, NOx, efficiency. The unit is in square brackets, for example [bar] or [%].",
+              "id": "Mulai dari judul, lalu kedua sumbu. Sumbu mendatar (x) biasanya hal yang diubah: beban, sudut engkol, timing. Sumbu tegak (y) adalah hasilnya: tekanan, NOx, efisiensi. Satuannya ada di dalam kurung siku, misalnya [bar] atau [%]."
+            },
+            {
+              "en": "A curve shows every possible point the model calculated across a range. A dot or ring shows where the machine is right now. When you move a slider, the dot moves along the curve, or the whole curve shifts. Ask which one happened: moving along the curve means you changed the x value; a shifted curve means you changed something else.",
+              "id": "Kurva menunjukkan semua titik yang dihitung model sepanjang suatu rentang. Titik atau lingkaran menunjukkan posisi mesin saat ini. Saat slider digeser, titik bergerak sepanjang kurva, atau seluruh kurva bergeser. Tanyakan mana yang terjadi: titik bergerak sepanjang kurva berarti nilai x yang diubah; kurva bergeser berarti ada hal lain yang diubah."
+            },
+            {
+              "en": "Some charts use a log scale on the y axis, marked \"(log)\". On a log scale each major gridline is ten times the one below it: 1, 10, 100, 1,000. It lets a chart show very small and very large values together. A straight rising line on a log scale means the value multiplies by the same factor at each step, which is fast growth.",
+              "id": "Beberapa grafik memakai skala log pada sumbu y, ditandai \"(log)\". Pada skala log, setiap garis kisi utama bernilai sepuluh kali garis di bawahnya: 1, 10, 100, 1.000. Dengan begitu nilai yang sangat kecil dan sangat besar bisa tampil bersama. Garis lurus yang naik pada skala log berarti nilainya dikalikan faktor yang sama di setiap langkah, artinya tumbuh cepat."
+            },
+            {
+              "en": "Horizontal dashed lines are usually limits from the regulation table, or values typed in by the presenter. The caption under the chart says which.",
+              "id": "Garis putus-putus mendatar biasanya limit dari tabel regulasi, atau nilai yang diketik presenter. Keterangan di bawah grafik menyebutkan yang mana."
+            },
+            {
+              "en": "Look at the tag in the corner. Ideal means a textbook cycle with no losses. Real means the model includes component losses. Semi-empirical means a correlation fitted to published data. Site data means measured values entered for a real unit. Then check the basis next to any emission number: which O₂ level, dry or wet, and which reference temperature.",
+              "id": "Lihat tag di pojok. Ideal berarti siklus buku teks tanpa kerugian. Real berarti model memasukkan kerugian komponen. Semi-empiris berarti korelasi yang dicocokkan dengan data terbitan. Site data berarti nilai ukur yang dimasukkan untuk unit nyata. Lalu cek basis di samping angka emisi: kadar O₂ berapa, kering atau basah, dan suhu acuan berapa."
+            },
+            {
+              "en": "The Chart guide section of Learn has a page for every chart in the app, with what to look for and common mistakes.",
+              "id": "Bagian Chart guide di Learn punya satu halaman untuk setiap grafik di aplikasi, berisi apa yang perlu diperhatikan dan kesalahan baca yang sering terjadi."
+            }
+          ],
+          "terms": [
+            "axis",
+            "log-scale",
+            "model"
+          ],
+          "tryIt": {
+            "route": "#/scene/6",
+            "text": {
+              "en": "Scene 6 has a log-scale chart (NOx & CO vs load). Count the gridlines and read off one value.",
+              "id": "Scene 6 punya grafik skala log (NOx & CO vs load). Hitung garis kisinya dan baca satu nilai."
+            }
+          },
+          "checks": [
+            {
+              "q": {
+                "en": "On a log axis the gridlines read 1, 10, 100. A point sits halfway between 10 and 100. Its value is about:",
+                "id": "Pada sumbu log, garis kisinya 1, 10, 100. Sebuah titik berada di tengah antara 10 dan 100. Nilainya kira-kira:"
+              },
+              "options": [
+                {
+                  "en": "55",
+                  "id": "55"
+                },
+                {
+                  "en": "32",
+                  "id": "32"
+                },
+                {
+                  "en": "90",
+                  "id": "90"
+                }
+              ],
+              "answer": 1,
+              "why": {
+                "en": "Halfway on a log scale is the geometric middle: √(10 × 100) ≈ 32, not the arithmetic middle 55.",
+                "id": "Tengah pada skala log adalah tengah geometris: √(10 × 100) ≈ 32, bukan tengah aritmetis 55."
+              }
+            },
+            {
+              "q": {
+                "en": "You move a slider and the dot slides along the same curve. What did you change?",
+                "id": "Anda menggeser slider dan titik bergerak di kurva yang sama. Apa yang Anda ubah?"
+              },
+              "options": [
+                {
+                  "en": "The quantity on the x axis",
+                  "id": "Besaran di sumbu x"
+                },
+                {
+                  "en": "The model itself",
+                  "id": "Modelnya sendiri"
+                },
+                {
+                  "en": "The units",
+                  "id": "Satuannya"
+                }
+              ],
+              "answer": 0,
+              "why": {
+                "en": "Moving along a fixed curve means only the x value changed.",
+                "id": "Bergerak di kurva yang tetap berarti hanya nilai x yang berubah."
+              }
+            }
+          ],
+          "refs": []
+        }
+      ]
+    },
+    {
+      "id": "L2",
+      "title": {
+        "en": "How fuel becomes shaft power",
+        "id": "Bagaimana bahan bakar menjadi putaran poros"
+      },
+      "summary": {
+        "en": "Combustion, the piston engine, the gas turbine, and the gas compressor it drives.",
+        "id": "Pembakaran, mesin piston, turbin gas, dan kompresor gas yang diputarnya."
+      },
+      "lessons": [
+        {
+          "id": "l2-1",
+          "title": {
+            "en": "Burning fuel: what goes in, what comes out",
+            "id": "Pembakaran: apa yang masuk, apa yang keluar"
+          },
+          "minutes": 12,
+          "goal": {
+            "en": "Write the basic combustion reaction and explain air-fuel ratio, lambda and phi.",
+            "id": "Menuliskan reaksi pembakaran dasar dan menjelaskan rasio udara-bahan bakar, lambda, dan phi."
+          },
+          "body": [
+            {
+              "en": "Natural gas is mostly methane, CH₄. When it burns completely, each methane molecule takes two oxygen molecules and gives one CO₂ and two water molecules: CH₄ + 2 O₂ → CO₂ + 2 H₂O, plus heat. Diesel fuel is a mix of longer hydrocarbons, but the idea is the same: carbon becomes CO₂, hydrogen becomes water.",
+              "id": "Gas alam sebagian besar metana, CH₄. Bila terbakar sempurna, setiap molekul metana mengambil dua molekul oksigen dan menghasilkan satu CO₂ dan dua molekul air: CH₄ + 2 O₂ → CO₂ + 2 H₂O, ditambah panas. Solar adalah campuran hidrokarbon yang lebih panjang, tetapi prinsipnya sama: karbon menjadi CO₂, hidrogen menjadi air."
+            },
+            {
+              "en": "Engines do not burn fuel in pure oxygen. They burn it in air, which is about 78 % nitrogen and 21 % oxygen by volume. The nitrogen mostly passes through, but at very high temperature a little of it reacts with oxygen. That is where most NOx comes from.",
+              "id": "Mesin tidak membakar bahan bakar dalam oksigen murni, melainkan dalam udara, yang kira-kira 78 % nitrogen dan 21 % oksigen menurut volume. Nitrogen sebagian besar hanya lewat, tetapi pada suhu sangat tinggi sedikit dari nitrogen itu bereaksi dengan oksigen. Dari situlah sebagian besar NOx berasal."
+            },
+            {
+              "en": "The stoichiometric mixture has exactly enough air to burn all the fuel, with nothing left over. The air-fuel ratio (AFR) is the mass of air per mass of fuel. Scene 9 shows the stoichiometric AFR for the fuel you enter.",
+              "id": "Campuran stoikiometrik punya udara yang pas untuk membakar semua bahan bakar, tanpa sisa. Rasio udara-bahan bakar (AFR) adalah massa udara per massa bahan bakar. Scene 9 menunjukkan AFR stoikiometrik untuk bahan bakar yang Anda masukkan."
+            },
+            {
+              "en": "Two numbers describe how far a mixture is from stoichiometric. Lambda (λ) is actual air divided by stoichiometric air. Phi (φ) is the inverse. λ above 1, or φ below 1, means lean: more air than needed. Lean-burn gas engines and gas turbines run lean. Extra air keeps the flame cooler, which lowers NOx.",
+              "id": "Dua angka menggambarkan seberapa jauh campuran dari stoikiometrik. Lambda (λ) adalah udara aktual dibagi udara stoikiometrik. Phi (φ) adalah kebalikannya. λ di atas 1, atau φ di bawah 1, berarti lean (miskin bahan bakar): udaranya lebih dari yang dibutuhkan. Mesin gas lean-burn dan turbin gas beroperasi lean. Udara berlebih membuat nyala lebih dingin, sehingga NOx turun."
+            },
+            {
+              "en": "Run too lean and the flame becomes weak. Some fuel or carbon monoxide leaves unburned. This is the basic tension you will see again and again: cooler flame, less NOx, but closer to incomplete burning.",
+              "id": "Bila terlalu lean, nyala menjadi lemah. Sebagian bahan bakar atau karbon monoksida keluar tanpa terbakar. Inilah tarik-menarik dasar yang akan sering muncul: nyala lebih dingin, NOx lebih rendah, tetapi makin dekat ke pembakaran tidak sempurna."
+            }
+          ],
+          "terms": [
+            "combustion",
+            "stoichiometric",
+            "afr",
+            "lambda",
+            "phi"
+          ],
+          "tryIt": {
+            "route": "#/scene/3",
+            "text": {
+              "en": "In Scene 3, move φ and watch the flame colour and temperature change.",
+              "id": "Di Scene 3, geser φ dan perhatikan warna serta suhu nyala berubah."
+            }
+          },
+          "checks": [
+            {
+              "q": {
+                "en": "λ = 1.8 means:",
+                "id": "λ = 1,8 berarti:"
+              },
+              "options": [
+                {
+                  "en": "80 % more air than stoichiometric",
+                  "id": "Udara 80 % lebih banyak daripada stoikiometrik"
+                },
+                {
+                  "en": "80 % less air than needed",
+                  "id": "Udara 80 % lebih sedikit daripada yang dibutuhkan"
+                },
+                {
+                  "en": "Fuel-rich mixture",
+                  "id": "Campuran kaya bahan bakar"
+                }
+              ],
+              "answer": 0,
+              "why": {
+                "en": "λ is actual air over stoichiometric air, so 1.8 means 1.8 times the air needed.",
+                "id": "λ adalah udara aktual dibagi udara stoikiometrik, jadi 1,8 berarti 1,8 kali udara yang dibutuhkan."
+              }
+            },
+            {
+              "q": {
+                "en": "Where does most NOx in an engine come from?",
+                "id": "Dari mana sebagian besar NOx di mesin berasal?"
+              },
+              "options": [
+                {
+                  "en": "Nitrogen in the air reacting at high temperature",
+                  "id": "Nitrogen di udara yang bereaksi pada suhu tinggi"
+                },
+                {
+                  "en": "Nitrogen in the fuel",
+                  "id": "Nitrogen dalam bahan bakar"
+                },
+                {
+                  "en": "The lubricating oil",
+                  "id": "Oli pelumas"
+                }
+              ],
+              "answer": 0,
+              "why": {
+                "en": "Natural gas and diesel carry little nitrogen. The air carries plenty, and it reacts when the flame is very hot.",
+                "id": "Gas alam dan solar hanya mengandung sedikit nitrogen. Udara mengandung banyak, dan nitrogen itu bereaksi ketika nyala sangat panas."
+              }
+            }
+          ],
+          "refs": [
+            "turns",
+            "heywood",
+            "epa-no2-basics"
+          ]
+        },
+        {
+          "id": "l2-2",
+          "title": {
+            "en": "The piston engine: four strokes, diesel and gas",
+            "id": "Mesin piston: empat langkah, diesel dan gas"
+          },
+          "minutes": 15,
+          "goal": {
+            "en": "Name the four strokes, read crank angle, and explain injection and spark timing.",
+            "id": "Menyebut empat langkah, membaca sudut engkol, dan menjelaskan timing injeksi dan busi."
+          },
+          "body": [
+            {
+              "en": "A four-stroke engine repeats four steps. Intake: the piston moves down and pulls in air (or air and gas). Compression: the piston moves up and squeezes it. Power: fuel burns and the hot gas pushes the piston down. Exhaust: the piston moves up and pushes the burned gas out. The crankshaft turns twice for one full cycle.",
+              "id": "Mesin empat langkah mengulang empat tahap. Hisap: piston turun dan menarik udara (atau udara dan gas). Kompresi: piston naik dan memampatkannya. Usaha: bahan bakar terbakar dan gas panas mendorong piston turun. Buang: piston naik dan mendorong gas sisa pembakaran keluar. Poros engkol berputar dua kali untuk satu siklus penuh."
+            },
+            {
+              "en": "Crank angle tells where the piston is. Top dead centre (TDC) is the highest point. In this app, 0° is TDC at the start of the power stroke, and one cycle runs from −360° to +360°. Negative angles are before TDC (BTDC), positive angles after (ATDC).",
+              "id": "Sudut engkol menunjukkan posisi piston. Titik mati atas (TDC) adalah titik tertinggi. Di aplikasi ini, 0° adalah TDC di awal langkah usaha, dan satu siklus berjalan dari −360° sampai +360°. Sudut negatif berarti sebelum TDC (BTDC), sudut positif sesudahnya (ATDC)."
+            },
+            {
+              "en": "A diesel engine compresses only air, then sprays fuel in near TDC. The fuel lights by itself in the hot air. A gas engine mixes gas with air before compression and lights it with a spark. In both cases, the moment combustion starts is called timing: injection timing for diesel, spark timing for gas.",
+              "id": "Mesin diesel hanya memampatkan udara, lalu menyemprotkan bahan bakar di dekat TDC. Bahan bakar menyala sendiri di udara panas. Mesin gas mencampur gas dengan udara sebelum kompresi dan menyalakannya dengan busi. Pada keduanya, saat pembakaran dimulai disebut timing: timing injeksi untuk diesel, timing busi untuk gas."
+            },
+            {
+              "en": "Timing is one of the main levers for NOx. Start combustion earlier and the peak pressure and temperature go up: more work per cycle, but more NOx. Start later (retard) and the peak is lower: less NOx, but some energy is wasted and fuel use per kWh rises.",
+              "id": "Timing adalah salah satu tuas utama untuk NOx. Bila pembakaran dimulai lebih awal, tekanan dan suhu puncak naik: kerja per siklus lebih besar, tetapi NOx lebih banyak. Bila dimundurkan (retard), puncaknya lebih rendah: NOx turun, tetapi sebagian energi terbuang dan konsumsi bahan bakar per kWh naik."
+            },
+            {
+              "en": "The compression ratio is the cylinder volume at the bottom of the stroke divided by the volume at the top. Diesel engines use a much higher ratio than gas engines. A gas engine cannot go as high because the mixture would ignite too early on its own (knock).",
+              "id": "Rasio kompresi adalah volume silinder di bawah langkah dibagi volume di atas langkah. Mesin diesel memakai rasio yang jauh lebih tinggi daripada mesin gas. Mesin gas tidak bisa setinggi itu karena campuran akan menyala sendiri terlalu awal (knocking)."
+            }
+          ],
+          "terms": [
+            "crank-angle",
+            "tdc",
+            "atdc",
+            "timing",
+            "compression-ratio",
+            "pmax"
+          ],
+          "tryIt": {
+            "route": "#/scene/1",
+            "text": {
+              "en": "In Scene 1, follow the dot on the P-θ chart through one cycle. The tall peak is near 0°.",
+              "id": "Di Scene 1, ikuti titik pada grafik P-θ selama satu siklus. Puncak tinggi berada di dekat 0°."
+            }
+          },
+          "checks": [
+            {
+              "q": {
+                "en": "How many crankshaft turns make one four-stroke cycle?",
+                "id": "Berapa putaran poros engkol untuk satu siklus empat langkah?"
+              },
+              "options": [
+                {
+                  "en": "One",
+                  "id": "Satu"
+                },
+                {
+                  "en": "Two",
+                  "id": "Dua"
+                },
+                {
+                  "en": "Four",
+                  "id": "Empat"
+                }
+              ],
+              "answer": 1,
+              "why": {
+                "en": "Four strokes of the piston, two turns of the crank: 720°, shown as −360° to +360°.",
+                "id": "Empat langkah piston, dua putaran engkol: 720°, ditampilkan sebagai −360° sampai +360°."
+              }
+            },
+            {
+              "q": {
+                "en": "Retarding the timing usually:",
+                "id": "Memundurkan timing biasanya:"
+              },
+              "options": [
+                {
+                  "en": "Raises NOx and efficiency",
+                  "id": "Menaikkan NOx dan efisiensi"
+                },
+                {
+                  "en": "Lowers NOx and lowers efficiency",
+                  "id": "Menurunkan NOx dan menurunkan efisiensi"
+                },
+                {
+                  "en": "Has no effect on NOx",
+                  "id": "Tidak berpengaruh pada NOx"
+                }
+              ],
+              "answer": 1,
+              "why": {
+                "en": "A later start lowers peak temperature (less NOx) but wastes some expansion work.",
+                "id": "Mulai yang lebih lambat menurunkan suhu puncak (NOx berkurang) tetapi membuang sebagian kerja ekspansi."
+              }
+            }
+          ],
+          "refs": [
+            "heywood",
+            "afdc-diesel",
+            "mit-unified-thermo"
+          ]
+        },
+        {
+          "id": "l2-3",
+          "title": {
+            "en": "The gas turbine, single-shaft and twin-shaft",
+            "id": "Turbin gas, single-shaft dan twin-shaft"
+          },
+          "minutes": 15,
+          "goal": {
+            "en": "Name the three main parts of a gas turbine and tell a generator drive from a compressor drive.",
+            "id": "Menyebut tiga bagian utama turbin gas dan membedakan penggerak generator dari penggerak kompresor."
+          },
+          "body": [
+            {
+              "en": "A gas turbine does continuously what a piston engine does in steps. A compressor squeezes air. In the combustor, fuel burns in that air at nearly constant pressure. The hot gas expands through the turbine and spins it. The turbine drives the compressor and the load.",
+              "id": "Turbin gas melakukan secara terus-menerus apa yang dilakukan mesin piston secara bertahap. Kompresor memampatkan udara. Di ruang bakar, bahan bakar terbakar dalam udara itu pada tekanan yang hampir tetap. Gas panas mengembang melewati turbin dan memutarnya. Turbin memutar kompresor dan beban."
+            },
+            {
+              "en": "The compressor uses a large share of the turbine's own work. Only what is left over reaches the load. When the outside air is hot, it is less dense, so the compressor moves less mass of air, and power drops right away. Scene 5 shows this.",
+              "id": "Kompresor memakai porsi besar dari kerja turbin itu sendiri. Hanya sisanya yang sampai ke beban. Ketika udara luar panas, kerapatannya lebih kecil, sehingga massa udara yang dipindahkan kompresor berkurang, dan daya langsung turun. Scene 5 menunjukkan hal ini."
+            },
+            {
+              "en": "A single-shaft turbine has the compressor, turbine and load on one shaft. It is the usual layout for driving a generator, which must turn at a fixed speed to hold grid frequency. At part load it closes the inlet guide vanes (IGV) to cut airflow and keep the flame hot. Once the IGV are fully closed, the only way down is less fuel, and the flame cools.",
+              "id": "Turbin single-shaft punya kompresor, turbin, dan beban pada satu poros. Ini susunan yang umum untuk memutar generator, yang harus berputar pada kecepatan tetap untuk menjaga frekuensi listrik. Pada beban sebagian, turbin ini menutup inlet guide vane (IGV) untuk mengurangi aliran udara dan menjaga nyala tetap panas. Setelah IGV tertutup penuh, satu-satunya cara menurunkan beban adalah mengurangi bahan bakar, dan nyala menjadi lebih dingin."
+            },
+            {
+              "en": "A twin-shaft turbine splits the machine in two. The gas generator (compressor, combustor and the turbine that drives the compressor) sits on one shaft. A separate power turbine drives the load on its own shaft. This lets the load run at variable speed, which a gas compressor needs. When load drops, the gas generator slows down.",
+              "id": "Turbin twin-shaft membagi mesin menjadi dua. Gas generator (kompresor, ruang bakar, dan turbin yang memutar kompresor) berada pada satu poros. Power turbine terpisah memutar beban pada porosnya sendiri. Susunan ini memungkinkan beban berputar dengan kecepatan berubah-ubah, yang dibutuhkan kompresor gas. Saat beban turun, gas generator melambat."
+            },
+            {
+              "en": "Many gas turbines use dry low NOx (DLN) combustors. They premix fuel and air lean before the flame to keep it cool. It works well inside a certain range of flame temperature. Too cool and CO rises. This is why the way each turbine handles part load matters for emissions.",
+              "id": "Banyak turbin gas memakai ruang bakar dry low NOx (DLN). Bahan bakar dan udara dicampur lean sebelum nyala supaya nyalanya dingin. Cara ini bekerja baik dalam rentang suhu nyala tertentu. Terlalu dingin, CO naik. Karena itu cara tiap turbin menangani beban sebagian penting bagi emisinya."
+            }
+          ],
+          "terms": [
+            "shaft",
+            "igv",
+            "single-shaft",
+            "twin-shaft",
+            "dln",
+            "lean-premix"
+          ],
+          "tryIt": {
+            "route": "#/scene/5",
+            "text": {
+              "en": "In Scene 5, switch between Generator and Compressor drive, then raise the ambient temperature.",
+              "id": "Di Scene 5, pindah antara Generator dan Compressor drive, lalu naikkan suhu ambien."
+            }
+          },
+          "checks": [
+            {
+              "q": {
+                "en": "Why is a single-shaft turbine common for generators?",
+                "id": "Kenapa turbin single-shaft umum untuk generator?"
+              },
+              "options": [
+                {
+                  "en": "It runs at a fixed speed, which a generator needs",
+                  "id": "Turbin ini berputar pada kecepatan tetap, yang dibutuhkan generator"
+                },
+                {
+                  "en": "It has no compressor",
+                  "id": "Tidak punya kompresor"
+                },
+                {
+                  "en": "It produces no NOx",
+                  "id": "Tidak menghasilkan NOx"
+                }
+              ],
+              "answer": 0,
+              "why": {
+                "en": "Grid frequency requires a constant generator speed, and one shaft holds it naturally.",
+                "id": "Frekuensi listrik butuh kecepatan generator yang konstan, dan satu poros menjaganya secara alami."
+              }
+            },
+            {
+              "q": {
+                "en": "On a hot day, a gas turbine's power:",
+                "id": "Pada hari yang panas, daya turbin gas:"
+              },
+              "options": [
+                {
+                  "en": "Rises",
+                  "id": "Naik"
+                },
+                {
+                  "en": "Drops",
+                  "id": "Turun"
+                },
+                {
+                  "en": "Stays the same",
+                  "id": "Tetap"
+                }
+              ],
+              "answer": 1,
+              "why": {
+                "en": "Hot air is less dense, so less air mass flows through, and the compressor also needs more work.",
+                "id": "Udara panas kerapatannya lebih kecil, sehingga massa udara yang mengalir berkurang, dan kompresor juga butuh kerja lebih besar."
+              }
+            }
+          ],
+          "refs": [
+            "doe-gas-turbine",
+            "nasa-grc-brayton",
+            "saravanamuttoo",
+            "boyce"
+          ]
+        },
+        {
+          "id": "l2-4",
+          "title": {
+            "en": "The gas compressor sets the pace",
+            "id": "Kompresor gas yang menentukan"
+          },
+          "minutes": 10,
+          "goal": {
+            "en": "Explain the affinity laws and why a compressor-drive turbine follows the process.",
+            "id": "Menjelaskan hukum afinitas dan kenapa turbin penggerak kompresor mengikuti proses."
+          },
+          "body": [
+            {
+              "en": "A gas compressor raises gas pressure so it can flow into a pipeline or a process. The process decides how much gas must move and to what pressure. The compressor must deliver that, and the turbine must give the compressor whatever power it takes.",
+              "id": "Kompresor gas menaikkan tekanan gas supaya bisa mengalir ke pipa atau proses. Proses menentukan berapa banyak gas yang harus dipindahkan dan sampai tekanan berapa. Kompresor harus memenuhinya, dan turbin harus memberi kompresor daya berapa pun yang dibutuhkan."
+            },
+            {
+              "en": "For a centrifugal compressor at different speeds, three simple rules hold (the affinity laws). Flow changes in proportion to speed. Head (the pressure rise expressed as energy per kilogram) changes with speed squared. Power changes with speed cubed. So 10 % less speed means roughly 27 % less power.",
+              "id": "Untuk kompresor sentrifugal pada kecepatan berbeda, berlaku tiga aturan sederhana (hukum afinitas). Aliran berubah sebanding dengan kecepatan. Head (kenaikan tekanan yang dinyatakan sebagai energi per kilogram) berubah dengan kuadrat kecepatan. Daya berubah dengan pangkat tiga kecepatan. Jadi kecepatan 10 % lebih rendah berarti daya kira-kira 27 % lebih rendah."
+            },
+            {
+              "en": "Because power depends so strongly on speed, small changes in the gas flow move the turbine's load a lot. The turbine does not pick its operating point. The process picks it.",
+              "id": "Karena daya sangat bergantung pada kecepatan, perubahan kecil pada aliran gas menggeser beban turbin cukup besar. Turbin tidak memilih titik operasinya. Proses yang memilihnya."
+            },
+            {
+              "en": "This is the link to emissions: a turbine whose load keeps changing spends much of its time away from the point where its combustor was tuned.",
+              "id": "Inilah kaitannya dengan emisi: turbin yang bebannya terus berubah menghabiskan banyak waktunya jauh dari titik tempat ruang bakarnya disetel."
+            }
+          ],
+          "terms": [
+            "affinity-laws",
+            "pressure-ratio"
+          ],
+          "tryIt": {
+            "route": "#/scene/7",
+            "text": {
+              "en": "In Scene 7, lower the speed and watch the power on the Power vs speed chart.",
+              "id": "Di Scene 7, turunkan kecepatan dan perhatikan daya pada grafik Power vs speed."
+            }
+          },
+          "checks": [
+            {
+              "q": {
+                "en": "Compressor speed drops by half. Power drops to about:",
+                "id": "Kecepatan kompresor turun separuhnya. Dayanya turun menjadi kira-kira:"
+              },
+              "options": [
+                {
+                  "en": "Half",
+                  "id": "Separuh"
+                },
+                {
+                  "en": "One quarter",
+                  "id": "Seperempat"
+                },
+                {
+                  "en": "One eighth",
+                  "id": "Seperdelapan"
+                }
+              ],
+              "answer": 2,
+              "why": {
+                "en": "Power scales with speed cubed: 0.5³ = 0.125, one eighth.",
+                "id": "Daya sebanding dengan pangkat tiga kecepatan: 0,5³ = 0,125, seperdelapan."
+              }
+            },
+            {
+              "q": {
+                "en": "Who decides the operating point of a compressor-drive turbine?",
+                "id": "Siapa yang menentukan titik operasi turbin penggerak kompresor?"
+              },
+              "options": [
+                {
+                  "en": "The turbine control panel alone",
+                  "id": "Panel kontrol turbin saja"
+                },
+                {
+                  "en": "The gas process",
+                  "id": "Proses gas"
+                },
+                {
+                  "en": "The emission limit",
+                  "id": "Baku mutu emisi"
+                }
+              ],
+              "answer": 1,
+              "why": {
+                "en": "The process sets flow and pressure; the compressor and turbine follow.",
+                "id": "Proses menentukan aliran dan tekanan; kompresor dan turbin mengikuti."
+              }
+            }
+          ],
+          "refs": [
+            "dixon-hall",
+            "api-617"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "L3",
+      "title": {
+        "en": "Cycles and efficiency",
+        "id": "Siklus dan efisiensi"
+      },
+      "summary": {
+        "en": "Why every engine has a ceiling, why real machines stay below it, and what part load does.",
+        "id": "Kenapa setiap mesin punya batas atas, kenapa mesin nyata selalu di bawahnya, dan apa pengaruh beban sebagian."
+      },
+      "lessons": [
+        {
+          "id": "l3-1",
+          "title": {
+            "en": "A cycle is a loop, and the loop is the work",
+            "id": "Siklus adalah sebuah loop, dan loop itu adalah kerja"
+          },
+          "minutes": 12,
+          "goal": {
+            "en": "Read a P-V diagram and say what its enclosed area means.",
+            "id": "Membaca diagram P-V dan menjelaskan arti luas di dalamnya."
+          },
+          "body": [
+            {
+              "en": "Plot the cylinder pressure against the cylinder volume for one full cycle and you get a closed loop. Going up the left side is compression. The jump near the top is combustion. Coming down the right side is expansion.",
+              "id": "Bila tekanan silinder diplot terhadap volume silinder selama satu siklus penuh, hasilnya sebuah loop tertutup. Naik di sisi kiri adalah kompresi. Lonjakan di dekat puncak adalah pembakaran. Turun di sisi kanan adalah ekspansi."
+            },
+            {
+              "en": "The area inside the loop is the work done by the gas on the piston in one cycle. The gas pushes harder on the way down (after combustion) than the piston pushed on the way up, and the difference is what you get out. A fatter loop means more work per cycle.",
+              "id": "Luas di dalam loop adalah kerja yang dilakukan gas pada piston dalam satu siklus. Gas mendorong lebih kuat saat piston turun (setelah pembakaran) daripada dorongan piston saat naik, dan selisihnya adalah kerja yang didapat. Loop yang lebih gemuk berarti kerja per siklus lebih besar."
+            },
+            {
+              "en": "The same cycle can be drawn against crank angle instead of volume (P-θ). That view makes it easy to see when the pressure peaks relative to TDC. Scene 1 shows both side by side, driven by the same calculation, so the dot on each chart and the piston in 3D are always at the same moment.",
+              "id": "Siklus yang sama bisa digambar terhadap sudut engkol, bukan volume (P-θ). Tampilan ini memudahkan melihat kapan tekanan memuncak dibanding TDC. Scene 1 menampilkan keduanya berdampingan dari perhitungan yang sama, jadi titik di tiap grafik dan piston 3D selalu berada pada saat yang sama."
+            },
+            {
+              "en": "Mean effective pressure (MEP) is the work per cycle divided by the swept volume. It lets you compare engines of different sizes on one scale.",
+              "id": "Mean effective pressure (MEP) adalah kerja per siklus dibagi volume langkah. Besaran ini memungkinkan perbandingan mesin dengan ukuran berbeda pada satu skala."
+            }
+          ],
+          "terms": [
+            "volume",
+            "pressure-bar",
+            "pmax"
+          ],
+          "tryIt": {
+            "route": "#/scene/1",
+            "text": {
+              "en": "In Scene 1, watch the shaded loop on the P-V chart. The caption gives its area as work in kJ.",
+              "id": "Di Scene 1, perhatikan loop berarsir pada grafik P-V. Keterangannya memberi luas loop sebagai kerja dalam kJ."
+            }
+          },
+          "checks": [
+            {
+              "q": {
+                "en": "On a P-V diagram, the work per cycle is:",
+                "id": "Pada diagram P-V, kerja per siklus adalah:"
+              },
+              "options": [
+                {
+                  "en": "The highest pressure",
+                  "id": "Tekanan tertinggi"
+                },
+                {
+                  "en": "The area inside the loop",
+                  "id": "Luas di dalam loop"
+                },
+                {
+                  "en": "The width of the loop",
+                  "id": "Lebar loop"
+                }
+              ],
+              "answer": 1,
+              "why": {
+                "en": "Work is pressure times volume change summed around the loop, which is the enclosed area.",
+                "id": "Kerja adalah tekanan kali perubahan volume yang dijumlahkan sepanjang loop, yaitu luas yang dilingkupinya."
+              }
+            }
+          ],
+          "refs": [
+            "openstax-up2",
+            "heywood"
+          ]
+        },
+        {
+          "id": "l3-2",
+          "title": {
+            "en": "Ideal cycles and why real engines fall short",
+            "id": "Siklus ideal dan kenapa mesin nyata tidak mencapainya"
+          },
+          "minutes": 15,
+          "goal": {
+            "en": "Explain the ideal ceiling and read the efficiency waterfall step by step.",
+            "id": "Menjelaskan batas atas ideal dan membaca waterfall efisiensi langkah demi langkah."
+          },
+          "body": [
+            {
+              "en": "Textbooks describe engines with simplified cycles: no friction, no heat lost to the walls, combustion that happens instantly, and air that behaves the same at every temperature. The Otto cycle adds heat at constant volume (like a spark engine). The Diesel cycle adds it at constant pressure. The dual cycle does a bit of both.",
+              "id": "Buku teks menggambarkan mesin dengan siklus yang disederhanakan: tanpa gesekan, tanpa panas yang hilang ke dinding, pembakaran yang terjadi seketika, dan udara yang sifatnya sama di semua suhu. Siklus Otto menambahkan panas pada volume tetap (seperti mesin busi). Siklus Diesel menambahkannya pada tekanan tetap. Siklus dual melakukan sedikit dari keduanya."
+            },
+            {
+              "en": "These ideal cycles set a ceiling. No real engine with the same compression ratio can beat it. For the same compression ratio, the Otto cycle is at least as efficient as the Diesel cycle. Diesel engines still come out ahead in practice because they run at much higher compression ratios.",
+              "id": "Siklus ideal ini menetapkan batas atas. Tidak ada mesin nyata dengan rasio kompresi yang sama yang bisa melampauinya. Pada rasio kompresi yang sama, siklus Otto setidaknya sama efisien dengan siklus Diesel. Mesin diesel tetap unggul dalam praktik karena rasio kompresinya jauh lebih tinggi."
+            },
+            {
+              "en": "The waterfall chart in Scene 2 starts at the ideal ceiling and removes one loss at a time. First, real air carries more heat at high temperature than the simple model assumes (variable specific heat). Second, combustion takes time, so not all heat is released at the best moment. Third, heat leaks into the cylinder walls and a little fuel stays unburned. Fourth, friction takes its share before power reaches the shaft. What is left is brake efficiency.",
+              "id": "Grafik waterfall di Scene 2 dimulai dari batas atas ideal dan mengurangi satu kerugian setiap langkah. Pertama, udara nyata menyerap lebih banyak panas pada suhu tinggi daripada yang diasumsikan model sederhana (kalor jenis yang berubah). Kedua, pembakaran butuh waktu, sehingga tidak semua panas dilepas pada saat terbaik. Ketiga, panas bocor ke dinding silinder dan sedikit bahan bakar tidak terbakar. Keempat, gesekan mengambil bagiannya sebelum daya sampai ke poros. Sisanya adalah brake efficiency."
+            },
+            {
+              "en": "The gap between ideal and brake efficiency is physics, not a mistake. Knowing which step is large tells you where engineers look for improvement.",
+              "id": "Selisih antara efisiensi ideal dan brake efficiency adalah fisika, bukan kesalahan. Mengetahui langkah mana yang besar menunjukkan di mana insinyur mencari perbaikan."
+            }
+          ],
+          "terms": [
+            "compression-ratio",
+            "otto-diesel-dual",
+            "brake-efficiency"
+          ],
+          "tryIt": {
+            "route": "#/scene/2",
+            "text": {
+              "en": "In Scene 2, press Replay waterfall and name each bar as it drops.",
+              "id": "Di Scene 2, tekan Replay waterfall dan sebutkan nama tiap batang saat turun."
+            }
+          },
+          "checks": [
+            {
+              "q": {
+                "en": "At the same compression ratio, which ideal cycle is at least as efficient?",
+                "id": "Pada rasio kompresi yang sama, siklus ideal mana yang setidaknya sama efisien?"
+              },
+              "options": [
+                {
+                  "en": "Otto",
+                  "id": "Otto"
+                },
+                {
+                  "en": "Diesel",
+                  "id": "Diesel"
+                }
+              ],
+              "answer": 0,
+              "why": {
+                "en": "Adding heat at constant volume uses the full compression. Diesels win only because their compression ratio is higher.",
+                "id": "Menambah panas pada volume tetap memanfaatkan kompresi sepenuhnya. Diesel unggul hanya karena rasio kompresinya lebih tinggi."
+              }
+            },
+            {
+              "q": {
+                "en": "Which loss is the last step before brake efficiency in the waterfall?",
+                "id": "Kerugian mana yang menjadi langkah terakhir sebelum brake efficiency di waterfall?"
+              },
+              "options": [
+                {
+                  "en": "Wall heat loss",
+                  "id": "Kehilangan panas ke dinding"
+                },
+                {
+                  "en": "Mechanical friction",
+                  "id": "Gesekan mekanis"
+                },
+                {
+                  "en": "Variable specific heat",
+                  "id": "Kalor jenis yang berubah"
+                }
+              ],
+              "answer": 1,
+              "why": {
+                "en": "Friction is taken off last, between the gas work on the piston and the power on the shaft.",
+                "id": "Gesekan dikurangkan paling akhir, antara kerja gas pada piston dan daya di poros."
+              }
+            }
+          ],
+          "refs": [
+            "cengel-boles",
+            "mit-unified-thermo",
+            "heywood"
+          ]
+        },
+        {
+          "id": "l3-3",
+          "title": {
+            "en": "The Brayton cycle and the T-s chart",
+            "id": "Siklus Brayton dan grafik T-s"
+          },
+          "minutes": 15,
+          "goal": {
+            "en": "Follow the four Brayton processes and read a T-s chart at a basic level.",
+            "id": "Mengikuti empat proses Brayton dan membaca grafik T-s pada tingkat dasar."
+          },
+          "body": [
+            {
+              "en": "The gas turbine cycle is called the Brayton cycle. Air is compressed (1 to 2), heated in the combustor at nearly constant pressure (2 to 3), expanded through the turbine (3 to 4), and leaves as hot exhaust (4 to 1). Its efficiency rises with the pressure ratio and with the turbine inlet temperature.",
+              "id": "Siklus turbin gas disebut siklus Brayton. Udara dikompresi (1 ke 2), dipanaskan di ruang bakar pada tekanan hampir tetap (2 ke 3), diekspansi melalui turbin (3 ke 4), dan keluar sebagai gas buang panas (4 ke 1). Efisiensinya naik bersama rasio tekanan dan suhu masuk turbin."
+            },
+            {
+              "en": "Turbines are often drawn on a temperature–entropy (T-s) chart. You do not need to calculate entropy. Think of it as a bookkeeping quantity for heat. On a T-s chart, heat added or removed shows up as area under a line, and the loop area relates to the net work, much like the P-V loop for the piston.",
+              "id": "Turbin sering digambar pada grafik suhu–entropi (T-s). Entropi tidak perlu dihitung. Anggap saja sebagai besaran pembukuan untuk panas. Pada grafik T-s, panas yang masuk atau keluar tampil sebagai luas di bawah garis, dan luas loop berkaitan dengan kerja bersih, mirip loop P-V pada piston."
+            },
+            {
+              "en": "In an ideal compressor or turbine, compression and expansion are vertical lines on the T-s chart (no entropy change). In a real machine they lean to the right, because some energy turns into friction heat inside the machine. That lean is the component efficiency at work.",
+              "id": "Pada kompresor atau turbin ideal, kompresi dan ekspansi berupa garis tegak pada grafik T-s (tanpa perubahan entropi). Pada mesin nyata, garis itu miring ke kanan, karena sebagian energi berubah menjadi panas gesekan di dalam mesin. Kemiringan itulah wujud efisiensi komponen."
+            },
+            {
+              "en": "The back-work ratio is compressor work divided by turbine work. Scene 5 shows it. A high ratio means a small change in compressor efficiency or air temperature has a big effect on net power.",
+              "id": "Back-work ratio adalah kerja kompresor dibagi kerja turbin. Scene 5 menampilkannya. Rasio yang tinggi berarti perubahan kecil pada efisiensi kompresor atau suhu udara berdampak besar pada daya bersih."
+            }
+          ],
+          "terms": [
+            "brayton",
+            "pressure-ratio",
+            "entropy"
+          ],
+          "tryIt": {
+            "route": "#/scene/2",
+            "text": {
+              "en": "In Scene 2, choose the Brayton cycle and switch between Ideal and Real on the T-s chart. Then open Scene 5 and read the back-work ratio in the HUD.",
+              "id": "Di Scene 2, pilih siklus Brayton lalu pindah antara Ideal dan Real pada grafik T-s. Setelah itu buka Scene 5 dan baca back-work ratio di HUD."
+            }
+          },
+          "checks": [
+            {
+              "q": {
+                "en": "Raising the pressure ratio of an ideal Brayton cycle:",
+                "id": "Menaikkan rasio tekanan siklus Brayton ideal:"
+              },
+              "options": [
+                {
+                  "en": "Raises efficiency",
+                  "id": "Menaikkan efisiensi"
+                },
+                {
+                  "en": "Lowers efficiency",
+                  "id": "Menurunkan efisiensi"
+                },
+                {
+                  "en": "Does nothing",
+                  "id": "Tidak berpengaruh"
+                }
+              ],
+              "answer": 0,
+              "why": {
+                "en": "The ideal Brayton efficiency depends only on pressure ratio and rises with it.",
+                "id": "Efisiensi Brayton ideal hanya bergantung pada rasio tekanan dan naik bersamanya."
+              }
+            },
+            {
+              "q": {
+                "en": "On a T-s chart, a real compression line compared with an ideal one is:",
+                "id": "Pada grafik T-s, garis kompresi nyata dibanding garis ideal:"
+              },
+              "options": [
+                {
+                  "en": "Vertical",
+                  "id": "Tegak"
+                },
+                {
+                  "en": "Leaning to the right",
+                  "id": "Miring ke kanan"
+                },
+                {
+                  "en": "Horizontal",
+                  "id": "Mendatar"
+                }
+              ],
+              "answer": 1,
+              "why": {
+                "en": "Losses inside the compressor add entropy, so the line leans right and ends hotter.",
+                "id": "Kerugian di dalam kompresor menambah entropi, sehingga garis miring ke kanan dan berakhir lebih panas."
+              }
+            }
+          ],
+          "refs": [
+            "nasa-grc-brayton",
+            "mit-unified-thermo",
+            "saravanamuttoo",
+            "cengel-boles"
+          ]
+        },
+        {
+          "id": "l3-4",
+          "title": {
+            "en": "Part load: generator vs compressor drive",
+            "id": "Beban sebagian: generator vs penggerak kompresor"
+          },
+          "minutes": 15,
+          "goal": {
+            "en": "Explain the CO cliff of a single-shaft turbine and the shifting window of a twin-shaft turbine.",
+            "id": "Menjelaskan tebing CO pada turbin single-shaft dan jendela operasi yang bergeser pada turbin twin-shaft."
+          },
+          "body": [
+            {
+              "en": "Part load means running below full power. Gas turbines lose efficiency at part load, and their DLN combustors only stay in their low-NOx, low-CO range within a band of flame temperature.",
+              "id": "Beban sebagian berarti beroperasi di bawah daya penuh. Turbin gas kehilangan efisiensi pada beban sebagian, dan ruang bakar DLN hanya bertahan di rentang NOx rendah dan CO rendah dalam pita suhu nyala tertentu."
+            },
+            {
+              "en": "The single-shaft generator turbine first closes its IGV, which keeps the flame temperature up while load falls. When the IGV run out of travel, fuel is the only thing left to cut. The flame cools quickly and CO climbs steeply. On the Scene 6 chart this appears as a cliff.",
+              "id": "Turbin generator single-shaft pertama-tama menutup IGV, sehingga suhu nyala tetap tinggi saat beban turun. Ketika IGV sudah habis geraknya, hanya bahan bakar yang bisa dikurangi. Nyala cepat mendingin dan CO naik tajam. Pada grafik Scene 6 ini tampak sebagai tebing."
+            },
+            {
+              "en": "The twin-shaft compressor-drive turbine reacts differently. Its gas generator slows down as load falls, so airflow drops along with fuel. The flame temperature changes more gradually. The model does not show a cliff here. What it shows is that the load range where both NOx and CO stay under the limits moves and becomes narrower.",
+              "id": "Turbin twin-shaft penggerak kompresor bereaksi berbeda. Gas generator-nya melambat saat beban turun, sehingga aliran udara ikut turun bersama bahan bakar. Suhu nyala berubah lebih bertahap. Model tidak menunjukkan tebing di sini. Yang ditunjukkan adalah rentang beban tempat NOx dan CO sama-sama di bawah limit bergeser dan menyempit."
+            },
+            {
+              "en": "Put that next to lesson 2.4: the compressor turbine's load is set by the process and keeps moving. So it spends more time near the edges of a window that is itself narrower. That is the core of the argument for treating the two machines differently.",
+              "id": "Hubungkan dengan pelajaran 2.4: beban turbin kompresor ditentukan proses dan terus bergerak. Jadi turbin ini lebih sering berada di dekat tepi jendela yang memang lebih sempit. Itulah inti argumen untuk memperlakukan kedua mesin secara berbeda."
+            },
+            {
+              "en": "A note on what the model can and cannot say. It keeps the fuel split inside the combustor fixed. Real units change that split with load, which can move CO in either direction. The model's result is the shift and narrowing of the window, not a claim that CO \"explodes\" in a twin-shaft turbine.",
+              "id": "Catatan tentang batas model. Model menjaga pembagian bahan bakar di dalam ruang bakar tetap. Unit nyata mengubah pembagian itu sesuai beban, yang bisa menggeser CO ke arah mana pun. Hasil model adalah jendela yang bergeser dan menyempit, bukan klaim bahwa CO \"meledak\" pada turbin twin-shaft."
+            }
+          ],
+          "terms": [
+            "load",
+            "igv",
+            "load-window",
+            "co"
+          ],
+          "tryIt": {
+            "route": "#/scene/6",
+            "text": {
+              "en": "In Scene 6, slide the load from 100 % downward and watch where the CO curve turns up for each configuration.",
+              "id": "Di Scene 6, geser beban dari 100 % ke bawah dan perhatikan di mana kurva CO naik untuk tiap konfigurasi."
+            }
+          },
+          "checks": [
+            {
+              "q": {
+                "en": "Why does CO climb steeply in the single-shaft turbine at low load?",
+                "id": "Kenapa CO naik tajam pada turbin single-shaft di beban rendah?"
+              },
+              "options": [
+                {
+                  "en": "The IGV are fully closed, so only fuel can be cut and the flame cools",
+                  "id": "IGV sudah tertutup penuh, jadi hanya bahan bakar yang bisa dikurangi dan nyala mendingin"
+                },
+                {
+                  "en": "The shaft speeds up",
+                  "id": "Poros berputar lebih cepat"
+                },
+                {
+                  "en": "NOx turns into CO",
+                  "id": "NOx berubah menjadi CO"
+                }
+              ],
+              "answer": 0,
+              "why": {
+                "en": "With airflow fixed at its minimum, less fuel means a leaner, colder flame that cannot finish burning CO.",
+                "id": "Dengan aliran udara tertahan di minimum, bahan bakar yang lebih sedikit membuat nyala lebih lean dan dingin sehingga CO tidak terbakar habis."
+              }
+            },
+            {
+              "q": {
+                "en": "What does the model show for the twin-shaft compressor turbine?",
+                "id": "Apa yang ditunjukkan model untuk turbin twin-shaft penggerak kompresor?"
+              },
+              "options": [
+                {
+                  "en": "CO explodes at part load",
+                  "id": "CO meledak pada beban sebagian"
+                },
+                {
+                  "en": "The operating window shifts and narrows",
+                  "id": "Jendela operasi bergeser dan menyempit"
+                },
+                {
+                  "en": "No change with load",
+                  "id": "Tidak berubah terhadap beban"
+                }
+              ],
+              "answer": 1,
+              "why": {
+                "en": "This is the sentence the model supports. Stronger claims would need site data.",
+                "id": "Inilah kalimat yang didukung model. Klaim yang lebih kuat memerlukan data lapangan."
+              }
+            }
+          ],
+          "refs": [
+            "saravanamuttoo",
+            "lefebvre",
+            "lieuwen-yang",
+            "correa-1992"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "L4",
+      "title": {
+        "en": "Emissions",
+        "id": "Emisi"
+      },
+      "summary": {
+        "en": "What comes out of the stack, how each pollutant forms, and why cutting one moves another.",
+        "id": "Apa yang keluar dari cerobong, bagaimana tiap polutan terbentuk, dan kenapa menekan satu menggeser yang lain."
+      },
+      "lessons": [
+        {
+          "id": "l4-1",
+          "title": {
+            "en": "The exhaust family",
+            "id": "Isi gas buang"
+          },
+          "minutes": 15,
+          "goal": {
+            "en": "Name each regulated or tracked exhaust gas and say where it comes from.",
+            "id": "Menyebut setiap gas buang yang diatur atau dipantau dan dari mana asalnya."
+          },
+          "body": [
+            {
+              "en": "Most of the exhaust is harmless in itself: nitrogen, leftover oxygen, water vapour. The parts that matter are small but important.",
+              "id": "Sebagian besar gas buang sendiri tidak berbahaya: nitrogen, sisa oksigen, uap air. Bagian yang penting jumlahnya kecil tetapi berdampak."
+            },
+            {
+              "en": "NOx (nitrogen oxides, NO and NO₂) forms when nitrogen and oxygen from the air react in a very hot flame. It contributes to smog, ozone and acid rain and irritates the lungs.",
+              "id": "NOx (nitrogen oksida, NO dan NO₂) terbentuk ketika nitrogen dan oksigen dari udara bereaksi dalam nyala yang sangat panas. NOx berperan dalam pembentukan kabut asap, ozon, dan hujan asam, serta mengiritasi paru-paru."
+            },
+            {
+              "en": "CO (carbon monoxide) is fuel carbon that did not finish burning to CO₂. It shows up when the flame is too cold, too short, or short of oxygen. It is poisonous because it blocks oxygen transport in the blood.",
+              "id": "CO (karbon monoksida) adalah karbon bahan bakar yang tidak terbakar sempurna menjadi CO₂. CO muncul ketika nyala terlalu dingin, terlalu singkat, atau kekurangan oksigen. CO beracun karena menghambat pengangkutan oksigen dalam darah."
+            },
+            {
+              "en": "CO₂ (carbon dioxide) is the normal product of burning carbon. It is not toxic at stack levels, but it is the main greenhouse gas. The only ways to emit less per kWh are to burn less fuel per kWh or to use a fuel with less carbon per unit of energy.",
+              "id": "CO₂ (karbon dioksida) adalah hasil normal pembakaran karbon. Pada kadar di cerobong CO₂ tidak beracun, tetapi merupakan gas rumah kaca utama. Satu-satunya cara mengurangi CO₂ per kWh adalah membakar lebih sedikit bahan bakar per kWh, atau memakai bahan bakar dengan karbon per energi yang lebih kecil."
+            },
+            {
+              "en": "Methane slip (CH₄) is natural gas that passes through an engine or turbine without burning. Methane is a strong greenhouse gas. UHC (unburned hydrocarbons) is the wider family of unburned fuel; in gas engines it is mostly methane.",
+              "id": "Methane slip (CH₄) adalah gas alam yang lewat melalui mesin atau turbin tanpa terbakar. Metana adalah gas rumah kaca yang kuat. UHC (hidrokarbon tidak terbakar) adalah kelompok yang lebih luas dari bahan bakar yang tidak terbakar; pada mesin gas sebagian besar berupa metana."
+            },
+            {
+              "en": "PM (particulate matter) is soot and other tiny particles, typical of diesel engines where fuel-rich pockets form in the spray. Fine particles of 2.5 micrometres and smaller (PM2.5) can reach deep into the lungs. SO₂ (sulfur dioxide) comes from sulfur in the fuel: sulfur in diesel, or H₂S in fuel gas. Every gram of sulfur burned ends up as SO₂ unless it is removed.",
+              "id": "PM (partikulat) adalah jelaga dan partikel halus lain, khas mesin diesel tempat kantong kaya bahan bakar terbentuk di semprotan. Partikel halus berukuran 2,5 mikrometer atau lebih kecil (PM2.5) bisa masuk jauh ke paru-paru. SO₂ (sulfur dioksida) berasal dari sulfur dalam bahan bakar: sulfur di solar, atau H₂S di gas bahan bakar. Setiap gram sulfur yang dibakar menjadi SO₂ kecuali dihilangkan."
+            }
+          ],
+          "terms": [
+            "nox",
+            "co",
+            "co2",
+            "methane-slip",
+            "uhc",
+            "pm",
+            "so2"
+          ],
+          "tryIt": {
+            "route": "#/formation",
+            "text": {
+              "en": "Open the Emission formation page and read the card for one pollutant.",
+              "id": "Buka halaman Emission formation dan baca kartu untuk satu polutan."
+            }
+          },
+          "checks": [
+            {
+              "q": {
+                "en": "Which emission can you only reduce per kWh by burning less fuel or using lower-carbon fuel?",
+                "id": "Emisi mana yang per kWh-nya hanya bisa dikurangi dengan membakar lebih sedikit bahan bakar atau memakai bahan bakar rendah karbon?"
+              },
+              "options": [
+                {
+                  "en": "NOx",
+                  "id": "NOx"
+                },
+                {
+                  "en": "CO₂",
+                  "id": "CO₂"
+                },
+                {
+                  "en": "CO",
+                  "id": "CO"
+                }
+              ],
+              "answer": 1,
+              "why": {
+                "en": "CO₂ is the complete-combustion product of carbon. A catalyst cannot remove it.",
+                "id": "CO₂ adalah hasil pembakaran sempurna karbon. Katalis tidak bisa menghilangkannya."
+              }
+            },
+            {
+              "q": {
+                "en": "SO₂ in the exhaust comes from:",
+                "id": "SO₂ di gas buang berasal dari:"
+              },
+              "options": [
+                {
+                  "en": "Sulfur in the fuel",
+                  "id": "Sulfur dalam bahan bakar"
+                },
+                {
+                  "en": "Sulfur in the air",
+                  "id": "Sulfur di udara"
+                },
+                {
+                  "en": "High flame temperature",
+                  "id": "Suhu nyala tinggi"
+                }
+              ],
+              "answer": 0,
+              "why": {
+                "en": "SO₂ is set by fuel sulfur. Engine settings do not change it.",
+                "id": "SO₂ ditentukan oleh sulfur bahan bakar. Setelan mesin tidak mengubahnya."
+              }
+            }
+          ],
+          "refs": [
+            "epa-no2-basics",
+            "epa-co-basics",
+            "epa-pm-basics",
+            "epa-so2-basics",
+            "kittelson-1998"
+          ]
+        },
+        {
+          "id": "l4-2",
+          "title": {
+            "en": "Flame temperature and why NOx climbs so fast",
+            "id": "Suhu nyala dan kenapa NOx naik begitu cepat"
+          },
+          "minutes": 15,
+          "goal": {
+            "en": "Explain why peak temperature matters more than average temperature for NOx.",
+            "id": "Menjelaskan kenapa suhu puncak lebih menentukan NOx daripada suhu rata-rata."
+          },
+          "body": [
+            {
+              "en": "The adiabatic flame temperature is how hot the burned gas would get if no heat escaped. It is highest near the stoichiometric mixture and falls as the mixture gets leaner. Scene 3 shows this for different φ.",
+              "id": "Suhu nyala adiabatik adalah seberapa panas gas hasil pembakaran bila tidak ada panas yang keluar. Suhunya paling tinggi di dekat campuran stoikiometrik dan turun saat campuran makin lean. Scene 3 menunjukkan hal ini untuk φ yang berbeda."
+            },
+            {
+              "en": "Most NOx in these machines is thermal NOx, formed by a chain of reactions first described by Zeldovich. Its rate follows the Arrhenius law: it grows exponentially with temperature. A rise of a hundred kelvin near flame temperatures can multiply the rate several times. Scene 4 shows the factor.",
+              "id": "Sebagian besar NOx pada mesin-mesin ini adalah NOx termal, terbentuk lewat rangkaian reaksi yang pertama kali dijelaskan Zeldovich. Lajunya mengikuti hukum Arrhenius: naik secara eksponensial terhadap suhu. Kenaikan seratus kelvin di sekitar suhu nyala bisa melipatgandakan laju beberapa kali. Scene 4 menampilkan faktornya."
+            },
+            {
+              "en": "Because of this, NOx is decided by the hottest spots, not the average. A diesel spray has a thin, very hot zone where fuel and air meet near stoichiometric. A lean premixed gas flame is more uniform and cooler. That is the main reason a lean-burn gas engine or a DLN turbine emits much less NOx than a diesel engine of similar size.",
+              "id": "Karena itu, NOx ditentukan oleh titik-titik terpanas, bukan rata-ratanya. Semprotan diesel punya zona tipis yang sangat panas tempat bahan bakar dan udara bertemu di dekat stoikiometrik. Nyala gas premix yang lean lebih merata dan lebih dingin. Itulah alasan utama mesin gas lean-burn atau turbin DLN menghasilkan NOx jauh lebih sedikit daripada mesin diesel berukuran serupa."
+            },
+            {
+              "en": "Time also counts. NOx keeps forming as long as the gas stays very hot. Anything that cools the gas sooner or shortens its time at peak temperature lowers NOx.",
+              "id": "Waktu juga berpengaruh. NOx terus terbentuk selama gas tetap sangat panas. Apa pun yang mendinginkan gas lebih cepat atau memperpendek waktunya di suhu puncak akan menurunkan NOx."
+            }
+          ],
+          "terms": [
+            "flame-temperature",
+            "thermal-nox",
+            "phi"
+          ],
+          "tryIt": {
+            "route": "#/scene/4",
+            "text": {
+              "en": "In Scene 4, read the Zeldovich rate chart. Compare the rate at two temperatures a hundred kelvin apart.",
+              "id": "Di Scene 4, baca grafik laju Zeldovich. Bandingkan laju pada dua suhu yang berselisih seratus kelvin."
+            }
+          },
+          "checks": [
+            {
+              "q": {
+                "en": "Thermal NOx depends mostly on:",
+                "id": "NOx termal paling ditentukan oleh:"
+              },
+              "options": [
+                {
+                  "en": "Average cylinder temperature",
+                  "id": "Suhu rata-rata silinder"
+                },
+                {
+                  "en": "Peak temperature and time spent there",
+                  "id": "Suhu puncak dan lamanya di suhu itu"
+                },
+                {
+                  "en": "Exhaust temperature",
+                  "id": "Suhu gas buang"
+                }
+              ],
+              "answer": 1,
+              "why": {
+                "en": "The rate is exponential in temperature, so the hottest zones dominate.",
+                "id": "Lajunya eksponensial terhadap suhu, sehingga zona terpanas yang mendominasi."
+              }
+            },
+            {
+              "q": {
+                "en": "Why does a lean premixed flame make less NOx than a diesel spray flame?",
+                "id": "Kenapa nyala premix yang lean menghasilkan NOx lebih sedikit daripada nyala semprotan diesel?"
+              },
+              "options": [
+                {
+                  "en": "It burns less fuel",
+                  "id": "Membakar lebih sedikit bahan bakar"
+                },
+                {
+                  "en": "It has no near-stoichiometric hot zones",
+                  "id": "Tidak punya zona panas yang dekat stoikiometrik"
+                },
+                {
+                  "en": "Natural gas has no nitrogen",
+                  "id": "Gas alam tidak mengandung nitrogen"
+                }
+              ],
+              "answer": 1,
+              "why": {
+                "en": "The extra air is spread evenly, so no part of the flame reaches the peak temperatures of a diesel spray.",
+                "id": "Udara berlebih tersebar merata, sehingga tidak ada bagian nyala yang mencapai suhu puncak semprotan diesel."
+              }
+            }
+          ],
+          "refs": [
+            "turns",
+            "zeldovich-1946",
+            "lavoie-1970",
+            "heywood",
+            "dec-1997"
+          ]
+        },
+        {
+          "id": "l4-3",
+          "title": {
+            "en": "Trade-offs: every lever has a cost",
+            "id": "Trade-off: setiap tuas ada harganya"
+          },
+          "minutes": 15,
+          "goal": {
+            "en": "Predict how timing, mixture and intake temperature move NOx, efficiency and CO₂.",
+            "id": "Memperkirakan bagaimana timing, campuran, dan suhu udara masuk menggeser NOx, efisiensi, dan CO₂."
+          },
+          "body": [
+            {
+              "en": "An operator or a control system can move a few levers. The model in Scene 9 (Levers tab) lets you move them one at a time and shows NOx and brake efficiency on the same screen.",
+              "id": "Operator atau sistem kontrol bisa menggerakkan beberapa tuas. Model di Scene 9 (tab Levers) memungkinkan Anda menggerakkannya satu per satu dan menampilkan NOx serta brake efficiency di layar yang sama."
+            },
+            {
+              "en": "Retarding timing lowers peak temperature, so NOx falls. Efficiency falls too, so fuel per kWh and CO₂ per kWh rise. Running a gas engine leaner lowers NOx; in practice, going too lean raises CO and unburned methane and can cause misfire, which this model describes only qualitatively. Cooling the intake air lowers the starting temperature of the whole cycle, so the peak is lower and NOx falls.",
+              "id": "Memundurkan timing menurunkan suhu puncak, sehingga NOx turun. Efisiensi juga turun, sehingga bahan bakar per kWh dan CO₂ per kWh naik. Membuat mesin gas lebih lean menurunkan NOx; dalam praktik, terlalu lean menaikkan CO dan metana tidak terbakar dan bisa menyebabkan misfire, yang di model ini hanya dijelaskan secara kualitatif. Mendinginkan udara masuk menurunkan suhu awal seluruh siklus, sehingga puncaknya lebih rendah dan NOx turun."
+            },
+            {
+              "en": "Some levers are not in this model. Exhaust gas recirculation (EGR) is shown as \"not available\". Load is not a separate lever in the engine scenes: in the diesel model φ also stands for load, and in the gas engine it follows boost.",
+              "id": "Beberapa tuas tidak ada di model ini. Exhaust gas recirculation (EGR) ditampilkan sebagai \"not available\". Beban bukan tuas terpisah di scene mesin: di model diesel φ juga mewakili beban, dan di mesin gas beban mengikuti boost."
+            },
+            {
+              "en": "Fuel composition matters, but less than people expect. In this model it changes the heating value, the air needed, the CO₂ per unit of energy, the SO₂ (through H₂S), and the exhaust O₂. It does not change NOx or CO.",
+              "id": "Komposisi bahan bakar berpengaruh, tetapi tidak sebesar yang sering dikira. Di model ini komposisi mengubah nilai kalor, udara yang dibutuhkan, CO₂ per energi, SO₂ (melalui H₂S), dan O₂ gas buang. Komposisi tidak mengubah NOx atau CO."
+            },
+            {
+              "en": "The pattern to remember: a lever that lowers NOx usually costs efficiency and therefore CO₂. A limit that only looks at NOx can push operators toward more fuel burned.",
+              "id": "Pola yang perlu diingat: tuas yang menurunkan NOx biasanya mengorbankan efisiensi dan karena itu menambah CO₂. Baku mutu yang hanya melihat NOx bisa mendorong operator membakar lebih banyak bahan bakar."
+            }
+          ],
+          "terms": [
+            "timing",
+            "atdc",
+            "egr",
+            "lambda"
+          ],
+          "tryIt": {
+            "route": "#/scene/9/levers",
+            "text": {
+              "en": "In Scene 9, Levers tab, move timing and read both charts: NOx and brake efficiency.",
+              "id": "Di Scene 9 tab Levers, geser timing dan baca kedua grafik: NOx dan brake efficiency."
+            }
+          },
+          "checks": [
+            {
+              "q": {
+                "en": "You retard the timing to lower NOx. What happens to CO₂ per kWh?",
+                "id": "Timing dimundurkan untuk menurunkan NOx. Apa yang terjadi pada CO₂ per kWh?"
+              },
+              "options": [
+                {
+                  "en": "It falls",
+                  "id": "Turun"
+                },
+                {
+                  "en": "It rises",
+                  "id": "Naik"
+                },
+                {
+                  "en": "No change",
+                  "id": "Tidak berubah"
+                }
+              ],
+              "answer": 1,
+              "why": {
+                "en": "Efficiency drops, so more fuel is burned per kWh.",
+                "id": "Efisiensi turun, sehingga lebih banyak bahan bakar dibakar per kWh."
+              }
+            },
+            {
+              "q": {
+                "en": "In this model, changing the fuel gas composition changes:",
+                "id": "Di model ini, mengubah komposisi gas bahan bakar mengubah:"
+              },
+              "options": [
+                {
+                  "en": "NOx and CO",
+                  "id": "NOx dan CO"
+                },
+                {
+                  "en": "Heating value, air needed, CO₂ per energy, SO₂ and exhaust O₂",
+                  "id": "Nilai kalor, udara yang dibutuhkan, CO₂ per energi, SO₂, dan O₂ gas buang"
+                },
+                {
+                  "en": "Nothing",
+                  "id": "Tidak ada"
+                }
+              ],
+              "answer": 1,
+              "why": {
+                "en": "The composition feeds the mass balance, not the NOx and CO correlations.",
+                "id": "Komposisi masuk ke neraca massa, bukan ke korelasi NOx dan CO."
+              }
+            }
+          ],
+          "refs": [
+            "heywood",
+            "ladommatos-1996",
+            "iso-6976"
+          ]
+        },
+        {
+          "id": "l4-4",
+          "title": {
+            "en": "Greenhouse gases: CO₂, methane slip and CO₂e",
+            "id": "Gas rumah kaca: CO₂, methane slip, dan CO₂e"
+          },
+          "minutes": 12,
+          "goal": {
+            "en": "Explain CO₂e and why methane slip can shrink the CO₂ advantage of gas.",
+            "id": "Menjelaskan CO₂e dan kenapa methane slip bisa memperkecil keunggulan CO₂ dari gas."
+          },
+          "body": [
+            {
+              "en": "Natural gas has less carbon per unit of energy than diesel fuel. Published emission factors show it clearly: burning gas gives roughly 30 % less CO₂ for the same heat. So a gas-fired machine starts with an advantage in CO₂ per kWh.",
+              "id": "Gas alam mengandung karbon per energi yang lebih sedikit daripada solar. Faktor emisi yang diterbitkan menunjukkan hal ini dengan jelas: membakar gas menghasilkan CO₂ sekitar 30 % lebih sedikit untuk panas yang sama. Jadi mesin berbahan bakar gas sudah unggul dalam CO₂ per kWh sejak awal."
+            },
+            {
+              "en": "Different greenhouse gases warm the planet by different amounts. The global warming potential (GWP) compares each gas with the same mass of CO₂ over a set time, usually 100 years. For methane, the current IPCC assessment gives a 100-year GWP of roughly 27 to 30. The exact factor the app uses is on the Assumptions page.",
+              "id": "Gas rumah kaca yang berbeda menghangatkan bumi dengan kadar berbeda. Potensi pemanasan global (GWP) membandingkan tiap gas dengan massa CO₂ yang sama selama waktu tertentu, biasanya 100 tahun. Untuk metana, penilaian IPCC terbaru memberi GWP 100 tahun sekitar 27 sampai 30. Faktor persis yang dipakai aplikasi ada di halaman Assumptions."
+            },
+            {
+              "en": "CO₂ equivalent (CO₂e) adds them up on one scale: CO₂ plus methane times its GWP. A small share of unburned methane in the exhaust can add a lot of CO₂e because each kilogram counts many times over.",
+              "id": "CO₂ ekuivalen (CO₂e) menjumlahkannya pada satu skala: CO₂ ditambah metana dikali GWP-nya. Sedikit metana tidak terbakar di gas buang bisa menambah CO₂e cukup besar karena setiap kilogramnya dihitung berkali-kali lipat."
+            },
+            {
+              "en": "Scene 8 compares the three machines on CO₂ and CO₂e per kWh. Scene 9 (GHG tab) lets you add a fuel penalty and methane slip and watch the gap between gas and diesel shrink. The fuel penalty there is an illustration scenario: fuel use rises by that percentage at the same power. It is not the result of a specific NOx control device.",
+              "id": "Scene 8 membandingkan ketiga mesin dari sisi CO₂ dan CO₂e per kWh. Scene 9 (tab GHG) memungkinkan Anda menambah penalti bahan bakar dan methane slip, lalu melihat selisih antara gas dan diesel menyusut. Penalti bahan bakar di sana adalah skenario ilustrasi: konsumsi bahan bakar naik sebesar persentase itu pada daya yang sama. Ini bukan hasil alat penurun NOx tertentu."
+            }
+          ],
+          "terms": [
+            "co2e",
+            "gwp",
+            "methane-slip"
+          ],
+          "tryIt": {
+            "route": "#/scene/9/ghg",
+            "text": {
+              "en": "In Scene 9, GHG tab, raise the methane slip and watch the dashed CO₂e line separate from plain CO₂.",
+              "id": "Di Scene 9 tab GHG, naikkan methane slip dan perhatikan garis putus-putus CO₂e menjauh dari CO₂ biasa."
+            }
+          },
+          "checks": [
+            {
+              "q": {
+                "en": "Methane slip shows up in:",
+                "id": "Methane slip tampak pada:"
+              },
+              "options": [
+                {
+                  "en": "Plain CO₂ only",
+                  "id": "CO₂ biasa saja"
+                },
+                {
+                  "en": "CO₂e, not plain CO₂",
+                  "id": "CO₂e, bukan CO₂ biasa"
+                },
+                {
+                  "en": "NOx",
+                  "id": "NOx"
+                }
+              ],
+              "answer": 1,
+              "why": {
+                "en": "Unburned methane is not CO₂. It is added to CO₂e through its GWP.",
+                "id": "Metana yang tidak terbakar bukan CO₂. Ia ditambahkan ke CO₂e melalui GWP-nya."
+              }
+            },
+            {
+              "q": {
+                "en": "A GWP of about 30 means one kilogram of methane counts as:",
+                "id": "GWP sekitar 30 berarti satu kilogram metana dihitung setara dengan:"
+              },
+              "options": [
+                {
+                  "en": "About 30 kg of CO₂ over 100 years",
+                  "id": "Sekitar 30 kg CO₂ selama 100 tahun"
+                },
+                {
+                  "en": "About 30 g of CO₂",
+                  "id": "Sekitar 30 g CO₂"
+                },
+                {
+                  "en": "About 1/30 kg of CO₂",
+                  "id": "Sekitar 1/30 kg CO₂"
+                }
+              ],
+              "answer": 0,
+              "why": {
+                "en": "GWP compares equal masses over the stated horizon.",
+                "id": "GWP membandingkan massa yang sama selama rentang waktu yang disebutkan."
+              }
+            }
+          ],
+          "refs": [
+            "epa-gwp",
+            "ipcc-ar6-wg1-ch7",
+            "eia-co2-coefficients",
+            "ipcc-2006-vol2-ch2"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "L5",
+      "title": {
+        "en": "Measuring and regulating",
+        "id": "Pengukuran dan regulasi"
+      },
+      "summary": {
+        "en": "How emissions are reported, how the app compares them with Indonesian limits, and how far to trust the model.",
+        "id": "Bagaimana emisi dilaporkan, bagaimana aplikasi membandingkannya dengan baku mutu Indonesia, dan seberapa jauh model bisa dipercaya."
+      },
+      "lessons": [
+        {
+          "id": "l5-1",
+          "title": {
+            "en": "Units on the stack: ppm, mg/Nm³, dry, reference O₂",
+            "id": "Satuan di cerobong: ppm, mg/Nm³, kering, O₂ acuan"
+          },
+          "minutes": 18,
+          "goal": {
+            "en": "Read a stack value with its full basis and explain the O₂ correction.",
+            "id": "Membaca nilai cerobong lengkap dengan basisnya dan menjelaskan koreksi O₂."
+          },
+          "body": [
+            {
+              "en": "Analysers measure concentration: how much of a gas is in a given amount of exhaust. Two units are common. ppmvd means parts per million by volume, on a dry basis. mg/Nm³ means milligrams per normal cubic metre, a mass per volume at a stated reference temperature and pressure.",
+              "id": "Analyzer mengukur konsentrasi: berapa banyak suatu gas dalam sejumlah gas buang. Dua satuan yang umum: ppmvd berarti bagian per juta menurut volume, pada basis kering. mg/Nm³ berarti miligram per meter kubik normal, yaitu massa per volume pada suhu dan tekanan acuan yang disebutkan."
+            },
+            {
+              "en": "\"Dry\" means the water vapour is taken out before the number is reported. Exhaust contains a lot of water from burning hydrogen in the fuel, and leaving it in would dilute the number.",
+              "id": "\"Kering\" berarti uap air dikeluarkan sebelum angkanya dilaporkan. Gas buang mengandung banyak air dari pembakaran hidrogen dalam bahan bakar, dan bila air itu tetap dihitung, angkanya menjadi encer."
+            },
+            {
+              "en": "Converting ppm to mg/Nm³ needs the molar mass of the gas and the reference temperature. NOx is always converted as if it were all NO₂. Because a cubic metre of gas at 25 °C holds less mass than at 0 °C, the same ppm gives a smaller mg/Nm³ at 25 °C. That is why the reference temperature must be stated.",
+              "id": "Konversi ppm ke mg/Nm³ memerlukan massa molar gas dan suhu acuan. NOx selalu dikonversi seolah-olah seluruhnya NO₂. Karena satu meter kubik gas pada 25 °C berisi massa lebih sedikit daripada pada 0 °C, ppm yang sama memberi mg/Nm³ yang lebih kecil pada 25 °C. Karena itu suhu acuan harus disebutkan."
+            },
+            {
+              "en": "The biggest trap is excess air. A turbine runs with a lot of extra air, so its exhaust has plenty of O₂ and is very diluted. Without correction, a turbine could look cleaner simply because it blows more air. Regulations fix this by converting every value to a reference O₂ level: C_ref = C_measured × (21 − O₂_ref) / (21 − O₂_measured), with O₂ in percent.",
+              "id": "Jebakan terbesar adalah udara berlebih. Turbin beroperasi dengan banyak udara tambahan, sehingga gas buangnya kaya O₂ dan sangat encer. Tanpa koreksi, turbin bisa tampak lebih bersih hanya karena meniupkan lebih banyak udara. Regulasi mengatasi ini dengan mengonversi setiap nilai ke kadar O₂ acuan: C_ref = C_ukur × (21 − O₂_ref) / (21 − O₂_ukur), dengan O₂ dalam persen."
+            },
+            {
+              "en": "So a stack number without its basis is incomplete. Every emission value in the app is shown with its O₂ reference, dry or wet, and reference temperature. The regulation basis used in Scenes 6 and 9 is shown in the header and on the Regulations page.",
+              "id": "Jadi angka cerobong tanpa basisnya tidak lengkap. Setiap nilai emisi di aplikasi ditampilkan bersama O₂ acuan, kering atau basah, dan suhu acuannya. Basis regulasi yang dipakai di Scene 6 dan 9 tampil di header dan di halaman Regulations."
+            }
+          ],
+          "terms": [
+            "ppmvd",
+            "nm3",
+            "o2-correction",
+            "dry-basis"
+          ],
+          "tryIt": {
+            "route": "#/regulations",
+            "text": {
+              "en": "Open the Regulations page and find the basis line for each group: O₂ reference, dry, temperature, NOx as NO₂.",
+              "id": "Buka halaman Regulations dan cari baris basis untuk tiap grup: O₂ acuan, kering, suhu, NOx sebagai NO₂."
+            }
+          },
+          "checks": [
+            {
+              "q": {
+                "en": "Why are stack values corrected to a reference O₂?",
+                "id": "Kenapa nilai cerobong dikoreksi ke O₂ acuan?"
+              },
+              "options": [
+                {
+                  "en": "To make all units look cleaner",
+                  "id": "Supaya semua unit tampak lebih bersih"
+                },
+                {
+                  "en": "So that extra air cannot hide emissions by diluting them",
+                  "id": "Supaya udara berlebih tidak bisa menyamarkan emisi dengan mengencerkannya"
+                },
+                {
+                  "en": "Because analysers cannot measure O₂",
+                  "id": "Karena analyzer tidak bisa mengukur O₂"
+                }
+              ],
+              "answer": 1,
+              "why": {
+                "en": "Correction puts every unit on the same dilution, so the numbers can be compared.",
+                "id": "Koreksi menyamakan tingkat pengenceran tiap unit, sehingga angkanya bisa dibandingkan."
+              }
+            },
+            {
+              "q": {
+                "en": "Measured NOx is 50 ppmvd at 15 % O₂. The reference is also 15 % O₂. The corrected value is:",
+                "id": "NOx terukur 50 ppmvd pada O₂ 15 %. Acuannya juga O₂ 15 %. Nilai terkoreksinya:"
+              },
+              "options": [
+                {
+                  "en": "50 ppmvd",
+                  "id": "50 ppmvd"
+                },
+                {
+                  "en": "Higher than 50",
+                  "id": "Lebih dari 50"
+                },
+                {
+                  "en": "Lower than 50",
+                  "id": "Kurang dari 50"
+                }
+              ],
+              "answer": 0,
+              "why": {
+                "en": "When measured O₂ equals the reference, the factor (21 − 15)/(21 − 15) is 1.",
+                "id": "Bila O₂ terukur sama dengan acuan, faktor (21 − 15)/(21 − 15) bernilai 1."
+              }
+            }
+          ],
+          "refs": [
+            "epa-method-19",
+            "epa-method-3a",
+            "permen-lhk-11-2021",
+            "permen-lh-13-2009"
+          ]
+        },
+        {
+          "id": "l5-2",
+          "title": {
+            "en": "Indonesian limits and how the app compares",
+            "id": "Baku mutu Indonesia dan cara aplikasi membandingkan"
+          },
+          "minutes": 15,
+          "goal": {
+            "en": "Find the right limit for a machine and read the chip and margin honestly.",
+            "id": "Menemukan limit yang tepat untuk suatu mesin dan membaca chip serta margin dengan jujur."
+          },
+          "body": [
+            {
+              "en": "Two regulations are used. Permen LHK 11/2021 covers stationary internal combustion engines (gensets), diesel and gas, with limits that depend on the capacity class. Permen LH 13/2009 is used here for gas turbines, with separate rows for oil and gas fuel. The values in the app were transcribed and still need to be checked against the official text; the Regulations page marks them as unverified until that is done.",
+              "id": "Dua regulasi dipakai. Permen LHK 11/2021 mengatur mesin pembakaran dalam stasioner (genset), diesel dan gas, dengan limit yang bergantung pada kelas kapasitas. Permen LH 13/2009 dipakai di sini untuk turbin gas, dengan baris terpisah untuk bahan bakar minyak dan gas. Nilai-nilai di aplikasi disalin ulang dan masih perlu dicocokkan dengan teks resmi; halaman Regulations menandainya belum terverifikasi sampai hal itu dilakukan."
+            },
+            {
+              "en": "To find a limit you need three choices: the machine type, its capacity class, and the fuel. Scene 9 (Limits tab) has selectors for all three and shows the matching table rows.",
+              "id": "Untuk menemukan limit diperlukan tiga pilihan: jenis mesin, kelas kapasitas, dan bahan bakar. Scene 9 (tab Limits) punya pemilih untuk ketiganya dan menampilkan baris tabel yang sesuai."
+            },
+            {
+              "en": "Next to each limit the app puts a chip: Within, Above, or Not modeled. It compares the model value, converted to the same basis as the regulation, with the limit. It also shows the margin in percent. When the margin is under 10 %, a note says the margin is smaller than the model's uncertainty. In that case the honest reading is \"close to the limit\", not \"passes\" or \"fails\".",
+              "id": "Di samping setiap limit aplikasi menaruh chip: Within, Above, atau Not modeled. Chip ini membandingkan nilai model, yang sudah dikonversi ke basis yang sama dengan regulasi, dengan limitnya. Margin dalam persen juga ditampilkan. Bila margin di bawah 10 %, ada catatan bahwa margin lebih kecil dari ketidakpastian model. Dalam kasus itu bacaan yang jujur adalah \"dekat dengan limit\", bukan \"lulus\" atau \"gagal\"."
+            },
+            {
+              "en": "The gas turbine table has no CO limit. If a permit or a manufacturer guarantee sets one, it can be typed in as a Permit/OEM value. The app labels it as user input so it is not mistaken for the regulation.",
+              "id": "Tabel turbin gas tidak memuat limit CO. Bila izin atau jaminan pabrikan menetapkannya, nilai itu bisa diketik sebagai nilai Permit/OEM. Aplikasi memberinya label input pengguna supaya tidak dikira berasal dari regulasi."
+            }
+          ],
+          "terms": [
+            "permit-oem",
+            "margin",
+            "site-data"
+          ],
+          "tryIt": {
+            "route": "#/scene/9/limits",
+            "text": {
+              "en": "In Scene 9, Limits tab, choose Gas engine and switch between capacity classes. Watch the chip and the margin.",
+              "id": "Di Scene 9 tab Limits, pilih Gas engine lalu ganti kelas kapasitas. Perhatikan chip dan marginnya."
+            }
+          },
+          "checks": [
+            {
+              "q": {
+                "en": "The chip says Within with a margin of 3 % and a note about uncertainty. What is the honest summary?",
+                "id": "Chip menunjukkan Within dengan margin 3 % dan catatan ketidakpastian. Ringkasan yang jujur adalah:"
+              },
+              "options": [
+                {
+                  "en": "The unit passes",
+                  "id": "Unitnya lulus"
+                },
+                {
+                  "en": "The model value is close to the limit; measurement is needed",
+                  "id": "Nilai model dekat dengan limit; perlu pengukuran"
+                },
+                {
+                  "en": "The unit fails",
+                  "id": "Unitnya gagal"
+                }
+              ],
+              "answer": 1,
+              "why": {
+                "en": "A margin smaller than the model's uncertainty cannot decide compliance either way.",
+                "id": "Margin yang lebih kecil dari ketidakpastian model tidak bisa menentukan kepatuhan ke arah mana pun."
+              }
+            },
+            {
+              "q": {
+                "en": "Which regulation does the app use for diesel and gas engines?",
+                "id": "Regulasi mana yang dipakai aplikasi untuk mesin diesel dan mesin gas?"
+              },
+              "options": [
+                {
+                  "en": "Permen LH 13/2009",
+                  "id": "Permen LH 13/2009"
+                },
+                {
+                  "en": "Permen LHK 11/2021",
+                  "id": "Permen LHK 11/2021"
+                }
+              ],
+              "answer": 1,
+              "why": {
+                "en": "The engine table of the 2009 regulation was replaced by the 2021 regulation.",
+                "id": "Tabel mesin pada regulasi 2009 sudah digantikan regulasi 2021."
+              }
+            }
+          ],
+          "refs": [
+            "permen-lhk-11-2021",
+            "permen-lh-13-2009"
+          ]
+        },
+        {
+          "id": "l5-3",
+          "title": {
+            "en": "Model or measurement: how far to trust the numbers",
+            "id": "Model atau pengukuran: seberapa jauh angka bisa dipercaya"
+          },
+          "minutes": 12,
+          "goal": {
+            "en": "Explain \"indicative\", calibration, model levels and why site data wins.",
+            "id": "Menjelaskan \"indicative\", kalibrasi, tingkat model, dan kenapa data lapangan lebih kuat."
+          },
+          "body": [
+            {
+              "en": "A model is a set of equations that imitates a machine. This one uses textbook physics for the cycles, and published correlations for emissions. It is good at showing which way things move and roughly by how much. It is not a copy of any specific unit.",
+              "id": "Model adalah sekumpulan persamaan yang meniru sebuah mesin. Model ini memakai fisika buku teks untuk siklusnya, dan korelasi yang diterbitkan untuk emisinya. Model ini baik untuk menunjukkan ke arah mana sesuatu bergerak dan kira-kira seberapa besar. Model ini bukan tiruan unit tertentu."
+            },
+            {
+              "en": "The absolute NOx level is set by a calibration factor so that the result lands on a typical literature value. The factor is shown in the Calibration panel and on the Assumptions page, and in the HUD whenever it is not 1. Calibration fixes the level; it does not change the shape of a trend.",
+              "id": "Level NOx absolut ditetapkan oleh faktor kalibrasi supaya hasilnya jatuh pada nilai tipikal di literatur. Faktor itu tampil di panel Calibration dan halaman Assumptions, dan di HUD bila nilainya tidak sama dengan 1. Kalibrasi menetapkan level; kalibrasi tidak mengubah bentuk tren."
+            },
+            {
+              "en": "Some simplifications are known and listed. For example, the engine model treats the whole cylinder charge as air. Burned gas actually stores more heat, so the model's peak pressure and efficiency are slightly high. Things the model does not compute at all, such as engine CO and PM, are described in words or taken from site data.",
+              "id": "Beberapa penyederhanaan sudah diketahui dan dicantumkan. Contohnya, model mesin menganggap seluruh isi silinder sebagai udara. Gas hasil pembakaran sebenarnya menyimpan lebih banyak panas, sehingga tekanan puncak dan efisiensi model sedikit terlalu tinggi. Hal yang sama sekali tidak dihitung model, seperti CO dan PM mesin, dijelaskan dengan kata-kata atau diambil dari data lapangan."
+            },
+            {
+              "en": "A continuous emission monitoring system (CEMS) measures the stack around the clock. Its data, and stack test results, can be entered as site data, and they take priority over the model. Data still needed to move from model to evidence: confirmed regulation values, CEMS or OEM data, historical load profiles, and methane slip measurements.",
+              "id": "Continuous emission monitoring system (CEMS) mengukur cerobong sepanjang waktu. Datanya, dan hasil uji cerobong, bisa dimasukkan sebagai data lapangan, dan lebih diutamakan daripada model. Data yang masih diperlukan untuk beralih dari model ke bukti: nilai regulasi yang sudah dikonfirmasi, data CEMS atau OEM, profil beban historis, dan pengukuran methane slip."
+            }
+          ],
+          "terms": [
+            "indicative",
+            "calibration",
+            "model",
+            "cems",
+            "site-data",
+            "uncertainty"
+          ],
+          "tryIt": {
+            "route": "#/assumptions",
+            "text": {
+              "en": "Open the Assumptions page and find one assumption that makes a number slightly too high.",
+              "id": "Buka halaman Assumptions dan cari satu asumsi yang membuat suatu angka sedikit terlalu tinggi."
+            }
+          },
+          "checks": [
+            {
+              "q": {
+                "en": "Which is more trustworthy for the level of NOx from a real unit?",
+                "id": "Mana yang lebih bisa dipercaya untuk level NOx dari unit nyata?"
+              },
+              "options": [
+                {
+                  "en": "The model value",
+                  "id": "Nilai model"
+                },
+                {
+                  "en": "A CEMS measurement on that unit",
+                  "id": "Pengukuran CEMS pada unit itu"
+                }
+              ],
+              "answer": 1,
+              "why": {
+                "en": "The model is calibrated to typical values. Measurement on the unit itself wins.",
+                "id": "Model dikalibrasi ke nilai tipikal. Pengukuran pada unit itu sendiri yang lebih kuat."
+              }
+            },
+            {
+              "q": {
+                "en": "What does a calibration factor change?",
+                "id": "Apa yang diubah oleh faktor kalibrasi?"
+              },
+              "options": [
+                {
+                  "en": "The level of the result",
+                  "id": "Level hasilnya"
+                },
+                {
+                  "en": "The direction of the trend",
+                  "id": "Arah trennya"
+                },
+                {
+                  "en": "The regulation limit",
+                  "id": "Limit regulasi"
+                }
+              ],
+              "answer": 0,
+              "why": {
+                "en": "It scales the result to a reference level. Trends still come from the physics.",
+                "id": "Faktor itu menskalakan hasil ke level acuan. Tren tetap berasal dari fisika."
+              }
+            }
+          ],
+          "refs": [
+            "iso-11042",
+            "epa-method-3a"
+          ]
+        },
+        {
+          "id": "l5-4",
+          "title": {
+            "en": "Control devices and the closing argument",
+            "id": "Alat pengendali emisi dan argumen penutup"
+          },
+          "minutes": 15,
+          "goal": {
+            "en": "Name the main control devices, what each lowers and what it costs, and restate the closing argument in your own words.",
+            "id": "Menyebut alat pengendali utama, apa yang diturunkan dan apa biayanya, lalu menyatakan ulang argumen penutup dengan kata-kata sendiri."
+          },
+          "body": [
+            {
+              "en": "Control devices come in two groups. Primary measures change the combustion itself so less pollutant forms: lean premix (DLN) in turbines, lean-burn in gas engines, EGR, and water or steam injection. Secondary measures clean the exhaust after it forms: SCR for NOx, oxidation catalysts for CO and hydrocarbons, and particulate filters (DPF) for soot.",
+              "id": "Alat pengendali terbagi dua kelompok. Langkah primer mengubah pembakarannya sendiri supaya polutan yang terbentuk lebih sedikit: lean premix (DLN) pada turbin, lean-burn pada mesin gas, EGR, serta injeksi air atau uap. Langkah sekunder membersihkan gas buang setelah polutan terbentuk: SCR untuk NOx, katalis oksidasi untuk CO dan hidrokarbon, serta filter partikulat (DPF) untuk jelaga."
+            },
+            {
+              "en": "None of them is free. Lowering flame temperature tends to raise CO or cost efficiency. SCR needs a reagent such as urea or ammonia and adds pressure loss. A filter adds back-pressure and must be cleaned or regenerated. Scene 10 lists what each one lowers, what it raises, and its effect on efficiency and CO₂.",
+              "id": "Tidak ada yang gratis. Menurunkan suhu nyala cenderung menaikkan CO atau mengurangi efisiensi. SCR memerlukan reagen seperti urea atau amonia dan menambah kehilangan tekanan. Filter menambah tekanan balik dan harus dibersihkan atau diregenerasi. Scene 10 memuat apa yang diturunkan tiap alat, apa yang dinaikkan, dan pengaruhnya pada efisiensi dan CO₂."
+            },
+            {
+              "en": "Now the argument in one breath. NOx depends steeply on flame temperature. Each machine has its own operating window, and a compressor-drive turbine's window moves with the process and is narrower. Lowering NOx usually costs efficiency and therefore CO₂. So a limit works best when it reflects the machine type, the load range it applies to, and the greenhouse gas impact together.",
+              "id": "Sekarang argumennya dalam satu tarikan napas. NOx sangat bergantung pada suhu nyala. Setiap mesin punya jendela operasinya sendiri, dan jendela turbin penggerak kompresor bergeser mengikuti proses serta lebih sempit. Menurunkan NOx biasanya mengorbankan efisiensi dan karena itu menambah CO₂. Jadi baku mutu bekerja paling baik bila memperhitungkan jenis mesin, rentang beban tempat limit berlaku, dan dampak gas rumah kaca secara bersamaan."
+            },
+            {
+              "en": "The closing scene offers discussion options, such as setting limits by driver type, defining the load range and averaging time, looking at NOx and greenhouse gases as one inventory, and using CEMS on variable-load units to build real data. These are starting points for a conversation, not conclusions.",
+              "id": "Scene penutup menawarkan opsi diskusi, seperti menetapkan limit menurut jenis penggerak, menentukan rentang beban dan waktu rata-rata, melihat NOx dan gas rumah kaca sebagai satu inventaris, dan memakai CEMS pada unit berbeban berubah untuk membangun data nyata. Semua itu titik awal pembicaraan, bukan kesimpulan."
+            }
+          ],
+          "terms": [
+            "egr",
+            "dln",
+            "scr",
+            "cems"
+          ],
+          "tryIt": {
+            "route": "#/scene/10",
+            "text": {
+              "en": "In Scene 10, filter by Gas turbine and read what each device lowers and raises.",
+              "id": "Di Scene 10, saring dengan Gas turbine dan baca apa yang diturunkan serta dinaikkan setiap alat."
+            }
+          },
+          "checks": [
+            {
+              "q": {
+                "en": "SCR is a primary or a secondary measure?",
+                "id": "SCR termasuk langkah primer atau sekunder?"
+              },
+              "options": [
+                {
+                  "en": "Primary: it changes the combustion",
+                  "id": "Primer: mengubah pembakaran"
+                },
+                {
+                  "en": "Secondary: it treats the exhaust",
+                  "id": "Sekunder: mengolah gas buang"
+                }
+              ],
+              "answer": 1,
+              "why": {
+                "en": "SCR reduces NOx in the exhaust over a catalyst with a reagent, after combustion.",
+                "id": "SCR menurunkan NOx di gas buang melalui katalis dengan reagen, setelah pembakaran."
+              }
+            },
+            {
+              "q": {
+                "en": "What does the presentation propose?",
+                "id": "Apa yang diusulkan presentasi ini?"
+              },
+              "options": [
+                {
+                  "en": "Loosen the limits",
+                  "id": "Melonggarkan baku mutu"
+                },
+                {
+                  "en": "Measure and set limits in a way that matches how each machine actually runs",
+                  "id": "Mengukur dan menetapkan limit dengan cara yang sesuai dengan operasi nyata tiap mesin"
+                },
+                {
+                  "en": "Ban gas turbines",
+                  "id": "Melarang turbin gas"
+                }
+              ],
+              "answer": 1,
+              "why": {
+                "en": "The closing message is about measuring the way the machine works, not loosening limits.",
+                "id": "Pesan penutupnya adalah mengukur sesuai cara mesin bekerja, bukan melonggarkan baku mutu."
+              }
+            }
+          ],
+          "refs": [
+            "epa-catc-nox-1999",
+            "epa-ap42-3-1",
+            "epa-ap42-3-2",
+            "epa-ap42-3-4",
+            "ladommatos-1996"
+          ]
+        }
+      ]
+    }
+  ],
+  "terms": [
+    {
+      "id": "energy",
+      "term": {
+        "en": "Energy",
+        "id": "Energi"
+      },
+      "definition": {
+        "en": "The ability to do work. Measured in joules (J).",
+        "id": "Kemampuan melakukan kerja. Satuannya joule (J)."
+      },
+      "refs": [
+        "openstax-up2"
+      ]
+    },
+    {
+      "id": "power",
+      "term": {
+        "en": "Power",
+        "id": "Daya"
+      },
+      "definition": {
+        "en": "How fast energy is delivered or used. Measured in watts (W); 1 W = 1 J per second.",
+        "id": "Seberapa cepat energi dihasilkan atau dipakai. Satuannya watt (W); 1 W = 1 J per detik."
+      },
+      "refs": [
+        "openstax-up2"
+      ]
+    },
+    {
+      "id": "kwh",
+      "term": {
+        "en": "kWh",
+        "id": "kWh"
+      },
+      "definition": {
+        "en": "Kilowatt-hour: the energy of 1 kW running for one hour, equal to 3.6 MJ.",
+        "id": "Kilowatt-jam: energi dari 1 kW yang berjalan selama satu jam, sama dengan 3,6 MJ."
+      },
+      "refs": []
+    },
+    {
+      "id": "efficiency",
+      "term": {
+        "en": "Efficiency",
+        "id": "Efisiensi"
+      },
+      "definition": {
+        "en": "Useful output divided by energy input, usually given in percent.",
+        "id": "Keluaran yang berguna dibagi energi masukan, biasanya dalam persen."
+      },
+      "refs": [
+        "openstax-up2"
+      ]
+    },
+    {
+      "id": "temperature-k",
+      "term": {
+        "en": "Kelvin (K)",
+        "id": "Kelvin (K)"
+      },
+      "definition": {
+        "en": "Temperature scale that starts at absolute zero. Same step size as °C; K = °C + 273.15.",
+        "id": "Skala suhu yang dimulai dari nol mutlak. Besar langkahnya sama dengan °C; K = °C + 273,15."
+      },
+      "refs": []
+    },
+    {
+      "id": "pressure-bar",
+      "term": {
+        "en": "Pressure (bar)",
+        "id": "Tekanan (bar)"
+      },
+      "definition": {
+        "en": "Force per area. One bar is close to sea-level air pressure (1 atm = 1.013 bar).",
+        "id": "Gaya per luas. Satu bar mendekati tekanan udara di permukaan laut (1 atm = 1,013 bar)."
+      },
+      "refs": []
+    },
+    {
+      "id": "volume",
+      "term": {
+        "en": "Volume",
+        "id": "Volume"
+      },
+      "definition": {
+        "en": "Space taken up by a gas. In the engine scenes, the space above the piston.",
+        "id": "Ruang yang ditempati gas. Di scene mesin, ruang di atas piston."
+      },
+      "refs": []
+    },
+    {
+      "id": "axis",
+      "term": {
+        "en": "Axis",
+        "id": "Sumbu"
+      },
+      "definition": {
+        "en": "The scale along the side (y) or bottom (x) of a chart, with its unit in brackets.",
+        "id": "Skala di sisi (y) atau bawah (x) grafik, dengan satuannya di dalam kurung."
+      },
+      "refs": []
+    },
+    {
+      "id": "log-scale",
+      "term": {
+        "en": "Log scale",
+        "id": "Skala log"
+      },
+      "definition": {
+        "en": "An axis where each major step multiplies the value by the same factor, usually 10.",
+        "id": "Sumbu tempat setiap langkah utama mengalikan nilai dengan faktor yang sama, biasanya 10."
+      },
+      "refs": []
+    },
+    {
+      "id": "combustion",
+      "term": {
+        "en": "Combustion",
+        "id": "Pembakaran"
+      },
+      "definition": {
+        "en": "Fast reaction of fuel with oxygen that releases heat. Carbon becomes CO₂ and hydrogen becomes water.",
+        "id": "Reaksi cepat bahan bakar dengan oksigen yang melepaskan panas. Karbon menjadi CO₂ dan hidrogen menjadi air."
+      },
+      "refs": [
+        "turns"
+      ]
+    },
+    {
+      "id": "stoichiometric",
+      "term": {
+        "en": "Stoichiometric",
+        "id": "Stoikiometrik"
+      },
+      "definition": {
+        "en": "The exact mix of fuel and air for complete burning with no oxygen left over.",
+        "id": "Campuran bahan bakar dan udara yang pas untuk pembakaran sempurna tanpa sisa oksigen."
+      },
+      "refs": [
+        "heywood"
+      ]
+    },
+    {
+      "id": "crank-angle",
+      "term": {
+        "en": "Crank angle",
+        "id": "Sudut engkol"
+      },
+      "definition": {
+        "en": "Rotation of the crankshaft in degrees. In this app 0° is TDC at the start of the power stroke.",
+        "id": "Putaran poros engkol dalam derajat. Di aplikasi ini 0° adalah TDC di awal langkah usaha."
+      },
+      "refs": [
+        "heywood"
+      ]
+    },
+    {
+      "id": "compression-ratio",
+      "term": {
+        "en": "Compression ratio",
+        "id": "Rasio kompresi"
+      },
+      "definition": {
+        "en": "Cylinder volume at the bottom of the stroke divided by the volume at the top.",
+        "id": "Volume silinder di bawah langkah dibagi volume di atas langkah."
+      },
+      "refs": [
+        "heywood"
+      ]
+    },
+    {
+      "id": "shaft",
+      "term": {
+        "en": "Shaft",
+        "id": "Poros"
+      },
+      "definition": {
+        "en": "The rotating rod that carries power from the engine or turbine to the load.",
+        "id": "Batang berputar yang menyalurkan daya dari mesin atau turbin ke beban."
+      },
+      "refs": []
+    },
+    {
+      "id": "load",
+      "term": {
+        "en": "Load",
+        "id": "Beban"
+      },
+      "definition": {
+        "en": "How much power the machine is delivering, often as a percent of its rating.",
+        "id": "Berapa daya yang sedang diberikan mesin, sering dalam persen dari rating-nya."
+      },
+      "refs": []
+    },
+    {
+      "id": "entropy",
+      "term": {
+        "en": "Entropy",
+        "id": "Entropi"
+      },
+      "definition": {
+        "en": "A property used to track heat and losses. On a T-s chart, losses show as lines leaning to the right.",
+        "id": "Besaran untuk melacak panas dan kerugian. Pada grafik T-s, kerugian tampak sebagai garis yang miring ke kanan."
+      },
+      "refs": [
+        "mit-unified-thermo",
+        "openstax-up2"
+      ]
+    },
+    {
+      "id": "dry-basis",
+      "term": {
+        "en": "Dry basis",
+        "id": "Basis kering"
+      },
+      "definition": {
+        "en": "Concentration reported with the water vapour removed from the exhaust.",
+        "id": "Konsentrasi yang dilaporkan setelah uap air dikeluarkan dari gas buang."
+      },
+      "refs": [
+        "epa-method-19"
+      ]
+    },
+    {
+      "id": "margin",
+      "term": {
+        "en": "Margin",
+        "id": "Margin"
+      },
+      "definition": {
+        "en": "How far a value is below (+) or above (−) the limit, in percent of the limit.",
+        "id": "Seberapa jauh nilai berada di bawah (+) atau di atas (−) limit, dalam persen dari limit."
+      },
+      "refs": []
+    },
+    {
+      "id": "calibration",
+      "term": {
+        "en": "Calibration factor",
+        "id": "Faktor kalibrasi"
+      },
+      "definition": {
+        "en": "A multiplier that sets a model result to a reference level. It changes the level, not the trend.",
+        "id": "Pengali yang menyetel hasil model ke level acuan. Faktor ini mengubah level, bukan tren."
+      },
+      "refs": []
+    },
+    {
+      "id": "uncertainty",
+      "term": {
+        "en": "Uncertainty",
+        "id": "Ketidakpastian"
+      },
+      "definition": {
+        "en": "How far the true value could be from the model value. For emission correlations it is much larger than a few percent.",
+        "id": "Seberapa jauh nilai sebenarnya bisa berbeda dari nilai model. Untuk korelasi emisi, besarnya jauh lebih dari beberapa persen."
+      },
+      "refs": []
+    },
+    {
+      "id": "model",
+      "term": {
+        "en": "Model",
+        "id": "Model"
+      },
+      "definition": {
+        "en": "A set of equations that imitates a machine. It shows directions and rough sizes, not the exact values of a real unit.",
+        "id": "Sekumpulan persamaan yang meniru mesin. Model menunjukkan arah dan perkiraan besaran, bukan nilai persis unit nyata."
+      },
+      "refs": []
+    },
+    {
+      "id": "scr",
+      "term": {
+        "en": "SCR",
+        "id": "SCR"
+      },
+      "definition": {
+        "en": "Selective catalytic reduction: a catalyst in the exhaust where a reagent (urea or ammonia) turns NOx into nitrogen and water.",
+        "id": "Selective catalytic reduction: katalis di gas buang tempat reagen (urea atau amonia) mengubah NOx menjadi nitrogen dan air."
+      },
+      "refs": [
+        "epa-catc-nox-1999"
+      ]
+    }
+  ],
+  "glossaryId": {
+    "nox": {
+      "definition": "Terbentuk terutama dari nitrogen di udara pada suhu nyala tinggi. Regulasi melaporkan NOx sebagai NO₂ pada basis kering dan O₂ acuan."
+    },
+    "thermal-nox": {
+      "definition": "NO yang terbentuk dari nitrogen dan oksigen udara di dalam gas hasil pembakaran yang panas. Lajunya naik tajam terhadap suhu, sehingga suhu puncak lebih menentukan daripada suhu rata-rata."
+    },
+    "co": {
+      "definition": "Hasil pembakaran tidak sempurna. Naik ketika nyala terlalu dingin atau terlalu singkat untuk menyelesaikan oksidasi, misalnya pada beban rendah di ruang bakar lean premix."
+    },
+    "co2": {
+      "definition": "Hasil utama pembakaran karbon dalam bahan bakar. CO₂ spesifik mengikuti pemakaian bahan bakar, sehingga turun ketika efisiensi naik."
+    },
+    "co2e": {
+      "definition": "CO₂ ditambah gas rumah kaca lain yang dibobot dengan potensi pemanasan globalnya. Di sini menambahkan metana tidak terbakar (methane slip) ke CO₂ dari pembakaran."
+    },
+    "gwp": {
+      "term": "Potensi pemanasan global",
+      "definition": "Efek pemanasan suatu gas dibandingkan dengan massa CO₂ yang sama selama rentang waktu tertentu."
+    },
+    "methane-slip": {
+      "definition": "Bagian gas bahan bakar yang keluar dari mesin atau turbin tanpa terbakar. Tidak termasuk CO₂ biasa, tetapi dihitung dalam CO₂e."
+    },
+    "uhc": {
+      "term": "Hidrokarbon tidak terbakar",
+      "definition": "Bahan bakar atau bahan bakar yang terbakar sebagian di gas buang. Pada mesin gas sebagian besar berupa metana (lihat methane slip)."
+    },
+    "pm": {
+      "term": "Partikulat",
+      "definition": "Jelaga dan partikel lain, khas pembakaran diesel di inti semprotan yang kaya bahan bakar. Di aplikasi ini ditampilkan secara kualitatif; tidak dihitung."
+    },
+    "so2": {
+      "definition": "Terbentuk dari sulfur dalam bahan bakar (sulfur solar atau H₂S dalam gas bahan bakar). Dihitung dengan neraca massa dari analisis bahan bakar."
+    },
+    "cems": {
+      "definition": "Analyzer yang dipasang di cerobong untuk mengukur konsentrasi dan O₂ secara terus-menerus. Data CEMS lebih diutamakan daripada nilai model."
+    },
+    "dln": {
+      "definition": "Ruang bakar turbin gas yang mencampur bahan bakar dan udara secara lean sebelum nyala supaya suhu nyala rendah, tanpa injeksi air atau uap."
+    },
+    "lean-premix": {
+      "definition": "Bahan bakar dan udara dicampur sebelum nyala dengan udara berlebih. Suhu nyala rendah memberi NOx rendah, tetapi nyala mendekati batas kestabilannya dan CO naik bila terlalu dingin."
+    },
+    "igv": {
+      "definition": "Sudu yang bisa diatur di sisi masuk kompresor. Menutupnya mengurangi aliran udara pada beban sebagian, sehingga turbin single-shaft bisa menjaga suhu nyalanya."
+    },
+    "single-shaft": {
+      "term": "Turbin single-shaft",
+      "definition": "Kompresor, turbin, dan beban pada satu poros dengan kecepatan tetap. Pada beban sebagian IGV ditutup lebih dulu; setelah IGV habis, suhu nyala turun dan CO menunjukkan tebing."
+    },
+    "twin-shaft": {
+      "term": "Turbin twin-shaft",
+      "definition": "Gas generator dan power turbine bebas pada poros terpisah. Kecepatan gas generator turun mengikuti beban, sehingga jendela operasi bergeser dan menyempit, bukan membentuk tebing."
+    },
+    "load-window": {
+      "term": "Jendela beban",
+      "definition": "Rentang beban tempat NOx dan CO model sama-sama berada pada atau di bawah limit yang dipilih. Indikatif; bergantung pada limit yang dimasukkan."
+    },
+    "lambda": {
+      "definition": "Udara aktual dibagi udara yang dibutuhkan untuk pembakaran sempurna. Di atas satu berarti lean (udara berlebih). Kebalikan dari φ."
+    },
+    "phi": {
+      "definition": "Rasio bahan bakar-udara aktual dibagi rasio stoikiometrik. Di bawah satu berarti lean. Di model diesel φ juga mewakili beban mesin."
+    },
+    "afr": {
+      "definition": "Massa udara per massa bahan bakar. AFR stoikiometrik adalah nilai untuk pembakaran sempurna tanpa sisa oksigen."
+    },
+    "lhv": {
+      "term": "Nilai kalor bawah (LHV)",
+      "definition": "Panas yang dilepas pembakaran bahan bakar dengan air keluar sebagai uap. Efisiensi di aplikasi ini memakai basis LHV."
+    },
+    "tdc": {
+      "term": "Titik mati atas (TDC)",
+      "definition": "Piston di titik tertingginya. Sudut engkol dihitung dari TDC langkah pembakaran."
+    },
+    "atdc": {
+      "definition": "Arah sudut engkol untuk timing: sesudah atau sebelum titik mati atas. Memundurkan timing menggeser pembakaran ke arah ATDC: NOx lebih rendah, efisiensi lebih rendah."
+    },
+    "timing": {
+      "term": "Timing injeksi / busi",
+      "definition": "Sudut engkol saat pembakaran dimulai (injeksi bahan bakar pada diesel, percikan busi pada mesin gas). Tuas NOx utama pada mesin."
+    },
+    "egr": {
+      "definition": "Sebagian gas buang dikembalikan ke saluran masuk untuk mengencerkan muatan dan menurunkan suhu puncak. Tidak tersedia di model ini."
+    },
+    "brake-efficiency": {
+      "term": "Efisiensi rem (brake efficiency)",
+      "definition": "Daya poros dibagi energi bahan bakar (LHV), setelah kerugian gesekan."
+    },
+    "bsfc": {
+      "definition": "Massa bahan bakar per satuan energi poros. BSFC lebih rendah berarti efisiensi lebih tinggi dan CO₂ spesifik lebih rendah."
+    },
+    "pmax": {
+      "term": "Pmax (tekanan puncak silinder)",
+      "definition": "Tekanan tertinggi di dalam silinder selama satu siklus. Timing yang lebih awal dan boost yang lebih tinggi menaikkannya."
+    },
+    "wiebe": {
+      "term": "Fungsi Wiebe",
+      "definition": "Kurva berbentuk S untuk fraksi bahan bakar terbakar terhadap sudut engkol, dipakai untuk pelepasan panas di model silinder."
+    },
+    "brayton": {
+      "term": "Siklus Brayton",
+      "definition": "Siklus turbin gas: kompresi, penambahan panas pada tekanan hampir tetap, ekspansi. Efisiensinya naik bersama rasio tekanan dan suhu masuk turbin."
+    },
+    "otto-diesel-dual": {
+      "term": "Siklus Otto / Diesel / dual",
+      "definition": "Siklus mesin standar-udara dengan panas ditambahkan pada volume tetap (Otto), tekanan tetap (Diesel), atau keduanya (dual). Siklus ini menjadi batas atas ideal untuk mesin nyata."
+    },
+    "pressure-ratio": {
+      "term": "Rasio tekanan",
+      "definition": "Tekanan keluar dibagi tekanan masuk sebuah kompresor (atau seluruh siklus turbin)."
+    },
+    "affinity-laws": {
+      "term": "Hukum afinitas",
+      "definition": "Aturan keserupaan untuk mesin turbo: aliran sebanding dengan kecepatan, head dengan kuadrat kecepatan, daya dengan pangkat tiga kecepatan."
+    },
+    "flame-temperature": {
+      "term": "Suhu nyala adiabatik",
+      "definition": "Suhu gas hasil pembakaran tanpa kehilangan panas. Paling tinggi di dekat campuran stoikiometrik; pendorong utama NOx termal."
+    },
+    "ppmvd": {
+      "definition": "Konsentrasi dalam gas buang kering. Selalu disebut bersama O₂ acuannya supaya nilai dari unit berbeda bisa dibandingkan."
+    },
+    "nm3": {
+      "definition": "Konsentrasi massa pada suhu, tekanan, O₂ acuan, dan basis kering yang disebutkan. Basis regulasi ditampilkan di samping setiap nilai."
+    },
+    "o2-correction": {
+      "term": "Koreksi O₂ acuan",
+      "definition": "Mengonversi konsentrasi terukur ke kadar O₂ tetap supaya pengenceran oleh udara berlebih tidak menyembunyikan emisi."
+    },
+    "indicative": {
+      "term": "Indikatif",
+      "definition": "Label pada angka emisi dari korelasi. Trennya fisis; level absolutnya dikalibrasi ke nilai tipikal di literatur, bukan data lapangan atau vendor."
+    },
+    "site-data": {
+      "term": "Data lapangan",
+      "definition": "Nilai terukur yang dimasukkan untuk unit nyata (misalnya dari CEMS atau uji cerobong). Ditampilkan dengan prioritas di atas nilai model dan diberi tanda site data."
+    },
+    "permit-oem": {
+      "term": "Nilai izin / OEM",
+      "definition": "Limit yang diketik pengguna dari izin operasi atau jaminan pabrikan, dipakai bila tabel regulasi tidak memuat limit (misalnya CO turbin)."
+    }
+  },
+  "charts": [
+    {
+      "id": "pv",
+      "scene": 1,
+      "route": "#/scene/1",
+      "titles": [
+        "P-V diagram"
+      ],
+      "lessons": [
+        "l3-1"
+      ],
+      "shows": {
+        "en": "Cylinder pressure against cylinder volume for one full cycle of the engine model.",
+        "id": "Tekanan silinder terhadap volume silinder selama satu siklus penuh model mesin."
+      },
+      "axes": {
+        "en": "x: cylinder volume V [L], small on the left (piston at top). y: pressure P [bar].",
+        "id": "x: volume silinder V [L], kecil di kiri (piston di atas). y: tekanan P [bar]."
+      },
+      "read": [
+        {
+          "en": "Find the moving dot. It is the same instant as the piston in 3D.",
+          "id": "Cari titik yang bergerak. Titik itu sama dengan saat piston di 3D."
+        },
+        {
+          "en": "Follow the loop: up the left side (compression), the spike near the top-left (combustion), down the right side (expansion).",
+          "id": "Ikuti loopnya: naik di sisi kiri (kompresi), lonjakan di kiri atas (pembakaran), turun di sisi kanan (ekspansi)."
+        },
+        {
+          "en": "The shaded area is the gross work per cycle. The caption gives it in kJ.",
+          "id": "Luas berarsir adalah kerja kotor per siklus. Keterangan memberi nilainya dalam kJ."
+        }
+      ],
+      "lookFor": [
+        {
+          "en": "A fatter loop means more work per cycle.",
+          "id": "Loop yang lebih gemuk berarti kerja per siklus lebih besar."
+        },
+        {
+          "en": "The thin lower loop is gas exchange (intake and exhaust). It is simplified.",
+          "id": "Loop tipis di bawah adalah pertukaran gas (hisap dan buang). Bagian ini disederhanakan."
+        }
+      ],
+      "mistakes": [
+        {
+          "en": "The highest point is peak pressure, not the work. Work is the area.",
+          "id": "Titik tertinggi adalah tekanan puncak, bukan kerja. Kerja adalah luasnya."
+        },
+        {
+          "en": "On the log-log setting the curves look straight; that is the scale, not a change in physics.",
+          "id": "Pada setelan log-log kurvanya tampak lurus; itu efek skala, bukan perubahan fisika."
+        }
+      ],
+      "terms": [
+        "volume",
+        "pressure-bar",
+        "pmax"
+      ],
+      "refs": [
+        "openstax-up2",
+        "heywood"
+      ]
+    },
+    {
+      "id": "ptheta",
+      "scene": 1,
+      "route": "#/scene/1",
+      "titles": [
+        "Pressure vs crank angle (P-θ)"
+      ],
+      "lessons": [
+        "l2-2",
+        "l3-1"
+      ],
+      "shows": {
+        "en": "The same cylinder pressure, now against crank angle, so you can see when the peak happens.",
+        "id": "Tekanan silinder yang sama, kini terhadap sudut engkol, sehingga terlihat kapan puncaknya terjadi."
+      },
+      "axes": {
+        "en": "x: crank angle θ [°], 0 = TDC at the start of the power stroke, −360 to +360 for one cycle. y: pressure [bar].",
+        "id": "x: sudut engkol θ [°], 0 = TDC di awal langkah usaha, −360 sampai +360 untuk satu siklus. y: tekanan [bar]."
+      },
+      "read": [
+        {
+          "en": "The tall peak sits just after 0°. Read its height (Pmax) and how many degrees after TDC it occurs.",
+          "id": "Puncak tinggi berada sedikit setelah 0°. Baca tingginya (Pmax) dan berapa derajat setelah TDC puncak itu terjadi."
+        },
+        {
+          "en": "The caption shows where combustion starts and ends in the model.",
+          "id": "Keterangan menunjukkan di mana pembakaran dimulai dan berakhir dalam model."
+        }
+      ],
+      "lookFor": [
+        {
+          "en": "Retarding the timing moves the peak to the right and lowers it.",
+          "id": "Memundurkan timing menggeser puncak ke kanan dan menurunkannya."
+        }
+      ],
+      "mistakes": [
+        {
+          "en": "The flat parts near ±360° are intake and exhaust. They are drawn simply and are not where the work is made.",
+          "id": "Bagian datar di dekat ±360° adalah hisap dan buang. Bagian ini digambar sederhana dan bukan tempat kerja dihasilkan."
+        }
+      ],
+      "terms": [
+        "crank-angle",
+        "tdc",
+        "atdc",
+        "timing"
+      ],
+      "refs": [
+        "heywood"
+      ]
+    },
+    {
+      "id": "pv-ts",
+      "scene": 2,
+      "route": "#/scene/2",
+      "titles": [
+        "P-v diagram",
+        "T-s diagram"
+      ],
+      "lessons": [
+        "l3-2",
+        "l3-3"
+      ],
+      "shows": {
+        "en": "The chosen cycle (Otto, Diesel, dual or Brayton) on two maps: pressure–specific volume and temperature–entropy. Scene 5 uses the same pair for the turbine.",
+        "id": "Siklus yang dipilih (Otto, Diesel, dual, atau Brayton) pada dua peta: tekanan–volume spesifik dan suhu–entropi. Scene 5 memakai pasangan yang sama untuk turbin."
+      },
+      "axes": {
+        "en": "P-v: x specific volume v [m³/kg], y pressure [bar]. T-s: x entropy change s − s₁ [kJ/(kg·K)], y temperature [K].",
+        "id": "P-v: x volume spesifik v [m³/kg], y tekanan [bar]. T-s: x perubahan entropi s − s₁ [kJ/(kg·K)], y suhu [K]."
+      },
+      "read": [
+        {
+          "en": "The numbered points are the states of the cycle (1, 2, 3, 4). Hover a point to see T, P, v and s.",
+          "id": "Titik bernomor adalah keadaan siklus (1, 2, 3, 4). Arahkan kursor ke titik untuk melihat T, P, v, dan s."
+        },
+        {
+          "en": "The dashed outline is the ideal reference. The solid line is the model you selected.",
+          "id": "Garis putus-putus adalah acuan ideal. Garis tegas adalah model yang Anda pilih."
+        },
+        {
+          "en": "On T-s, ideal compression and expansion are vertical. Real ones lean to the right.",
+          "id": "Pada T-s, kompresi dan ekspansi ideal berupa garis tegak. Yang nyata miring ke kanan."
+        }
+      ],
+      "lookFor": [
+        {
+          "en": "A taller T-s loop (hotter top) means more work and usually higher efficiency.",
+          "id": "Loop T-s yang lebih tinggi (puncak lebih panas) berarti kerja lebih besar dan biasanya efisiensi lebih tinggi."
+        }
+      ],
+      "mistakes": [
+        {
+          "en": "Entropy is not a loss on its own. What matters is the extra entropy made inside the machine, which shows as the lean of the lines.",
+          "id": "Entropi bukan kerugian dengan sendirinya. Yang penting adalah entropi tambahan yang terbentuk di dalam mesin, yang tampak dari kemiringan garis."
+        }
+      ],
+      "terms": [
+        "entropy",
+        "otto-diesel-dual",
+        "brayton"
+      ],
+      "refs": [
+        "mit-unified-thermo",
+        "cengel-boles",
+        "nasa-grc-brayton"
+      ]
+    },
+    {
+      "id": "waterfall",
+      "scene": 2,
+      "route": "#/scene/2",
+      "titles": [
+        "Efficiency waterfall",
+        "Diesel waterfall: ideal limit → brake η…",
+        "Gas engine waterfall: ideal limit → brake η…",
+        "Brayton: ideal → real"
+      ],
+      "lessons": [
+        "l3-2"
+      ],
+      "shows": {
+        "en": "How efficiency drops from the ideal ceiling to brake efficiency, one loss at a time.",
+        "id": "Bagaimana efisiensi turun dari batas atas ideal sampai brake efficiency, satu kerugian per langkah."
+      },
+      "axes": {
+        "en": "Bars from left to right; y: efficiency η [%].",
+        "id": "Batang dari kiri ke kanan; y: efisiensi η [%]."
+      },
+      "read": [
+        {
+          "en": "The first bar is the ideal limit. Each next bar removes one loss: variable specific heat, finite combustion time, wall heat loss and unburned fuel, then friction.",
+          "id": "Batang pertama adalah batas ideal. Tiap batang berikutnya mengurangi satu kerugian: kalor jenis berubah, durasi pembakaran, kehilangan panas ke dinding dan bahan bakar tak terbakar, lalu gesekan."
+        },
+        {
+          "en": "The last bar is brake efficiency: the share of fuel energy that reaches the shaft.",
+          "id": "Batang terakhir adalah brake efficiency: bagian energi bahan bakar yang sampai ke poros."
+        }
+      ],
+      "lookFor": [
+        {
+          "en": "The biggest drop tells you which loss matters most for this engine.",
+          "id": "Penurunan terbesar menunjukkan kerugian mana yang paling berpengaruh untuk mesin ini."
+        },
+        {
+          "en": "For the Brayton cycle there are only two bars, because the turbine model has no step-by-step breakdown.",
+          "id": "Untuk siklus Brayton hanya ada dua batang, karena model turbin tidak punya rincian per langkah."
+        }
+      ],
+      "mistakes": [
+        {
+          "en": "The gap is not a measurement error. It is physics that any real engine has.",
+          "id": "Selisihnya bukan kesalahan ukur. Itu fisika yang dimiliki setiap mesin nyata."
+        }
+      ],
+      "terms": [
+        "brake-efficiency",
+        "efficiency"
+      ],
+      "refs": [
+        "heywood",
+        "chen-flynn-1965"
+      ]
+    },
+    {
+      "id": "brayton-schematic",
+      "scene": 2,
+      "route": "#/scene/2",
+      "titles": [
+        "Brayton schematic (state markers)"
+      ],
+      "lessons": [
+        "l3-3"
+      ],
+      "shows": {
+        "en": "A 2D sketch of compressor, combustor and turbine with the state points 1 to 4 marked.",
+        "id": "Sketsa 2D kompresor, ruang bakar, dan turbin dengan titik keadaan 1 sampai 4."
+      },
+      "axes": {
+        "en": "No axes. It is a map, not a plot.",
+        "id": "Tanpa sumbu. Ini peta, bukan plot."
+      },
+      "read": [
+        {
+          "en": "Match each numbered marker with the same number on the P-v and T-s charts.",
+          "id": "Cocokkan setiap penanda bernomor dengan nomor yang sama di grafik P-v dan T-s."
+        }
+      ],
+      "lookFor": [
+        {
+          "en": "Path 4→1 (heat to ambient) closes the cycle on paper; in a real open turbine the exhaust simply leaves.",
+          "id": "Jalur 4→1 (panas ke lingkungan) menutup siklus di atas kertas; pada turbin terbuka yang nyata gas buang langsung keluar."
+        }
+      ],
+      "mistakes": [
+        {
+          "en": "It is not the 3D rig. The 3D turbine is in Scene 5.",
+          "id": "Ini bukan rig 3D. Turbin 3D ada di Scene 5."
+        }
+      ],
+      "terms": [
+        "brayton"
+      ],
+      "refs": [
+        "nasa-grc-brayton"
+      ]
+    },
+    {
+      "id": "flame",
+      "scene": 3,
+      "route": "#/scene/3",
+      "titles": [
+        "Adiabatic flame temperature vs φ (indicative ±100 K)",
+        "Adiabatic flame temperature in the reaction zone (comparison)"
+      ],
+      "lessons": [
+        "l2-1",
+        "l4-2"
+      ],
+      "shows": {
+        "en": "How hot the flame gets for each mixture strength, and a bar comparison of the flame zones of the three machines.",
+        "id": "Seberapa panas nyala untuk tiap kekuatan campuran, dan perbandingan batang zona nyala ketiga mesin."
+      },
+      "axes": {
+        "en": "Curve: x equivalence ratio φ (1 = stoichiometric, left = lean), y adiabatic flame temperature [K]. Bars: one per machine, height = flame temperature.",
+        "id": "Kurva: x rasio ekuivalen φ (1 = stoikiometrik, kiri = lean), y suhu nyala adiabatik [K]. Batang: satu per mesin, tinggi = suhu nyala."
+      },
+      "read": [
+        {
+          "en": "The curve peaks near φ = 1 and falls to the left as the mixture gets leaner.",
+          "id": "Kurva memuncak di dekat φ = 1 dan turun ke kiri saat campuran makin lean."
+        },
+        {
+          "en": "The dashed curve is the same fuel with intake at 300 K, for comparison.",
+          "id": "Kurva putus-putus adalah bahan bakar yang sama dengan udara masuk 300 K, sebagai pembanding."
+        }
+      ],
+      "lookFor": [
+        {
+          "en": "A hotter intake shifts the whole curve up.",
+          "id": "Udara masuk yang lebih panas menggeser seluruh kurva ke atas."
+        }
+      ],
+      "mistakes": [
+        {
+          "en": "The title says ±100 K: treat values as indicative, not exact.",
+          "id": "Judulnya menyebut ±100 K: anggap nilainya indikatif, bukan persis."
+        }
+      ],
+      "terms": [
+        "flame-temperature",
+        "phi",
+        "stoichiometric"
+      ],
+      "refs": [
+        "turns",
+        "nist-janaf"
+      ]
+    },
+    {
+      "id": "nox-eta",
+      "scene": 4,
+      "route": "#/scene/4",
+      "titles": [
+        "NOx vs brake efficiency (timing sweep)"
+      ],
+      "lessons": [
+        "l4-3"
+      ],
+      "shows": {
+        "en": "Each point is one timing setting. It shows how much efficiency you give up for each step down in NOx.",
+        "id": "Setiap titik adalah satu setelan timing. Grafik ini menunjukkan berapa efisiensi yang dikorbankan untuk setiap penurunan NOx."
+      },
+      "axes": {
+        "en": "x: brake efficiency η [%]. y: NOx [g/kWh], indicative. Each point is labelled with its timing in degrees.",
+        "id": "x: brake efficiency η [%]. y: NOx [g/kWh], indikatif. Setiap titik diberi label timing-nya dalam derajat."
+      },
+      "read": [
+        {
+          "en": "Start at the current operating point, then move along the curve towards retarded timing: down (less NOx) and left (lower efficiency).",
+          "id": "Mulai dari titik operasi saat ini, lalu bergerak sepanjang kurva ke arah timing mundur: turun (NOx lebih rendah) dan ke kiri (efisiensi lebih rendah)."
+        },
+        {
+          "en": "The caption gives the change in NOx and CO₂ between two settings.",
+          "id": "Keterangan memberi perubahan NOx dan CO₂ antara dua setelan."
+        }
+      ],
+      "lookFor": [
+        {
+          "en": "The curve bends: the first degrees of retard buy a lot of NOx for little efficiency; later degrees cost more.",
+          "id": "Kurvanya melengkung: derajat mundur pertama menurunkan NOx banyak dengan efisiensi yang hilang sedikit; derajat berikutnya lebih mahal."
+        }
+      ],
+      "mistakes": [
+        {
+          "en": "NOx here is calibrated to typical literature values. Read the trend, not the absolute level.",
+          "id": "NOx di sini dikalibrasi ke nilai tipikal literatur. Baca trennya, bukan level absolutnya."
+        }
+      ],
+      "terms": [
+        "timing",
+        "brake-efficiency",
+        "indicative"
+      ],
+      "refs": [
+        "heywood"
+      ]
+    },
+    {
+      "id": "arrhenius",
+      "scene": 4,
+      "route": "#/scene/4",
+      "titles": [
+        "Zeldovich rate vs temperature (Arrhenius)"
+      ],
+      "lessons": [
+        "l4-2"
+      ],
+      "shows": {
+        "en": "How fast thermal NO forms at each temperature.",
+        "id": "Seberapa cepat NO termal terbentuk pada tiap suhu."
+      },
+      "axes": {
+        "en": "x: temperature [K]. y: NO formation rate relative to a reference temperature (= 1), on a log scale. Shaded bands mark the engine burned-zone range and the DLN flame range.",
+        "id": "x: suhu [K]. y: laju pembentukan NO relatif terhadap suhu acuan (= 1), pada skala log. Pita berarsir menandai rentang zona terbakar mesin dan rentang nyala DLN."
+      },
+      "read": [
+        {
+          "en": "Pick two temperatures a hundred kelvin apart and compare their heights. On a log axis, each gridline is ten times the one below.",
+          "id": "Pilih dua suhu yang berselisih seratus kelvin dan bandingkan tingginya. Pada sumbu log, tiap garis kisi bernilai sepuluh kali garis di bawahnya."
+        },
+        {
+          "en": "The caption gives the ratio between a reference temperature and the peak.",
+          "id": "Keterangan memberi rasio antara suhu acuan dan suhu puncak."
+        }
+      ],
+      "lookFor": [
+        {
+          "en": "A nearly straight rising line on a log axis means exponential growth.",
+          "id": "Garis naik yang hampir lurus pada sumbu log berarti pertumbuhan eksponensial."
+        }
+      ],
+      "mistakes": [
+        {
+          "en": "Do not read the log axis as linear. A small visual step can be a several-fold change.",
+          "id": "Jangan membaca sumbu log seperti linear. Langkah kecil secara visual bisa berarti perubahan beberapa kali lipat."
+        }
+      ],
+      "terms": [
+        "thermal-nox",
+        "log-scale",
+        "temperature-k"
+      ],
+      "refs": [
+        "zeldovich-1946",
+        "lavoie-1970",
+        "heywood"
+      ]
+    },
+    {
+      "id": "partload",
+      "scene": 6,
+      "route": "#/scene/6",
+      "titles": [
+        "NOx & CO vs load",
+        "Premix-zone flame T vs load",
+        "Thermal η vs load"
+      ],
+      "lessons": [
+        "l3-4"
+      ],
+      "shows": {
+        "en": "Three charts that share the load axis: emissions, flame temperature in the premix zone, and efficiency, for the generator turbine and the compressor-drive turbine.",
+        "id": "Tiga grafik dengan sumbu beban yang sama: emisi, suhu nyala di zona premix, dan efisiensi, untuk turbin generator dan turbin penggerak kompresor."
+      },
+      "axes": {
+        "en": "x: load [%] for all three. Top y: NOx and CO in ppmvd on a log scale. Middle y: flame T [K]. Bottom y: η [%].",
+        "id": "x: beban [%] untuk ketiganya. y atas: NOx dan CO dalam ppmvd pada skala log. y tengah: suhu nyala [K]. y bawah: η [%]."
+      },
+      "read": [
+        {
+          "en": "Read the three charts top to bottom at the same load. The flame temperature explains the emissions above it.",
+          "id": "Baca ketiga grafik dari atas ke bawah pada beban yang sama. Suhu nyala menjelaskan emisi di atasnya."
+        },
+        {
+          "en": "Dashed horizontal lines on the top chart are limits. The regulation row under the controls shows the chip and margin.",
+          "id": "Garis putus-putus mendatar pada grafik atas adalah limit. Baris regulasi di bawah kontrol menunjukkan chip dan margin."
+        }
+      ],
+      "lookFor": [
+        {
+          "en": "Generator turbine: CO turns up sharply once the IGV run out (the cliff).",
+          "id": "Turbin generator: CO naik tajam setelah IGV habis (tebing)."
+        },
+        {
+          "en": "Compressor-drive turbine: no cliff in the model; the range where both lines are under the limits shifts and narrows.",
+          "id": "Turbin penggerak kompresor: tidak ada tebing di model; rentang tempat kedua garis di bawah limit bergeser dan menyempit."
+        }
+      ],
+      "mistakes": [
+        {
+          "en": "The top chart is log scale. A CO line that rises one gridline has grown tenfold.",
+          "id": "Grafik atas berskala log. Garis CO yang naik satu garis kisi sudah bertambah sepuluh kali."
+        },
+        {
+          "en": "ppmvd values must be read with their O₂ basis, shown in the caption.",
+          "id": "Nilai ppmvd harus dibaca bersama basis O₂-nya, yang ada di keterangan."
+        }
+      ],
+      "terms": [
+        "load",
+        "igv",
+        "load-window",
+        "ppmvd",
+        "log-scale"
+      ],
+      "refs": [
+        "saravanamuttoo",
+        "lefebvre",
+        "correa-1992"
+      ]
+    },
+    {
+      "id": "compressor",
+      "scene": 7,
+      "route": "#/scene/7",
+      "titles": [
+        "Head vs flow",
+        "Power vs speed"
+      ],
+      "lessons": [
+        "l2-4"
+      ],
+      "shows": {
+        "en": "The affinity laws applied through the current process point: head against flow, and power against speed.",
+        "id": "Hukum afinitas yang diterapkan melalui titik proses saat ini: head terhadap aliran, dan daya terhadap kecepatan."
+      },
+      "axes": {
+        "en": "Head vs flow: x suction flow Q [m³/s], y head [kJ/kg]. Power vs speed: x speed [% N], y power [MW].",
+        "id": "Head vs flow: x aliran isap Q [m³/s], y head [kJ/kg]. Power vs speed: x kecepatan [% N], y daya [MW]."
+      },
+      "read": [
+        {
+          "en": "White dot = process point, blue = your what-if, ring = demo case.",
+          "id": "Titik putih = titik proses, biru = skenario what-if Anda, cincin = kasus demo."
+        },
+        {
+          "en": "On Power vs speed, the dashed line is the power available from the power turbine (Scene 5).",
+          "id": "Pada Power vs speed, garis putus-putus adalah daya yang tersedia dari power turbine (Scene 5)."
+        }
+      ],
+      "lookFor": [
+        {
+          "en": "Power climbs steeply with speed (cube law). Where the curve crosses the dashed line, the turbine runs out of power.",
+          "id": "Daya naik tajam terhadap kecepatan (hukum pangkat tiga). Di titik kurva memotong garis putus-putus, daya turbin habis."
+        }
+      ],
+      "mistakes": [
+        {
+          "en": "The curves assume constant compressor efficiency (Ideal tag). Real maps have efficiency islands and a surge line.",
+          "id": "Kurvanya mengasumsikan efisiensi kompresor konstan (tag Ideal). Peta nyata punya pulau efisiensi dan garis surge."
+        }
+      ],
+      "terms": [
+        "affinity-laws",
+        "pressure-ratio"
+      ],
+      "refs": [
+        "dixon-hall",
+        "api-617"
+      ]
+    },
+    {
+      "id": "combined",
+      "scene": 8,
+      "route": "#/scene/8",
+      "titles": [
+        "CO₂ & CO₂e (g/kWh)",
+        "NOx (g/kWh, as NO₂)"
+      ],
+      "lessons": [
+        "l4-4",
+        "l4-1"
+      ],
+      "shows": {
+        "en": "Diesel engine, gas engine and gas turbine side by side, per kWh of output.",
+        "id": "Mesin diesel, mesin gas, dan turbin gas berdampingan, per kWh keluaran."
+      },
+      "axes": {
+        "en": "Horizontal bars; x: grams per kWh.",
+        "id": "Batang mendatar; x: gram per kWh."
+      },
+      "read": [
+        {
+          "en": "CO₂ bar: the solid part is CO₂ from combustion. The extra segment is methane slip times its GWP.",
+          "id": "Batang CO₂: bagian padat adalah CO₂ dari pembakaran. Segmen tambahan adalah methane slip dikali GWP-nya."
+        },
+        {
+          "en": "NOx bar: grams of NOx (as NO₂) per kWh.",
+          "id": "Batang NOx: gram NOx (sebagai NO₂) per kWh."
+        }
+      ],
+      "lookFor": [
+        {
+          "en": "Gas machines have lower CO₂ per kWh, but slip narrows the gap in CO₂e.",
+          "id": "Mesin gas punya CO₂ per kWh lebih rendah, tetapi slip mempersempit selisihnya dalam CO₂e."
+        }
+      ],
+      "mistakes": [
+        {
+          "en": "g/kWh is not the same as the mg/Nm³ in the regulation tables. Scene 9 converts to the regulation basis.",
+          "id": "g/kWh tidak sama dengan mg/Nm³ di tabel regulasi. Scene 9 mengonversinya ke basis regulasi."
+        }
+      ],
+      "terms": [
+        "co2",
+        "co2e",
+        "methane-slip",
+        "gwp"
+      ],
+      "refs": [
+        "ipcc-ar6-wg1-ch7",
+        "epa-gwp",
+        "epa-ap42-3-2"
+      ]
+    },
+    {
+      "id": "limits",
+      "scene": 9,
+      "route": "#/scene/9/limits",
+      "titles": [
+        "Model value vs limit (indicative)"
+      ],
+      "lessons": [
+        "l5-2",
+        "l5-1"
+      ],
+      "shows": {
+        "en": "A table, not a chart: the limit rows for the selected machine, capacity class and fuel, with the model value on the same basis and a chip.",
+        "id": "Tabel, bukan grafik: baris limit untuk mesin, kelas kapasitas, dan bahan bakar yang dipilih, dengan nilai model pada basis yang sama dan sebuah chip."
+      },
+      "axes": {
+        "en": "Columns: parameter, limit, unit, model value, chip, margin.",
+        "id": "Kolom: parameter, limit, satuan, nilai model, chip, margin."
+      },
+      "read": [
+        {
+          "en": "Check the basis line in the header first: O₂ reference, dry, reference temperature, NOx as NO₂.",
+          "id": "Cek dulu baris basis di header: O₂ acuan, kering, suhu acuan, NOx sebagai NO₂."
+        },
+        {
+          "en": "Within / Above compares the model value with the limit. Not modeled means the app does not compute that parameter.",
+          "id": "Within / Above membandingkan nilai model dengan limit. Not modeled berarti aplikasi tidak menghitung parameter itu."
+        },
+        {
+          "en": "The margin is in percent of the limit. Under 10 %, a note warns that it is smaller than the model's uncertainty.",
+          "id": "Margin dalam persen dari limit. Di bawah 10 %, sebuah catatan memperingatkan bahwa margin lebih kecil dari ketidakpastian model."
+        }
+      ],
+      "lookFor": [
+        {
+          "en": "Site data, when entered, is shown with priority and labelled.",
+          "id": "Data lapangan, bila dimasukkan, ditampilkan dengan prioritas dan diberi label."
+        }
+      ],
+      "mistakes": [
+        {
+          "en": "A chip is not a test result.",
+          "id": "Chip bukan hasil uji."
+        },
+        {
+          "en": "The limit values were transcribed and are marked unverified until checked against the official text.",
+          "id": "Nilai limit disalin ulang dan ditandai belum terverifikasi sampai dicocokkan dengan teks resmi."
+        }
+      ],
+      "terms": [
+        "margin",
+        "nm3",
+        "o2-correction",
+        "site-data",
+        "permit-oem"
+      ],
+      "refs": [
+        "permen-lhk-11-2021",
+        "permen-lh-13-2009"
+      ]
+    },
+    {
+      "id": "levers",
+      "scene": 9,
+      "route": "#/scene/9/levers",
+      "titles": [
+        "NOx vs lever (regulation basis)",
+        "Brake η vs the same lever"
+      ],
+      "lessons": [
+        "l4-3"
+      ],
+      "shows": {
+        "en": "Two charts for one lever sweep: NOx on the regulation basis with the limit line, and brake efficiency for the same sweep.",
+        "id": "Dua grafik untuk satu sapuan tuas: NOx pada basis regulasi dengan garis limit, dan brake efficiency untuk sapuan yang sama."
+      },
+      "axes": {
+        "en": "x: the sweep axis you chose (timing, φ, intake temperature, boost, speed). Top y: NOx [mg/Nm³] at the regulation basis. Bottom y: brake η [%].",
+        "id": "x: tuas yang dipilih (timing, lambda, suhu udara masuk, boost, kecepatan). y atas: NOx [mg/Nm³] pada basis regulasi. y bawah: brake η [%]."
+      },
+      "read": [
+        {
+          "en": "The dot on both charts is the same operating point.",
+          "id": "Titik pada kedua grafik adalah titik operasi yang sama."
+        },
+        {
+          "en": "Move the lever and read both charts together: how far NOx moves, and how far efficiency moves.",
+          "id": "Geser tuas dan baca kedua grafik bersama: seberapa jauh NOx bergeser, dan seberapa jauh efisiensi bergeser."
+        }
+      ],
+      "lookFor": [
+        {
+          "en": "Where the NOx curve crosses the limit line, and what efficiency you have at that point.",
+          "id": "Di mana kurva NOx memotong garis limit, dan berapa efisiensi pada titik itu."
+        }
+      ],
+      "mistakes": [
+        {
+          "en": "Levers shown as \"not available in this model\" (for example EGR) are not computed.",
+          "id": "Tuas yang tertulis \"not available in this model\" (misalnya EGR) tidak dihitung."
+        }
+      ],
+      "terms": [
+        "timing",
+        "phi",
+        "egr",
+        "brake-efficiency"
+      ],
+      "refs": [
+        "heywood"
+      ]
+    },
+    {
+      "id": "load-window",
+      "scene": 9,
+      "route": "#/scene/9/load-window",
+      "titles": [
+        "NOx & CO vs load (Scene 6 curves)",
+        "Load window per configuration"
+      ],
+      "lessons": [
+        "l3-4"
+      ],
+      "shows": {
+        "en": "The Scene 6 emission curves against the regulation limits, and a bar per turbine configuration showing the load range where both emissions stay under the limits.",
+        "id": "Kurva emisi Scene 6 terhadap limit regulasi, dan satu batang per konfigurasi turbin yang menunjukkan rentang beban tempat kedua emisi tetap di bawah limit."
+      },
+      "axes": {
+        "en": "x: load [%]. Bars: one row for Generator, one for Compressor drive.",
+        "id": "x: beban [%]. Batang: satu baris untuk Generator, satu untuk Compressor drive."
+      },
+      "read": [
+        {
+          "en": "The coloured part of each bar is the load window. Compare its position and width between the two rows.",
+          "id": "Bagian berwarna pada tiap batang adalah jendela beban. Bandingkan posisi dan lebarnya di antara kedua baris."
+        },
+        {
+          "en": "A CO line appears only if a Permit/OEM CO value was entered, because the turbine table has no CO limit.",
+          "id": "Garis CO hanya muncul bila nilai CO Permit/OEM dimasukkan, karena tabel turbin tidak memuat limit CO."
+        }
+      ],
+      "lookFor": [
+        {
+          "en": "The compressor-drive window sits elsewhere and is narrower.",
+          "id": "Jendela penggerak kompresor berada di tempat lain dan lebih sempit."
+        }
+      ],
+      "mistakes": [
+        {
+          "en": "The window depends on the limits entered. Change a limit and the window changes.",
+          "id": "Jendela bergantung pada limit yang dimasukkan. Ubah limit, jendela ikut berubah."
+        }
+      ],
+      "terms": [
+        "load-window",
+        "permit-oem"
+      ],
+      "refs": [
+        "saravanamuttoo",
+        "permen-lh-13-2009"
+      ]
+    },
+    {
+      "id": "ghg",
+      "scene": 9,
+      "route": "#/scene/9/ghg",
+      "titles": [
+        "Specific CO₂ and CO₂e vs fuel penalty",
+        "CO₂e vs methane slip (at this fuel penalty)"
+      ],
+      "lessons": [
+        "l4-4"
+      ],
+      "shows": {
+        "en": "How CO₂ per kWh grows with a fuel penalty, and how methane slip adds CO₂e on top.",
+        "id": "Bagaimana CO₂ per kWh bertambah dengan penalti bahan bakar, dan bagaimana methane slip menambah CO₂e di atasnya."
+      },
+      "axes": {
+        "en": "Main: x fuel penalty [%], y g/kWh. Second: x methane slip [% of fuel gas], y CO₂e [g/kWh].",
+        "id": "Utama: x penalti bahan bakar [%], y g/kWh. Kedua: x methane slip [% dari gas bahan bakar], y CO₂e [g/kWh]."
+      },
+      "read": [
+        {
+          "en": "Solid lines are CO₂. Dashed lines are CO₂e with slip. Grey = diesel, blue = gas engine, orange = gas turbine.",
+          "id": "Garis tegas adalah CO₂. Garis putus-putus adalah CO₂e dengan slip. Abu = diesel, biru = mesin gas, oranye = turbin gas."
+        }
+      ],
+      "lookFor": [
+        {
+          "en": "How much slip it takes for a gas machine's CO₂e to approach diesel's CO₂.",
+          "id": "Berapa besar slip yang membuat CO₂e mesin gas mendekati CO₂ diesel."
+        }
+      ],
+      "mistakes": [
+        {
+          "en": "The fuel penalty is an illustration scenario (more fuel at the same power), not the effect of a specific device.",
+          "id": "Penalti bahan bakar adalah skenario ilustrasi (bahan bakar lebih banyak pada daya yang sama), bukan efek alat tertentu."
+        }
+      ],
+      "terms": [
+        "co2e",
+        "methane-slip",
+        "gwp"
+      ],
+      "refs": [
+        "ipcc-ar6-wg1-ch7",
+        "epa-gwp"
+      ]
+    }
+  ]
+}
