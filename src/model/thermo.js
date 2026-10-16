@@ -983,6 +983,22 @@ export function retardSweep(kind = 'diesel', thetas = [-8, -6, -4, -2, 0, 2, 4],
   });
 }
 
+/** Parameter cylinderSim yang boleh disapu oleh leverSweep (tuas Scene 9). */
+export const LEVER_PARAMS = Object.freeze(['theta0', 'phi', 'Tivc', 'Pivc', 'N']);
+
+/**
+ * Sapuan satu tuas mesin (M9 Step 05b): satu cylinderSim per nilai, tuas lain tetap pada preset + over.
+ * Untuk param 'theta0' hasilnya identik dengan retardSweep (golden). Tidak ada rumus baru: hanya pembungkus cylinderSim.
+ * @param {'diesel'|'gas'} kind @param {'theta0'|'phi'|'Tivc'|'Pivc'|'N'} param @param {number[]} values @param {object} [over]
+ */
+export function leverSweep(kind = 'diesel', param = 'theta0', values = [], over = {}) {
+  if (!LEVER_PARAMS.includes(param)) throw new Error(`leverSweep: unknown lever ${param}`);
+  return values.map((v) => {
+    const s = cylinderSim({ ...ENGINE_PRESETS[kind], ...over, [param]: v });
+    return { value: v, Pmax_bar: s.Pmax / 1e5, TburnedMax: s.TburnedMax, NOx_ppm: s.NOx_ppmvd_ref, NOx_gkWh: s.NOx_gkWh, etaBrake: s.etaBrake, bsfc: s.bsfc, co2_gkWh: s.co2_gkWh, powerKW: s.powerKW };
+  });
+}
+
 /**
  * Faktor kalibrasi NOx engine agar preset (+ over) menghasilkan targetGkWh (g/kWh).
  * NOx TIDAK linear terhadap calib (dibatasi kesetimbangan NO: calib 1 → 23,7 g/kWh diesel, bukan 63),

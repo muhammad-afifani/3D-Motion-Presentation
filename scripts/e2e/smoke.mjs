@@ -4,6 +4,7 @@
  *      (gabungan lapis statis dan dinamis). Grafik yang disembunyikan aplikasi (display: none) dilewati.
  *   2. Tidak ada teks yang meluber dari kontainernya (bilah atas, kartu overlay, HUD, kontrol, judul/caption grafik).
  *   3. Tanpa galat halaman / galat konsol.
+ *   4. Scene 9 tab Levers: slider → sapuan Worker (waktu dilaporkan), Preset/Modified, Limits ikut slider; PNG (S) per tab.
  * Sengaja TIDAK memeriksa isi kartu info kiri Scene 9 (`.pol-card`): isinya akan dirombak.
  * Gagal (exit 1) bila ada grafik kosong, canvas 0, teks meluber, atau galat. Screenshot Scene 7 dan 9 disimpan di
  * scripts/e2e/shots/after/ (tidak di-commit).
@@ -174,13 +175,77 @@ async function regulationInteraction(page, url, browser) {
   return fails;
 }
 
+/** Tab Levers (M9 Step 05b): slider → sapuan baru di Worker (setelah debounce); waktu hitung dari HUD; lencana
+ *  Preset/Modified + Reset to preset; tab Limits mengikuti slider; komposisi gas tidak mengubah NOx. */
+async function leversInteraction(page) {
+  const fails = [], times = [];
+  const caption = () => page.locator('.pl-emis .chart__caption').innerText();
+  const hud = (id) => page.locator('.scene__hud .hud__item').nth(id).locator('.v').innerText();
+  const limitsNox = async () => {
+    await page.keyboard.press('1'); await page.waitForTimeout(300);
+    const v = await page.locator('.pol-limits tbody tr').filter({ hasText: 'NOx' }).first().locator('[data-c="model"]').innerText();
+    await page.keyboard.press('3'); await page.waitForTimeout(300);
+    return v;
+  };
+  const setRange = (sel, v) => page.locator(sel).evaluate((n, val) => { n.value = val; n.dispatchEvent(new Event('input', { bubbles: true })); }, v);
+  await goScene(page, 9, 600);
+  await page.locator('.pol-head .reg__pick .seg__btn').first().click(); // header = Diesel engine (interaksi sebelumnya bisa meninggalkan turbin)
+  await page.keyboard.press('3'); await page.waitForTimeout(600);
+  if ((await page.locator('.pol-badge').innerText()) !== 'Preset') fails.push('Levers: lencana awal bukan "Preset"');
+  if (!/not available in this model/.test(await page.locator('.lev-egr').innerText())) fails.push('Levers: EGR tanpa "not available in this model"');
+  if (!/Sweeping fuel-air equivalence or boost also changes engine load\./.test(await page.locator('.lev-tab').innerText())) fails.push('Levers: kalimat beban hilang');
+  if (!/Calibrated to typical literature level, not site data/.test(await caption())) fails.push('Levers: caption kalibrasi hilang');
+  const nox0 = await limitsNox();
+  for (const [axis, v] of [['Tivc', '340'], ['N', '1150'], ['phi', '0.6'], ['theta0', '0'], ['Pivc', '220000']]) {
+    const t0 = Date.now();
+    await setRange(`.lev-sliders [data-axis="${axis}"] input`, v);
+    await page.waitForTimeout(40);
+    try {
+      await page.waitForFunction(() => !/Computing/.test(document.querySelector('.pl-emis .chart__caption')?.textContent ?? ''), null, { timeout: 15000 });
+      times.push({ axis, ms: Number((await hud(7)).replace(/,/g, '')), wallMs: Date.now() - t0 });
+    } catch { fails.push(`Levers: sapuan ${axis} tidak selesai dalam 15 s`); }
+  }
+  if ((await page.locator('.pol-badge').innerText()) !== 'Modified') fails.push('Levers: lencana tidak berubah ke "Modified"');
+  const nox1 = await limitsNox();
+  if (nox1 === nox0) fails.push(`Levers: tab Limits tidak mengikuti slider (NOx tetap ${nox0})`);
+  const noxHud = await hud(0);
+  await page.locator('.lev-sub .seg__btn').nth(1).click(); await page.waitForTimeout(200);
+  const props0 = await page.locator('.lev-pane--fuel [data-v="props"]').innerText();
+  await setRange('.lev-sliders--fuel .ctl--slider:nth-child(2) input', '10'); await page.waitForTimeout(400);
+  if ((await page.locator('.lev-pane--fuel [data-v="props"]').innerText()) === props0) fails.push('Levers Fuel: sifat bahan bakar tidak berubah dengan komposisi');
+  if ((await hud(0)) !== noxHud) fails.push('Levers Fuel: NOx berubah karena komposisi');
+  await page.locator('.lev-sub .seg__btn').nth(0).click();
+  await page.locator('.pol-head__state .btn').click(); await page.waitForTimeout(600);
+  if ((await page.locator('.pol-badge').innerText()) !== 'Preset') fails.push('Levers: Reset to preset tidak mengembalikan lencana "Preset"');
+  return { fails, times };
+}
+
+/** Ekspor PNG (S) di setiap tab Scene 9: unduhan .png muncul. */
+async function snapshotPerTab(page) {
+  const fails = [];
+  await goScene(page, 9, 600);
+  for (const tab of TABS[9]) {
+    await page.keyboard.press(tab); await page.waitForTimeout(500);
+    await page.evaluate(() => document.activeElement?.blur?.());
+    try {
+      const [dl] = await Promise.all([page.waitForEvent('download', { timeout: 30000 }), page.keyboard.press('s')]);
+      if (!/\.png$/.test(dl.suggestedFilename())) fails.push(`PNG tab ${tab}: nama berkas ${dl.suggestedFilename()}`);
+    } catch { fails.push(`PNG tab ${tab}: ekspor S tidak menghasilkan unduhan`); }
+    await page.waitForTimeout(400);
+  }
+  return fails;
+}
+
 const pw = await loadPlaywright();
 const srv = await startPreview(Number(process.env.E2E_PORT ?? 4185));
 mkdirSync(SHOTS, { recursive: true });
 const failures = [];
 const report = [];
+let leverTimes = [];
+let browsers = [];
 try {
-  const chromium = (await launchers(pw)).find((x) => x.name === 'chromium' && x.browser);
+  browsers = await launchers(pw);
+  const chromium = browsers.find((x) => x.name === 'chromium' && x.browser);
   if (!chromium) throw new Error('Chromium tidak tersedia');
   for (const [w, h] of VIEWPORTS) {
     const page = await chromium.browser.newPage({ viewport: { width: w, height: h } });
@@ -210,15 +275,22 @@ try {
     }
     if (w === 1366) failures.push(...await basisInteraction(page, srv.url, chromium.browser));
     if (w === 1366) failures.push(...await regulationInteraction(page, srv.url, chromium.browser));
+    if (w === 1366) { const r = await leversInteraction(page); failures.push(...r.fails); leverTimes = r.times; }
+    if (w === 1366) failures.push(...await snapshotPerTab(page));
     for (const e of [...new Set(errs)]) failures.push(`${w}×${h}: ${e}`);
     await page.close();
   }
 } finally {
   srv.stop();
+  for (const b of browsers) await b.browser?.close().catch(() => {}); // tanpa ini proses menggantung setelah selesai
 }
 
 console.log('\nSmoke test tampilan (Chromium, rendering software bila tanpa GPU)\n');
 for (const r of report) console.log(`${r.label.padEnd(30)} grafik: ${r.charts.length ? r.charts.map((p) => `${p}%`).join(' ') : '–'}${r.overflow ? `  · meluber: ${r.overflow}` : ''}`);
+if (leverTimes.length) {
+  console.log('\nScene 9 Levers · waktu sapuan per perubahan slider (Worker, setelah debounce):');
+  for (const t of leverTimes) console.log(`  ${t.axis.padEnd(7)} hitung ${t.ms} ms · total sejak slider ${t.wallMs} ms`);
+}
 if (failures.length) {
   console.log(`\nGAGAL (${failures.length}):`);
   for (const f of failures) console.log(`  - ${f}`);

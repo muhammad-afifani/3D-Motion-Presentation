@@ -2,6 +2,7 @@
  * store.js — store reaktif kecil, sumber kebenaran tunggal untuk parameter UI.
  * Alur: UI control → store.set → derive() → frame → { rig 3D, chart, HUD }.
  */
+import { leversInitialState } from './deriveLevers.js';
 import { ENGINES, RPM_VISUAL, ANIM_SPEED, CYCLES, FLAME_MODES, GAS_TURBINES, EMISSION_BASIS, NOX_CALIB_DEFAULTS, LOAD_RANGE, GAS_COMPRESSOR } from '../model/presets.js';
 
 /**
@@ -264,10 +265,11 @@ export function compPressurePatch(s, { Psuc, Pdis }) {
 export const emisInitialState = () => ({ eSlip: 1 });
 
 // ── Scene 9 (trade-off kebijakan) ──
-/** State awal Scene 9: tab A, diesel pada timing preset, penalti 3 %. Satuan input batas (global, dipakai M7b): ppm. */
-export const policyInitialState = () => ({ p9Return: null, pTab: 'limits', pEngine: 'diesel', pTheta0: ENGINES.diesel.params.theta0, pPenalty: 3, limUnit: 'ppm' });
-/** Patch ganti engine panel A: timing ke preset engine tsb. */
-export const policyEnginePatch = (engine) => ({ pEngine: engine, pTheta0: ENGINES[engine].params.theta0 });
+/**
+ * State awal Scene 9: tab Limits, penalti 3 %, tuas tab Levers di preset (p9Lev kosong; terpisah dari tuas Scene 1/4).
+ * pEngine = mesin terakhir yang dipilih di header (dipakai tab Levers saat header = turbin). Satuan input batas: ppm.
+ */
+export const policyInitialState = () => ({ p9Return: null, pTab: 'limits', pEngine: 'diesel', pPenalty: 3, limUnit: 'ppm', ...leversInitialState() });
 
 // ── Scene 10–11 (konten presenter) ──
 /** Scene 10: filter mesin untuk menyorot kartu ('all' | 'diesel' | 'gas' | 'turbine'). */

@@ -12,15 +12,22 @@ import { deriveFuel } from './deriveFuel.js';
 /**
  * @param {any} s state store (regEquip, regClass, regFuel, siteData, limNOx, limCO, emRefO2, emTrefC, calEngine, calDln)
  * @param {any} regData isi content/regulations.json
+ * @param {any} [lev] frame deriveLevers: NOx mesin mengikuti slider tuas Scene 9 (frame yang sama dengan tab Levers)
  */
-export function deriveCompliance(s, regData) {
+export function deriveCompliance(s, regData, lev = null) {
   const sel = regSelection(s, regData);
   const E = EQUIPMENT[sel.equip];
   const params = E.params[sel.fuel] ?? [];
   const em = deriveEmis(s);
   const r = em.rows[E.model];
   const model = {};
-  if (params.includes('NOx')) model.NOx = r.noxPpm15 ?? null;
+  const leverKind = lev && E.model === lev.kind;
+  if (params.includes('NOx')) {
+    // mesin: titik operasi tab Levers bila tuas digeser; tanpa geseran = preset (identik dengan cylinderSim preset)
+    if (leverKind && lev.ready) model.NOx = lev.point.NOx_ppm;
+    else if (leverKind && lev.modified) model.NOx = null; // sapuan belum selesai
+    else model.NOx = r.noxPpm15 ?? null;
+  }
   if (params.includes('CO')) model.CO = r.coPpm15 ?? null;
   // SO₂: neraca massa sulfur bahan bakar, dihitung @15 % O₂ (basis mentah model) pada suhu grup; baris kepatuhan lalu
   // mengonversi ke basis grup lewat jalur regulasi. null sampai presenter mengisi sulfur (tanpa nilai default di kode).
@@ -38,6 +45,7 @@ export function deriveCompliance(s, regData) {
     overrideKind: { NOx: 'override', CO: hasRegCo ? 'override' : 'permit' },
     displayO2: s.emRefO2,
     needsInput,
+    pending: leverKind && !lev.ready && lev.modified ? ['NOx'] : [],
   });
   const basis = sel.group?.basis ?? null;
   const display = emissionBasis(s);

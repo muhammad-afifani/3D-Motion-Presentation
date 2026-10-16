@@ -105,6 +105,32 @@ export const NOX_TIMING = {
 };
 for (const r of Object.values(NOX_TIMING)) r.sweep = steps(r);
 
+/**
+ * Grid tuas Scene 9 (tab Levers, leverSweep). Nilai preset selalu tepat di grid, sehingga titik operasi selalu
+ * berada di kurva sapuan. phi = 1/λ; Pivc dalam Pa; N rpm. Angka ini rentang tampilan, bukan hasil model.
+ */
+const r6 = (x) => Math.round(x * 1e6) / 1e6;
+const grid = (r) => ({ ...r, sweep: steps(r).map(r6) });
+export const LEVER_GRID = Object.freeze({
+  diesel: Object.freeze({
+    theta0: NOX_TIMING.diesel,
+    phi: grid({ min: 0.35, max: 0.75, step: 0.05 }),
+    Tivc: grid({ min: 290, max: 370, step: 10 }),
+    Pivc: grid({ min: 1.6e5, max: 2.4e5, step: 0.1e5 }),
+    N: grid({ min: 700, max: 1300, step: 75 }),
+  }),
+  gas: Object.freeze({
+    theta0: NOX_TIMING.gas,
+    phi: grid({ min: 0.5, max: 0.74, step: 0.02 }),
+    Tivc: grid({ min: 295, max: 365, step: 10 }),
+    Pivc: grid({ min: 1.8e5, max: 2.6e5, step: 0.1e5 }),
+    N: grid({ min: 700, max: 1300, step: 75 }),
+  }),
+});
+export const LEVER_AXES = Object.freeze(['theta0', 'phi', 'Tivc', 'Pivc', 'N']);
+/** Tampilan sumbu grafik tab Levers: faktor satuan (boost Pa → bar) dan digit label. Hanya lapisan tampilan. */
+export const LEVER_AXIS_DISPLAY = Object.freeze({ theta0: { scale: 1, digits: 0 }, phi: { scale: 1, digits: 2 }, Tivc: { scale: 1, digits: 0 }, Pivc: { scale: 1e-5, digits: 1 }, N: { scale: 1, digits: 0 } });
+
 /** Grafik Arrhenius (zeldovichCurve): rentang T, acuan laju relatif, dan rentang yang dibandingkan. */
 export const NOX_ARRHENIUS = { Tmin: 1500, Tmax: 3100, Tref: 1800, engineBand: [2200, 3000], dlnBand: [1500, 2000] };
 
@@ -178,8 +204,11 @@ export const EMIS = Object.freeze({
 });
 
 /** Scene 9 — trade-off kebijakan. Panel A memakai NOX_TIMING; panel B penalti bahan bakar (%); panel C kurva Scene 6. */
+/** Scene 9 tab Levers → Fuel: rentang slider komposisi gas (% mol), H₂S (ppmv), sulfur solar (% berat). Rentang tampilan, bukan hasil model. */
+export const FUEL_SLIDERS = Object.freeze({ species: Object.freeze(['CH4', 'C2H6', 'C3H8', 'C4H10', 'N2', 'CO2']), pct: Object.freeze({ min: 0, max: 100, step: 0.5 }), h2s: Object.freeze({ min: 0, max: 500, step: 5 }), sulfur: Object.freeze({ min: 0, max: 1, step: 0.01 }) });
+
 export const POLICY = Object.freeze({
-  tabs: Object.freeze(['limits', 'formation', 'A', 'C', 'B']), // M9 Step 05a: 1 Limits, 2 Formation, 3 Levers (A), 4 Load window (C), 5 GHG (B)
+  tabs: Object.freeze(['limits', 'formation', 'levers', 'C', 'B']), // M9 Step 05: 1 Limits, 2 Formation, 3 Levers, 4 Load window (C), 5 GHG (B)
   penalty: Object.freeze({ min: 0, max: 10, step: 0.5, default: 3 }),
   limUnits: Object.freeze(['ppm', 'mg']),
 });

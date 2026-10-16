@@ -1,54 +1,19 @@
-// Scene 9: trade-off kebijakan — retardSweep (A), ghgPenalty (B), kurva Scene 6 + batas presenter (C).
+// Scene 9: ghgPenalty (B), kurva Scene 6 + batas presenter (C). Tab Levers (pengganti panel A): tests/levers.test.js.
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { retardSweep, ghgPenalty, ppmToMgNm3, mgNm3ToPpm, mgNm3ToPpmReg, MW, ENGINE_PRESETS } from '../src/model/thermo.js';
+import { ghgPenalty, co2eWithSlip, GWP_CH4, ppmToMgNm3, mgNm3ToPpm, mgNm3ToPpmReg, MW } from '../src/model/thermo.js';
 import { fmt } from '../src/ui/format.js';
-import { NOX_TIMING } from '../src/model/presets.js';
-import { policyInitialState, policyEnginePatch, calibInitialState, basisInitialState, limitsInitialState, loadInitialState } from '../src/state/store.js';
-import { derivePolicy, policySweepParams, limitsInputPatch, toDisplay } from '../src/state/derivePolicy.js';
+import { policyInitialState, calibInitialState, basisInitialState, limitsInitialState, loadInitialState } from '../src/state/store.js';
+import { derivePolicy, limitsInputPatch, toDisplay } from '../src/state/derivePolicy.js';
 import { deriveLoad } from '../src/state/deriveLoad.js';
 import { hudItems, resultLine, keyMessage } from '../src/scenes/policy.js';
 import { STR } from '../src/ui/strings.js';
 
 const near = (got, want, tol) => expect(Math.abs(got - want), `got ${got}, want ${want}`).toBeLessThanOrEqual(tol);
-const st = (extra = {}) => ({ ...policyInitialState(), pTab: 'A', // default tab kini Limits (Step 05a); tes panel lama memakai tab A secara eksplisit
+const st = (extra = {}) => ({ ...policyInitialState(), pTab: 'C', // default tab kini Limits (Step 05a); tes di sini memakai tab B/C secara eksplisit
   ...calibInitialState(), ...basisInitialState(), ...limitsInitialState(), ...loadInitialState(), ...extra });
-const sweepOf = (s) => { const p = policySweepParams(s); return retardSweep(p.kind, p.thetas, p.over); };
 // Contoh batas HANYA untuk tes (aplikasi default kosong; tidak ada angka baku mutu di kode)
 const TEST_LIMITS = { limNOx: 10, limCO: 25 };
-
-describe('Scene 9 panel A: retard timing', () => {
-  const sD = st(), swD = sweepOf(sD);
-  it('kurva = retardSweep pada semua langkah slider; titik operasi = titik kurva', () => {
-    for (const th of [-12, -4, 0, 6]) {
-      const f = derivePolicy({ ...sD, pTheta0: th }, swD);
-      const i = f.A.theta.indexOf(th);
-      expect(f.A.nox[i]).toBe(f.A.current.nox); expect(f.A.co2[i]).toBe(f.A.current.co2);
-      expect(f.A.dEta[i]).toBeCloseTo(f.A.delta.eta, 12); expect(f.A.dCo2[i]).toBeCloseTo(f.A.delta.co2, 12);
-    }
-    expect(derivePolicy(sD, swD).A.theta).toEqual(NOX_TIMING.diesel.sweep);
-  });
-  it('diesel −4° → 0°: Δ NOx −30,6 %, Δ CO₂ +3,0 % terhadap preset; Δ di preset = 0', () => {
-    const f = derivePolicy({ ...sD, pTheta0: 0 }, swD);
-    near(f.A.delta.nox, -30.6, 0.1); near(f.A.delta.co2, 3.0, 0.05);
-    const p = derivePolicy(sD, swD);
-    expect(p.A.delta.nox).toBe(0); expect(p.A.dEta[p.A.ip]).toBe(0);
-  });
-  it('gas −14° → −6°: NOx 2,57 → 0,74 (−71 %), CO₂ +5,2 %', () => {
-    const s = st(policyEnginePatch('gas')), sw = sweepOf(s);
-    expect(s.pTheta0).toBe(ENGINE_PRESETS.gas.theta0);
-    const f = derivePolicy({ ...s, pTheta0: -6 }, sw);
-    near(f.A.presetPoint.nox, 2.57, 0.01); near(f.A.current.nox, 0.74, 0.01);
-    near(f.A.delta.nox, -71.1, 0.2); near(f.A.delta.co2, 5.2, 0.05);
-  });
-  it('sapuan basi (engine lain) diabaikan; catatan methane slip; pesan kunci dari model', () => {
-    expect(derivePolicy(st(policyEnginePatch('gas')), swD).A).toBeNull();
-    const f = derivePolicy({ ...sD, pTheta0: 0 }, swD);
-    expect(keyMessage(f)).toMatch(/NOx −31 %, but CO₂ \+3\.0 %/);
-    expect(STR.scene9.A.note).toMatch(/Methane slip is not included here\. Real CO₂e is higher/);
-    expect(resultLine(f)).toMatch(/NOx −30\.6 %, CO₂ \+3\.0 % versus preset/);
-  });
-});
 
 describe('Scene 9 panel B: ghgPenalty', () => {
   it('tiga mesin = ghgPenalty(η model); penalti 3 %: gas engine 478 → 492 (+3 %)', () => {
@@ -66,7 +31,33 @@ describe('Scene 9 panel B: ghgPenalty', () => {
   });
 });
 
+describe('Scene 9 tab GHG: CO₂ dan CO₂e dengan methane slip', () => {
+  it('CO₂e = co2eWithSlip(η setelah penalti, slip) untuk mesin gas; diesel tanpa CO₂e; CO₂ biasa tanpa slip', () => {
+    const f = derivePolicy(st({ pTab: 'B', pPenalty: 3, eSlip: 1.5 }), null);
+    expect(f.B.gwp).toBe(GWP_CH4); expect(f.B.gwp).toBe(29.8); expect(f.B.gwpRef).toBe('ipcc-ar6-wg1-ch7');
+    for (const m of f.B.machines) {
+      if (m.id === 'diesel') { expect(m.co2e).toBeNull(); expect(m.currentE).toBeNull(); continue; }
+      const g = ghgPenalty({ eta: m.eta, fuelPenaltyPct: 3, fuel: 'gas' });
+      const e = co2eWithSlip({ eta: g.eta1, slipFrac: 0.015, fuel: 'gas' });
+      expect(m.currentE.co2e).toBe(e.co2e);
+      expect(m.currentE.co2).toBeCloseTo(m.current.co2_1, 9); // CO₂ biasa pada titik yang sama: tanpa slip
+      expect(m.co2e[f.B.penalty.indexOf(3)]).toBe(e.co2e);
+      expect(m.co2eVsSlip[0]).toBeCloseTo(m.current.co2_1, 9); // slip 0 → CO₂e = CO₂
+      expect(m.co2eVsSlip.at(-1)).toBeGreaterThan(m.co2eVsSlip[0]);
+    }
+    expect(f.B.slips[0]).toBe(0); expect(f.B.slips.at(-1)).toBe(3);
+    expect(STR.scene9.B.slipNote(f.B.gwp)).toBe('Methane slip is not in plain CO₂. CO₂e = CO₂ + GWP × CH₄ slip, with GWP 29.8 (IPCC AR6, 100-year).');
+    const ids = hudItems(f).map((x) => x.id);
+    expect(ids).toEqual(['pen', 'slip', 'co2diesel', 'co2gas', 'co2turbine', 'co2egas', 'co2eturbine', 'share']);
+  });
+});
+
 describe('Scene 9 panel C: baku mutu seragam', () => {
+  it('kalimat model dijaga: single-shaft "cliff" CO setelah IGV habis; twin-shaft bergeser dan menyempit', () => {
+    expect(STR.scene9.C.model).toMatch(/single-shaft\) shows a CO "cliff" once the IGV runs out/);
+    expect(STR.scene9.C.model).toMatch(/twin-shaft\): the operating window shifts and narrows/);
+    expect(STR.scene9.C.model).toMatch(/CO line appears only when a permit or OEM CO value is entered/);
+  });
   it('tanpa isian presenter: NOx dari regulations.json, CO kosong (tabel turbin tanpa limit CO) → ajakan mengisi, tanpa jendela', () => {
     const f = derivePolicy(st({ pTab: 'C' }), null);
     expect(f.C.limits.set).toBe(false);

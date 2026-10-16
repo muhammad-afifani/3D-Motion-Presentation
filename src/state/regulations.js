@@ -102,7 +102,7 @@ export function regMgToModelPpm(mg, param, basis) {
  * @param {{siteData?:Record<string, any>, overrides?:Record<string, number|null>, overrideKind?:Record<string,'override'|'permit'>, displayO2?:number, needsInput?:string[]}} [opt]
  *   needsInput: parameter yang dimodelkan tetapi menunggu input presenter (mis. SO₂ tanpa sulfur bahan bakar)
  */
-export function complianceRows(sel, modelPpm15, { siteData = {}, overrides = {}, overrideKind = {}, displayO2 = 15, needsInput = [] } = {}) {
+export function complianceRows(sel, modelPpm15, { siteData = {}, overrides = {}, overrideKind = {}, displayO2 = 15, needsInput = [], pending = [] } = {}) {
   const g = sel.group;
   if (!g) return [];
   const basis = g.basis;
@@ -121,7 +121,7 @@ export function complianceRows(sel, modelPpm15, { siteData = {}, overrides = {},
       param, row, model, site, limit, limitSource, unit: row?.unit ?? 'mg/Nm3',
       valueSource: site != null ? 'site' : model != null ? 'model' : null,
       status: complianceStatus(value, limit),
-      reason: limit == null ? 'noLimit' : value == null ? (needsInput.includes(param) ? 'needsInput' : 'noValue') : null,
+      reason: limit == null ? 'noLimit' : value == null ? (needsInput.includes(param) ? 'needsInput' : pending.includes(param) ? 'pending' : 'noValue') : null,
     };
   });
 }

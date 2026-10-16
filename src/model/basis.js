@@ -31,6 +31,7 @@ export const UTILITY = Object.freeze({
   crankAngleAt: 'Crank angle at time t for the animation clock.',
   pvLoop: 'Closes the P-V loop of a simulation for plotting.',
   selfTest: 'Golden-value self-test behind the "Model OK" badge.',
+  LEVER_PARAMS: 'Names of the engine levers that leverSweep may sweep.',
   complianceStatus: 'Compares a value with a limit on the same basis: within when value ≤ limit, above otherwise, not modeled when either is missing.',
 });
 
@@ -190,6 +191,8 @@ export const BASIS = Object.freeze({
   fuelPerKWh: e('Ideal', [], 'Fuel mass per kWh = 3600 / (η·LHV).', []),
   co2eWithSlip: e('Real', ['ipcc-ar6-wg1-ch7'], 'CO₂e = CO₂ + GWP·CH₄ slip, with slip as a fraction of the fuel gas.', ['100-year GWP of fossil methane (29.8).', 'Slip fraction is an input, not a prediction.']),
   ghgPenalty: e('Real', [], 'Efficiency and CO₂ change when a NOx measure costs extra fuel: η₂ = η / (1 + penalty).', ['Penalty is an input; the fuel effect is applied directly to efficiency.']),
+  leverSweep: e('Semi-empirical', ['heywood'], 'Sweep of one engine lever (timing, φ, intake T, boost, rpm) through cylinderSim with the other levers held; for timing it equals the retard sweep.',
+    ['Single-zone engine model; trends, not absolute values.', 'Changing φ or boost also changes engine load.', 'Indicative correlation: the trend is physical, the absolute level is calibrated to typical literature values, not to site data.']),
   retardSweep: e('Semi-empirical', ['heywood', 'lavoie-1970'], 'Sweep of injection/ignition timing through cylinderSim: later burning lowers peak temperature and NOx and costs efficiency.',
     ['Single-zone engine model; the NOx–efficiency trade is trend-level.', EMISSION_INDICATIVE]),
 });
@@ -210,7 +213,7 @@ export const BASIS_GROUPS = Object.freeze({
   partLoad: ['loadSweep', 'singleShaftLoad', 'twinShaftForLoad', 'dlnFromResult', 'dlnEmissions', 'coDLN', 'calibrateDLN'],
   compressor: ['gasCompressor', 'suctionFlow', 'affinity', 'speedForHead', 'compressorTrain'],
   emissions: ['ppmToGkWh', 'emissionAtBasis', 'dryFlueNm3PerKg', 'co2Specific', 'co2eWithSlip', 'GWP_CH4', 'cylinderSim', 'dlnEmissions'],
-  policy: ['retardSweep', 'ghgPenalty', 'co2eWithSlip', 'emissionAtBasis', 'loadSweep'],
+  policy: ['leverSweep', 'cylinderSim', 'toRegulationBasis', 'fuelGasProps', 'exhaustO2FromLambda', 'ghgPenalty', 'co2eWithSlip', 'emissionAtBasis', 'loadSweep'],
 });
 
 /** Entry of an export (undefined when the name is a UTILITY helper or unknown). */
