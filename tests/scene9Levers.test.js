@@ -104,19 +104,21 @@ describe('Scene 9 tab Levers: grafik dan titik operasi dari satu frame', () => {
     // preset tanpa geseran: identik dengan jalur lama (cylinderSim preset)
     near(c0.rows.find((r) => r.param === 'NOx').model, deriveCompliance(s0, REG).rows.find((r) => r.param === 'NOx').model, 1e-9);
   });
-  it('port panel A: diesel −4° → 0°: NOx g/kWh −30,6 %, CO₂ +3,0 %; Δ di preset = 0', () => {
+  // M10: jejak tekanan baru (cv(T) NASA) + faktor 0,185; dulu −30,6 % / +3,0 %
+  it('port panel A: diesel −4° → 0°: NOx g/kWh −30,2 %, CO₂ +3,1 %; Δ di preset = 0', () => {
     const s0 = st();
     const f = frame({ ...s0, ...leverPatch(s0, 'diesel', 'theta0', 0) });
-    near(f.delta.noxGkWh, -30.6, 0.1); near(f.delta.co2, 3.0, 0.05);
+    near(f.delta.noxGkWh, -30.2, 0.1); near(f.delta.co2, 3.06, 0.05);
     const p = frame(s0);
     expect(p.delta.noxGkWh).toBe(0); expect(p.delta.eta).toBe(0); expect(p.atPreset).toBe(true);
   });
-  it('port panel A: gas −14° → −6°: NOx 2,57 → 0,74 g/kWh (−71 %), CO₂ +5,2 %', () => {
+  // M10: dulu 2,57 → 0,74 (−71,1 %), CO₂ +5,2 %
+  it('port panel A: gas −14° → −6°: NOx 2,46 → 0,73 g/kWh (−71 %), CO₂ +5,3 %', () => {
     const s0 = st(gasHead);
     expect(frame(s0).levers.theta0).toBe(ENGINE_PRESETS.gas.theta0);
     const f = frame({ ...s0, ...leverPatch(s0, 'gas', 'theta0', -6) });
-    near(f.presetPoint.NOx_gkWh, 2.57, 0.01); near(f.point.NOx_gkWh, 0.74, 0.01);
-    near(f.delta.noxGkWh, -71.1, 0.2); near(f.delta.co2, 5.2, 0.05);
+    near(f.presetPoint.NOx_gkWh, 2.465, 0.01); near(f.point.NOx_gkWh, 0.725, 0.01);
+    near(f.delta.noxGkWh, -70.6, 0.2); near(f.delta.co2, 5.34, 0.05);
   });
   it('HUD: NOx dengan basis di samping angka, chip "Model value vs limit (indicative)", η, CO₂, waktu sapuan', () => {
     const s = st();

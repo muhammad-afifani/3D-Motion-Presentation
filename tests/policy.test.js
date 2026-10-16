@@ -16,7 +16,8 @@ const st = (extra = {}) => ({ ...policyInitialState(), pTab: 'C', // default tab
 const TEST_LIMITS = { limNOx: 10, limCO: 25 };
 
 describe('Scene 9 panel B: ghgPenalty', () => {
-  it('tiga mesin = ghgPenalty(η model); penalti 3 %: gas engine 478 → 492 (+3 %)', () => {
+  // M10: η gas engine 0,423 → 0,406 (cv(T) NASA); dulu 477,8 → 492,1
+  it('tiga mesin = ghgPenalty(η model); penalti 3 %: gas engine 497 → 512 (+3 %)', () => {
     const f = derivePolicy(st({ pTab: 'B', pPenalty: 3 }), null);
     for (const m of f.B.machines) {
       const g = ghgPenalty({ eta: m.eta, fuelPenaltyPct: 3, fuel: m.id === 'diesel' ? 'diesel' : 'gas' });
@@ -26,7 +27,7 @@ describe('Scene 9 panel B: ghgPenalty', () => {
       expect(m.co2[i]).toBe(g.co2_1);
     }
     const gas = f.B.machines.find((m) => m.id === 'gas');
-    near(gas.current.co2_0, 477.8, 0.2); near(gas.current.co2_1, 492.1, 0.2);
+    near(gas.current.co2_0, 496.9, 0.2); near(gas.current.co2_1, 511.8, 0.2);
     expect(keyMessage(f)).toMatch(/A 3\.0 % fuel penalty raises specific CO₂ by 3\.0 %/);
   });
 });

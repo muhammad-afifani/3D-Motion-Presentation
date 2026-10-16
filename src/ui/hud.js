@@ -6,9 +6,9 @@ import { STR } from './strings.js';
  */
 
 /**
- * @typedef {{id:string, label:string, unit?:string, tip?:string, model?:string, sub?:string, flag?:string, value:(f:any)=>string}} HudItem
+ * @typedef {{id:string, label:string, unit?:string, tip?:string, model?:string, sub?:string|((f:any)=>string), flag?:string, value:(f:any)=>string}} HudItem
  *   model = label model kecil di bawah angka (mis. fungsi thermo.js sumber angka);
- *   sub = baris kecil di bawah angka (mis. basis emisi); flag = penanda menonjol (mis. basis ≠ default).
+ *   sub = baris kecil di bawah angka (mis. basis emisi; fungsi = dihitung ulang dari frame tiap update); flag = penanda menonjol.
  * @param {HTMLElement} container
  * @param {HudItem[]} items
  * @param {{level?:string, basis?:string|string[], note?:string}} [opts] level = kata level model; basis = kelompok Basis
@@ -22,10 +22,10 @@ export function createHud(container, items, { level, basis, note } = {}) {
     c.className = 'hud__item';
     c.tabIndex = 0;
     if (it.tip) c.dataset.tip = it.tip;
-    c.innerHTML = `<div class="hud__label">${it.label}</div><div class="hud__value num"><span class="v"></span>${it.unit ? `<span class="u">${it.unit}</span>` : ''}</div>${it.model ? `<div class="hud__model">${it.model}</div>` : ''}${it.sub ? `<div class="hud__sub">${it.sub}</div>` : ''}${it.flag ? `<div class="hud__flag">${it.flag}</div>` : ''}`;
+    c.innerHTML = `<div class="hud__label">${it.label}</div><div class="hud__value num"><span class="v"></span>${it.unit ? `<span class="u">${it.unit}</span>` : ''}</div>${it.model ? `<div class="hud__model">${it.model}</div>` : ''}${it.sub ? `<div class="hud__sub">${typeof it.sub === 'function' ? '' : it.sub}</div>` : ''}${it.flag ? `<div class="hud__flag">${it.flag}</div>` : ''}`;
     if (it.flag) c.classList.add('is-flag');
     root.appendChild(c);
-    return { it, v: c.querySelector('.v'), last: '' };
+    return { it, v: c.querySelector('.v'), last: '', sub: typeof it.sub === 'function' ? c.querySelector('.hud__sub') : null, lastSub: '' };
   });
   if (level || note) {
     const n = document.createElement('div');
@@ -51,6 +51,7 @@ export function createHud(container, items, { level, basis, note } = {}) {
       for (const c of cells) {
         const s = c.it.value(f);
         if (s !== c.last) { c.v.textContent = s; c.last = s; }
+        if (c.sub) { const t = c.it.sub(f); if (t !== c.lastSub) { c.sub.textContent = t; c.lastSub = t; } }
       }
     },
     dispose() { root.remove(); },

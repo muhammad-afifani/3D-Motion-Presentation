@@ -71,7 +71,7 @@ describe('basis.js: isi entri', () => {
   });
   it('sumber yang belum ada di references.json tercatat sebagai toVerify (bukan dikarang)', () => {
     expect(needsVerification('exhaustFlowNm3h')).toBe(true);
-    expect(needsVerification('cvOfT')).toBe(true);
+    expect(needsVerification('cvOfT')).toBe(false); // M10: dicek terhadap NIST-JANAF (tests/cvT.test.js); dulu toVerify
     expect(needsVerification('otto')).toBe(false);
   });
   it('asumsi derating: massa aliran ∝ P/T (debit volume tetap, putaran tetap); P/√T untuk kecepatan terkoreksi tetap', () => {

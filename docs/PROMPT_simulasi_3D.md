@@ -208,9 +208,10 @@ Kode warna spesies (konsisten di semua scene, aman buta warna): NOx = oranye, CO
 | `braytonReal({})` η / T2 / T4 | 0,378 / 675 K / 843 K (±0,005 / ±2 / ±3) |
 | `braytonDerated({}, {TambC:35}).derate` | 0,865 (±0,005) |
 | `co2Specific(0.35,'gas')` / `co2Specific(0.42,'diesel')` | 577,0 / 635,1 g/kWh (±0,3) |
-| Preset diesel `cylinderSim`: Pmax / η rem / BSFC | 116 bar / 0,441 / 192 g/kWh (±3 / ±0,005 / ±3) |
-| Preset gas `cylinderSim`: Pmax / η rem / BSFC | 109 bar / 0,423 / 177 g/kWh (±3 / ±0,005 / ±3) |
-| NOx diesel / gas (preset terkalibrasi) | 10,7 / 2,6 g/kWh (±0,5 / ±0,2) |
+| Preset diesel `cylinderSim`: Pmax / η rem / BSFC | 112,4 bar / 0,425 / 199 g/kWh (±3 / ±0,005 / ±3) |
+| Preset gas `cylinderSim`: Pmax / η rem / BSFC | 104,6 bar / 0,406 / 184,5 g/kWh (±3 / ±0,005 / ±3) |
+| NOx diesel / gas (preset terkalibrasi, `ENGINE_NOX_CALIB` 0,185) | 11,1 / 2,5 g/kWh (±0,5 / ±0,2) |
+| `cvOfT` udara vs NIST-JANAF (4th ed., 1998) di 300 / 1000 / 1500 / 2000 K | ≤ 0,5 % |
 | `noxThermal` rasio laju 1900 K / 1800 K | 7,1 (±0,2) |
 | `twinShaft({})`: η / T2 / T45 / T5 | 0,405 / 742 K / 1049 K / 760 K (±0,005 / ±3 / ±5 / ±5) |
 | `gasCompressor({Psuc:20e5,Pdis:60e5,Tsuc:308,MWgas:18,mdot:20})` head / daya | 172 kJ/kg / 4,31 MW (±1 / ±0,03) |

@@ -14,12 +14,13 @@ const st = (extra = {}) => ({ ...emisInitialState(), ...calibInitialState(), ...
 
 describe('Scene 8: angka dari model', () => {
   const f = deriveEmis(st({ eSlip: 0 }));
-  it('diesel & gas engine = cylinderSim preset (NOx, η, CO₂); 605 / 478 g/kWh, NOx 10,7 / 2,6', () => {
+  // M10: cv(T) NASA + faktor 0,185; dulu 605 / 478 g/kWh, NOx 10,7 / 2,6
+  it('diesel & gas engine = cylinderSim preset (NOx, η, CO₂); 628 / 497 g/kWh, NOx 11,1 / 2,5', () => {
     const d = cylinderSim(ENGINE_PRESETS.diesel), g = cylinderSim(ENGINE_PRESETS.gas);
     expect(f.rows.diesel.nox).toBe(d.NOx_gkWh); expect(f.rows.diesel.co2).toBe(d.co2_gkWh); expect(f.rows.diesel.eta).toBe(d.etaBrake);
     expect(f.rows.gas.nox).toBe(g.NOx_gkWh); near(f.rows.gas.co2, g.co2_gkWh, 1e-9);
-    near(f.rows.diesel.co2, 605, 0.5); near(f.rows.gas.co2, 478, 0.5);
-    near(f.gasVsDiesel.co2 * 100, 21, 0.2);
+    near(f.rows.diesel.co2, 627.8, 0.5); near(f.rows.gas.co2, 496.9, 0.5);
+    near(f.gasVsDiesel.co2 * 100, 20.85, 0.2);
   });
   it('gas turbine (generator) = braytonReal desain + DLN single + ppmToGkWh: NOx 15 ppm → 0,258 g/kWh; CO₂ 534,7', () => {
     const d = braytonReal(LOAD_DESIGNS.single), e = dlnFromResult(d, d, { calib: NOX_CALIB_DEFAULTS.dln.single });
@@ -53,10 +54,10 @@ describe('Scene 8: chart, HUD, pesan, label', () => {
   });
   it('label permanen NOx dikalibrasi + faktor aktif & target di bawah grafik NOx dan di HUD', () => {
     expect(noxNote(f)).toMatch(/^NOx is calibrated to typical literature values, not to unit or vendor data/);
-    expect(noxNote(f)).toMatch(/engine ×0\.17 \(diesel\) \/ ×0\.17 \(gas\), target ≈ 11 \/ 2\.5 g\/kWh · DLN ×14\.33, target 15 ppmvd @ 15 % O₂/);
+    expect(noxNote(f)).toMatch(/engine ×0\.185 \(diesel\) \/ ×0\.185 \(gas\), target ≈ 11 \/ 2\.5 g\/kWh · DLN ×14\.33, target 15 ppmvd @ 15 % O₂/);
     expect(STR.scene8.hud.note).toMatch(/NOx is calibrated to typical literature values, not to unit or vendor data/);
     const cal = hudItems().find((x) => x.id === 'cal');
-    expect(cal.value(f)).toBe('×0.17 / ×14.33');
+    expect(cal.value(f)).toBe('×0.185 / ×14.33');
   });
   it('PM kualitatif, tidak dimodelkan (tanpa angka); GWP dengan horizon', () => {
     const pm = hudItems().find((x) => x.id === 'pm');

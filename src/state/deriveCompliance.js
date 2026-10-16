@@ -5,6 +5,7 @@
  * Override limit / Permit-OEM CO (limNOx / limCO) hanya berlaku untuk turbin gas (isiannya ada di Scene 6 dan panel C).
  */
 import { deriveEmis } from './deriveEmis.js';
+import { MARGIN_UNCERTAINTY_PCT } from '../model/thermo.js';
 import { EQUIPMENT, regSelection, rowsFor, complianceRows, sourceOf } from './regulations.js';
 import { emissionBasis } from './deriveNox.js';
 import { deriveFuel } from './deriveFuel.js';
@@ -53,6 +54,7 @@ export function deriveCompliance(s, regData, lev = null) {
   return {
     sel: { equip: sel.equip, cls: sel.cls, fuel: sel.fuel, classes: sel.classes, fuels: sel.fuels },
     rows, basis,
+    marginNotePct: MARGIN_UNCERTAINTY_PCT, // ambang keterangan "margin is smaller than model uncertainty" (thermo.js)
     verified: sel.group?.verified === true,
     source: src ? { short: src.short, url: src.url } : null,
     displayDiffers: !!basis && (display.refO2 !== basis.refO2Pct || display.TrefC !== basis.TrefC),

@@ -2,9 +2,9 @@
  * regulations.js — pilihan regulasi (equipment, kelas kapasitas, bahan bakar) dan pencarian limit di
  * content/regulations.json. Angka limit TIDAK ada di kode: semuanya dibaca dari file konten.
  * Semua perbandingan ke limit memakai jalur regulasi thermo.js (toRegulationBasis: koreksi O₂ dengan 21,
- * volume pada basis grup) lalu complianceStatus. Jalur tampilan (20,9) tidak pernah dipakai di sini.
+ * volume pada basis grup) lalu complianceCheck (status + margin %). Jalur tampilan (20,9) tidak pernah dipakai di sini.
  */
-import { toRegulationBasis, correctToRefO2Reg, ppmToMgNm3Reg, mgNm3ToPpmReg, complianceStatus, MW } from '../model/thermo.js';
+import { toRegulationBasis, correctToRefO2Reg, ppmToMgNm3Reg, mgNm3ToPpmReg, complianceCheck, MW } from '../model/thermo.js';
 
 /**
  * Equipment → grup regulasi (id di regulations.json) dan bahan bakar yang mungkin.
@@ -120,7 +120,7 @@ export function complianceRows(sel, modelPpm15, { siteData = {}, overrides = {},
     return {
       param, row, model, site, limit, limitSource, unit: row?.unit ?? 'mg/Nm3',
       valueSource: site != null ? 'site' : model != null ? 'model' : null,
-      status: complianceStatus(value, limit),
+      ...(({ status, marginPct, small }) => ({ status, marginPct, marginSmall: small }))(complianceCheck(value, limit)),
       reason: limit == null ? 'noLimit' : value == null ? (needsInput.includes(param) ? 'needsInput' : pending.includes(param) ? 'pending' : 'noValue') : null,
     };
   });

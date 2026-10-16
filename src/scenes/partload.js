@@ -70,7 +70,14 @@ export function keyMessage(f) {
 /** Teks satu baris cek regulasi Scene 6 (diekspor untuk tes): memuat "(indicative)" dan alasan untuk Not modeled. */
 export function regLine(f) {
   const R = STR.regulation;
-  const item = (r) => R.scene6Item(r.param, R.status[r.status], r.status === 'notModeled' ? R.reason[r.reason ?? 'noValue'] : r.limitSource && r.limitSource !== 'regulation' ? R.limitSource[r.limitSource] : '');
+  // Within / Above: margin (%) ke limit + keterangan bila lebih kecil dari ketidakpastian model; Not modeled: alasannya
+  const extra = (r) => {
+    if (r.status === 'notModeled') return R.reason[r.reason ?? 'noValue'];
+    const src = r.limitSource && r.limitSource !== 'regulation' ? R.limitSource[r.limitSource] : '';
+    const m = r.marginPct == null ? '' : R.scene6Margin(R.margin(r.marginPct), r.marginSmall ? R.marginSmall : '');
+    return [src, m].filter(Boolean).join(', ');
+  };
+  const item = (r) => R.scene6Item(r.param, R.status[r.status], extra(r));
   const rows = CFGS.map((cfg) => R.scene6Row(S.configs[cfg], f[cfg].compliance.filter((r) => r.param === 'NOx' || r.param === 'CO').map(item).join(', '))).join(' · ');
   return `${R.scene6Title}: ${rows}${f.regulation.verified ? '' : ` · ${R.scene6Unverified}`}`;
 }

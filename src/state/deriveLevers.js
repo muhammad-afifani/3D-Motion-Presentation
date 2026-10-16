@@ -2,12 +2,12 @@
  * deriveLevers.js — tab Levers Scene 9 (M9 Step 05b) → frame. Semua angka dari thermo.js:
  *   sapuan  : leverSweep(mesin, sumbu, grid LEVER_GRID, tuas lain = nilai slider Scene 9) di Web Worker
  *   NOx     : NOx_ppmvd @15 % O₂ → mg/Nm³ basis regulasi lewat toRegulationBasis (jalur regulasi, 21 / 25 °C)
- *   limit   : baris regulasi grup mesin untuk kelas & bahan bakar header (garis grafik + chip, complianceStatus)
+ *   limit   : baris regulasi grup mesin untuk kelas & bahan bakar header (garis grafik + chip, complianceCheck: status + margin)
  *   O₂ buang: exhaustO2FromLambda pada λ = 1/φ slider
  * Titik operasi = baris sapuan pada nilai slider (grid memuat semua nilai slider) → grafik, HUD, dan tab Limits membaca
  * frame yang sama. State slider milik Scene 9 (p9Lev), terpisah dari tuas Scene 1/4.
  */
-import { toRegulationBasis, complianceStatus, MW } from '../model/thermo.js';
+import { toRegulationBasis, complianceCheck, MARGIN_UNCERTAINTY_PCT, MW } from '../model/thermo.js';
 import { ENGINES, LEVER_GRID, LEVER_AXES, LEVER_AXIS_DISPLAY, NOX_CALIB_DEFAULTS } from '../model/presets.js';
 import { EQUIPMENT, regSelection, rowsFor, regLimitMg, sourceOf } from './regulations.js';
 
@@ -81,7 +81,7 @@ export function deriveLevers(s, sweep, regData) {
   const ok = sweep && sweep.rows?.length === values.length && sweep.rows.every((r, i) => r.value === values[i]);
   const base = {
     kind, axis, values, x: values.map((v) => leverAxisValue(axis, v)), levers: cur, current: cur[axis], currentX: leverAxisValue(axis, cur[axis]), grid: LEVER_GRID[kind],
-    limit: lim, turbineHeader: EQUIPMENT[s.regEquip]?.model === 'turbine', atPreset: LEVER_AXES.every((a) => cur[a] === ENGINES[kind].params[a]), modified: isLeversModified(s), ms: sweep?.ms ?? null,
+    limit: lim, turbineHeader: EQUIPMENT[s.regEquip]?.model === 'turbine', atPreset: LEVER_AXES.every((a) => cur[a] === ENGINES[kind].params[a]), modified: isLeversModified(s), ms: sweep?.ms ?? null, marginNotePct: MARGIN_UNCERTAINTY_PCT,
   };
   if (!ok || !lim.basis) return { ...base, ready: false, rows: null, point: null };
   const mg = (ppm) => toRegulationBasis({ ppm, refFrom: 15, molarMass: MW.NO2, basis: lim.basis }).mgNm3;
@@ -94,7 +94,7 @@ export function deriveLevers(s, sweep, regData) {
   return {
     ...base, ready: true, rows, i,
     noxMg: rows.map((r) => r.noxMg), eta: rows.map((r) => r.etaBrake), etaPct: rows.map((r) => r.etaBrake * 100),
-    point: { ...pt, status: complianceStatus(pt.noxMg, lim.mg) },
+    point: { ...pt, ...(({ status, marginPct, small }) => ({ status, marginPct, marginSmall: small }))(complianceCheck(pt.noxMg, lim.mg)) },
     presetPoint: ref, presetX: leverAxisValue(axis, ref.value),
     delta: { noxMg: d(pt.noxMg, ref.noxMg), noxGkWh: d(pt.NOx_gkWh, ref.NOx_gkWh), eta: d(pt.etaBrake, ref.etaBrake), co2: d(pt.co2_gkWh, ref.co2_gkWh) },
   };

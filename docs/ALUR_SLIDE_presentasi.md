@@ -25,8 +25,9 @@ Alur cerita: **mesinnya apa → energi jadi kerja dan panas → suhu menentukan 
 - **Rumus:** `V(θ) = Vc + (πB²/4)(l + a − s(θ))`, `s = a·cosθ + √(l² − a² sin²θ)`.
 - **Interaksi:** ganti diesel/gas, geser `r`, timing.
 - **Angka demo:**
-  - Diesel (r=16): Pmax ≈ 116 bar pada ±3,5° setelah TDC, η rem ≈ 44%, BSFC ≈ 192 g/kWh.
-  - Gas (r=11): Pmax ≈ 109 bar pada ±16° setelah TDC, η rem ≈ 42%, BSFC ≈ 177 g/kWh.
+  - Diesel (r=16): Pmax ≈ 112 bar pada ±3,5° setelah TDC, η rem ≈ 42,5%, BSFC ≈ 199 g/kWh.
+  - Gas (r=11): Pmax ≈ 105 bar pada ±16° setelah TDC, η rem ≈ 40,6%, BSFC ≈ 185 g/kWh.
+  - (M10: cv(T) udara dari polinomial NASA; dulu 116 / 109 bar, η 44 / 42 %. Gas produk tidak dimodelkan, jadi Pmax dan η masih sedikit terlalu tinggi.)
 - **Naskah:** "Garis ini bukan gambar. Titik di grafik dan posisi piston dihitung dari sudut engkol yang sama."
 
 ## S2 · Siklus ideal vs real (6 menit)
@@ -36,8 +37,9 @@ Alur cerita: **mesinnya apa → energi jadi kerja dan panas → suhu menentukan 
 - **Angka demo:**
   - Otto r=10: **60,2%**; Diesel r=18, r_c=2: **63,2%**; Otto r=18: **68,5%**.
   - Pada r yang sama Otto lebih efisien. Diesel unggul karena r jauh lebih tinggi.
-  - Waterfall diesel: 63,2 (batas ideal siklus dual dari preset; dulu 67,0 dengan rumus Otto) → 62,3 (k turun, bercampur beda volume-tetap vs dual) → 58,3 (pembakaran butuh waktu) → 50,6 (rugi panas) → 44,9% (friksi).
-  - Waterfall gas: 61,7 → 56,6 → 53,9 → 47,1 → 43,1%.
+  - Waterfall diesel: 63,2 (batas ideal siklus dual dari preset; dulu 67,0 dengan rumus Otto) → 60,4 (k turun, bercampur beda volume-tetap vs dual) → 56,3 (pembakaran butuh waktu) → 48,9 (rugi panas) → 43,3% (friksi).
+  - Waterfall gas: 61,7 → 54,6 → 52,0 → 45,4 → 41,4%.
+  - (M10: langkah k(T) kini memakai cv(T) NASA; dulu diesel 62,3 → 58,3 → 50,6 → 44,9 dan gas 56,6 → 53,9 → 47,1 → 43,1.)
 - **Naskah:** "Tiga langkah pertama adalah fisika gas dan waktu pembakaran. Dua terakhir adalah panas yang lari ke dinding dan gesekan."
 
 ## S3 · Pembakaran, φ, dan suhu nyala (4 menit)
@@ -100,8 +102,8 @@ Alur cerita: **mesinnya apa → energi jadi kerja dan panas → suhu menentukan 
 ## S8 · Emisi gabungan: diesel vs gas vs turbin (3 menit)
 - **Pesan kunci:** Gas lebih bersih per kWh, tetapi methane slip bisa menghapus sebagian keunggulannya.
 - **Angka demo:**
-  - CO₂ spesifik: gas η 42,3 % ≈ **478 g/kWh**; diesel η 44,1 % ≈ **605 g/kWh** (≈ 21% lebih rendah).
-  - NOx tipikal terkalibrasi: diesel ≈ 11 g/kWh; gas lean-burn ≈ 2,6 g/kWh.
+  - CO₂ spesifik: gas η 40,6 % ≈ **497 g/kWh**; diesel η 42,5 % ≈ **628 g/kWh** (≈ 21% lebih rendah).
+  - NOx tipikal terkalibrasi (faktor 0,185, target literatur tetap): diesel ≈ 11,1 g/kWh; gas lean-burn ≈ 2,5 g/kWh.
   - Methane slip pada η 40%: slip 1% → CO₂e **561 vs 505 g/kWh (+11%)**; slip 3% → **673 (+33%)**.
 - **Naskah:** "Satu persen bahan bakar yang lolos tidak terbakar sudah menambah sepersepuluh jejak karbonnya."
 
@@ -111,12 +113,12 @@ Alur cerita: **mesinnya apa → energi jadi kerja dan panas → suhu menentukan 
 
   | Timing (° ATDC) | NOx (g/kWh) | η rem | CO₂ (g/kWh) |
   |---|---|---|---|
-  | −8 | 15,1 | 45% | 593 |
-  | −4 | 10,7 | 44% | 605 |
-  | 0 | 7,4 | 43% | 623 |
-  | +4 | 5,3 | 41% | 645 |
+  | −8 | 15,6 | 43% | 615 |
+  | −4 | 11,1 | 42% | 628 |
+  | 0 | 7,7 | 41% | 647 |
+  | +4 | 5,5 | 40% | 671 |
 
-  Dari −4° ke 0°: **NOx −31%, CO₂ +3,0%**. Dari −8° ke +4°: NOx −65%, CO₂ +8,7%. Gas lean-burn, −14° → −6°: NOx 2,57 → 0,74 g/kWh (−71%), CO₂ 478 → 503 (+5,2%). Methane slip tidak dimodelkan, jadi CO₂e sebenarnya lebih tinggi.
+  Dari −4° ke 0°: **NOx −30%, CO₂ +3,1%**. Dari −8° ke +4°: NOx −65%, CO₂ +9,0%. Gas lean-burn, −14° → −6°: NOx 2,46 → 0,73 g/kWh (−71%), CO₂ 497 → 523 (+5,3%). Methane slip tidak dimodelkan, jadi CO₂e sebenarnya lebih tinggi.
 - **Panel B, penalti bahan bakar:** penalti 3% → CO₂ spesifik gas 577 → 594 g/kWh (+3%). CO₂ sebanding langsung dengan bahan bakar.
 - **Panel C, baku mutu seragam:** garis batas NOx dan CO digambar di grafik part-load kedua mesin; area pelanggaran CO diarsir. Angka batas diisi presenter (basis O₂ dan basis volume wajib ditampilkan).
 - **Naskah:** "Kita menyelamatkan kualitas udara lokal dengan membayar karbon. Pertanyaannya bukan siapa benar, tapi apakah satu angka cocok untuk dua mesin dengan jendela operasi berbeda."
@@ -175,10 +177,10 @@ Alur cerita: **mesinnya apa → energi jadi kerja dan panas → suhu menentukan 
 | Angka | Nilai |
 |---|---|
 | Otto r=10 / Diesel r=18 | 60,2% / 63,2% |
-| Teori → lapangan (piston) | ±62–63% → ±42–45% |
+| Teori → lapangan (piston) | ±62–63% → ±40–43% |
 | Brayton ideal → real (r_p 15) | 53,9% → 37,8% |
 | Derating ambient | ±0,68% per °C |
 | +100 K suhu nyala | NOx ×6–7 |
-| Retard 4° (diesel) | NOx −31%, CO₂ +3% |
+| Retard 4° (diesel) | NOx −30%, CO₂ +3% |
 | Methane slip 1% / 3% | CO₂e +11% / +33% |
-| Gas vs diesel CO₂ spesifik | ±21% lebih rendah (478 vs 605 g/kWh) |
+| Gas vs diesel CO₂ spesifik | ±21% lebih rendah (497 vs 628 g/kWh) |
