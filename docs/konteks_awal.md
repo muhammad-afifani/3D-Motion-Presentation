@@ -93,10 +93,10 @@ Realitas Operasional: Turbin kompresor tidak bisa dipaksa berlari konstan di bas
 | Rasio kompresi gas 9–12:1 | Sesuai | r = 11 pada preset |
 | "Efisiensi gas sedikit di bawah diesel" | Benar di lapangan. Pada rasio kompresi yang sama Otto ideal justru lebih efisien (r=18: 68,5% vs Diesel 63,2%); diesel unggul karena r jauh lebih tinggi | Satu slide khusus (Scene 2) |
 | NOx diesel "sangat tinggi" karena zona suhu lokal | Sesuai; dimodelkan lewat `phiLocal` | Scene 3–4 |
-| CO₂ gas lebih rendah dari diesel per kW | Sesuai (model: 478 vs 605 g/kWh, ≈ 21% lebih rendah), tetapi methane slip dapat mengurangi keunggulan ini (slip 1% → +11% CO₂e; 3% → +33%) | Scene 8 |
+| CO₂ gas lebih rendah dari diesel per kW | Sesuai (model: 497 vs 628 g/kWh, ≈ 21% lebih rendah), tetapi methane slip dapat mengurangi keunggulan ini (slip 1% → +11% CO₂e; 3% → +33%) | Scene 8 |
 | Turbin generator: beban turun → suhu ruang bakar turun → CO melonjak | Didukung model untuk single-shaft: suhu nyala ditahan IGV sampai ±70% beban, setelah itu CO naik tajam (12 → 158 ppm di 60%) | Scene 6 |
 | Turbin kompresor: DLN tidak optimal di luar titik desain, NOx dan CO sulit ditekan bersamaan | Didukung secara **kualitatif**: jendela operasi bergeser terus-menerus (suhu nyala turun ±90 K dari 100% ke 50% beban, η 40% → 31%). Model **tidak** menunjukkan lonjakan CO seperti single-shaft | Scene 6, dengan kalimat "jendela bergeser dan menyempit" |
-| "Inventarisasi GRK absolut meningkat drastis" | Arahnya benar (CO₂ sebanding dengan bahan bakar), besarnya sedang. Retard 4° pada diesel: NOx −31%, CO₂ +3%. Kata "drastis" tidak didukung angka model | Scene 9, dengan angka |
+| "Inventarisasi GRK absolut meningkat drastis" | Arahnya benar (CO₂ sebanding dengan bahan bakar), besarnya sedang. Retard 4° pada diesel: NOx −30%, CO₂ +3%. Kata "drastis" tidak didukung angka model | Scene 9, dengan angka |
 | "Cacat secara mechanical engineering" menuntut baku mutu sama | Argumen kebijakan, bukan hasil model. Dalam presentasi dirumuskan sebagai "satu angka, dua mesin dengan jendela operasi berbeda" | Scene 9 panel C |
 
 Hal yang **tidak** ada di draft dan perlu data dari pemilik proyek: nomor dan nilai baku mutu yang berlaku (beserta basis O₂ dan basis volume), data CEMS/uji cerobong per beban, distribusi beban historis generator vs kompresor, dan data methane slip. Lihat daftar lengkap di `docs/ALUR_SLIDE_presentasi.md` bagian "Data yang perlu dikumpulkan".
