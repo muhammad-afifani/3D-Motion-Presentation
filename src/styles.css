@@ -599,3 +599,25 @@ button.chart__level:hover, .hud__note .level[data-basis]:hover, .cyc-level[data-
 .fm-ref { color: var(--accent-cold); }
 .fm-modeled--calibrated, .fm-modeled--mass-balance { color: var(--text); border-color: var(--accent-cold); }
 @media (max-width: 1100px) { .fm-grid { grid-template-columns: 1fr; } }
+/* ── Scene 9 (M9 Step 05b): tab Levers + lencana Preset/Modified ── */
+.pol-head__state { display: flex; gap: 8px; align-items: center; flex: none; }
+.pol-badge { font-size: 12px; font-weight: 700; border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; color: var(--muted); }
+.pol-badge.is-modified { color: var(--accent-hot); border-color: var(--accent-hot); }
+.pol-head__state .btn:disabled { opacity: 0.45; cursor: default; }
+.pol-levers { display: none; background: var(--bg-1); padding: 10px 14px; overflow: auto; }
+.scene--policy[data-tab="levers"] .pol-levers { display: block; }
+.scene--policy[data-tab="levers"] .pol-card { display: none; }
+.lev-tab { display: grid; gap: 8px; align-content: start; }
+.lev-pane { display: grid; gap: 8px; align-content: start; }
+.lev-pane[hidden] { display: none; }
+.lev-head { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+.lev-engine { font-weight: 700; color: var(--text); }
+.lev-sliders { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 6px 14px; }
+.lev-sliders .ctl--slider { width: auto; }
+.lev-sliders .is-axis .ctl__label { color: var(--accent-cold); font-weight: 700; }
+.lev-egr { opacity: 0.55; display: grid; gap: 2px; }
+.lev-notes p, .lev-pane p { margin: 0; }
+.lev-strong { color: var(--text); font-weight: 600; }
+.lev-h { margin: 4px 0 0; font-size: 13px; }
+.scene--policy[data-tab="levers"] .hud { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+.scene--policy[data-tab="levers"] .hud__sub { overflow-wrap: anywhere; }

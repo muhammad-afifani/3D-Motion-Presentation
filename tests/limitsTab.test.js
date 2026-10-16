@@ -18,7 +18,7 @@ const st = (x = {}) => ({ ...policyInitialState(), ...calibInitialState(), ...ba
 
 describe('Scene 9: lima tab', () => {
   it('urutan 1 Limits, 2 Formation, 3 Levers, 4 Load window, 5 GHG; default tab Limits', () => {
-    expect(POLICY.tabs).toEqual(['limits', 'formation', 'A', 'C', 'B']);
+    expect(POLICY.tabs).toEqual(['limits', 'formation', 'levers', 'C', 'B']);
     expect(POLICY.tabs.map((t) => STR.scene9.tabs[t])).toEqual(['Limits', 'Formation', 'Levers', 'Load window', 'GHG']);
     expect(policyInitialState().pTab).toBe('limits');
     expect(WIDE_TABS).toEqual(['limits', 'formation']);

@@ -1,54 +1,19 @@
-// Scene 9: trade-off kebijakan — retardSweep (A), ghgPenalty (B), kurva Scene 6 + batas presenter (C).
+// Scene 9: ghgPenalty (B), kurva Scene 6 + batas presenter (C). Tab Levers (pengganti panel A): tests/levers.test.js.
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { retardSweep, ghgPenalty, ppmToMgNm3, mgNm3ToPpm, mgNm3ToPpmReg, MW, ENGINE_PRESETS } from '../src/model/thermo.js';
+import { ghgPenalty, ppmToMgNm3, mgNm3ToPpm, mgNm3ToPpmReg, MW } from '../src/model/thermo.js';
 import { fmt } from '../src/ui/format.js';
-import { NOX_TIMING } from '../src/model/presets.js';
-import { policyInitialState, policyEnginePatch, calibInitialState, basisInitialState, limitsInitialState, loadInitialState } from '../src/state/store.js';
-import { derivePolicy, policySweepParams, limitsInputPatch, toDisplay } from '../src/state/derivePolicy.js';
+import { policyInitialState, calibInitialState, basisInitialState, limitsInitialState, loadInitialState } from '../src/state/store.js';
+import { derivePolicy, limitsInputPatch, toDisplay } from '../src/state/derivePolicy.js';
 import { deriveLoad } from '../src/state/deriveLoad.js';
 import { hudItems, resultLine, keyMessage } from '../src/scenes/policy.js';
 import { STR } from '../src/ui/strings.js';
 
 const near = (got, want, tol) => expect(Math.abs(got - want), `got ${got}, want ${want}`).toBeLessThanOrEqual(tol);
-const st = (extra = {}) => ({ ...policyInitialState(), pTab: 'A', // default tab kini Limits (Step 05a); tes panel lama memakai tab A secara eksplisit
+const st = (extra = {}) => ({ ...policyInitialState(), pTab: 'C', // default tab kini Limits (Step 05a); tes di sini memakai tab B/C secara eksplisit
   ...calibInitialState(), ...basisInitialState(), ...limitsInitialState(), ...loadInitialState(), ...extra });
-const sweepOf = (s) => { const p = policySweepParams(s); return retardSweep(p.kind, p.thetas, p.over); };
 // Contoh batas HANYA untuk tes (aplikasi default kosong; tidak ada angka baku mutu di kode)
 const TEST_LIMITS = { limNOx: 10, limCO: 25 };
-
-describe('Scene 9 panel A: retard timing', () => {
-  const sD = st(), swD = sweepOf(sD);
-  it('kurva = retardSweep pada semua langkah slider; titik operasi = titik kurva', () => {
-    for (const th of [-12, -4, 0, 6]) {
-      const f = derivePolicy({ ...sD, pTheta0: th }, swD);
-      const i = f.A.theta.indexOf(th);
-      expect(f.A.nox[i]).toBe(f.A.current.nox); expect(f.A.co2[i]).toBe(f.A.current.co2);
-      expect(f.A.dEta[i]).toBeCloseTo(f.A.delta.eta, 12); expect(f.A.dCo2[i]).toBeCloseTo(f.A.delta.co2, 12);
-    }
-    expect(derivePolicy(sD, swD).A.theta).toEqual(NOX_TIMING.diesel.sweep);
-  });
-  it('diesel −4° → 0°: Δ NOx −30,6 %, Δ CO₂ +3,0 % terhadap preset; Δ di preset = 0', () => {
-    const f = derivePolicy({ ...sD, pTheta0: 0 }, swD);
-    near(f.A.delta.nox, -30.6, 0.1); near(f.A.delta.co2, 3.0, 0.05);
-    const p = derivePolicy(sD, swD);
-    expect(p.A.delta.nox).toBe(0); expect(p.A.dEta[p.A.ip]).toBe(0);
-  });
-  it('gas −14° → −6°: NOx 2,57 → 0,74 (−71 %), CO₂ +5,2 %', () => {
-    const s = st(policyEnginePatch('gas')), sw = sweepOf(s);
-    expect(s.pTheta0).toBe(ENGINE_PRESETS.gas.theta0);
-    const f = derivePolicy({ ...s, pTheta0: -6 }, sw);
-    near(f.A.presetPoint.nox, 2.57, 0.01); near(f.A.current.nox, 0.74, 0.01);
-    near(f.A.delta.nox, -71.1, 0.2); near(f.A.delta.co2, 5.2, 0.05);
-  });
-  it('sapuan basi (engine lain) diabaikan; catatan methane slip; pesan kunci dari model', () => {
-    expect(derivePolicy(st(policyEnginePatch('gas')), swD).A).toBeNull();
-    const f = derivePolicy({ ...sD, pTheta0: 0 }, swD);
-    expect(keyMessage(f)).toMatch(/NOx −31 %, but CO₂ \+3\.0 %/);
-    expect(STR.scene9.A.note).toMatch(/Methane slip is not included here\. Real CO₂e is higher/);
-    expect(resultLine(f)).toMatch(/NOx −30\.6 %, CO₂ \+3\.0 % versus preset/);
-  });
-});
 
 describe('Scene 9 panel B: ghgPenalty', () => {
   it('tiga mesin = ghgPenalty(η model); penalti 3 %: gas engine 478 → 492 (+3 %)', () => {

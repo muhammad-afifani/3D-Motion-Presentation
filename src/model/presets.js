@@ -128,6 +128,8 @@ export const LEVER_GRID = Object.freeze({
   }),
 });
 export const LEVER_AXES = Object.freeze(['theta0', 'phi', 'Tivc', 'Pivc', 'N']);
+/** Tampilan sumbu grafik tab Levers: faktor satuan (boost Pa → bar) dan digit label. Hanya lapisan tampilan. */
+export const LEVER_AXIS_DISPLAY = Object.freeze({ theta0: { scale: 1, digits: 0 }, phi: { scale: 1, digits: 2 }, Tivc: { scale: 1, digits: 0 }, Pivc: { scale: 1e-5, digits: 1 }, N: { scale: 1, digits: 0 } });
 
 /** Grafik Arrhenius (zeldovichCurve): rentang T, acuan laju relatif, dan rentang yang dibandingkan. */
 export const NOX_ARRHENIUS = { Tmin: 1500, Tmax: 3100, Tref: 1800, engineBand: [2200, 3000], dlnBand: [1500, 2000] };
@@ -202,8 +204,11 @@ export const EMIS = Object.freeze({
 });
 
 /** Scene 9 — trade-off kebijakan. Panel A memakai NOX_TIMING; panel B penalti bahan bakar (%); panel C kurva Scene 6. */
+/** Scene 9 tab Levers → Fuel: rentang slider komposisi gas (% mol), H₂S (ppmv), sulfur solar (% berat). Rentang tampilan, bukan hasil model. */
+export const FUEL_SLIDERS = Object.freeze({ species: Object.freeze(['CH4', 'C2H6', 'C3H8', 'C4H10', 'N2', 'CO2']), pct: Object.freeze({ min: 0, max: 100, step: 0.5 }), h2s: Object.freeze({ min: 0, max: 500, step: 5 }), sulfur: Object.freeze({ min: 0, max: 1, step: 0.01 }) });
+
 export const POLICY = Object.freeze({
-  tabs: Object.freeze(['limits', 'formation', 'A', 'C', 'B']), // M9 Step 05a: 1 Limits, 2 Formation, 3 Levers (A), 4 Load window (C), 5 GHG (B)
+  tabs: Object.freeze(['limits', 'formation', 'levers', 'C', 'B']), // M9 Step 05: 1 Limits, 2 Formation, 3 Levers, 4 Load window (C), 5 GHG (B)
   penalty: Object.freeze({ min: 0, max: 10, step: 0.5, default: 3 }),
   limUnits: Object.freeze(['ppm', 'mg']),
 });

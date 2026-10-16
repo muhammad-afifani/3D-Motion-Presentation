@@ -213,7 +213,7 @@ export const BASIS_GROUPS = Object.freeze({
   partLoad: ['loadSweep', 'singleShaftLoad', 'twinShaftForLoad', 'dlnFromResult', 'dlnEmissions', 'coDLN', 'calibrateDLN'],
   compressor: ['gasCompressor', 'suctionFlow', 'affinity', 'speedForHead', 'compressorTrain'],
   emissions: ['ppmToGkWh', 'emissionAtBasis', 'dryFlueNm3PerKg', 'co2Specific', 'co2eWithSlip', 'GWP_CH4', 'cylinderSim', 'dlnEmissions'],
-  policy: ['retardSweep', 'ghgPenalty', 'co2eWithSlip', 'emissionAtBasis', 'loadSweep'],
+  policy: ['leverSweep', 'cylinderSim', 'toRegulationBasis', 'fuelGasProps', 'exhaustO2FromLambda', 'ghgPenalty', 'co2eWithSlip', 'emissionAtBasis', 'loadSweep'],
 });
 
 /** Entry of an export (undefined when the name is a UTILITY helper or unknown). */
