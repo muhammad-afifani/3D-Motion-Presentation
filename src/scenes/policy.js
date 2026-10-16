@@ -15,7 +15,8 @@ import { niceCeil } from '../charts/chartBase.js';
 import { slider, segmented, button } from '../ui/controls.js';
 import { createHud } from '../ui/hud.js';
 import { createLimitsInput } from '../ui/limitsInput.js';
-import { createCompliancePanel } from '../ui/compliancePanel.js';
+import { createRegHeader } from '../ui/regHeader.js';
+import { createLimitsTab } from '../ui/limitsTab.js';
 import { createContentBanner } from '../ui/contentBanner.js';
 import { deriveCompliance } from '../state/deriveCompliance.js';
 import { regulationsContent, onRegulations } from '../state/regulationsStore.js';
@@ -28,7 +29,9 @@ const S = STR.scene9, C = STR.common, U = STR.common.units, H = STR.scene9.hud;
 
 export const meta = { id: 'policy', number: 9, title: S.title, message: S.message };
 
-const KEYS_TAB = { 1: 'A', 2: 'B', 3: 'C' };
+const KEYS_TAB = { 1: 'limits', 2: 'formation', 3: 'A', 4: 'C', 5: 'B' };
+/** Tab berlayout lebar (tanpa grafik dan HUD). */
+export const WIDE_TABS = Object.freeze(['limits', 'formation']);
 const MCOLOR = { diesel: '#a9b4c7', gas: '#4fb3ff', turbine: '#ffb15c' };
 const DASH = { single: [], twin: [7, 5] };
 const ETA_COLOR = '#e6ebf3';
@@ -81,6 +84,8 @@ export function resultLine(f) {
 
 /** Pesan kunci per tab (diekspor untuk tes): arah & besar hasil model. */
 export function keyMessage(f) {
+  if (f.tab === 'limits') return S.messageLimits;
+  if (f.tab === 'formation') return S.messageFormation;
   if (f.tab === 'A') {
     if (!f.A) return S.message;
     const atPreset = f.A.current.theta0 === f.A.preset;
@@ -97,7 +102,7 @@ export function keyMessage(f) {
 export function createScene(ctx) {
   const { store } = ctx;
   const disposers = [];
-  let el, main, sub, lim, comp, regBanner, hud = null, hudKey = '', mainKey = '', lastMsg = '';
+  let el, main, sub, lim, regHead, limitsTab, regBanner, backBtn, hud = null, hudKey = '', mainKey = '', lastMsg = '', tabShown = '';
   let compMemo = { s: null, data: null, f: null };
   let sweep = null, sweepKey = null;
   const ctl = {};
@@ -111,13 +116,14 @@ export function createScene(ctx) {
   function buildDom() {
     el = html(`
       <section class="scene scene--load scene--policy">
+        <div class="pol-head"><div class="pol-head__reg"></div><div class="pol-head__back"></div></div>
+        <div class="pol-wide"><div class="pol-limits"></div><div class="pol-formation"></div></div>
         <div class="pl-view pol-card">
           <h2 class="pol-title" data-k="title"></h2>
           <p class="pol-result num" data-k="result"></p>
           <p class="pol-note" data-k="note"></p>
           <p class="pol-note" data-k="strategy"></p>
           <div class="pol-disclaimer" data-k="disclaimer"></div>
-          <div class="pol-reg"></div>
         </div>
         <div class="pl-emis chart-slot"></div>
         <div class="pl-aux chart-slot"></div>
@@ -170,15 +176,39 @@ export function createScene(ctx) {
   }
 
   function updateHud(f) {
+    if (WIDE_TABS.includes(f.tab)) { hud?.dispose(); hud = null; hudKey = ''; return; }
     const key = `${f.tab}|${f.A?.engine}|${f.C.unit}|${f.C.basis.refO2}|${f.C.basis.TrefC}|${f.C.limits.nox == null}|${f.C.limits.co == null}|${f.C.limits.source.nox}|${f.C.limits.source.co}`;
     if (key !== hudKey) { hud?.dispose(); hudKey = key; hud = createHud(q('.scene__hud'), hudItems(f), { level: C.level.semiEmpirical, basis: 'policy', note: STR.common.indicative }); }
     hud.update(f);
   }
 
-  /** Strip kepatuhan: dihitung ulang hanya bila state atau isi file regulasi berganti. */
+  /** Header + tab Limits: dihitung ulang hanya bila state atau isi file regulasi berganti. */
   function updateCompliance(s, data) {
     if (compMemo.s !== s || compMemo.data !== data) compMemo = { s, data, f: deriveCompliance(s, data) };
-    comp?.update(compMemo.f, s.siteData?.[compMemo.f.sel.equip] ?? {});
+    regHead?.update(compMemo.f);
+    if (s.pTab === 'limits') limitsTab?.update(compMemo.f, s.siteData?.[compMemo.f.sel.equip] ?? {});
+  }
+
+  /** Tampilkan / sembunyikan area tab (layout lebar untuk Limits & Formation) dan tombol kembali. */
+  function updateLayout(s) {
+    if (tabShown !== s.pTab) {
+      tabShown = s.pTab;
+      el.dataset.tab = s.pTab;
+      q('.pol-limits').hidden = s.pTab !== 'limits';
+      q('.pol-formation').hidden = s.pTab !== 'formation';
+    }
+    const back = s.p9Return != null;
+    backBtn.el.hidden = !back;
+    if (back) backBtn.setLabel(S.back(s.p9Return));
+  }
+
+  /** Kembali ke scene asal (dibuka dari tautan Scene 6): Esc atau ←. */
+  function goBack() {
+    const n = store.get().p9Return;
+    if (n == null) return false;
+    store.set({ p9Return: null });
+    ctx.goToScene?.(n);
+    return true;
   }
 
   function updateCard(f) {
@@ -274,11 +304,14 @@ export function createScene(ctx) {
         syncControls(s, changed);
       }));
       syncControls(s0, ['pEngine']);
-      regBanner = createContentBanner(q('.pol-reg'));
+      regHead = createRegHeader(q('.pol-head__reg'), { onSelect: (p) => store.set(regSelectionPatch(store.get(), regulationsContent().data, p)) });
+      backBtn = button({ label: S.back(6), key: S.backKey, tip: S.backTip, onClick: () => goBack() });
+      backBtn.el.hidden = true;
+      q('.pol-head__back').append(backBtn.el);
+      regBanner = createContentBanner(q('.pol-limits'));
       regBanner.show(regulationsContent());
       disposers.push(onRegulations((r) => regBanner?.show(r)));
-      comp = createCompliancePanel(q('.pol-reg'), {
-        onSelect: (p) => store.set(regSelectionPatch(store.get(), regulationsContent().data, p)),
+      limitsTab = createLimitsTab(q('.pol-limits'), {
         onSite: (param, field, v) => { const st = store.get(); store.set(siteDataPatch(st, regSelection(st, regulationsContent().data).equip, param, field, v)); },
         onSulfur: (kind, v) => store.set(fuelSulfurPatch(kind === 'oil' ? 'fuelS' : 'fuelH2S', v)),
       });
@@ -287,24 +320,29 @@ export function createScene(ctx) {
       const s = store.get();
       const reg = regulationsContent();
       const f = derivePolicy(s, sweepKey === policySweepKey(s) ? sweep : null, reg.data);
-      updateCard(f);
+      updateLayout(s);
       updateCompliance(s, reg.data);
       updateHud(f);
-      updateLimits(f, s);
-      if (f.tab === 'A') chartsA(f); else if (f.tab === 'B') chartsB(f); else chartsC(f);
+      if (!WIDE_TABS.includes(f.tab)) {
+        updateCard(f);
+        updateLimits(f, s);
+        if (f.tab === 'A') chartsA(f); else if (f.tab === 'B') chartsB(f); else chartsC(f);
+      }
       const msg = keyMessage(f);
       if (msg !== lastMsg) { lastMsg = msg; ctx.setMessage?.(msg); }
     },
     onKey(e) {
       const k = e.key.toLowerCase();
+      if ((e.key === 'Escape' || e.key === 'ArrowLeft') && store.get().p9Return != null) return goBack();
       if (KEYS_TAB[k]) { store.set({ pTab: KEYS_TAB[k] }); return true; }
       if (k === 'r') { resetParams(); return true; }
       return false;
     },
     dispose() {
       for (const d of disposers.splice(0)) d();
+      if (store.get().p9Return != null) store.set({ p9Return: null }); // jalan kembali hanya berlaku sekali kunjungan
       sweepClient.dispose();
-      main?.dispose(); sub?.dispose(); hud?.dispose(); lim?.dispose(); comp?.dispose(); regBanner?.dispose();
+      main?.dispose(); sub?.dispose(); hud?.dispose(); lim?.dispose(); regHead?.dispose(); limitsTab?.dispose(); regBanner?.dispose();
       el?.remove();
     },
   };

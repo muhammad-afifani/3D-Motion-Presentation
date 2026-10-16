@@ -67,6 +67,14 @@ export function keyMessage(f) {
   return S.messageCurves(f.facts);
 }
 
+/** Teks satu baris cek regulasi Scene 6 (diekspor untuk tes): memuat "(indicative)" dan alasan untuk Not modeled. */
+export function regLine(f) {
+  const R = STR.regulation;
+  const item = (r) => R.scene6Item(r.param, R.status[r.status], r.status === 'notModeled' ? R.reason[r.reason ?? 'noValue'] : r.limitSource && r.limitSource !== 'regulation' ? R.limitSource[r.limitSource] : '');
+  const rows = CFGS.map((cfg) => R.scene6Row(S.configs[cfg], f[cfg].compliance.filter((r) => r.param === 'NOx' || r.param === 'CO').map(item).join(', '))).join(' · ');
+  return `${R.scene6Title}: ${rows}${f.regulation.verified ? '' : ` · ${R.scene6Unverified}`}`;
+}
+
 /** @param {import('./sceneBase.js').SceneContext} ctx */
 export function createScene(ctx) {
   const { store } = ctx;
@@ -90,7 +98,6 @@ export function createScene(ctx) {
         <div class="pl-view">
           <div class="view3d"></div>
           <div class="overlay overlay--note"></div>
-          <div class="overlay overlay--reg"></div>
           <div class="overlay overlay--legend">
             <div class="nox-species"><span class="sw" style="background:${SPECIES_COLORS.NOx}"></span>${S.species.nox} · <span class="sw" style="background:${SPECIES_COLORS.CO}"></span>${S.species.co}</div>
           </div>
@@ -105,6 +112,7 @@ export function createScene(ctx) {
           <div class="pl-hud__row"><div class="pl-hud__title">${S.configs.single}</div><div class="pl-hud__body" data-hud="single"></div></div>
           <div class="pl-hud__row"><div class="pl-hud__title">${S.configs.twin}</div><div class="pl-hud__body" data-hud="twin"></div></div>
           <div class="hud__note"><span class="level" role="button" tabindex="0" data-basis="partLoad" data-tip="${STR.basis.tagTip}">${STR.basis.tag} · ${C.level.semiEmpirical}</span>${S.hudNote}</div>
+          <button type="button" class="pl-reg" data-tip="${STR.regulation.scene6Tip}"><span data-k="regline"></span><span class="pl-reg__go">${STR.regulation.scene6Link}</span></button>
         </div>
       </section>`);
     q('.overlay--note').textContent = S.note;
@@ -173,12 +181,13 @@ export function createScene(ctx) {
   }
 
   // ── chip regulasi pada beban ini (jalur regulasi di deriveLoad; site data tidak dipakai di sini) ──
+  /** Satu baris cek regulasi (indicative) di area HUD; klik → Scene 9 tab Limits untuk turbin gas (Esc / ← kembali). */
   function updateReg(f) {
-    const R = STR.regulation, b = f.regulation.basis;
-    if (!b) { setHTML(q('.overlay--reg'), ''); return; }
-    const chip = (r) => `<span class="reg-chip reg-chip--${r.status}" data-tip="${R.statusTip}">${R.scene6Item(r.param, R.status[r.status], r.status === 'notModeled' && r.reason ? R.reason[r.reason] : r.limitSource && r.limitSource !== 'regulation' ? R.limitSource[r.limitSource] : '')}</span>`;
-    const rows = CFGS.map((cfg) => `<div>${R.scene6Row(S.configs[cfg], f[cfg].compliance.filter((r) => r.param === 'NOx' || r.param === 'CO').map(chip).join(' '))}</div>`).join('');
-    setHTML(q('.overlay--reg'), `<div data-tip="${R.scene6Basis}"><b>${R.scene6Title}</b> · ${R.title}</div><div class="reg__basis">${R.basis(b.refO2Pct, b.TrefC, b.NOxAs)}</div>${rows}${f.regulation.verified ? '' : `<div class="reg__banner reg__banner--sm">⚠ ${R.banner}</div>`}`);
+    const n = q('.pl-reg');
+    const b = f.regulation.basis;
+    n.hidden = !b;
+    if (!b) return;
+    setText(n.querySelector('[data-k="regline"]'), regLine(f));
   }
 
   // ── HUD ──
@@ -271,6 +280,11 @@ export function createScene(ctx) {
     mount() {
       buildDom();
       buildControls();
+      // tautan ke Scene 9 tab Limits (turbin gas, bahan bakar gas); Scene 9 menyediakan jalan kembali (Esc / ←)
+      q('.pl-reg').addEventListener('click', () => {
+        store.set({ regEquip: 'gasTurbine', regFuel: 'gas', regClass: null, pTab: 'limits', p9Return: meta.number });
+        ctx.goToScene?.(9);
+      });
       emis = createMultiLineChart(q('.pl-emis'), { title: S.charts.emis.title, modelLevel: 'semiEmpirical', basis: 'partLoad', xLabel: S.charts.emis.xLabel, yLabel: S.charts.emis.yLabel, logY: true, pad: { l: 60, r: 18, t: 92, b: 40 } });
       aux = createMultiLineChart(q('.pl-aux'), { title: S.charts.flame.title, modelLevel: 'semiEmpirical', basis: 'partLoad', xLabel: S.charts.xLabel, yLabel: S.charts.flame.yLabel });
       legend = createTempLegend(q('.overlay--legend'));

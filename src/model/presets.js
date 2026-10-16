@@ -179,7 +179,7 @@ export const EMIS = Object.freeze({
 
 /** Scene 9 — trade-off kebijakan. Panel A memakai NOX_TIMING; panel B penalti bahan bakar (%); panel C kurva Scene 6. */
 export const POLICY = Object.freeze({
-  tabs: Object.freeze(['A', 'B', 'C']),
+  tabs: Object.freeze(['limits', 'formation', 'A', 'C', 'B']), // M9 Step 05a: 1 Limits, 2 Formation, 3 Levers (A), 4 Load window (C), 5 GHG (B)
   penalty: Object.freeze({ min: 0, max: 10, step: 0.5, default: 3 }),
   limUnits: Object.freeze(['ppm', 'mg']),
 });

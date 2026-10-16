@@ -11,7 +11,8 @@ import { hudItems, resultLine, keyMessage } from '../src/scenes/policy.js';
 import { STR } from '../src/ui/strings.js';
 
 const near = (got, want, tol) => expect(Math.abs(got - want), `got ${got}, want ${want}`).toBeLessThanOrEqual(tol);
-const st = (extra = {}) => ({ ...policyInitialState(), ...calibInitialState(), ...basisInitialState(), ...limitsInitialState(), ...loadInitialState(), ...extra });
+const st = (extra = {}) => ({ ...policyInitialState(), pTab: 'A', // default tab kini Limits (Step 05a); tes panel lama memakai tab A secara eksplisit
+  ...calibInitialState(), ...basisInitialState(), ...limitsInitialState(), ...loadInitialState(), ...extra });
 const sweepOf = (s) => { const p = policySweepParams(s); return retardSweep(p.kind, p.thetas, p.over); };
 // Contoh batas HANYA untuk tes (aplikasi default kosong; tidak ada angka baku mutu di kode)
 const TEST_LIMITS = { limNOx: 10, limCO: 25 };
