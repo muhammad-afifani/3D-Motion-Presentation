@@ -14,7 +14,7 @@
     {
       "number": 2,
       "targetMin": 6,
-      "keyMessage": "Efisiensi teoretis jauh di atas efisiensi lapangan. Selisihnya bukan kesalahan, tetapi fisika.",
+      "keyMessage": "Efisiensi teoretis jauh di atas efisiensi rem yang dihitung model. Selisihnya bukan kesalahan, tetapi fisika.",
       "notes": [
         "Tiga langkah pertama adalah fisika gas dan waktu pembakaran. Dua terakhir adalah panas yang lari ke dinding dan gesekan."
       ]
@@ -47,7 +47,7 @@
     {
       "number": 6,
       "targetMin": 8,
-      "keyMessage": "Generator punya titik optimum yang tetap. Turbin kompresor tidak pernah punya titik tetap.",
+      "keyMessage": "Generator punya titik optimum yang tetap. Pada turbin kompresor, titik operasi bergeser mengikuti beban dan jendela operasinya menyempit.",
       "notes": [
         "Kalau generator dijaga di base load, ia berada di titik terbaiknya. Turbin kompresor mengikuti tekanan sumur dan pipa, jadi titiknya selalu bergerak.",
         "Kalimat aman untuk twin-shaft: jendela operasinya bergeser terus-menerus dan menyempit; besarnya perlu data OEM atau CEMS unit."
@@ -72,9 +72,12 @@
     {
       "number": 9,
       "targetMin": 6,
-      "keyMessage": "Menekan satu emisi hampir selalu menggeser yang lain.",
+      "keyMessage": "Limit bergantung pada jenis mesin, kelas kapasitas, dan bahan bakar. Menekan satu emisi hampir selalu menggeser yang lain.",
       "notes": [
-        "Kita menyelamatkan kualitas udara lokal dengan membayar karbon. Pertanyaannya bukan siapa benar, tetapi apakah satu angka cocok untuk dua mesin dengan jendela operasi berbeda."
+        "Kita menyelamatkan kualitas udara lokal dengan membayar karbon. Pertanyaannya bukan siapa benar, tetapi apakah satu angka cocok untuk dua mesin dengan jendela operasi berbeda.",
+        "Mulai dari tab Limits: limit berasal dari tabel regulasi; chip adalah nilai model terhadap limit (indikatif), bukan hasil uji. Bila chip menampilkan keterangan 'margin is smaller than model uncertainty', katakan bahwa selisihnya lebih kecil dari ketidakpastian model.",
+        "Di tab Levers, retard timing menurunkan NOx tetapi menaikkan CO₂. Komposisi gas tidak mengubah NOx dan CO di model ini.",
+        "Di tab GHG, penalti bahan bakar di slider adalah skenario ilustrasi: konsumsi bahan bakar naik sebesar penalti itu pada daya yang sama. Ini bukan hasil alat penurun NOx tertentu."
       ]
     },
     {
