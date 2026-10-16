@@ -724,6 +724,31 @@ export function complianceStatus(value, limit) {
 }
 
 /**
+ * Ambang margin (%) di bawahnya UI menambah "margin is smaller than model uncertainty" di samping chip (M10).
+ * Penilaian kasar terhadap ketidakpastian gabungan model (korelasi indikatif + kalibrasi ke literatur), bukan
+ * ketidakpastian terukur. Tidak mengubah status Within / Above.
+ */
+export const MARGIN_UNCERTAINTY_PCT = 10;
+/**
+ * Margin kepatuhan (%) pada basis yang sama: (limit − value) / limit × 100. Positif = di bawah limit, negatif = di atas,
+ * 0 = tepat di limit. null bila value atau limit tidak ada / limit ≤ 0.
+ */
+export function complianceMargin(value, limit) {
+  if (value == null || limit == null || !Number.isFinite(value) || !Number.isFinite(limit) || limit <= 0) return null;
+  return ((limit - value) / limit) * 100;
+}
+/**
+ * Hasil perbandingan lengkap: status (sama persis dengan complianceStatus), margin (%), dan small = |margin| <
+ * MARGIN_UNCERTAINTY_PCT (selisih ke limit lebih kecil dari ketidakpastian model; berlaku di kedua sisi limit).
+ * @returns {{status:'within'|'above'|'notModeled', marginPct:number|null, small:boolean}}
+ */
+export function complianceCheck(value, limit) {
+  const status = complianceStatus(value, limit);
+  const marginPct = status === 'notModeled' ? null : complianceMargin(value, limit);
+  return { status, marginPct, small: marginPct != null && Math.abs(marginPct) < MARGIN_UNCERTAINTY_PCT };
+}
+
+/**
  * Volume flue gas KERING stoikiometrik per kg bahan bakar (F-factor, Nm³/kg pada 0 °C):
  * CxHy + (x + y/4)(O₂ + 3,76 N₂) → x CO₂ + (y/2) H₂O + 3,76(x + y/4) N₂; kering = x + 3,76(x + y/4) kmol.
  * gas (CH₄) ≈ 11,90 Nm³/kg; diesel (C₁₂H₂₃) ≈ 10,55 Nm³/kg. Udara kering, bahan bakar tanpa N/S/abu.

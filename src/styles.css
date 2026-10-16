@@ -696,3 +696,6 @@ body.mode-explore.nav-collapsed { --nav-w: 52px; }
   .scene--partload .ctl-group, .scene--partload .scene__controls { gap: 8px; }
   .scene--partload .lim__in { width: 106px; white-space: normal; }
 }
+/* M10: margin kepatuhan (%) di samping chip; margin kecil (< ambang ketidakpastian model) ditandai */
+.reg__margin { margin-left: 6px; font-size: 11.5px; color: var(--muted); white-space: nowrap; }
+.reg__margin.is-small { color: var(--accent-hot); }

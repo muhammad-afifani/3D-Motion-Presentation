@@ -58,7 +58,7 @@ export function hudItems(f) {
     const pt = (x) => (x.levers.ready ? x.levers.point : null);
     return [
       { id: 'nox', label: HL.nox.label, unit: U.mgNm3, sub: b ? C.basis.fullMg(b.refO2Pct, b.TrefC) : undefined, value: (x) => num(pt(x)?.noxMg, (pt(x)?.noxMg ?? 0) < 100 ? 1 : 0), tip: HL.nox.tip },
-      { id: 'st', label: R.title, unit: '', sub: L.limit.mg == null ? HL.noLimit : HL.limitSub(fmt(L.limit.mg, L.limit.mg < 100 ? 1 : 0), L.limit.cls ?? ''), value: (x) => (pt(x) ? R.status[pt(x).status] : HL.pending), tip: HL.status.tip },
+      { id: 'st', label: R.title, unit: '', sub: (x) => statusSub(x.levers), value: (x) => (pt(x) ? R.status[pt(x).status] : HL.pending), tip: HL.status.tip },
       { id: 'eta', label: HL.eta.label, unit: U.pct, value: (x) => (pt(x) ? pct(pt(x).etaBrake, 1) : HL.pending), tip: HL.eta.tip },
       { id: 'co2', label: HL.co2.label, unit: U.gkWh, value: (x) => num(pt(x)?.co2_gkWh, 0), tip: HL.co2.tip },
       { id: 'pmax', label: HL.pmax.label, unit: U.bar, value: (x) => num(pt(x)?.Pmax_bar, 1), tip: HL.pmax.tip },
@@ -83,6 +83,16 @@ export function hudItems(f) {
     { id: 'ws', label: H.winS.label, unit: '', value: (x) => winText(x.C.single.window), tip: H.winS.tip },
     { id: 'wt', label: H.winT.label, unit: '', value: (x) => winText(x.C.twin.window), tip: H.winT.tip },
   ];
+}
+
+/** Baris kecil di bawah chip HUD Levers: limit + kelas, margin (%) dan keterangan bila lebih kecil dari ketidakpastian model. */
+export function statusSub(L) {
+  const HL = LV.hud;
+  if (L.limit.mg == null) return HL.noLimit;
+  const lim = HL.limitSub(fmt(L.limit.mg, L.limit.mg < 100 ? 1 : 0), L.limit.cls ?? '');
+  const p = L.ready ? L.point : null;
+  if (!p || p.marginPct == null) return lim;
+  return `${lim} · ${R.margin(p.marginPct)}${p.marginSmall ? ` · ${R.marginSmall}` : ''}`;
 }
 
 /** Asal limit untuk label kecil di HUD: regulasi (nama singkat), user override, atau permit/OEM (diekspor untuk tes). */

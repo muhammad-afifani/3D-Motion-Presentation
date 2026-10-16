@@ -33,6 +33,9 @@ export const UTILITY = Object.freeze({
   selfTest: 'Golden-value self-test behind the "Model OK" badge.',
   LEVER_PARAMS: 'Names of the engine levers that leverSweep may sweep.',
   complianceStatus: 'Compares a value with a limit on the same basis: within when value ≤ limit, above otherwise, not modeled when either is missing.',
+  complianceMargin: 'Compliance margin on the same basis: (limit − value) / limit in %, positive below the limit.',
+  complianceCheck: 'Status (as complianceStatus) plus margin in %; small when the margin is within ±MARGIN_UNCERTAINTY_PCT.',
+  MARGIN_UNCERTAINTY_PCT: 'Margin (%) below which the chip adds "margin is smaller than model uncertainty": a rough judgment of the combined model uncertainty (indicative correlations, calibration to literature), not a measured value.',
 });
 
 /** extra.knownIssue: penyimpangan yang diketahui dan perbaikan yang direncanakan (tampil di kartu Basis dan panel H). */

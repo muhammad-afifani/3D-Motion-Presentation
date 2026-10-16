@@ -70,9 +70,9 @@ export function createLimitsTab(container, cb) {
     tbody.replaceChildren();
     for (const r of f.rows) {
       const tr = document.createElement('tr');
-      tr.innerHTML = `<td class="reg__param"></td><td data-c="limit"><div data-c="lv"></div><div class="reg__why" data-c="lsrc"></div></td><td data-c="unit"></td><td data-c="method"></td><td data-c="model"></td><td data-c="site"></td><td><span class="reg-chip"></span><div class="reg__why" data-c="why"></div></td>`;
+      tr.innerHTML = `<td class="reg__param"></td><td data-c="limit"><div data-c="lv"></div><div class="reg__why" data-c="lsrc"></div></td><td data-c="unit"></td><td data-c="method"></td><td data-c="model"></td><td data-c="site"></td><td><span class="reg-chip"></span><span class="reg__margin num" data-c="margin"></span><div class="reg__why" data-c="why"></div></td>`;
       tr.querySelector('.reg__param').textContent = r.param;
-      const c = { lv: tr.querySelector('[data-c="lv"]'), lsrc: tr.querySelector('[data-c="lsrc"]'), unit: tr.querySelector('[data-c="unit"]'), method: tr.querySelector('[data-c="method"]'), model: tr.querySelector('[data-c="model"]'), chip: tr.querySelector('.reg-chip'), why: tr.querySelector('[data-c="why"]') };
+      const c = { lv: tr.querySelector('[data-c="lv"]'), lsrc: tr.querySelector('[data-c="lsrc"]'), unit: tr.querySelector('[data-c="unit"]'), method: tr.querySelector('[data-c="method"]'), model: tr.querySelector('[data-c="model"]'), chip: tr.querySelector('.reg-chip'), why: tr.querySelector('[data-c="why"]'), margin: tr.querySelector('[data-c="margin"]') };
       c.chip.dataset.tip = R.statusTip;
       const site = tr.querySelector('[data-c="site"]');
       if (SITE_PARAMS.includes(r.param)) {
@@ -133,8 +133,11 @@ export function createLimitsTab(container, cb) {
         set(c.model, num(r.model));
         set(c.chip, `${R.status[r.status]}${r.valueSource === 'site' ? ` · ${R.siteTag}` : ''}`);
         c.chip.className = `reg-chip reg-chip--${r.status}${r.valueSource === 'site' ? ' reg-chip--site' : ''}`;
-        // alasan selalu tertulis untuk Not modeled
-        set(c.why, r.status === 'notModeled' ? R.reason[r.reason ?? 'noValue'] : '');
+        // margin (%) di samping chip; alasan selalu tertulis untuk Not modeled; margin kecil → keterangan ketidakpastian
+        set(c.margin, r.marginPct == null ? '' : R.margin(r.marginPct));
+        c.margin.dataset.tip = R.marginTip(f.marginNotePct);
+        c.margin.classList.toggle('is-small', !!r.marginSmall);
+        set(c.why, r.status === 'notModeled' ? R.reason[r.reason ?? 'noValue'] : r.marginSmall ? R.marginSmall : '');
         if (c.inputs) {
           const v = siteData[r.param] ?? { value: '', unit: 'mg', o2: '' };
           for (const k of ['value', 'unit', 'o2']) if (document.activeElement !== c.inputs[k] && c.inputs[k].value !== String(v[k] ?? '')) c.inputs[k].value = String(v[k] ?? '');
