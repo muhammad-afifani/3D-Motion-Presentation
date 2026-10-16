@@ -105,6 +105,29 @@ export const STR = {
     keysHint: 'In the navigation: ↑ ↓ move, ← → change scene.',
   },
 
+  // ─────────────────────────── full pages (M9 Step 06) ───────────────────────────
+  pages: {
+    close: 'Close',
+    formation: {
+      title: 'Emission formation',
+      intro: 'How each regulated pollutant forms, what drives it, and which levers move it, per equipment. Qualitative cards from content/emission_formation.json; the same cards as Scene 9, tab Formation.',
+      equipment: 'Equipment',
+      equipmentTip: 'Same selection as the Scene 9 header.',
+    },
+    glossary: {
+      title: 'Glossary',
+      intro: 'Terms and abbreviations used on screen. Definitions only, from content/glossary.json (editable without a rebuild).',
+      filter: 'Filter',
+      filterPlaceholder: 'term or word',
+      count: (n, total) => (n === total ? `${total} terms` : `${n} of ${total} terms`),
+      empty: 'No term matches the filter.',
+      sources: 'Sources',
+      scenes: 'See',
+      sceneLink: (n) => `Scene ${n}`,
+    },
+    assumptions: { pageTip: 'Same content as panel H, as a page (address #/assumptions).' },
+  },
+
   // ─────────────────────────── shared charts ───────────────────────────
   charts: {
     pv: {
@@ -816,6 +839,7 @@ export const STR = {
       number: 'must be a number', numberOrNull: 'must be a number or null', positive: 'must be a number above zero',
       regSource: 'must be an id listed in sources', regO2: 'must be a number from 0 to below 21 (% O₂)', regClass: 'must be an id listed in capacityClasses',
       regFuel: 'must be oil or gas', regUnit: 'must be mg/Nm3 or %',
+      noNumbers: 'must not contain numbers (definitions only)',
       formModeled: 'must be calibrated, mass-balance, semi-empirical, qualitative or site-input', formDirection: 'must be up, down, flat or mixed',
     },
   },

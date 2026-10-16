@@ -1,7 +1,8 @@
 /**
  * content.js — konten presenter: Scene 10–11 (content/controls.json, content/closing.json) dan catatan
  * mode presenter (content/presenter.json, M8a), daftar sumber (content/references.json, M9 Step 02), dan baku mutu
- * (content/regulations.json, M9 Step 03: angka limit hanya ada di file ini, tidak pernah di kode).
+ * (content/regulations.json, M9 Step 03: angka limit hanya ada di file ini, tidak pernah di kode), dan glossary
+ * (content/glossary.json, M9 Step 06: definisi istilah saja, tanpa angka).
  * Dimuat saat runtime dari `${BASE_URL}content/…` (bisa diedit di dist/content/ tanpa build ulang), dengan
  * fallback bawaan yang dibundel dari file sumber yang sama. Tidak pernah throw:
  *   - file tidak bisa di-fetch (tanpa server, 404, atau fallback SPA index.html) → fallback bawaan, TANPA galat
@@ -14,11 +15,12 @@ import presenterFallback from '../../content/presenter.json';
 import referencesFallback from '../../content/references.json';
 import regulationsFallback from '../../content/regulations.json';
 import formationFallback from '../../content/emission_formation.json';
+import glossaryFallback from '../../content/glossary.json';
 
-export const CONTENT_FILES = Object.freeze({ controls: 'controls.json', closing: 'closing.json', presenter: 'presenter.json', references: 'references.json', regulations: 'regulations.json', formation: 'emission_formation.json' });
+export const CONTENT_FILES = Object.freeze({ controls: 'controls.json', closing: 'closing.json', presenter: 'presenter.json', references: 'references.json', regulations: 'regulations.json', formation: 'emission_formation.json', glossary: 'glossary.json' });
 export const MACHINES = Object.freeze(['diesel', 'gas', 'turbine']);
 export const CARD_FIELDS = Object.freeze(['lowers', 'raises', 'efficiency', 'operation']);
-const FALLBACK = { controls: controlsFallback, closing: closingFallback, presenter: presenterFallback, references: referencesFallback, regulations: regulationsFallback, formation: formationFallback };
+const FALLBACK = { controls: controlsFallback, closing: closingFallback, presenter: presenterFallback, references: referencesFallback, regulations: regulationsFallback, formation: formationFallback, glossary: glossaryFallback };
 /** Cara model menghitung tiap parameter (kartu Formation, Scene 9) dan arah efek/pendorong. */
 export const FORMATION_MODELED = Object.freeze(['calibrated', 'mass-balance', 'semi-empirical', 'qualitative', 'site-input']);
 export const FORMATION_DIRECTIONS = Object.freeze(['up', 'down', 'flat', 'mixed']);
@@ -247,13 +249,39 @@ export function validateFormation(j) {
   return e;
 }
 
+/**
+ * Validasi glossary.json: { version: 1, terms: [{ id, term, expansion?, definition, refs?: [id], scenes?: [n] }] }.
+ * Definisi saja: teks term / expansion / definition tidak boleh memuat angka (limit dan faktor tidak ditulis di sini).
+ * Id sumber diperiksa terhadap references.json saat tampil ("source to verify" bila hilang) dan di tes.
+ */
+export function validateGlossary(j, sceneNumbers = DEFAULT_SCENES) {
+  const e = [];
+  if (!j || typeof j !== 'object' || Array.isArray(j)) return [{ field: '(root)', code: 'notObject' }];
+  if (j.version !== 1) e.push({ field: 'version', code: 'version' });
+  if (!Array.isArray(j.terms) || !j.terms.length) return [...e, { field: 'terms', code: 'array' }];
+  const ids = new Set();
+  j.terms.forEach((t, i) => {
+    const f = (k) => `terms[${i}].${k}`;
+    if (!t || typeof t !== 'object' || Array.isArray(t)) { e.push({ field: `terms[${i}]`, code: 'notObject' }); return; }
+    if (!isText(t.id) || !/^[a-z0-9-]+$/.test(t.id)) e.push({ field: f('id'), code: 'refId' });
+    else if (ids.has(t.id)) e.push({ field: f('id'), code: 'duplicate' });
+    else ids.add(t.id);
+    for (const k of ['term', 'definition']) if (!isText(t[k])) e.push({ field: f(k), code: 'text' });
+    if (t.expansion != null && !isText(t.expansion)) e.push({ field: f('expansion'), code: 'text' });
+    for (const k of ['term', 'expansion', 'definition']) if (typeof t[k] === 'string' && /[0-9]/.test(t[k])) e.push({ field: f(k), code: 'noNumbers' });
+    if (t.refs != null && !(Array.isArray(t.refs) && t.refs.every((x) => isText(x) && /^[a-z0-9-]+$/.test(x)))) e.push({ field: f('refs'), code: 'refId' });
+    if (t.scenes != null && !(Array.isArray(t.scenes) && t.scenes.every((n) => sceneNumbers.includes(n)))) e.push({ field: f('scenes'), code: 'scenes' });
+  });
+  return e;
+}
+
 /** Catatan presenter untuk scene n (null bila tidak ada). */
 export const presenterNotes = (data, n) => data?.scenes?.find((x) => x.number === n) ?? null;
 
-const VALIDATE = { controls: validateControls, closing: (j) => validateClosing(j), presenter: validatePresenter, references: (j) => validateReferences(j), regulations: (j) => validateRegulations(j), formation: (j) => validateFormation(j) };
+const VALIDATE = { controls: validateControls, closing: (j) => validateClosing(j), presenter: validatePresenter, references: (j) => validateReferences(j), regulations: (j) => validateRegulations(j), formation: (j) => validateFormation(j), glossary: validateGlossary };
 
 /**
- * Muat konten. @param {'controls'|'closing'|'presenter'|'references'|'regulations'|'formation'} kind
+ * Muat konten. @param {'controls'|'closing'|'presenter'|'references'|'regulations'|'formation'|'glossary'} kind
  * @returns {Promise<{data:any, source:'file'|'fallback', file:string, errors:{field:string, code:string, detail?:string}[]}>}
  */
 export async function loadContent(kind, { fetchFn = globalThis.fetch, base, sceneNumbers } = {}) {

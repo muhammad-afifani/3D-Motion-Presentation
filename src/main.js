@@ -16,6 +16,8 @@ import { createAssumptionsPanel } from './ui/assumptions.js';
 import { createBasisCard } from './ui/basisCard.js';
 import { createReferencesPage } from './ui/referencesPage.js';
 import { createRegulationsPage } from './ui/regulationsPage.js';
+import { createFormationPage } from './ui/formationPage.js';
+import { createGlossaryPage } from './ui/glossaryPage.js';
 import { isTypingTarget } from './ui/keys.js';
 import { createCalibFlag, createQualityFlag } from './ui/statusFlags.js';
 import { createQualityController, effectiveBloom, applyDisplay, displayState, QUALITY_TIERS } from './gfx/quality.js';
@@ -66,10 +68,12 @@ const homeHash = () => (index >= 0 ? sceneHash(SCENES[index].number, SCENES[inde
 const references = createReferencesPage(document.body, { homeHash });
 const regulations = createRegulationsPage(document.body, { homeHash });
 const basisCard = createBasisCard(document.body, { onOpenRefs: () => references.setOpen(true) });
+const formationPage = createFormationPage(store, { homeHash });
+const glossary = createGlossaryPage({ homeHash });
 const assumptions = createAssumptionsPanel(store, document.body, {
   available: persist.available,
   onReset: () => { persist.clear(); toast(STR.app.toast.savedReset); },
-});
+}, { homeHash });
 createCalibFlag(document.querySelector('.topbar__right'), store);
 createQualityFlag(document.querySelector('.topbar__right'), store, () => assumptions.openSection('display'));
 
@@ -124,7 +128,9 @@ async function snapshot() {
 }
 
 // ── halaman penuh (satu yang terbuka; loop render berhenti selama terbuka) ──
-const PAGE_API = { regulations, references };
+/** Halaman Assumptions = panel H dalam tata letak halaman (satu komponen); overlay H tidak dihitung sebagai halaman. */
+const assumptionsPage = { get open() { return assumptions.isPage; }, setOpen: (on) => (on ? assumptions.setPage(true) : assumptions.isPage && assumptions.setOpen(false)) };
+const PAGE_API = { regulations, formation: formationPage, references, glossary, assumptions: assumptionsPage };
 const openPage = () => Object.keys(PAGE_API).find((p) => PAGE_API[p].open) ?? null;
 function showPage(p) {
   for (const [k, api] of Object.entries(PAGE_API)) if (k !== p && api.open) api.setOpen(false);
