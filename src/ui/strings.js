@@ -718,6 +718,7 @@ export const STR = {
       number: 'must be a number', numberOrNull: 'must be a number or null', positive: 'must be a number above zero',
       regSource: 'must be an id listed in sources', regO2: 'must be a number from 0 to below 21 (% O₂)', regClass: 'must be an id listed in capacityClasses',
       regFuel: 'must be oil or gas', regUnit: 'must be mg/Nm3 or %',
+      formModeled: 'must be calibrated, mass-balance, semi-empirical, qualitative or site-input', formDirection: 'must be up, down, flat or mixed',
     },
   },
 

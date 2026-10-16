@@ -8,14 +8,15 @@ import { toRegulationBasis, correctToRefO2Reg, ppmToMgNm3Reg, mgNm3ToPpmReg, com
 
 /**
  * Equipment → grup regulasi (id di regulations.json) dan bahan bakar yang mungkin.
- * model = sumber nilai model; params = parameter yang dihitung model (lainnya "Not modeled").
+ * model = sumber nilai model; params = parameter yang dihitung model (lainnya "Not modeled");
+ * formation = kunci equipment di content/emission_formation.json (kartu Formation).
  * Engine: model tidak menghitung CO dan PM. SO₂ = neraca massa sulfur bahan bakar (butuh input sulfur; M9 Step 04).
  * Turbin oil: model DLN hanya untuk gas → NOx/CO tanpa nilai model; SO₂ tetap neraca massa.
  */
 export const EQUIPMENT = Object.freeze({
-  dieselEngine: Object.freeze({ group: 'engine', fuels: Object.freeze(['oil']), model: 'diesel', params: Object.freeze({ oil: Object.freeze(['NOx', 'SO2']) }) }),
-  gasEngine: Object.freeze({ group: 'engine', fuels: Object.freeze(['gas']), model: 'gas', params: Object.freeze({ gas: Object.freeze(['NOx', 'SO2']) }) }),
-  gasTurbine: Object.freeze({ group: 'gas-turbine', fuels: Object.freeze(['gas', 'oil']), model: 'turbine', params: Object.freeze({ gas: Object.freeze(['NOx', 'CO', 'SO2']), oil: Object.freeze(['SO2']) }) }),
+  dieselEngine: Object.freeze({ formation: 'diesel', group: 'engine', fuels: Object.freeze(['oil']), model: 'diesel', params: Object.freeze({ oil: Object.freeze(['NOx', 'SO2']) }) }),
+  gasEngine: Object.freeze({ formation: 'gas-engine', group: 'engine', fuels: Object.freeze(['gas']), model: 'gas', params: Object.freeze({ gas: Object.freeze(['NOx', 'SO2']) }) }),
+  gasTurbine: Object.freeze({ formation: 'turbine', group: 'gas-turbine', fuels: Object.freeze(['gas', 'oil']), model: 'turbine', params: Object.freeze({ gas: Object.freeze(['NOx', 'CO', 'SO2']), oil: Object.freeze(['SO2']) }) }),
 });
 export const EQUIPMENT_ORDER = Object.freeze(['dieselEngine', 'gasEngine', 'gasTurbine']);
 /** Urutan parameter di chip dan tabel; massa molar untuk konversi ppm ↔ mg/Nm³ (NOx sebagai NO₂). */

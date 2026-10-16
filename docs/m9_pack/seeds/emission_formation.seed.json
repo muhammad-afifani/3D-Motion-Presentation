@@ -1,7 +1,7 @@
 {
   "version": 1,
   "status": "draft-unverified",
-  "note": "Qualitative formation content for Scene 9 'Formation' tab. No site data and no invented numbers. Every card cites ids from references.json. The 'modeled' field says what the app actually computes: 'calibrated' = thermo.js function exists, 'mass-balance' = closed-form balance, 'qualitative' = direction arrows only, 'site-input' = presenter types a measured value. Directions: up = increases, down = decreases, flat = little effect, mixed = depends on regime. Check every locator against the book/paper before presenting.",
+  "note": "Qualitative formation content for Scene 9 'Formation' tab. No site data and no invented numbers. Every card cites ids from references.json. The 'modeled' field says what the app actually computes: 'calibrated' = thermo.js function exists, 'mass-balance' = closed-form balance, 'semi-empirical' = a shape correlation exists in thermo.js but is not calibrated to data (turbine CO, coDLN), 'qualitative' = direction arrows only, 'site-input' = presenter types a measured value. Directions: up = increases, down = decreases, flat = little effect, mixed = depends on regime. Check every locator against the book/paper before presenting.",
   "equipment": {
     "diesel": {
       "label": "Diesel engine (compression ignition)",
@@ -221,7 +221,7 @@
           ]
         },
         "CO": {
-          "modeled": "calibrated",
+          "modeled": "semi-empirical",
           "formation": {
             "summary": "CO is the partially burned intermediate. In a DLN combustor it rises when flame temperature falls, because CO + OH slows down and the residence time is too short to finish burning it. Quenching on liner walls adds to it.",
             "reactions": ["CO + OH <=> CO2 + H"],
