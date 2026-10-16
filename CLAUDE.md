@@ -8,6 +8,8 @@ Presentasi web 3D interaktif untuk staf produksi migas: diesel engine, gas engin
 - `src/model/thermo.js`: satu-satunya sumber perhitungan
 - `src/model/basis.js` + `content/references.json`: dasar teori tiap fungsi `thermo.js` dan daftar sumber (lihat Aturan referensi)
 - `content/regulations.json`: baku mutu (Permen LH 13/2009 turbin gas, Permen LHK 11/2021 mesin), basis, catatan; halaman Regulations (tombol `G`, alamat `#/regulations`)
+- `content/glossary.json`: istilah dan singkatan (English, definisi saja tanpa angka; sumber hanya id `references.json`); halaman Glossary (`#/glossary`)
+- `src/state/route.js` + `src/state/mode.js`: alamat hash dan mode Explore / Present (lihat README "Explore dan Present")
 
 ## Stack
 Vite + JavaScript ES modules (JSDoc untuk tipe), three.js, vitest. Tanpa backend dan tanpa API eksternal saat runtime. Harus jalan offline lewat `npm run build:offline` + server statis lokal (mis. `npm run preview:offline`; lihat README "Cara presentasi offline"; `file://` tidak didukung karena ES module/Web Worker), dan ter-deploy ke GitHub Pages lewat `.github/workflows/deploy.yml` (`npm run build`, base `/<nama-repo>/`). Semua model 3D prosedural (tanpa file aset berhak cipta). Grafik 2D memakai canvas buatan sendiri atau uPlot.
@@ -18,6 +20,7 @@ Vite + JavaScript ES modules (JSDoc untuk tipe), three.js, vitest. Tanpa backend
 - `npm run build`: bundle produksi untuk GitHub Pages, base `/<nama-repo>/` dari git remote / `GITHUB_REPOSITORY` (target < 1,5 MB gzip)
 - `npm run build:offline` lalu `npm run preview:offline`: paket presentasi offline (base relatif `./`)
 - `npm run preview`: uji build Pages di `http://localhost:4173/<nama-repo>/`
+- `npm run e2e:smoke`: smoke test tampilan (semua scene dan tab Scene 9 di 3 viewport, deep link, Explore/Present, sinkron jendela presenter, PNG per tab)
 - `npm run e2e`: uji dispose antar-scene (siklus 1→11→1) di browser lewat Playwright terpisah (bukan dependensi, bukan CI); `npm run e2e:perf` untuk tabel performa per scene
 - `npm run package:offline`: paket presentasi offline di `release/` (build base `./` + server Node/Python/PowerShell + `start.bat`/`start.sh` + `BACA-SAYA.txt`)
 - `node -e "import('./src/model/thermo.js').then(t=>console.log(t.selfTest()))"`: validasi cepat model (harus `failed: 0`, saat ini 19 tes)
@@ -57,7 +60,7 @@ Alur data satu arah: `UI control → store.set → derive() → frame → { rig 
   - Gaya: kalimat pendek, angka dan satuan di depan, tanpa kata hiasan, bentuk aktif, jangan menjelaskan yang sudah terlihat. Tanpa nama fungsi/konstanta kode di caption, tooltip, atau HUD.
   - Kalimat kejujuran model tidak boleh berubah makna: korelasi emisi berlabel "indicative"; twin-shaft = jendela operasi bergeser dan menyempit; single-shaft = "cliff" CO setelah IGV habis; basis O₂ dan volume selalu di samping angka ppm / mg/Nm³.
   - Semua teks UI ada di `src/ui/strings.js` (dikelompokkan per scene). `scenes/`, `charts/`, `ui/`, `main.js`, dan `state/derive*.js` tidak menulis teks UI langsung (dijaga `tests/strings.test.js`). `tests/language.test.js` gagal bila kata Indonesia tertinggal di `strings.js`, `content/controls.json`, `closing.json`, `basis.js`, atau `references.json`, atau bila identifier kode muncul di teks layar di luar panel `H`.
-- Tombol cepat global (H, ?, G, P, S, Q, B, K, F, R, angka) tidak aktif saat fokus di kolom isian (`ui/keys.js` `isTypingTarget`; dijaga `tests/keys.test.js`).
+- Tombol cepat global (H, ?, G, M, P, S, Q, B, K, F, R, angka) tidak aktif saat fokus di kolom isian (`ui/keys.js` `isTypingTarget`; dijaga `tests/keys.test.js`).
 - Dispose geometri, material, dan listener saat pindah scene. `InstancedMesh` untuk bilah dan partikel.
 - `cylinderSim` berjalan di Web Worker, dengan debounce saat slider digeser.
 
@@ -83,14 +86,14 @@ Alur data satu arah: `UI control → store.set → derive() → frame → { rig 
 - [x] M8a Fitur presentasi: mode presenter (P, jendela kedua + BroadcastChannel, panel pengganti), content/presenter.json, snapshot PNG 2× tema gelap (S), persistensi ringan (localStorage), dock panel Calibration, Animation speed 0,1×–2× bersama
 - [x] M8b Finishing: overlay debug (Shift+D), kualitas adaptif Auto/High/Low + bloom global (Q/B), uji dispose e2e (npm run e2e), transisi fade-through, paket offline (npm run package:offline), cek Pages & bundle, laser pointer/spotlight (K/Shift+K); ekspor PNG tema terang belum dikerjakan
 
-- [ ] M9 Perbaikan dan kedalaman (pack `docs/m9_pack/`, satu Step per permintaan)
+- [x] M9 Perbaikan dan kedalaman (pack `docs/m9_pack/`, satu Step per permintaan)
   - [x] Step 01 Perbaikan Scene 7 dan Scene 9 (smoke test tampilan `npm run e2e:smoke`)
   - [x] Step 02 Bahasa English + gaya, format en-US, `content/references.json`, `basis.js`, tag Basis, halaman References
   - [x] Step 03 Data regulasi: `content/regulations.json`, jalur regulasi (O₂ 21, 25 °C) + `complianceStatus`, pemilih equipment/kelas/bahan bakar, chip Scene 6 dan 9, site data, Permit/OEM CO, halaman Regulations (`G`)
   - [x] Step 04 Model bahan bakar dan tuas: batas ideal dual (diesel), `fuelGasProps` / `so2FromFuelSulfur` / `exhaustO2FromLambda`, tuas intake T / boost / rpm (default = preset), tes arah
   - [x] Step 05a Scene 9: header regulasi, lima tab (Limits, Formation; Levers / Load window / GHG masih panel lama), `content/emission_formation.json`, matriks cakupan, baris regulasi Scene 6 → Scene 9 Limits (Esc / ← kembali), tautan sumber `#/references/<id>`
   - [x] Step 05b Scene 9: tab Levers (`leverSweep` di Worker, lima tuas milik Scene 9 + panel Fuel, NOx mg/Nm³ basis regulasi + garis limit, η rem, Limits ikut slider, lencana Preset/Modified + Reset to preset), Load window (kalimat model), GHG (CO₂ vs CO₂e dengan slip, GWP AR6); smoke: interaksi Levers + PNG (S) per tab (tanpa `@media print`)
-  - [ ] Step 06 (mode Explore)
+  - [x] Step 06 Mode Explore / Present (`M`; `P` tetap jendela presenter), navigasi kiri yang dapat dilipat menggantikan bilah atas, router hash `src/state/route.js` (`#/scene/N[/tab]`, `#/regulations`, `#/formation`, `#/references[/id]`, `#/glossary`, `#/assumptions`), halaman Emission formation, Glossary (`content/glossary.json`, definisi saja), Assumptions (panel H sebagai halaman); halaman penuh menghentikan loop render; smoke deep link + sinkron jendela presenter
 - [ ] M10 cv(T) correction + recalibration: ganti `cvOfT` linear (menyimpang sampai −7,5 % di 1200–1400 K dibanding polinomial NASA, lihat `basis.js`) dengan data tabel, lalu kalibrasi ulang preset, `ENGINE_NOX_CALIB`, dan golden yang bergantung (Pmax, η rem, waterfall, NOx, retardSweep, angka Step 03 berbasis model). Perlu persetujuan pemilik proyek.
 
 ## Golden test acuan (ringkas; tabel lengkap di `docs/PROMPT_simulasi_3D.md` bagian 12)

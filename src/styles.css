@@ -681,3 +681,18 @@ body.mode-explore.nav-collapsed { --nav-w: 52px; }
 .gl__links { margin: 3px 0 0; font-size: 12px; color: var(--muted); }
 .asm--page { left: var(--nav-w, 0px); place-items: start center; padding-top: 12px; }
 .asm--page .asm__box { width: min(1100px, calc(100vw - var(--nav-w, 0px) - 32px)); max-height: calc(100vh - 24px); }
+/* Step 06: baris kontrol Scene 6 satu baris di 1280–1600 px: tombol 2×2 ringkas, slider dan input limit lebih sempit
+   → grafik Scene 6 kembali cukup tinggi di 1366×768 (Scene 7/8/9 tidak berubah) */
+@media (max-width: 1600px) {
+  .scene--partload .ctl--slider { width: 150px; }
+  .scene--partload .ctl-group, .scene--partload .scene__controls { gap: 10px; }
+  .scene--partload .ctl-group--buttons { display: grid; grid-template-columns: repeat(2, auto); gap: 4px 6px; }
+  .scene--partload .ctl-group--buttons .btn { min-height: 30px; padding: 0 10px; font-size: 13px; border-radius: 8px; justify-content: space-between; }
+  .scene--partload .lim__in { width: 126px; font-size: 10.5px; white-space: nowrap; }
+  .scene--partload .lim__in input { min-height: 30px; padding: 4px 8px; }
+}
+@media (max-width: 1340px) {
+  .scene--partload .ctl--slider { width: 138px; }
+  .scene--partload .ctl-group, .scene--partload .scene__controls { gap: 8px; }
+  .scene--partload .lim__in { width: 106px; white-space: normal; }
+}

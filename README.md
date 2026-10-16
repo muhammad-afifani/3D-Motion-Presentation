@@ -15,6 +15,16 @@ npm test           # vitest: golden test + tes UI (hanya butuh Node)
 npm run build      # bundle untuk GitHub Pages (base /3D-Motion-Presentation/)
 ```
 
+## Explore dan Present (tombol M)
+
+Aplikasi punya dua mode. Pilihan terakhir disimpan di browser.
+
+- **Explore** (default saat dibuka): navigasi di kiri berisi Scene 1–11, halaman Regulations, Emission formation, References, Glossary, Assumptions, serta Snapshot, Presenter, dan Present mode. Tombol `«`/`»` melipat navigasi menjadi rail agar scene 3D lebih lebar (di layar < 1600 px mulai dilipat). Di Explore, `←`/`→` hanya mengganti scene bila fokus ada di navigasi (`↑`/`↓` menggeser fokus); di tempat lain panah tidak mengganti scene.
+- **Present**: tampilan bersih seperti sebelumnya. Navigasi disembunyikan, `←`/`→` dan `Spasi` bekerja seperti biasa, jendela presenter (`P`) tetap sinkron. Saat masuk Present muncul petunjuk kecil "M: Explore".
+- **Alamat langsung** (bisa dibagikan atau dibookmark): `#/scene/N`, `#/scene/9/limits`, `#/scene/9/formation`, `#/scene/9/levers`, `#/scene/9/load-window`, `#/scene/9/ghg`, `#/regulations`, `#/formation`, `#/references`, `#/references/<id>`, `#/glossary`, `#/assumptions`. Contoh: `…/3D-Motion-Presentation/#/scene/9/levers`.
+- Halaman penuh menghentikan render 3D selama terbuka; scene tetap terpasang dan lanjut saat halaman ditutup (`Esc` atau Close).
+- **Glossary** dibaca dari `content/glossary.json` (bisa diedit di `dist/content/` tanpa build ulang, seperti konten lain). Isinya definisi saja, tanpa angka limit atau faktor; sumber hanya id dari `content/references.json`.
+
 ## Cara presentasi offline
 
 Untuk laptop presentasi tanpa internet. Siapkan sekali saat masih online (`npm install`), lalu buat paket:
@@ -124,6 +134,6 @@ Catatan: Safari membutuhkan versi dengan WebGL2 (Safari 15+); di mode privat Saf
 
 ## Pintasan saat presentasi
 
-`→`/`←` pindah scene · `Spasi` Play/Pause · `F` Freeze · `R` Reset · `P` mode presenter · `S` snapshot PNG · `Q` Quality · `B` Bloom (semua scene) · `K` laser pointer · `Shift+K` spotlight (`Esc` mematikan) · `Shift+D` overlay debug · `1`–`4` pilih mesin/siklus · `L` label 3D (Scene 1) · `I` Ideal/Real (Scene 2) · `W` replay waterfall (Scene 2) · `C` panel Calibration (Scene 4, 6; tombol Collapse melipatnya ke samping) · `1`/`2` strategi IGV / Fuel-only (Scene 6) · `1`/`2`/`3` panel A/B/C (Scene 9) · `E` edit opsi (Scene 11) · `H` panel asumsi + basis O₂/volume + Reset saved settings (semua scene)
+`→`/`←` pindah scene (Present; di Explore saat fokus di navigasi) · `M` Explore/Present · `Spasi` Play/Pause · `F` Freeze · `R` Reset · `P` jendela presenter · `G` Regulations · `?` References · `S` snapshot PNG · `Q` Quality · `B` Bloom (semua scene) · `K` laser pointer · `Shift+K` spotlight (`Esc` mematikan) · `Shift+D` overlay debug · `1`–`4` pilih mesin/siklus · `L` label 3D (Scene 1) · `I` Ideal/Real (Scene 2) · `W` replay waterfall (Scene 2) · `C` panel Calibration (Scene 4, 6; tombol Collapse melipatnya ke samping) · `1`/`2` strategi IGV / Fuel-only (Scene 6) · `1`–`5` tab Limits/Formation/Levers/Load window/GHG (Scene 9) · `E` edit opsi (Scene 11) · `H` panel asumsi + basis O₂/volume + Reset saved settings (semua scene)
 
 **Animation speed** (0,1×–2×, 1× = 20 rpm visual) adalah satu kontrol bersama di semua scene beranimasi (Scene 1–8); hanya kecepatan tampilan, bukan putaran mesin di model.

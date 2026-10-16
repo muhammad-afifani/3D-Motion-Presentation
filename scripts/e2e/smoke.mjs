@@ -5,6 +5,9 @@
  *   2. Tidak ada teks yang meluber dari kontainernya (bilah atas, kartu overlay, HUD, kontrol, judul/caption grafik).
  *   3. Tanpa galat halaman / galat konsol.
  *   4. Scene 9 tab Levers: slider → sapuan Worker (waktu dilaporkan), Preset/Modified, Limits ikut slider; PNG (S) per tab.
+ *   5. M9 Step 06: setiap deep link (scene, tab Scene 9, halaman penuh) terbuka di halaman baru tanpa galat dan tanpa
+ *      grafik kosong; tanpa scroll horizontal; panah di Explore / Present; jendela presenter ikut saat scene berganti di
+ *      Present (juga lewat alamat #/scene/N); tinggi grafik Scene 6 dilaporkan.
  * Sengaja TIDAK memeriksa isi kartu info kiri Scene 9 (`.pol-card`): isinya akan dirombak.
  * Gagal (exit 1) bila ada grafik kosong, canvas 0, teks meluber, atau galat. Screenshot Scene 7 dan 9 disimpan di
  * scripts/e2e/shots/after/ (tidak di-commit).
@@ -71,7 +74,8 @@ function inspect({ minFill }) {
   }
   // bilah atas tidak boleh tumbuh tinggi (pesan kunci membungkus karena tombol terlalu lebar)
   const topbarH = Math.round(document.querySelector('.topbar')?.getBoundingClientRect().height ?? 0);
-  return { charts, overflow, topbarH };
+  const hscroll = document.documentElement.scrollWidth > window.innerWidth + 1;
+  return { charts, overflow, topbarH, hscroll };
 }
 
 /** Interaksi Basis (M9 Step 02): tag grafik → kartu Basis → Esc; tombol ? → References → Esc; alamat #/references. */
@@ -236,12 +240,98 @@ async function snapshotPerTab(page) {
   return fails;
 }
 
+/** Deep link (M9 Step 06): alamat → keadaan yang diharapkan. Setiap alamat dibuka di halaman (konteks) baru. */
+const DEEP_LINKS = [
+  ['#/scene/1', { scene: 1 }], ['#/scene/6', { scene: 6 }], ['#/scene/9/limits', { scene: 9, tab: 'limits' }], ['#/scene/9/formation', { scene: 9, tab: 'formation' }],
+  ['#/scene/9/levers', { scene: 9, tab: 'levers' }], ['#/scene/9/load-window', { scene: 9, tab: 'C' }], ['#/scene/9/ghg', { scene: 9, tab: 'B' }],
+  ['#/regulations', { page: 'regulations' }], ['#/formation', { page: 'formation' }], ['#/references', { page: 'references' }],
+  ['#/references/ipcc-ar6-wg1-ch7', { page: 'references', target: true }], ['#/glossary', { page: 'glossary' }], ['#/assumptions', { page: 'assumptions' }],
+];
+async function deepLinks(browser, url) {
+  const fails = [];
+  const base = url.replace(/#.*$/, '');
+  for (const [hash, want] of DEEP_LINKS) {
+    const p = await browser.newPage({ viewport: { width: 1366, height: 768 } });
+    const errs = [];
+    p.on('pageerror', (e) => errs.push(e.message));
+    p.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
+    await p.goto(`${base}${hash}`);
+    await p.waitForFunction(() => window.__etelDebug?.scene() != null && !window.__etelDebug.loading(), null, { timeout: 30000 });
+    await p.waitForTimeout(600);
+    const st = await p.evaluate(() => ({ scene: window.__etelDebug.scene(), page: window.__etelDebug.page(), paused: window.__etelDebug.paused(), mode: window.__etelDebug.mode(), hash: location.hash, tab: document.querySelector('.scene--policy')?.dataset.tab ?? null, nav: !document.querySelector('.nav')?.hidden }));
+    if (st.mode !== 'explore' || !st.nav) fails.push(`${hash}: bukan mode Explore dengan navigasi (mode ${st.mode})`);
+    if (want.scene) {
+      if (st.scene !== want.scene) fails.push(`${hash}: scene ${st.scene} (harusnya ${want.scene})`);
+      if (want.tab && st.tab !== want.tab) fails.push(`${hash}: tab ${st.tab} (harusnya ${want.tab})`);
+      if (st.hash !== hash) fails.push(`${hash}: alamat berubah jadi ${st.hash}`);
+      let res = null;
+      for (let t = 0; t <= TIMEOUT_MS; t += POLL_MS) { res = await p.evaluate(inspect, { minFill: MIN_FILL_PCT }); if (res.charts.every((c) => c.ok)) break; await p.waitForTimeout(POLL_MS); }
+      for (const c of res.charts) if (!c.ok) fails.push(`${hash}: grafik "${c.title}" kosong (terisi ${c.pct} %)`);
+      if (res.hscroll) fails.push(`${hash}: scroll horizontal`);
+    } else {
+      if (st.page !== want.page) fails.push(`${hash}: halaman ${st.page} (harusnya ${want.page})`);
+      if (!st.paused) fails.push(`${hash}: loop render tidak berhenti saat halaman penuh terbuka`);
+      if (want.target && (await p.locator('.refs__item.is-target').count()) !== 1) fails.push(`${hash}: sumber tujuan tidak disorot`);
+      await p.keyboard.press('Escape'); await p.waitForTimeout(300);
+      const after = await p.evaluate(() => ({ page: window.__etelDebug.page(), paused: window.__etelDebug.paused(), hash: location.hash }));
+      if (after.page || after.paused) fails.push(`${hash}: Esc tidak menutup halaman / loop tidak lanjut`);
+      if (!/^#\/scene\/\d+/.test(after.hash)) fails.push(`${hash}: setelah ditutup alamat ${after.hash} (harusnya #/scene/N)`);
+    }
+    for (const e of [...new Set(errs)]) fails.push(`${hash}: galat ${e}`);
+    await p.close();
+  }
+  return fails;
+}
+
+/** Explore / Present (M9 Step 06): panah, petunjuk "M: Explore", dan jendela presenter ikut saat scene berganti. */
+async function modeInteraction(page) {
+  const fails = [];
+  const scene = () => page.evaluate(() => window.__etelDebug.scene());
+  const waitScene = (n) => page.waitForFunction((x) => window.__etelDebug.scene() === x && !window.__etelDebug.loading(), n, { timeout: 15000 }).then(() => true, () => false);
+  await goScene(page, 3, 500);
+  await page.evaluate(() => document.activeElement?.blur?.());
+  await page.keyboard.press('ArrowRight'); await page.waitForTimeout(700);
+  if ((await scene()) !== 3) fails.push('Explore: panah mengganti scene padahal fokus tidak di navigasi');
+  await page.locator('.nav [data-scene="3"]').focus();
+  await page.keyboard.press('ArrowRight');
+  if (!(await waitScene(4))) fails.push('Explore: panah di navigasi tidak mengganti scene');
+  await page.waitForTimeout(300);
+  if ((await page.evaluate(() => location.hash)) !== '#/scene/4') fails.push('Explore: alamat tidak mengikuti scene');
+  if (!(await page.evaluate(() => document.activeElement?.dataset?.scene === '4'))) fails.push('Explore: fokus tidak ikut ke scene baru di navigasi');
+  await page.keyboard.press('m'); await page.waitForTimeout(300);
+  const pr = await page.evaluate(() => ({ mode: window.__etelDebug.mode(), nav: !!document.querySelector('.nav')?.hidden, hint: document.getElementById('mode-hint')?.textContent, on: document.getElementById('mode-hint')?.classList.contains('is-on') }));
+  if (pr.mode !== 'present' || !pr.nav) fails.push('Present: navigasi tidak tersembunyi');
+  if (pr.hint !== 'M: Explore' || !pr.on) fails.push('Present: petunjuk "M: Explore" tidak tampil');
+  await page.keyboard.press('ArrowRight');
+  if (!(await waitScene(5))) fails.push('Present: panah tidak mengganti scene');
+  // jendela presenter (BroadcastChannel) ikut berpindah: lewat panah dan lewat alamat #/scene/N
+  let popup = null;
+  try {
+    [popup] = await Promise.all([page.waitForEvent('popup', { timeout: 15000 }), page.keyboard.press('p')]);
+    await popup.waitForLoadState();
+    const popScene = (n) => popup.waitForFunction((x) => new RegExp(`Scene ${x}\\b`).test(document.querySelector('[data-v="current"]')?.textContent ?? ''), n, { timeout: 15000 }).then(() => true, () => false);
+    if (!(await popScene(5))) fails.push('Presenter: jendela presenter tidak menampilkan scene aktif');
+    await page.bringToFront();
+    await page.keyboard.press('ArrowRight');
+    await waitScene(6);
+    if (!(await popScene(6))) fails.push('Presenter: jendela presenter tidak ikut saat scene berganti di Present');
+    await page.evaluate(() => { location.hash = '#/scene/8'; });
+    await waitScene(8);
+    if (!(await popScene(8))) fails.push('Presenter: jendela presenter tidak ikut saat scene berganti lewat alamat');
+  } catch { fails.push('Presenter: jendela presenter tidak terbuka (P)'); }
+  await popup?.close().catch(() => {});
+  await page.keyboard.press('m'); await page.waitForTimeout(300);
+  if ((await page.evaluate(() => window.__etelDebug.mode())) !== 'explore') fails.push('M: tidak kembali ke Explore');
+  return fails;
+}
+
 const pw = await loadPlaywright();
 const srv = await startPreview(Number(process.env.E2E_PORT ?? 4185));
 mkdirSync(SHOTS, { recursive: true });
 const failures = [];
 const report = [];
 let leverTimes = [];
+const s6Heights = [];
 let browsers = [];
 try {
   browsers = await launchers(pw);
@@ -267,6 +357,8 @@ try {
         }
         const label = `${w}×${h} · Scene ${n}${tab ? ` · tab ${tab}` : ''}`;
         report.push({ label, charts: res.charts.map((c) => c.pct), overflow: res.overflow.length });
+        if (n === 6) s6Heights.push(`${w}×${h}: ${res.charts.map((c) => `${c.cssH} px`).join(' / ')}`);
+        if (res.hscroll) failures.push(`${label}: scroll horizontal`);
         for (const c of res.charts) if (!c.ok) failures.push(`${label}: grafik #${c.i} "${c.title}" kosong/0/tanpa tag Basis (canvas ${c.w}×${c.h}, css ${c.cssW}×${c.cssH}, terisi ${c.pct} %, minimum ${MIN_FILL_PCT} %, tag Basis ${c.basis ? 'ada' : 'HILANG'})`);
         for (const o of res.overflow) failures.push(`${label}: teks meluber di ${o.el}: ${o.reasons[0]}`);
         if (res.topbarH > MAX_TOPBAR_PX) failures.push(`${label}: bilah atas ${res.topbarH} px > ${MAX_TOPBAR_PX} px (pesan kunci terlalu banyak baris)`);
@@ -277,6 +369,8 @@ try {
     if (w === 1366) failures.push(...await regulationInteraction(page, srv.url, chromium.browser));
     if (w === 1366) { const r = await leversInteraction(page); failures.push(...r.fails); leverTimes = r.times; }
     if (w === 1366) failures.push(...await snapshotPerTab(page));
+    if (w === 1366) failures.push(...await modeInteraction(page));
+    if (w === 1366) failures.push(...await deepLinks(chromium.browser, srv.url));
     for (const e of [...new Set(errs)]) failures.push(`${w}×${h}: ${e}`);
     await page.close();
   }
@@ -287,6 +381,7 @@ try {
 
 console.log('\nSmoke test tampilan (Chromium, rendering software bila tanpa GPU)\n');
 for (const r of report) console.log(`${r.label.padEnd(30)} grafik: ${r.charts.length ? r.charts.map((p) => `${p}%`).join(' ') : '–'}${r.overflow ? `  · meluber: ${r.overflow}` : ''}`);
+if (s6Heights.length) console.log(`\nScene 6 · tinggi grafik (NOx & CO / pendamping): ${s6Heights.join(' · ')}`);
 if (leverTimes.length) {
   console.log('\nScene 9 Levers · waktu sapuan per perubahan slider (Worker, setelah debounce):');
   for (const t of leverTimes) console.log(`  ${t.axis.padEnd(7)} hitung ${t.ms} ms · total sejak slider ${t.wallMs} ms`);
