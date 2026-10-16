@@ -41,7 +41,7 @@ describe('main.js: penjaga dan daftar tombol', () => {
     expect(new Set(cases).size).toBe(cases.length);
     const all = [...cases, 'k'].sort();
     expect(all).toEqual([...GLOBAL_KEYS].sort());
-    expect(handler).toMatch(/case 'g': regulations\.toggle\(\)/);
+    expect(handler).toMatch(/case 'g': togglePage\('regulations'\)/);
     expect(STR.regulation.page.key).toBe('G');
   });
   it('tidak ada scene yang memakai G atau ? sebagai tombolnya sendiri', () => {

@@ -15,4 +15,4 @@ export function isTypingTarget(t) {
 }
 
 /** Tombol cepat satu huruf/simbol di main.js (selain navigasi panah dan Spasi). Dijaga tes agar tidak bentrok. */
-export const GLOBAL_KEYS = Object.freeze(['f', 'r', '1', '2', '3', '4', 'h', '?', 'g', 'p', 's', 'q', 'b', 'k']);
+export const GLOBAL_KEYS = Object.freeze(['f', 'r', '1', '2', '3', '4', 'h', '?', 'g', 'm', 'p', 's', 'q', 'b', 'k']);

@@ -1,5 +1,6 @@
 /**
- * assumptions.js — panel asumsi model (tombol H, semua scene; Esc menutup).
+ * assumptions.js — panel asumsi model (tombol H, semua scene; Esc menutup). M9 Step 06: komponen yang sama juga tampil
+ * sebagai halaman penuh lewat alamat #/assumptions (tata letak halaman, satu instance, satu store); H tetap overlay.
  * Data dari state/deriveAssumptions.js (nilai langsung dari store), teks dari strings.js.
  * Input basis O₂ / volume hanya di sini; perubahan lewat store.set(basisPatch(...)).
  */
@@ -13,6 +14,7 @@ import { BASIS } from '../model/basis.js';
 import { LEVER_STATUS } from '../state/levers.js';
 
 const A = STR.assumptions, C = STR.common;
+export const ASSUMPTIONS_HASH = '#/assumptions';
 const WATCH = ['emRefO2', 'emTrefC', 'calEngine', 'calDln', 'quality', 'bloomMode', 'qTier'];
 const D = A.display;
 
@@ -43,8 +45,9 @@ const row = (cells, tag = 'td') => `<tr>${cells.map((c) => `<${tag}>${c}</${tag}
  * @param {{get:()=>any, set:(p:any)=>void, subscribe:(fn:any)=>()=>void}} store
  * @param {HTMLElement} [parent]
  * @param {{available:boolean, onReset:()=>void}} [saved] persistensi (Reset saved settings)
+ * @param {{homeHash?:()=>string, win?:Window}} [opts] homeHash = alamat saat halaman #/assumptions ditutup
  */
-export function createAssumptionsPanel(store, parent = document.body, saved = null) {
+export function createAssumptionsPanel(store, parent = document.body, saved = null, { homeHash = null, win = window } = {}) {
   const el = document.createElement('div');
   el.className = 'asm';
   el.hidden = true;
@@ -171,22 +174,38 @@ export function createAssumptionsPanel(store, parent = document.body, saved = nu
   // penyimpangan yang diketahui (basis.js knownIssue), mis. cv(T) linear vs data polinomial NASA (koreksi direncanakan M10)
   V('issues').innerHTML = Object.entries(BASIS).filter(([, b]) => b.knownIssue).map(([name, b]) => `<li class="asm-fn" role="button" tabindex="0" data-basis="${name}"><code>${name}</code>: ${b.knownIssue}</li>`).join('');
 
-  function setOpen(on) {
+  const isHash = (h) => String(h ?? '').replace(/\?.*$/, '').replace(/\/+$/, '') === ASSUMPTIONS_HASH;
+  let page = false;
+  /** Overlay (H) atau halaman (#/assumptions). Menutup halaman mengembalikan alamat scene. */
+  function setOpen(on, { asPage = false, fromHash = false } = {}) {
+    const wasPage = page;
     el.hidden = !on;
+    page = on && asPage;
+    el.classList.toggle('asm--page', page);
     if (on) render();
+    if (fromHash) return;
+    if (page && !isHash(win.location.hash)) win.history.replaceState(null, '', ASSUMPTIONS_HASH);
+    if (!page && wasPage && isHash(win.location.hash)) win.history.replaceState(null, '', homeHash?.() ?? `${win.location.pathname}${win.location.search}`);
   }
   const unsub = store.subscribe((s, prev, changed) => { if (!el.hidden && changed.some((k) => WATCH.includes(k))) render(); });
   const onKey = (e) => { if (e.key === 'Escape' && !el.hidden) { setOpen(false); e.stopPropagation(); } };
   window.addEventListener('keydown', onKey, true);
+  const onHash = () => { if (isHash(win.location.hash)) setOpen(true, { asPage: true, fromHash: true }); else if (page) setOpen(false, { fromHash: true }); };
+  win.addEventListener('hashchange', onHash);
+  if (isHash(win.location.hash)) setOpen(true, { asPage: true, fromHash: true });
 
   return {
     el,
     get open() { return !el.hidden; },
+    /** true bila terbuka sebagai halaman penuh (#/assumptions). */
+    get isPage() { return page && !el.hidden; },
     setOpen,
+    /** Buka / tutup sebagai halaman penuh. */
+    setPage(on) { setOpen(on, { asPage: true }); },
     toggle() { setOpen(el.hidden); },
     /** Buka panel dan gulir ke satu bagian (mis. 'display' dari pill Quality reduced). */
     openSection(name) { setOpen(true); q(`[data-section="${name}"]`)?.scrollIntoView({ block: 'start' }); },
     render,
-    dispose() { unsub(); window.removeEventListener('keydown', onKey, true); el.remove(); },
+    dispose() { unsub(); window.removeEventListener('keydown', onKey, true); win.removeEventListener('hashchange', onHash); el.remove(); },
   };
 }

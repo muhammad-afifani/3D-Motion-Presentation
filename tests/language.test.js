@@ -47,11 +47,14 @@ describe('bahasa UI: English, tanpa sisa kata Indonesia', () => {
     const uses = JSON.parse(read('content/references.json')).references.map((r) => r.use);
     expect(uses.filter((t) => ID_RE.test(clean(t)))).toEqual([]);
   });
-  it('content/controls.json dan closing.json (kartu & penutup) berbahasa English', () => {
+  it('content/controls.json, closing.json, glossary.json (kartu, penutup, glossary) berbahasa English', () => {
     for (const f of ['content/controls.json', 'content/closing.json']) {
       const bad = textsOf(JSON.parse(read(f))).filter((t) => ID_RE.test(clean(t)));
       expect(bad, f).toEqual([]);
     }
+    // glossary: hanya teks tampil (id sumber seperti "lieuwen-yang" bukan teks)
+    const gl = JSON.parse(read('content/glossary.json')).terms.flatMap((t) => [t.term, t.expansion ?? '', t.definition]);
+    expect(gl.filter((t) => ID_RE.test(clean(t)))).toEqual([]);
   });
   it('presenter.json (naskah lisan) tetap Indonesia dan tidak diubah isinya oleh pass bahasa', () => {
     const t = textsOf(JSON.parse(read('content/presenter.json'))).join(' ');

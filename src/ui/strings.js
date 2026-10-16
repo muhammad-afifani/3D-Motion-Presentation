@@ -79,6 +79,55 @@ export const STR = {
     },
   },
 
+  // ─────────────────────────── navigation (M9 Step 06: Explore / Present) ───────────────────────────
+  nav: {
+    label: 'Navigation',
+    scenesTitle: 'Scenes',
+    pagesTitle: 'Pages',
+    toolsTitle: 'Tools',
+    scenes: {
+      1: 'Piston & P-V', 2: 'Ideal vs real cycles', 3: 'Combustion & flame T', 4: 'NOx & temperature', 5: 'Gas turbine',
+      6: 'Part-load', 7: 'Gas compressor', 8: 'Combined emissions', 9: 'Regulated emissions', 10: 'Control devices', 11: 'Closing',
+    },
+    sceneTip: (n, title) => `Scene ${n}: ${title}`,
+    pages: { regulations: 'Regulations', formation: 'Emission formation', references: 'References', glossary: 'Glossary', assumptions: 'Assumptions' },
+    pagesShort: { regulations: 'Rg', formation: 'Fm', references: 'Rf', glossary: 'Gl', assumptions: 'As' },
+    pageKeys: { regulations: 'G', references: '?', assumptions: 'H' },
+    collapse: 'Collapse navigation',
+    expand: 'Expand navigation',
+    present: 'Present mode',
+    presentShort: 'Pr',
+    toolsShort: { snapshot: 'Sn', presenter: 'Pw' },
+    presentTip: 'Clean full-screen view for presenting: navigation hidden, ← → change scene. M returns to Explore.',
+    modeKey: 'M',
+    hintPresent: 'M: Explore',
+    toastExplore: 'Explore mode: navigation on the left. ← → change scene only when the navigation has focus.',
+    keysHint: 'In the navigation: ↑ ↓ move, ← → change scene.',
+  },
+
+  // ─────────────────────────── full pages (M9 Step 06) ───────────────────────────
+  pages: {
+    close: 'Close',
+    formation: {
+      title: 'Emission formation',
+      intro: 'How each regulated pollutant forms, what drives it, and which levers move it, per equipment. Qualitative cards from content/emission_formation.json; the same cards as Scene 9, tab Formation.',
+      equipment: 'Equipment',
+      equipmentTip: 'Same selection as the Scene 9 header.',
+    },
+    glossary: {
+      title: 'Glossary',
+      intro: 'Terms and abbreviations used on screen. Definitions only, from content/glossary.json (editable without a rebuild).',
+      filter: 'Filter',
+      filterPlaceholder: 'term or word',
+      count: (n, total) => (n === total ? `${total} terms` : `${n} of ${total} terms`),
+      empty: 'No term matches the filter.',
+      sources: 'Sources',
+      scenes: 'See',
+      sceneLink: (n) => `Scene ${n}`,
+    },
+    assumptions: { pageTip: 'Same content as panel H, as a page (address #/assumptions).' },
+  },
+
   // ─────────────────────────── shared charts ───────────────────────────
   charts: {
     pv: {
@@ -790,6 +839,7 @@ export const STR = {
       number: 'must be a number', numberOrNull: 'must be a number or null', positive: 'must be a number above zero',
       regSource: 'must be an id listed in sources', regO2: 'must be a number from 0 to below 21 (% O₂)', regClass: 'must be an id listed in capacityClasses',
       regFuel: 'must be oil or gas', regUnit: 'must be mg/Nm3 or %',
+      noNumbers: 'must not contain numbers (definitions only)',
       formModeled: 'must be calibrated, mass-balance, semi-empirical, qualitative or site-input', formDirection: 'must be up, down, flat or mixed',
     },
   },

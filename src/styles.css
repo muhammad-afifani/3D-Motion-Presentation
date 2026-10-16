@@ -621,3 +621,78 @@ button.chart__level:hover, .hud__note .level[data-basis]:hover, .cyc-level[data-
 .lev-h { margin: 4px 0 0; font-size: 13px; }
 .scene--policy:is([data-tab="levers"], [data-tab="B"]) .hud { grid-template-columns: repeat(8, minmax(0, 1fr)); }
 .scene--policy[data-tab="levers"] .hud__sub { overflow-wrap: anywhere; }
+
+/* ── M9 Step 06: navigasi Explore (sidebar dapat dilipat) + header tipis; mode Present = tanpa navigasi ── */
+body { flex-direction: row; }
+body.mode-explore { --nav-w: 200px; }
+body.mode-explore.nav-collapsed { --nav-w: 52px; }
+.shell { flex: 1; min-width: 0; display: flex; flex-direction: column; height: 100vh; }
+.nav { flex: none; width: var(--nav-w, 200px); height: 100vh; display: flex; flex-direction: column; border-right: 1px solid var(--line); background: rgba(11, 15, 22, 0.92); overflow: hidden; }
+.nav[hidden] { display: none; }
+.nav__head { display: flex; align-items: center; gap: 6px; padding: 10px 8px 8px 12px; min-height: 44px; }
+.nav__brand { flex: 1; min-width: 0; font-size: 11.5px; line-height: 1.25; }
+.nav__toggle { flex: none; width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg-1); color: var(--text); font: inherit; cursor: pointer; }
+.nav__toggle:hover, .nav__toggle:focus-visible { border-color: var(--accent-cold); }
+.nav__body { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 0 6px 10px; display: flex; flex-direction: column; gap: 6px; }
+.nav__sec { display: flex; flex-direction: column; gap: 1px; }
+.nav__title { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); padding: 6px 6px 2px; }
+.nav__item { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 28px; padding: 2px 6px; border: 1px solid transparent; border-radius: 8px; background: none; color: var(--text); font: inherit; font-size: 13px; text-align: left; cursor: pointer; }
+.nav__item:hover { background: var(--bg-1); }
+.nav__item:focus-visible { outline: none; border-color: var(--accent-cold); }
+.nav__item.is-on { background: rgba(255, 154, 60, 0.14); border-color: rgba(255, 154, 60, 0.5); color: var(--accent-hot); }
+.nav__num { flex: none; width: 24px; text-align: center; font-size: 12px; color: var(--muted); }
+.nav__item.is-on .nav__num { color: var(--accent-hot); }
+.nav__label { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nav__item kbd { flex: none; }
+.nav__hint { margin: 6px 6px 0; font-size: 11px; color: var(--muted); line-height: 1.35; }
+.nav.is-collapsed .nav__brand, .nav.is-collapsed .nav__label, .nav.is-collapsed kbd, .nav.is-collapsed .nav__hint { display: none; }
+.nav.is-collapsed .nav__head { justify-content: center; padding: 10px 0 8px; }
+.nav.is-collapsed .nav__title { font-size: 0; padding: 4px 0 0; border-top: 1px solid var(--line); margin: 2px 4px 0; }
+.nav.is-collapsed .nav__item { justify-content: center; padding: 2px 0; }
+.nav.is-collapsed .nav__num { width: auto; }
+/* header tipis: tag scene + pesan kunci (+ lencana model); merek hanya di Present (di Explore ada di navigasi) */
+.topbar { grid-template-columns: minmax(170px, 0.55fr) minmax(0, 3fr) auto; gap: 14px; padding: 6px 16px; min-height: 44px; }
+.topbar .key-message { font-size: clamp(14px, 1.1vw, 20px); line-height: 1.25; }
+.mode-explore .topbar .brand { display: none; }
+.scene-tag { font-size: 12.5px; line-height: 1.3; }
+/* halaman penuh (References, Regulations, …) mulai di kanan navigasi agar navigasi tetap terlihat */
+.refs { left: var(--nav-w, 0px); }
+.mode-hint { position: fixed; top: 10px; right: 14px; z-index: 70; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; font-family: var(--font-num); color: var(--muted); background: var(--bg-2); border: 1px solid var(--line); opacity: 0; transition: opacity 0.25s; pointer-events: none; }
+.mode-hint.is-on { opacity: 1; }
+@media (max-width: 1100px) {
+  body { flex-direction: column; }
+  .shell { height: auto; }
+  .nav { width: 100%; height: auto; }
+  .nav__body { flex-direction: row; flex-wrap: wrap; }
+  .refs { left: 0; }
+}
+/* halaman penuh baru (Step 06): Emission formation, Glossary; Assumptions sebagai halaman (#/assumptions) */
+.refs--formation .refs__box { width: min(1240px, calc(100vw - var(--nav-w, 0px) - 32px)); }
+.page__body { display: grid; gap: 10px; }
+.page__pick { margin: 2px 0 4px; }
+.gl__bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.gl__filter { display: flex; align-items: center; gap: 8px; }
+.gl__filter input { font: inherit; font-size: 13px; width: 220px; color: var(--text); background: var(--bg-2); border: 1px solid var(--line); border-radius: 6px; padding: 3px 8px; min-height: 28px; }
+.gl__list { margin: 0; display: grid; gap: 8px; }
+.gl__item { border: 1px solid var(--line); border-radius: 10px; background: var(--bg-0); padding: 8px 12px; }
+.gl__term { font-size: 14px; }
+.gl__exp { color: var(--muted); }
+.gl__def { margin: 3px 0 0; }
+.gl__links { margin: 3px 0 0; font-size: 12px; color: var(--muted); }
+.asm--page { left: var(--nav-w, 0px); place-items: start center; padding-top: 12px; }
+.asm--page .asm__box { width: min(1100px, calc(100vw - var(--nav-w, 0px) - 32px)); max-height: calc(100vh - 24px); }
+/* Step 06: baris kontrol Scene 6 satu baris di 1280–1600 px: tombol 2×2 ringkas, slider dan input limit lebih sempit
+   → grafik Scene 6 kembali cukup tinggi di 1366×768 (Scene 7/8/9 tidak berubah) */
+@media (max-width: 1600px) {
+  .scene--partload .ctl--slider { width: 150px; }
+  .scene--partload .ctl-group, .scene--partload .scene__controls { gap: 10px; }
+  .scene--partload .ctl-group--buttons { display: grid; grid-template-columns: repeat(2, auto); gap: 4px 6px; }
+  .scene--partload .ctl-group--buttons .btn { min-height: 30px; padding: 0 10px; font-size: 13px; border-radius: 8px; justify-content: space-between; }
+  .scene--partload .lim__in { width: 126px; font-size: 10.5px; white-space: nowrap; }
+  .scene--partload .lim__in input { min-height: 30px; padding: 4px 8px; }
+}
+@media (max-width: 1340px) {
+  .scene--partload .ctl--slider { width: 138px; }
+  .scene--partload .ctl-group, .scene--partload .scene__controls { gap: 8px; }
+  .scene--partload .lim__in { width: 106px; white-space: normal; }
+}

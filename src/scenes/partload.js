@@ -94,7 +94,7 @@ export function createScene(ctx) {
 
   function buildDom() {
     el = html(`
-      <section class="scene scene--load">
+      <section class="scene scene--load scene--partload">
         <div class="pl-view">
           <div class="view3d"></div>
           <div class="overlay overlay--note"></div>

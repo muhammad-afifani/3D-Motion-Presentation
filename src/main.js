@@ -1,6 +1,11 @@
 /**
- * main.js — boot: lencana model, store global, scene manager (lazy), keyboard, loop animasi.
- * Pintasan: ←/→ scene · Spasi play/pause · F beku · R reset · 1/2 pilih mesin · L label · H panel asumsi · ? References · G Regulations · P presenter · S snapshot PNG · Q Quality · B Bloom · K laser pointer · Shift+K spotlight · Shift+D overlay debug.
+ * main.js — boot: lencana model, store global, scene manager (lazy), navigasi Explore / mode Present, router hash,
+ * keyboard, loop animasi.
+ * Pintasan: ←/→ scene (Present; di Explore hanya saat fokus di navigasi) · Spasi play/pause · F beku · R reset · 1/2 pilih
+ * mesin · L label · H panel asumsi · ? References · G Regulations · M Explore/Present · P presenter · S snapshot PNG ·
+ * Q Quality · B Bloom · K laser pointer · Shift+K spotlight · Shift+D overlay debug.
+ * Router (state/route.js): #/scene/N[/tab], #/regulations, #/formation, #/references[/id], #/glossary, #/assumptions.
+ * Halaman penuh menghentikan loop render (scene tetap ter-mount) dan melanjutkannya saat ditutup.
  * Animation speed (state.animSpeed, 0,1×–2×) mengalikan dt animasi untuk semua scene; dt mentah ikut sebagai argumen kedua.
  * Persistensi ringan (state/persist.js): batas, satuan, basis, opsi Scene 11, scene awal; kalibrasi tidak disimpan.
  */
@@ -11,14 +16,18 @@ import { createAssumptionsPanel } from './ui/assumptions.js';
 import { createBasisCard } from './ui/basisCard.js';
 import { createReferencesPage } from './ui/referencesPage.js';
 import { createRegulationsPage } from './ui/regulationsPage.js';
+import { createFormationPage } from './ui/formationPage.js';
+import { createGlossaryPage } from './ui/glossaryPage.js';
 import { isTypingTarget } from './ui/keys.js';
 import { createCalibFlag, createQualityFlag } from './ui/statusFlags.js';
 import { createQualityController, effectiveBloom, applyDisplay, displayState, QUALITY_TIERS } from './gfx/quality.js';
 import { createPerfGuard } from './gfx/perfGuard.js';
 import { createPersistence } from './state/persist.js';
-import { SCENE_LIST } from './state/scenes.js';
+import { SCENE_LIST, SCENE_NUMBERS } from './state/scenes.js';
+import { parseHash, sceneHash, TABBED_SCENE } from './state/route.js';
+import { modeStorage, readMode, saveMode, otherMode, readNavCollapsed, saveNavCollapsed, arrowsChangeScene } from './state/mode.js';
+import { createNav } from './ui/nav.js';
 import { createPresenterMode } from './ui/presenterMode.js';
-import { button } from './ui/controls.js';
 import { takeSnapshot } from './ui/snapshot.js';
 import { createDebugOverlay } from './ui/debugOverlay.js';
 import { fadeSwap } from './ui/transition.js';
@@ -47,20 +56,24 @@ const LOADERS = {
 };
 const SCENES = SCENE_LIST.map((x) => ({ ...x, load: LOADERS[x.id] }));
 
-document.querySelector('.brand').textContent = STR.app.brand;
+document.querySelector('.topbar .brand').textContent = STR.app.brand;
 mountModelBadge(document.getElementById('model-badge'));
 installTooltips();
 
 const store = createStore({ ...defaultState('diesel'), ...cycleInitialState(), ...flameInitialState(), ...noxInitialState(), ...gtInitialState(), ...basisInitialState(), ...calibInitialState(), ...limitsInitialState(), ...loadInitialState(), ...compInitialState(), ...emisInitialState(), ...policyInitialState(), ...ctrlInitialState(), ...closingInitialState(), ...animInitialState(), ...displayInitialState(), ...regulationsInitialState(), ...fuelInitialState(), ...leverInitialState() });
 const persist = createPersistence(store, { sceneNumbers: SCENES.map((x) => x.number) });
+/** Alamat scene saat ini (dipakai saat halaman penuh ditutup). */
+const homeHash = () => (index >= 0 ? sceneHash(SCENES[index].number, SCENES[index].number === TABBED_SCENE ? store.get().pTab : null) : `${location.pathname}${location.search}`);
 // Basis card dan References dibuat SEBELUM panel asumsi: pendengar Esc-nya jalan lebih dulu, jadi Esc menutup lapisan paling atas
-const references = createReferencesPage();
-const regulations = createRegulationsPage();
+const references = createReferencesPage(document.body, { homeHash });
+const regulations = createRegulationsPage(document.body, { homeHash });
 const basisCard = createBasisCard(document.body, { onOpenRefs: () => references.setOpen(true) });
+const formationPage = createFormationPage(store, { homeHash });
+const glossary = createGlossaryPage({ homeHash });
 const assumptions = createAssumptionsPanel(store, document.body, {
   available: persist.available,
   onReset: () => { persist.clear(); toast(STR.app.toast.savedReset); },
-});
+}, { homeHash });
 createCalibFlag(document.querySelector('.topbar__right'), store);
 createQualityFlag(document.querySelector('.topbar__right'), store, () => assumptions.openSection('display'));
 
@@ -101,8 +114,6 @@ const presenter = createPresenterMode({
   toast,
 });
 store.subscribe((s, prev, changed) => { if (changed.includes('playing') || changed.includes('frozen')) presenter.sync(); });
-const tools = document.createElement('div');
-tools.className = 'topbar__tools';
 let snapping = false;
 /** Tombol S: PNG 2× tampilan scene saat ini (tema gelap). */
 async function snapshot() {
@@ -115,13 +126,56 @@ async function snapshot() {
     snapping = false;
   }
 }
-tools.append(
-  button({ label: STR.snapshot.button, key: STR.snapshot.key, tip: STR.snapshot.buttonTip, onClick: () => snapshot() }).el,
-  button({ label: STR.presenter.button, key: STR.presenter.key, tip: STR.presenter.buttonTip, onClick: () => presenter.toggle() }).el,
-  button({ label: STR.basis.refs.button, key: STR.basis.refs.key, tip: STR.basis.refs.buttonTip, onClick: () => references.toggle() }).el,
-  button({ label: STR.regulation.page.button, key: STR.regulation.page.key, tip: STR.regulation.page.buttonTip, onClick: () => regulations.toggle() }).el,
-);
-document.querySelector('.topbar__right').prepend(tools);
+
+// ── halaman penuh (satu yang terbuka; loop render berhenti selama terbuka) ──
+/** Halaman Assumptions = panel H dalam tata letak halaman (satu komponen); overlay H tidak dihitung sebagai halaman. */
+const assumptionsPage = { get open() { return assumptions.isPage; }, setOpen: (on) => (on ? assumptions.setPage(true) : assumptions.isPage && assumptions.setOpen(false)) };
+const PAGE_API = { regulations, formation: formationPage, references, glossary, assumptions: assumptionsPage };
+const openPage = () => Object.keys(PAGE_API).find((p) => PAGE_API[p].open) ?? null;
+function showPage(p) {
+  for (const [k, api] of Object.entries(PAGE_API)) if (k !== p && api.open) api.setOpen(false);
+  PAGE_API[p]?.setOpen(true);
+}
+function togglePage(p) { if (PAGE_API[p].open) PAGE_API[p].setOpen(false); else showPage(p); }
+
+// ── mode Explore / Present + navigasi ──
+const storage = modeStorage();
+let mode = readMode(storage);
+const nav = createNav(document.body, {
+  sceneNumbers: [...SCENE_NUMBERS],
+  onScene: (n) => { for (const api of Object.values(PAGE_API)) if (api.open) api.setOpen(false); goToScene(n); },
+  onPage: (p) => showPage(p),
+  onTool: (id) => { if (id === 'snapshot') snapshot(); else if (id === 'presenter') presenter.toggle(); else setMode('present'); },
+  onCollapse: (c) => { setCollapsed(c); saveNavCollapsed(storage, c); },
+});
+function setCollapsed(c) { nav.setCollapsed(c); document.body.classList.toggle('nav-collapsed', c); }
+setCollapsed(readNavCollapsed(storage, window.innerWidth));
+const hintEl = document.getElementById('mode-hint');
+let hintTimer = 0;
+function applyMode() {
+  document.body.classList.toggle('mode-explore', mode === 'explore');
+  document.body.classList.toggle('mode-present', mode === 'present');
+  nav.el.hidden = mode === 'present';
+  requestAnimationFrame(() => window.dispatchEvent(new Event('resize'))); // kanvas & grafik mengukur ulang lebar
+}
+/** Ganti mode (M); masuk Present → petunjuk kecil "M: Explore" sesaat. */
+function setMode(m) {
+  if (m === mode) return;
+  mode = m;
+  saveMode(storage, mode);
+  applyMode();
+  if (mode === 'present') {
+    if (nav.hasFocus()) /** @type {HTMLElement} */ (document.activeElement)?.blur?.();
+    hintEl.textContent = STR.nav.hintPresent;
+    hintEl.classList.add('is-on');
+    clearTimeout(hintTimer);
+    hintTimer = setTimeout(() => hintEl.classList.remove('is-on'), 2500);
+  } else {
+    hintEl.classList.remove('is-on');
+    toast(STR.nav.toastExplore);
+  }
+}
+applyMode();
 
 async function goTo(i) {
   if (i < 0 || i >= SCENES.length) { toast(STR.app.toast.noScene); return; }
@@ -142,11 +196,31 @@ async function goTo(i) {
       index = i;
     }, { skipOut: !current });
     persist.setScene(mod.meta.number);
+    nav.setScene(mod.meta.number);
+    syncHash();
     presenter.sync();
   } finally {
     loading = false;
   }
 }
+
+/** Alamat mengikuti scene (dan tab Scene 9) selama tidak ada halaman penuh terbuka; replaceState tidak memicu hashchange. */
+function syncHash() {
+  if (index < 0 || openPage()) return;
+  const h = homeHash();
+  if (location.hash !== h) history.replaceState(null, '', h);
+}
+store.subscribe((s, prev, changed) => { if (changed.includes('pTab') && SCENES[index]?.number === TABBED_SCENE) syncHash(); });
+
+/** Terapkan alamat: scene (+ tab Scene 9) atau halaman. Halaman References/Regulations juga membaca alamat sendiri. */
+function applyRoute(r) {
+  if (!r) return;
+  if (r.type === 'page') { for (const [k, api] of Object.entries(PAGE_API)) if (k !== r.page && api.open) api.setOpen(false); return; }
+  if (r.tab) store.set({ pTab: r.tab });
+  const i = SCENES.findIndex((x) => x.number === r.n);
+  if (i !== index) goTo(i); else syncHash();
+}
+window.addEventListener('hashchange', () => applyRoute(parseHash(location.hash)));
 
 /** Pindah ke scene bernomor n (dipakai tautan kartu Scene 10). */
 function goToScene(n) {
@@ -170,6 +244,7 @@ window.__etelDebug = {
   setQuality: (q) => store.set({ quality: q }),
   goToScene: (n) => goToScene(n),
   basisCardOpen: () => basisCard.open, referencesOpen: () => references.open, regulationsOpen: () => regulations.open,
+  mode: () => mode, page: () => openPage(), paused: () => paused,
 };
 
 window.addEventListener('keydown', (e) => {
@@ -197,29 +272,47 @@ window.addEventListener('keydown', (e) => {
     }
     case '3': case '4': toast(STR.app.toast.turbine); break;
     case 'h': assumptions.toggle(); break;
-    case '?': references.toggle(); break;
-    case 'g': regulations.toggle(); break;
+    case '?': togglePage('references'); break;
+    case 'g': togglePage('regulations'); break;
+    case 'm': setMode(otherMode(mode)); break;
     case 'p': presenter.toggle(); break;
     case 's': snapshot(); break;
     case 'q': { const p = qualityCyclePatch(s); store.set(p); toast(STR.app.toast.quality(STR.assumptions.display.qualityOpts[p.quality])); break; }
     case 'b': { const p = bloomCyclePatch(s); store.set(p); toast(STR.app.toast.bloom(STR.assumptions.display.bloomOpts[p.bloomMode])); break; }
-    case 'ArrowRight': goTo(index + 1); break;
-    case 'ArrowLeft': goTo(index - 1); break;
+    case 'ArrowRight': case 'ArrowLeft': {
+      // Present: panah selalu ganti scene; Explore: hanya bila fokus di navigasi (fokus lalu ikut ke scene baru)
+      const inNav = nav.hasFocus();
+      if (!arrowsChangeScene(mode, inNav)) return;
+      const i = index + (key === 'ArrowRight' ? 1 : -1);
+      goTo(i).then(() => { if (inNav && SCENES[i]) nav.focusScene(SCENES[i].number); });
+      break;
+    }
     default: return;
   }
 });
 
 let last = performance.now();
+let paused = false, shownPage = undefined;
 function loop(now) {
   const rawDt = Math.max(0, (now - last) / 1000);   // dt mentah (fps & kualitas)
   const dt = Math.min(0.1, rawDt);                  // dt animasi dibatasi (tab kembali aktif, frame lambat)
   last = now;
-  current?.update(dt * (store.get().animSpeed ?? 1), dt);
-  fpsMeter.sample(rawDt);
-  updateDisplay(rawDt);
+  const page = openPage();
+  if (page !== shownPage) { shownPage = page; nav.setPage(page); if (!page) syncHash(); }
+  // halaman penuh terbuka → render 3D, grafik, dan pengukur kualitas berhenti (scene tetap ter-mount); lanjut saat ditutup
+  paused = page != null;
+  if (!paused) {
+    current?.update(dt * (store.get().animSpeed ?? 1), dt);
+    fpsMeter.sample(rawDt);
+    updateDisplay(rawDt);
+  }
   debugOverlay.update(rawDt);
   requestAnimationFrame(loop);
 }
 
-const startIdx = Math.max(0, SCENES.findIndex((x) => x.number === persist.startScene));
+// alamat langsung (#/scene/N[/tab]) diutamakan atas scene awal yang tersimpan; alamat halaman membuka halaman di atas scene awal
+const route0 = parseHash(location.hash);
+if (route0?.type === 'scene' && route0.tab) store.set({ pTab: route0.tab });
+const startN = route0?.type === 'scene' ? route0.n : persist.startScene;
+const startIdx = Math.max(0, SCENES.findIndex((x) => x.number === startN));
 goTo(startIdx).then(() => requestAnimationFrame(loop));
