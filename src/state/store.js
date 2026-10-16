@@ -163,7 +163,8 @@ export function tickWindowPatch(s, dt, lo, hi) {
 export const QUALITY_ORDER = Object.freeze(['auto', 'high', 'low']);
 export const BLOOM_ORDER = Object.freeze(['auto', 'on', 'off']);
 /** Quality (Auto/High/Low) dan Bloom (Auto/On/Off) global; qTier = tier efektif dari pengontrol (tidak disimpan). */
-export const displayInitialState = () => ({ quality: 'auto', bloomMode: 'auto', qTier: 0 });
+/** formulaOpen: panel rumus di atas visual 3D terbuka (default terlipat; disimpan lewat persist.js). */
+export const displayInitialState = () => ({ quality: 'auto', bloomMode: 'auto', qTier: 0, formulaOpen: false });
 const cycle = (order, v) => order[(order.indexOf(v) + 1) % order.length];
 /** Patch tombol B (semua scene): Auto → On → Off → Auto. */
 export const bloomCyclePatch = (s) => ({ bloomMode: cycle(BLOOM_ORDER, s.bloomMode) });

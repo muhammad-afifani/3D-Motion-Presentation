@@ -27,6 +27,8 @@ import { SCENE_LIST, SCENE_NUMBERS } from './state/scenes.js';
 import { parseHash, sceneHash, TABBED_SCENE } from './state/route.js';
 import { modeStorage, readMode, saveMode, otherMode, readNavCollapsed, saveNavCollapsed, arrowsChangeScene } from './state/mode.js';
 import { createNav } from './ui/nav.js';
+import { attachFormulaToggles } from './ui/formulaToggle.js';
+import { button } from './ui/controls.js';
 import { createPresenterMode } from './ui/presenterMode.js';
 import { takeSnapshot } from './ui/snapshot.js';
 import { createDebugOverlay } from './ui/debugOverlay.js';
@@ -103,6 +105,7 @@ function toast(msg) {
 }
 
 let current = null;
+let formulaToggles = null;
 let index = -1;
 let loading = false;
 
@@ -152,10 +155,16 @@ function setCollapsed(c) { nav.setCollapsed(c); document.body.classList.toggle('
 setCollapsed(readNavCollapsed(storage, window.innerWidth));
 const hintEl = document.getElementById('mode-hint');
 let hintTimer = 0;
+// Present: tombol "Explore (M)" selalu terlihat di header kanan atas (tidak ikut ekspor PNG)
+const exitPresent = button({ label: STR.nav.exitPresent, key: STR.nav.modeKey, tip: STR.nav.exitPresentTip, onClick: () => setMode('explore') });
+exitPresent.el.classList.add('present-exit');
+exitPresent.el.dataset.snapSkip = '';
+document.querySelector('.topbar__right').prepend(exitPresent.el);
 function applyMode() {
   document.body.classList.toggle('mode-explore', mode === 'explore');
   document.body.classList.toggle('mode-present', mode === 'present');
   nav.el.hidden = mode === 'present';
+  exitPresent.el.hidden = mode !== 'present';
   requestAnimationFrame(() => window.dispatchEvent(new Event('resize'))); // kanvas & grafik mengukur ulang lebar
 }
 /** Ganti mode (M); masuk Present → petunjuk kecil "M: Explore" sesaat. */
@@ -185,6 +194,7 @@ async function goTo(i) {
     const mod = await SCENES[i].load();
     // fade-through ±350 ms (instan bila prefers-reduced-motion); data frame & HUD tidak disentuh
     await fadeSwap(app, () => {
+      formulaToggles?.dispose(); formulaToggles = null;
       current?.dispose();
       app.replaceChildren();
       const msgEl = document.getElementById('key-message');
@@ -193,6 +203,7 @@ async function goTo(i) {
       document.title = STR.app.docTitle(mod.meta.title);
       current = mod.createScene({ root: app, store, toast, setMessage: (t) => { msgEl.textContent = t; }, goToScene });
       current.mount();
+      formulaToggles = attachFormulaToggles(app, store); // chip "ƒ Formula" di atas visual 3D (pilihan global)
       index = i;
     }, { skipOut: !current });
     persist.setScene(mod.meta.number);

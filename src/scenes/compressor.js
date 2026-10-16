@@ -11,6 +11,7 @@ import { GAS_COMPRESSOR } from '../model/presets.js';
 import { createRenderer } from '../gfx/renderer.js';
 import { createCompressorRig } from '../gfx/compressorRig.js';
 import { fitCameraToBox } from '../gfx/fitCamera.js';
+import { openPanelRect } from '../ui/formulaToggle.js';
 import { createMultiLineChart } from '../charts/multiLineChart.js';
 import { niceCeil } from '../charts/chartBase.js';
 import { createTempLegend } from '../charts/legend.js';
@@ -201,14 +202,14 @@ export function createScene(ctx) {
 
   /**
    * Bingkai seluruh rakitan (impeller, volute, pipa suction & discharge) dari Box3 rig, dengan margin dan sebagian
-   * tinggi kartu overlay disisihkan; dihitung ulang saat ukuran tampilan berubah (arah orbit pengguna dipertahankan).
+   * tinggi kartu rumus (diukur seperti saat terbuka, jadi bingkai sama walau panel terlipat) disisihkan; dihitung ulang saat ukuran tampilan berubah (arah orbit pengguna dipertahankan).
    */
   function fitView(force = false) {
     const view = q('.view3d'), w = view.clientWidth, h = view.clientHeight;
     const key = `${w}x${h}`;
     if (!gfx || !rigBox || !w || !h || (!force && key === fitKey)) return;
     fitKey = key;
-    const aff = q('.overlay--aff').getBoundingClientRect(), top = Math.min(0.4, Math.max(0, (aff.bottom - view.getBoundingClientRect().top) / h));
+    const aff = openPanelRect(q('.overlay--aff')), top = Math.min(0.4, Math.max(0, (aff.bottom - view.getBoundingClientRect().top) / h));
     gfx.camera.aspect = w / h;
     const direction = gfx.camera.position.clone().sub(gfx.controls.target);
     const { distance, target } = fitCameraToBox(gfx.camera, rigBox, { width: w, height: h, margin: 0.03, insets: { top }, direction });
