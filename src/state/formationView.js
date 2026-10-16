@@ -39,7 +39,7 @@ export function formationCards(data, equip, refsData) {
   if (!eq) return { equipment: key, label: null, cards: [] };
   const cards = Object.entries(eq.params).map(([param, p]) => ({
     param, modeled: p.modeled,
-    summary: p.formation.summary, reactionsName: p.formation.reactionsName, rateNote: p.formation.rateNote,
+    summary: p.formation.summary, reactionsName: chemTokens(p.formation.reactionsName), rateNote: p.formation.rateNote,
     reactions: p.formation.reactions.map(chemTokens),
     refs: p.formation.refs.map(ref),
     drivers: p.drivers.map((d) => ({ ...d })),

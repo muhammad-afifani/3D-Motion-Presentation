@@ -17,6 +17,9 @@ import { createHud } from '../ui/hud.js';
 import { createLimitsInput } from '../ui/limitsInput.js';
 import { createRegHeader } from '../ui/regHeader.js';
 import { createLimitsTab } from '../ui/limitsTab.js';
+import { createFormationTab } from '../ui/formationTab.js';
+import { formationCards } from '../state/formationView.js';
+import { contentOf, onContent } from '../state/contentStore.js';
 import { createContentBanner } from '../ui/contentBanner.js';
 import { deriveCompliance } from '../state/deriveCompliance.js';
 import { regulationsContent, onRegulations } from '../state/regulationsStore.js';
@@ -102,7 +105,7 @@ export function keyMessage(f) {
 export function createScene(ctx) {
   const { store } = ctx;
   const disposers = [];
-  let el, main, sub, lim, regHead, limitsTab, regBanner, backBtn, hud = null, hudKey = '', mainKey = '', lastMsg = '', tabShown = '';
+  let el, main, sub, lim, regHead, limitsTab, formTab, formBanner, regBanner, backBtn, hud = null, hudKey = '', mainKey = '', lastMsg = '', tabShown = '';
   let compMemo = { s: null, data: null, f: null };
   let sweep = null, sweepKey = null;
   const ctl = {};
@@ -187,6 +190,10 @@ export function createScene(ctx) {
     if (compMemo.s !== s || compMemo.data !== data) compMemo = { s, data, f: deriveCompliance(s, data) };
     regHead?.update(compMemo.f);
     if (s.pTab === 'limits') limitsTab?.update(compMemo.f, s.siteData?.[compMemo.f.sel.equip] ?? {});
+    if (s.pTab === 'formation') {
+      const sel = compMemo.f.sel;
+      formTab?.update(formationCards(contentOf('formation').data, sel.equip, contentOf('references').data), { gasFuel: sel.fuel === 'gas' });
+    }
   }
 
   /** Tampilkan / sembunyikan area tab (layout lebar untuk Limits & Formation) dan tombol kembali. */
@@ -311,6 +318,10 @@ export function createScene(ctx) {
       regBanner = createContentBanner(q('.pol-limits'));
       regBanner.show(regulationsContent());
       disposers.push(onRegulations((r) => regBanner?.show(r)));
+      formBanner = createContentBanner(q('.pol-formation'));
+      formBanner.show(contentOf('formation'));
+      disposers.push(onContent('formation', (r) => formBanner?.show(r)));
+      formTab = createFormationTab(q('.pol-formation'));
       limitsTab = createLimitsTab(q('.pol-limits'), {
         onSite: (param, field, v) => { const st = store.get(); store.set(siteDataPatch(st, regSelection(st, regulationsContent().data).equip, param, field, v)); },
         onSulfur: (kind, v) => store.set(fuelSulfurPatch(kind === 'oil' ? 'fuelS' : 'fuelH2S', v)),
@@ -342,7 +353,7 @@ export function createScene(ctx) {
       for (const d of disposers.splice(0)) d();
       if (store.get().p9Return != null) store.set({ p9Return: null }); // jalan kembali hanya berlaku sekali kunjungan
       sweepClient.dispose();
-      main?.dispose(); sub?.dispose(); hud?.dispose(); lim?.dispose(); regHead?.dispose(); limitsTab?.dispose(); regBanner?.dispose();
+      main?.dispose(); sub?.dispose(); hud?.dispose(); lim?.dispose(); regHead?.dispose(); limitsTab?.dispose(); formTab?.dispose(); formBanner?.dispose(); regBanner?.dispose();
       el?.remove();
     },
   };

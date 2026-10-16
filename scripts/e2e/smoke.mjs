@@ -123,6 +123,19 @@ async function regulationInteraction(page, url, browser) {
     await page.keyboard.press('Escape');
     if (await vis('.refs--regs')) fails.push('Regulations: Esc tidak menutup');
   }
+  // tab Formation: jumlah kartu = jumlah parameter equipment aktif; tautan sumber → References (#/references/<id>)
+  await page.keyboard.press('2'); await page.waitForTimeout(400);
+  const nCards = await page.locator('.fm-card').count();
+  if (nCards < 5) fails.push(`Scene 9 Formation: hanya ${nCards} kartu`);
+  if ((await page.locator('.fm-rx__list sub').count()) < 1) fails.push('Scene 9 Formation: reaksi tanpa subskrip');
+  await page.locator('.fm-card .fm-ref').first().click();
+  await page.waitForTimeout(400);
+  if (!(await vis('.refs:not(.refs--regs)'))) fails.push('Formation: tautan sumber tidak membuka References');
+  else {
+    if (!/^#\/references\/[\w-]+$/.test(await page.evaluate(() => location.hash))) fails.push('Formation: alamat tautan bukan #/references/<id>');
+    if ((await page.locator('.refs__item.is-target').count()) !== 1) fails.push('Formation: sumber tujuan tidak disorot');
+    await page.keyboard.press('Escape');
+  }
   await page.keyboard.press('1'); await page.waitForTimeout(300); // tab Limits
   if ((await page.locator('.pol-limits .reg-chip').count()) < 1) fails.push('Scene 9: chip kepatuhan tidak ada di tab Limits');
   if (!/Transcribed from the published tables/.test(await page.locator('.pol-head').innerText())) fails.push('Scene 9: banner verified:false tidak tampil di header');

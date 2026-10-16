@@ -6,6 +6,7 @@ import { validateFormation, loadContent, fallbackContent, CONTENT_FILES, FORMATI
 import { formationCards, chemTokens, referenceHref } from '../src/state/formationView.js';
 import { EQUIPMENT, EQUIPMENT_ORDER } from '../src/state/regulations.js';
 import { ID_WORDS } from './language.test.js';
+import { isReferencesHash, referenceIdFromHash } from '../src/state/basisView.js';
 
 const read = (p) => JSON.parse(readFileSync(new URL(`../${p}`, import.meta.url), 'utf8'));
 const form = read('content/emission_formation.json');
@@ -70,8 +71,31 @@ describe('kartu Formation per equipment', () => {
     expect(chemTokens('CH4').map((x) => x.sub)).toEqual([false, true]);
     expect(chemTokens('C12H23').filter((x) => x.sub).map((x) => x.t)).toEqual(['12', '23']);
   });
+  it('nama mekanisme juga bersubskrip (N2O route → N₂O)', () => {
+    const c = formationCards(form, 'gasTurbine', refs).cards.find((x) => x.param === 'NOx');
+    expect(c.reactionsName.some((t) => t.sub && t.t === '2')).toBe(true);
+  });
   it('kartu tidak membawa angka model (hanya teks konten)', () => {
     const c = formationCards(form, 'gasEngine', refs).cards.find((x) => x.param === 'NOx');
     expect(Object.keys(c)).toEqual(['param', 'modeled', 'summary', 'reactionsName', 'rateNote', 'reactions', 'refs', 'drivers', 'levers']);
+  });
+});
+
+describe('alamat #/references/<id> (tautan sumber kartu Formation)', () => {
+  it('dikenali sebagai halaman References dan id dapat dibaca', () => {
+    expect(isReferencesHash('#/references/heywood')).toBe(true);
+    expect(isReferencesHash('#/references')).toBe(true);
+    expect(isReferencesHash('#/regulations')).toBe(false);
+    expect(referenceIdFromHash('#/references/zeldovich-1946')).toBe('zeldovich-1946');
+    expect(referenceIdFromHash('#/references/a%20b')).toBe('a b');
+    expect(referenceIdFromHash('#/references')).toBe(null);
+  });
+  it('setiap tautan sumber kartu memakai bentuk #/references/<id> yang dikenali halaman References', () => {
+    for (const k of EQUIPMENT_ORDER) for (const c of formationCards(form, k, refs).cards) {
+      for (const r of [...c.refs, ...c.levers.flatMap((l) => l.refs)]) {
+        expect(isReferencesHash(r.href)).toBe(true);
+        expect(referenceIdFromHash(r.href)).toBe(r.id);
+      }
+    }
   });
 });

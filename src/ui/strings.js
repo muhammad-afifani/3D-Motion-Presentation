@@ -620,6 +620,18 @@ export const STR = {
     back: (n) => `← Back to Scene ${n}`,
     backKey: 'Esc',
     backTip: 'Return to the scene you came from (Esc or ←).',
+    formationTab: {
+      intro: 'How each regulated parameter forms and what moves it. Qualitative content from content/emission_formation.json (draft: check the sources). No numbers here; numbers come from the model tabs.',
+      modeledLabel: 'How this is modeled',
+      modeled: { calibrated: 'calibrated', 'mass-balance': 'mass balance', 'semi-empirical': 'semi-empirical', qualitative: 'qualitative', 'site-input': 'site input' },
+      modeledTip: 'calibrated = model function tuned to typical literature values; mass balance = closed-form balance; semi-empirical = shape correlation, not calibrated; qualitative = direction only; site input = type a measured value in Limits.',
+      reactions: 'Reactions', drivers: 'What drives it', levers: 'Levers and their side effects', sources: 'Sources', lever: 'Lever',
+      sourceToVerify: (id) => `source to verify (${id})`,
+      dirs: { up: '↑', down: '↓', flat: '→', mixed: '↕' },
+      dirNames: { up: 'increases', down: 'decreases', flat: 'little effect', mixed: 'depends on regime' },
+      effects: { NOx: 'NOx', CO: 'CO', PM: 'PM', UHC: 'UHC', eta: 'η', CO2: 'CO₂', SO2: 'SO₂', knock: 'Knock', exhaustT: 'Exhaust T' },
+      empty: 'No formation content for this equipment.',
+    },
     limitsTab: {
       head: ['Parameter', 'Limit', 'Unit', 'Test method', 'Model', 'Site data', 'Status'],
       noCoLimit: 'No CO limit in this table.',

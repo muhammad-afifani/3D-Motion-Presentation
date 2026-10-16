@@ -87,7 +87,9 @@ Alur data satu arah: `UI control → store.set → derive() → frame → { rig 
   - [x] Step 01 Perbaikan Scene 7 dan Scene 9 (smoke test tampilan `npm run e2e:smoke`)
   - [x] Step 02 Bahasa English + gaya, format en-US, `content/references.json`, `basis.js`, tag Basis, halaman References
   - [x] Step 03 Data regulasi: `content/regulations.json`, jalur regulasi (O₂ 21, 25 °C) + `complianceStatus`, pemilih equipment/kelas/bahan bakar, chip Scene 6 dan 9, site data, Permit/OEM CO, halaman Regulations (`G`)
-  - [ ] Step 04–06 (model bahan bakar dan tuas, redesain Scene 9, mode Explore)
+  - [x] Step 04 Model bahan bakar dan tuas: batas ideal dual (diesel), `fuelGasProps` / `so2FromFuelSulfur` / `exhaustO2FromLambda`, tuas intake T / boost / rpm (default = preset), tes arah
+  - [x] Step 05a Scene 9: header regulasi, lima tab (Limits, Formation; Levers / Load window / GHG masih panel lama), `content/emission_formation.json`, matriks cakupan, baris regulasi Scene 6 → Scene 9 Limits (Esc / ← kembali), tautan sumber `#/references/<id>`
+  - [ ] Step 05b (Levers, Load window, GHG) dan Step 06 (mode Explore)
 - [ ] M10 cv(T) correction + recalibration: ganti `cvOfT` linear (menyimpang sampai −7,5 % di 1200–1400 K dibanding polinomial NASA, lihat `basis.js`) dengan data tabel, lalu kalibrasi ulang preset, `ENGINE_NOX_CALIB`, dan golden yang bergantung (Pmax, η rem, waterfall, NOx, retardSweep, angka Step 03 berbasis model). Perlu persetujuan pemilik proyek.
 
 ## Golden test acuan (ringkas; tabel lengkap di `docs/PROMPT_simulasi_3D.md` bagian 12)
