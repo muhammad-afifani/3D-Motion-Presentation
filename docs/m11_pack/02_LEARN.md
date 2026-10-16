@@ -22,7 +22,7 @@ Urutan isi:
 1. Remah roti: Learn › Level N › judul pelajaran; menit; tujuan (`goal`).
 2. Isi (`body`): paragraf. Istilah dari `terms` yang muncul di teks **tidak** perlu ditebalkan otomatis; cukup kotak "Words in this lesson" di samping (layar lebar) atau di bawah (layar sempit).
 3. Kotak kata: untuk id di `learn.terms`, pakai `term` dan `definition` dua bahasa. Untuk id di `glossary.json`, pakai istilah English dan definisi English, atau definisi Indonesia dari `learn.glossaryId` saat bahasa ID. Setiap kata bertaut ke Glossary.
-4. Kotak "Try it": teks + tombol yang membuka `tryIt.route` dalam mode Explore. Simpan id pelajaran asal; di scene tujuan tampil pil kecil "← Back to lesson" (hilang di mode Present dan saat pindah ke halaman lain).
+4. Kotak "Try it": teks + tombol yang membuka `tryIt.route` dalam mode Explore. Simpan id pelajaran asal; di scene tujuan tampil pil kecil "← Back to lesson" di **header kiri, tepat di bawah tag scene** (lihat peta posisi di `00_README`; hilang di mode Present dan saat pindah ke halaman lain).
 5. Soal (`checks`): pilihan bisa diklik, langsung menunjukkan benar/salah dan `why`. Tidak ada skor yang disimpan.
 6. Sumber (`refs`): `cite`, tautan `url` (tab baru) bila ada, dan tautan ke `#/references/<id>`. Sumber dengan `level: 'intro'` diberi lencana "Start here". Entri `locatorVerified: false` diberi tanda "to verify", sama dengan halaman References.
 7. Navigasi: sebelumnya / berikutnya (melintasi level), tombol "Mark as done".
@@ -35,7 +35,7 @@ Urutan isi:
 - Bila `learn.reviewed === false`, tampilkan `learn.landing.draftBanner` di atas `#/learn`, halaman pelajaran, dan Chart guide. Hilang otomatis saat Ifan mengubahnya menjadi `true`.
 
 ### 5. Glossary dua bahasa
-- Sakelar EN/ID dari Step 01 berlaku. Saat ID: definisi dari `learn.glossaryId[id].definition`, nama istilah dari `learn.glossaryId[id].term` bila ada (bila tidak, nama asli). Saat EN: tidak berubah.
+- Sakelar EN/ID global dari Step 01 (state `lang`, kunci `etel:lang`) berlaku. Saat ID: definisi dari `learn.glossaryId[id].definition`, nama istilah dari `learn.glossaryId[id].term` bila ada (bila tidak, nama asli). Saat EN: tidak berubah.
 - Tambah bagian "Basic words" berisi `learn.terms` (dua bahasa), di atas daftar istilah lama, dengan penanda "from Learn".
 
 ### 6. Tata letak dan aksesibilitas

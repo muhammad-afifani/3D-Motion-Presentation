@@ -103,6 +103,16 @@ export const STR = {
     hintPresent: 'M: Explore',
     toastExplore: 'Explore mode: navigation on the left. ← → change scene only when the navigation has focus.',
     keysHint: 'In the navigation: ↑ ↓ move, ← → change scene.',
+    exitPresent: 'Explore',
+    exitPresentTip: 'Leave Present mode and show the navigation again (M).',
+  },
+
+  // ─────────────────────────── formula panel over the 3D view ───────────────────────────
+  formula: {
+    icon: 'ƒ',
+    label: 'Formula',
+    show: 'Show the formula panel over the 3D view. The choice applies to every scene.',
+    hide: 'Hide the formula panel so the 3D view is clear.',
   },
 
   // ─────────────────────────── full pages (M9 Step 06) ───────────────────────────

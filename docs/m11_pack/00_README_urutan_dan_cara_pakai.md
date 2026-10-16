@@ -7,8 +7,8 @@ Ifan ingin orang non-teknik bisa memahami seluruh isi presentasi dari nol, di ap
 1. **Landing page (Scene 0)** yang muncul saat aplikasi dibuka: hero 3D, empat pilihan (Learn from zero, Explore the lab, Present, What is this tool for?).
 2. **Halaman About**: untuk apa alat ini dibuat, untuk siapa, apa yang bisa dan tidak bisa disampaikannya, dan harapannya.
 3. **Learn**: 6 level, 21 pelajaran, 41 soal latihan, daftar kata dasar. Setiap pelajaran punya tautan "Try it" ke scene dan daftar sumber.
-4. **Chart guide**: satu halaman untuk setiap grafik di aplikasi (15 panduan), plus tombol "?" di pojok tiap grafik.
-5. **Dua bahasa (EN/ID)** untuk Landing, About, Learn, Chart guide, dan definisi Glossary. Bagian aplikasi lain tetap English.
+4. **Chart guide**: satu halaman untuk setiap grafik di aplikasi (15 panduan), plus tombol **ⓘ** di pojok tiap grafik (bukan "?", karena tombol `?` sudah membuka References).
+5. **Dua bahasa (EN/ID)** untuk Landing, About, Learn, Chart guide, dan definisi Glossary, lewat **satu sakelar bahasa global** (lihat "Keputusan"). Bagian aplikasi lain tetap English sampai paket bahasa D menerjemahkannya.
 6. **12 sumber pengantar baru** (OpenStax, MIT, NASA, US DOE, US EPA, EIA), semuanya dibuka dan dicek pada 2026-10-16.
 
 Isi teks sudah ditulis di `seeds/`. Claude Code membangun tampilannya, bukan menulis ulang isinya.
@@ -19,7 +19,7 @@ Isi teks sudah ditulis di `seeds/`. Claude Code membangun tampilannya, bukan men
 |---|---|---|
 | 01 | Sumber baru, router, landing page (Scene 0), halaman About, sakelar bahasa, pemuat `learn.json` | **Opus 5.5 high** (desain visual dan hero 3D) |
 | 02 | Halaman Learn: daftar level, halaman pelajaran, kata, soal, progres, sumber; Glossary dua bahasa | Sonnet 5.5 high |
-| 03 | Chart guide, tombol "?" di setiap grafik, tes cakupan, dokumen, status M11 | Sonnet 5.5 high |
+| 03 | Chart guide, tombol ⓘ di setiap grafik, tes cakupan, dokumen, status M11 | Sonnet 5.5 high |
 
 Kirim satu step per sesi Claude Code, berurutan, dan merge PR tiap step sebelum lanjut. Contoh prompt:
 
@@ -27,11 +27,23 @@ Kirim satu step per sesi Claude Code, berurutan, dan merge PR tiap step sebelum 
 
 ## Keputusan yang sudah diambil (mudah dibalik)
 
-- Bahasa awal Learn: **Indonesia** (`defaultLang: "id"`). Pilihan terakhir disimpan di browser.
+- **Bahasa: satu state global** `lang` (`'en' | 'id'`), disimpan di localStorage dengan kunci **`etel:lang`** lewat helper aman (try/catch). Tidak ada state `learnLang` terpisah: sakelar EN/ID di Landing, About, Learn, Chart guide, Glossary, dan nanti seluruh aplikasi (paket D) membaca dan menulis state yang sama. Aturan proyek: English default, Indonesia opsional, kunci wajib lengkap di kedua bahasa (dijaga tes). Akibatnya `learn.defaultLang` tidak lagi menentukan bahasa awal; tanpa pilihan tersimpan, bahasa awal = English.
 - Landing muncul bila alamat tanpa hash (`/` atau `#/`). Tautan langsung (`#/scene/6`) tetap langsung ke scene. Ada tombol "Continue at Scene N" bila sebelumnya pernah membuka scene.
-- Mode Present tidak menampilkan landing dan tidak menampilkan tombol "?" di grafik.
+- Mode Present tidak menampilkan landing dan tidak menampilkan tombol ⓘ di grafik.
 - `presenter.json` dan jendela presenter tidak berubah.
 - Konten Learn berstatus **draf** (`reviewed: false`) dan menampilkan banner draf sampai Ifan selesai meninjau dan mengubahnya menjadi `true`.
+
+## Peta posisi layar (agar kontrol tidak bertumpuk)
+
+| Elemen | Posisi | Tampil di |
+|---|---|---|
+| Chip rumus "ƒ Formula" (sudah ada, bagian A) | Pojok **kiri atas viewport 3D** (12 px, 12 px); panel rumus terbuka tepat di bawahnya | Explore dan Present (di Present kecil dan samar) |
+| Tombol "Explore (M)" (sudah ada, bagian A) | **Header kanan atas**, paling kiri di kelompok kanan | Hanya Present |
+| Sakelar bahasa EN/ID (Step 01 / paket D) | **Header kanan atas**, di antara "Explore (M)" dan lencana "Model OK"; urutan: [Explore (M)] [EN/ID] [Model OK] | Explore dan Present |
+| Pil "← Back to lesson" (Step 02) | **Header kiri**, tepat di bawah tag scene (tidak di atas visual 3D atau grafik) | Hanya Explore, setelah Try it |
+| Tombol ⓘ grafik (Step 03) | **Pojok kanan atas tiap grafik**, di kiri tag "Basis · …" pada baris judul grafik (tidak menutupi area plot) | Hanya Explore; tidak ikut ekspor PNG |
+
+Pojok kiri atas viewport 3D hanya untuk chip rumus; pojok kanan atas viewport 3D tetap untuk legenda/label scene yang sudah ada.
 
 ## Yang harus Ifan cek sendiri
 

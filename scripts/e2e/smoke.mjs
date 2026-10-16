@@ -302,6 +302,14 @@ async function modeInteraction(page) {
   const pr = await page.evaluate(() => ({ mode: window.__etelDebug.mode(), nav: !!document.querySelector('.nav')?.hidden, hint: document.getElementById('mode-hint')?.textContent, on: document.getElementById('mode-hint')?.classList.contains('is-on') }));
   if (pr.mode !== 'present' || !pr.nav) fails.push('Present: navigasi tidak tersembunyi');
   if (pr.hint !== 'M: Explore' || !pr.on) fails.push('Present: petunjuk "M: Explore" tidak tampil');
+  const exitVisible = await page.locator('.present-exit').isVisible();
+  if (!exitVisible) fails.push('Present: tombol "Explore (M)" tidak terlihat');
+  else {
+    // tombol terbaca: teks tidak terpotong dan kontras dari token tema
+    const ok = await page.evaluate(() => { const b = document.querySelector('.present-exit'); return b.scrollWidth <= b.clientWidth + 1 && /Explore/.test(b.textContent); });
+    if (!ok) fails.push('Present: tombol "Explore (M)" terpotong');
+  }
+  if (!(await page.locator('.f-toggle').first().isVisible().catch(() => false)) && [1, 2, 3, 4, 7].includes(await scene())) fails.push('Present: chip rumus tidak tampil');
   await page.keyboard.press('ArrowRight');
   if (!(await waitScene(5))) fails.push('Present: panah tidak mengganti scene');
   // jendela presenter (BroadcastChannel) ikut berpindah: lewat panah dan lewat alamat #/scene/N
@@ -320,8 +328,46 @@ async function modeInteraction(page) {
     if (!(await popScene(8))) fails.push('Presenter: jendela presenter tidak ikut saat scene berganti lewat alamat');
   } catch { fails.push('Presenter: jendela presenter tidak terbuka (P)'); }
   await popup?.close().catch(() => {});
+  await page.bringToFront();
   await page.keyboard.press('m'); await page.waitForTimeout(300);
   if ((await page.evaluate(() => window.__etelDebug.mode())) !== 'explore') fails.push('M: tidak kembali ke Explore');
+  // tombol "Explore (M)": masuk Present lagi lalu klik tombolnya
+  await page.keyboard.press('m'); await page.waitForTimeout(300);
+  await page.locator('.present-exit').click(); await page.waitForTimeout(300);
+  const back = await page.evaluate(() => ({ mode: window.__etelDebug.mode(), nav: !document.querySelector('.nav')?.hidden, exitHidden: document.querySelector('.present-exit')?.hidden }));
+  if (back.mode !== 'explore' || !back.nav) fails.push('Tombol "Explore (M)" tidak mengembalikan navigasi');
+  if (!back.exitHidden) fails.push('Tombol "Explore (M)" masih tampil di Explore');
+  return fails;
+}
+
+/** Bagian A: panel rumus terlipat secara default di scene ber-rumus; chip kecil (< 3 % area 3D); buka/tutup global. */
+const FORMULA_SCENES = [1, 2, 3, 4, 7];
+async function formulaInteraction(page) {
+  const fails = [];
+  const state = () => page.evaluate(() => {
+    const b = document.querySelector('.f-toggle'), p = document.querySelector('.overlay--formula');
+    if (!b || !p) return null;
+    const view = b.parentElement.getBoundingClientRect(), r = b.getBoundingClientRect();
+    return { expanded: b.getAttribute('aria-expanded'), panelShown: getComputedStyle(p).display !== 'none', area: (r.width * r.height) / (view.width * view.height) * 100, snapSkip: b.hasAttribute('data-snap-skip') };
+  });
+  for (const n of FORMULA_SCENES) {
+    await goScene(page, n, 500);
+    const st = await state();
+    if (!st) { fails.push(`Scene ${n}: chip rumus tidak ada`); continue; }
+    if (st.expanded !== 'false' || st.panelShown) fails.push(`Scene ${n}: rumus tidak terlipat secara default`);
+    if (st.area >= 3) fails.push(`Scene ${n}: chip rumus menutupi ${st.area.toFixed(1)} % area 3D`);
+    if (!st.snapSkip) fails.push(`Scene ${n}: chip rumus ikut ekspor PNG`);
+  }
+  await goScene(page, 1, 400);
+  await page.locator('.f-toggle').click(); await page.waitForTimeout(200);
+  let st = await state();
+  if (st?.expanded !== 'true' || !st.panelShown) fails.push('Scene 1: klik chip tidak membuka panel rumus');
+  await goScene(page, 4, 500);
+  st = await state();
+  if (st?.expanded !== 'true' || !st.panelShown) fails.push('Pilihan rumus terbuka tidak bertahan saat pindah scene');
+  await page.locator('.f-toggle').focus(); await page.keyboard.press('Enter'); await page.waitForTimeout(200);
+  st = await state();
+  if (st?.expanded !== 'false' || st.panelShown) fails.push('Scene 4: Enter pada chip tidak melipat panel rumus');
   return fails;
 }
 
@@ -369,6 +415,7 @@ try {
     if (w === 1366) failures.push(...await regulationInteraction(page, srv.url, chromium.browser));
     if (w === 1366) { const r = await leversInteraction(page); failures.push(...r.fails); leverTimes = r.times; }
     if (w === 1366) failures.push(...await snapshotPerTab(page));
+    if (w === 1366) failures.push(...await formulaInteraction(page));
     if (w === 1366) failures.push(...await modeInteraction(page));
     if (w === 1366) failures.push(...await deepLinks(chromium.browser, srv.url));
     for (const e of [...new Set(errs)]) failures.push(`${w}×${h}: ${e}`);

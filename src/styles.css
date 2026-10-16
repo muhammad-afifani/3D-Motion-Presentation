@@ -15,6 +15,14 @@
   --sp-co2: #7f93ad;
   --sp-ch4: #3cbf6a;
   --sp-pm: #4a4f57;
+  /* kontrol mengambang di atas visual 3D dan tombol header (bagian A; tema terang di bagian B cukup menimpa token ini) */
+  --float-bg: rgba(11, 15, 22, 0.78);
+  --float-bg-hover: rgba(24, 33, 51, 0.92);
+  --float-fg: #e6ebf3;
+  --float-muted: #b4bfd1;
+  --float-border: #26324a;
+  --float-accent: #4fb3ff;
+  --focus-ring: #4fb3ff;
   --font-ui: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-num: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
@@ -699,3 +707,26 @@ body.mode-explore.nav-collapsed { --nav-w: 52px; }
 /* M10: margin kepatuhan (%) di samping chip; margin kecil (< ambang ketidakpastian model) ditandai */
 .reg__margin { margin-left: 6px; font-size: 11.5px; color: var(--muted); white-space: nowrap; }
 .reg__margin.is-small { color: var(--accent-hot); }
+
+/* ── Bagian A: chip "ƒ Formula" (panel rumus dapat dilipat) dan tombol "Explore (M)" di mode Present ── */
+.f-toggle {
+  position: absolute; left: 12px; top: 12px; z-index: 4;
+  display: inline-flex; align-items: center; gap: 6px; min-height: 30px; padding: 3px 10px;
+  font: inherit; font-size: 12.5px; color: var(--float-fg); background: var(--float-bg);
+  border: 1px solid var(--float-border); border-radius: 999px; cursor: pointer;
+}
+.f-toggle:hover { background: var(--float-bg-hover); }
+.f-toggle:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+.f-toggle__icon { font-family: var(--font-num); font-style: italic; font-weight: 700; color: var(--float-accent); }
+.f-toggle__caret { color: var(--float-muted); font-size: 11px; }
+.overlay--formula.overlay--formula-toggled { top: 50px; }
+.overlay--formula.is-collapsed { display: none; }
+/* Present: chip tetap ada (kecil, samar) supaya presenter bisa membukanya; jelas saat disorot atau difokus */
+.mode-present .f-toggle { min-height: 26px; padding: 2px 8px; font-size: 11.5px; opacity: 0.6; }
+.mode-present .f-toggle:hover, .mode-present .f-toggle:focus-visible, .mode-present .f-toggle.is-open { opacity: 1; }
+.present-exit {
+  min-height: 30px; padding: 0 10px; font-size: 13px; border-radius: 8px;
+  color: var(--float-fg); background: var(--float-bg); border: 1px solid var(--float-accent);
+}
+.present-exit:hover { background: var(--float-bg-hover); }
+.present-exit:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
