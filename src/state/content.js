@@ -13,11 +13,15 @@ import closingFallback from '../../content/closing.json';
 import presenterFallback from '../../content/presenter.json';
 import referencesFallback from '../../content/references.json';
 import regulationsFallback from '../../content/regulations.json';
+import formationFallback from '../../content/emission_formation.json';
 
-export const CONTENT_FILES = Object.freeze({ controls: 'controls.json', closing: 'closing.json', presenter: 'presenter.json', references: 'references.json', regulations: 'regulations.json' });
+export const CONTENT_FILES = Object.freeze({ controls: 'controls.json', closing: 'closing.json', presenter: 'presenter.json', references: 'references.json', regulations: 'regulations.json', formation: 'emission_formation.json' });
 export const MACHINES = Object.freeze(['diesel', 'gas', 'turbine']);
 export const CARD_FIELDS = Object.freeze(['lowers', 'raises', 'efficiency', 'operation']);
-const FALLBACK = { controls: controlsFallback, closing: closingFallback, presenter: presenterFallback, references: referencesFallback, regulations: regulationsFallback };
+const FALLBACK = { controls: controlsFallback, closing: closingFallback, presenter: presenterFallback, references: referencesFallback, regulations: regulationsFallback, formation: formationFallback };
+/** Cara model menghitung tiap parameter (kartu Formation, Scene 9) dan arah efek/pendorong. */
+export const FORMATION_MODELED = Object.freeze(['calibrated', 'mass-balance', 'semi-empirical', 'qualitative', 'site-input']);
+export const FORMATION_DIRECTIONS = Object.freeze(['up', 'down', 'flat', 'mixed']);
 /** Satuan limit yang diizinkan di regulations.json dan bahan bakar per baris. */
 export const REG_UNITS = Object.freeze(['mg/Nm3', '%']);
 export const REG_FUELS = Object.freeze(['oil', 'gas']);
@@ -196,13 +200,60 @@ export function validateRegulations(j) {
   return e;
 }
 
+/**
+ * Validasi emission_formation.json (skema: docs/m9_pack/seeds/emission_formation.seed.json):
+ * { version: 1, equipment: { <id>: { label, params: { <param>: { modeled ∈ FORMATION_MODELED,
+ *   formation: { summary, reactions[], reactionsName, rateNote (boleh kosong), refs[] }, drivers: [{ id, label, direction, why }],
+ *   levers: [{ id, label, effects: { <key>: direction }, consequence, refs[] }] } } } } }.
+ * Hanya bentuk yang diperiksa; id sumber divalidasi terhadap references.json saat tampil ("source to verify" bila hilang).
+ */
+export function validateFormation(j) {
+  const e = [];
+  if (!j || typeof j !== 'object' || Array.isArray(j)) return [{ field: '(root)', code: 'notObject' }];
+  if (j.version !== 1) e.push({ field: 'version', code: 'version' });
+  const isObj = (x) => x && typeof x === 'object' && !Array.isArray(x);
+  const textArr = (x) => Array.isArray(x) && x.every(isText);
+  if (!isObj(j.equipment) || !Object.keys(j.equipment).length) return [...e, { field: 'equipment', code: 'notObject' }];
+  for (const [ek, ev] of Object.entries(j.equipment)) {
+    const fe = (k) => `equipment.${ek}.${k}`;
+    if (!isObj(ev)) { e.push({ field: `equipment.${ek}`, code: 'notObject' }); continue; }
+    if (!isText(ev.label)) e.push({ field: fe('label'), code: 'text' });
+    if (!isObj(ev.params) || !Object.keys(ev.params).length) { e.push({ field: fe('params'), code: 'notObject' }); continue; }
+    for (const [pk, pv] of Object.entries(ev.params)) {
+      const fp = (k) => `equipment.${ek}.params.${pk}.${k}`;
+      if (!isObj(pv)) { e.push({ field: `equipment.${ek}.params.${pk}`, code: 'notObject' }); continue; }
+      if (!FORMATION_MODELED.includes(pv.modeled)) e.push({ field: fp('modeled'), code: 'formModeled' });
+      const f = pv.formation;
+      if (!isObj(f)) e.push({ field: fp('formation'), code: 'notObject' });
+      else {
+        for (const k of ['summary', 'reactionsName']) if (!isText(f[k])) e.push({ field: fp(`formation.${k}`), code: 'text' });
+        if (typeof f.rateNote !== 'string') e.push({ field: fp('formation.rateNote'), code: 'string' }); // boleh kosong (mis. CO₂)
+        if (!textArr(f.reactions)) e.push({ field: fp('formation.reactions'), code: 'textList' });
+        if (!textArr(f.refs)) e.push({ field: fp('formation.refs'), code: 'textList' });
+      }
+      if (!Array.isArray(pv.drivers)) e.push({ field: fp('drivers'), code: 'array' });
+      else pv.drivers.forEach((d, i) => {
+        if (!isObj(d) || !isText(d.id) || !isText(d.label) || !isText(d.why)) e.push({ field: fp(`drivers[${i}]`), code: 'text' });
+        else if (!FORMATION_DIRECTIONS.includes(d.direction)) e.push({ field: fp(`drivers[${i}].direction`), code: 'formDirection' });
+      });
+      if (!Array.isArray(pv.levers)) e.push({ field: fp('levers'), code: 'array' });
+      else pv.levers.forEach((l, i) => {
+        if (!isObj(l) || !isText(l.id) || !isText(l.label) || !isText(l.consequence)) { e.push({ field: fp(`levers[${i}]`), code: 'text' }); return; }
+        if (!isObj(l.effects) || !Object.values(l.effects).every((v) => FORMATION_DIRECTIONS.includes(v))) e.push({ field: fp(`levers[${i}].effects`), code: 'formDirection' });
+        if (!textArr(l.refs ?? [])) e.push({ field: fp(`levers[${i}].refs`), code: 'textList' });
+      });
+    }
+  }
+  return e;
+}
+
 /** Catatan presenter untuk scene n (null bila tidak ada). */
 export const presenterNotes = (data, n) => data?.scenes?.find((x) => x.number === n) ?? null;
 
-const VALIDATE = { controls: validateControls, closing: (j) => validateClosing(j), presenter: validatePresenter, references: (j) => validateReferences(j), regulations: (j) => validateRegulations(j) };
+const VALIDATE = { controls: validateControls, closing: (j) => validateClosing(j), presenter: validatePresenter, references: (j) => validateReferences(j), regulations: (j) => validateRegulations(j), formation: (j) => validateFormation(j) };
 
 /**
- * Muat konten. @param {'controls'|'closing'|'presenter'|'references'|'regulations'} kind
+ * Muat konten. @param {'controls'|'closing'|'presenter'|'references'|'regulations'|'formation'} kind
  * @returns {Promise<{data:any, source:'file'|'fallback', file:string, errors:{field:string, code:string, detail?:string}[]}>}
  */
 export async function loadContent(kind, { fetchFn = globalThis.fetch, base, sceneNumbers } = {}) {

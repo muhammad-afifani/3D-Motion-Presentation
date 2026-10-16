@@ -9,7 +9,13 @@ import { REFERENCE_TYPES } from './content.js';
 
 export const REFERENCES_HASH = '#/references';
 /** true when a location hash opens the References page ("#/references", optionally with a trailing slash/query). */
-export const isReferencesHash = (hash) => /^#\/references\/?(\?.*)?$/.test(hash ?? '');
+export const isReferencesHash = (hash) => /^#\/references(\/[^?#/]*)?\/?(\?.*)?$/.test(hash ?? '');
+/** Id sumber di alamat #/references/<id> (null bila tidak ada). */
+export function referenceIdFromHash(hash) {
+  const m = /^#\/references\/([^?#/]+)/.exec(hash ?? '');
+  if (!m) return null;
+  try { return decodeURIComponent(m[1]); } catch { return null; }
+}
 
 /** spec = group id (string) or array of BASIS keys → { id, keys } with unknown names dropped. */
 export function resolveBasis(spec) {

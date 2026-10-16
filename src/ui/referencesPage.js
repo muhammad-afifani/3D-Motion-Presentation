@@ -5,7 +5,7 @@
  * Hanya sumber di file itu yang tampil; locatorVerified hanya dibaca, tidak pernah diubah dari sini.
  */
 import { STR } from './strings.js';
-import { groupReferences, REFERENCES_HASH, isReferencesHash } from '../state/basisView.js';
+import { groupReferences, REFERENCES_HASH, isReferencesHash, referenceIdFromHash } from '../state/basisView.js';
 import { loadContent, fallbackContent } from '../state/content.js';
 import { BASIS_GROUPS } from '../model/basis.js';
 
@@ -96,13 +96,21 @@ export function createReferencesPage(parent = document.body, { win = window } = 
     toggle() { setOpen(el.hidden); },
     dispose() { alive = false; win.removeEventListener('hashchange', onHash); win.removeEventListener('keydown', onKey, true); el.remove(); },
   };
-  const onHash = () => setOpen(isReferencesHash(win.location.hash), { fromHash: true });
+  /** #/references/<id>: buka halaman, gulir ke sumber itu dan sorot (tautan dari kartu Formation). */
+  function focusRef() {
+    const id = referenceIdFromHash(win.location.hash);
+    for (const n of box.querySelectorAll('.refs__item.is-target')) n.classList.remove('is-target');
+    if (!id) return;
+    const item = box.querySelector(`#ref-${CSS.escape(id)}`);
+    if (item) { item.classList.add('is-target'); item.scrollIntoView({ block: 'center' }); }
+  }
+  const onHash = () => { const on = isReferencesHash(win.location.hash); setOpen(on, { fromHash: true }); if (on) focusRef(); };
   const onKey = (e) => { if (e.key === 'Escape' && !el.hidden) { setOpen(false); e.stopImmediatePropagation(); } };
   el.addEventListener('click', (e) => { if (e.target === el) setOpen(false); });
   win.addEventListener('hashchange', onHash);
   win.addEventListener('keydown', onKey, true);
 
-  loadContent('references').then((r) => { if (!alive) return; data = r.data; if (!el.hidden) render(); });
-  if (isReferencesHash(win.location.hash)) setOpen(true, { fromHash: true }); // alamat langsung #/references
+  loadContent('references').then((r) => { if (!alive) return; data = r.data; if (!el.hidden) { render(); focusRef(); } });
+  if (isReferencesHash(win.location.hash)) { setOpen(true, { fromHash: true }); focusRef(); } // alamat langsung #/references[/<id>]
   return api;
 }

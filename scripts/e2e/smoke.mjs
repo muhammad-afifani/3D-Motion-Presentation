@@ -17,7 +17,7 @@ export const VIEWPORTS = [[1366, 768], [1920, 1080], [1280, 720]];
 export const MAX_TOPBAR_PX = 140;           // tinggi bilah atas maksimum (4 baris pesan kunci)
 export const MIN_FILL_PCT = 1;            // % piksel non-transparan minimum per grafik (terukur 1,9–63 % pada tampilan normal)
 const SHOT_SCENES = new Set([7, 9]);
-const TABS = { 9: ['1', '2', '3'] };       // tab Scene 9 (A/B/C); scene lain satu keadaan
+const TABS = { 9: ['1', '2', '3', '4', '5'] }; // tab Scene 9: Limits, Formation, Levers, Load window, GHG
 const SHOTS = 'scripts/e2e/shots/after';
 const POLL_MS = 500, TIMEOUT_MS = 9000;    // grafik yang menunggu Worker diberi waktu menggambar
 
@@ -123,10 +123,26 @@ async function regulationInteraction(page, url, browser) {
     await page.keyboard.press('Escape');
     if (await vis('.refs--regs')) fails.push('Regulations: Esc tidak menutup');
   }
-  if ((await page.locator('.pol-reg .reg-chip').count()) < 1) fails.push('Scene 9: chip kepatuhan tidak ada');
-  if (!/Transcribed from the published tables/.test(await page.locator('.pol-reg').innerText())) fails.push('Scene 9: banner verified:false tidak tampil');
+  // tab Formation: jumlah kartu = jumlah parameter equipment aktif; tautan sumber → References (#/references/<id>)
+  await page.keyboard.press('2'); await page.waitForTimeout(400);
+  const nCards = await page.locator('.fm-card').count();
+  if (nCards < 5) fails.push(`Scene 9 Formation: hanya ${nCards} kartu`);
+  if ((await page.locator('.fm-rx__list sub').count()) < 1) fails.push('Scene 9 Formation: reaksi tanpa subskrip');
+  await page.locator('.fm-card .fm-ref').first().click();
+  await page.waitForTimeout(400);
+  if (!(await vis('.refs:not(.refs--regs)'))) fails.push('Formation: tautan sumber tidak membuka References');
+  else {
+    if (!/^#\/references\/[\w-]+$/.test(await page.evaluate(() => location.hash))) fails.push('Formation: alamat tautan bukan #/references/<id>');
+    if ((await page.locator('.refs__item.is-target').count()) !== 1) fails.push('Formation: sumber tujuan tidak disorot');
+    await page.keyboard.press('Escape');
+  }
+  await page.keyboard.press('1'); await page.waitForTimeout(300); // tab Limits
+  if ((await page.locator('.pol-limits .reg-chip').count()) < 1) fails.push('Scene 9: chip kepatuhan tidak ada di tab Limits');
+  if (!/Transcribed from the published tables/.test(await page.locator('.pol-head').innerText())) fails.push('Scene 9: banner verified:false tidak tampil di header');
+  if (!(await page.evaluate(() => { const b = document.querySelector('.pol-limits .lim-tab'); return !!b && b.getBoundingClientRect().bottom <= document.querySelector('.pol-wide').getBoundingClientRect().bottom + 1; }))) fails.push('Scene 9: tab Limits masih perlu digulir');
+  if ((await page.locator('.cov-table tbody tr').count()) < 6) fails.push('Scene 9: matriks cakupan tidak lengkap');
   // mengetik di kolom site data: G, H, ? tidak boleh membuka panel
-  const input = page.locator('.pol-reg .reg__site input').first();
+  const input = page.locator('.pol-limits .reg__site input').first();
   await input.scrollIntoViewIfNeeded();
   await input.click();
   for (const k of ['g', 'h', '?', 's']) await page.keyboard.press(k);
@@ -136,7 +152,20 @@ async function regulationInteraction(page, url, browser) {
   await input.fill('');
   await page.evaluate(() => document.activeElement?.blur?.());
   await goScene(page, 6, 800);
-  if ((await page.locator('.overlay--reg .reg-chip').count()) < 2) fails.push('Scene 6: chip regulasi kurang dari 2');
+  if ((await page.locator('.overlay--reg').count()) > 0) fails.push('Scene 6: overlay regulasi masih menutupi tampilan 3D');
+  const line = await page.locator('.pl-reg').innerText();
+  if (!/\(indicative\)/.test(line)) fails.push('Scene 6: baris regulasi tanpa "(indicative)"');
+  // klik → Scene 9 tab Limits; Esc kembali ke Scene 6; lalu sekali lagi dengan ←
+  for (const key of ['Escape', 'ArrowLeft']) {
+    await page.locator('.pl-reg').click();
+    await page.waitForFunction(() => window.__etelDebug.scene() === 9 && !window.__etelDebug.loading(), null, { timeout: 15000 });
+    await page.waitForTimeout(500);
+    if (!(await vis('.pol-limits .lim-tab'))) fails.push('Scene 6 → 9: tab Limits tidak terbuka');
+    if (!(await page.locator('.pol-head__back .btn').isVisible())) fails.push('Scene 9: tombol kembali tidak tampil');
+    await page.keyboard.press(key);
+    await page.waitForFunction(() => window.__etelDebug.scene() === 6 && !window.__etelDebug.loading(), null, { timeout: 15000 }).catch(() => fails.push(`Scene 9: ${key} tidak kembali ke Scene 6`));
+    await page.waitForTimeout(500);
+  }
   const p2 = await browser.newPage({ viewport: { width: 1366, height: 768 } });
   await p2.goto(`${url.replace(/#.*$/, '')}#/regulations`);
   await p2.waitForFunction(() => window.__etelDebug?.scene() != null, null, { timeout: 30000 });

@@ -1,25 +1,9 @@
 /**
- * regulationsStore.js — isi content/regulations.json saat runtime (satu salinan untuk semua scene dan halaman).
- * Mulai dari salinan bawaan (sinkron), lalu diganti hasil fetch (file bisa diedit di dist/content/ tanpa build ulang).
- * File rusak / skema salah → tetap salinan bawaan + daftar galat (untuk banner); tidak pernah throw.
+ * regulationsStore.js — isi content/regulations.json saat runtime (lihat contentStore.js).
  */
-import { loadContent, fallbackContent } from './content.js';
-
-let current = { data: fallbackContent('regulations'), source: 'fallback', file: 'regulations.json', errors: [] };
-let started = false;
-const subs = new Set();
+import { contentOf, onContent } from './contentStore.js';
 
 /** Isi saat ini; panggilan pertama memulai fetch. */
-export function regulationsContent() {
-  if (!started) {
-    started = true;
-    loadContent('regulations').then((r) => { current = r; for (const fn of subs) fn(current); });
-  }
-  return current;
-}
+export const regulationsContent = () => contentOf('regulations');
 /** Dengarkan pergantian isi (setelah fetch). @returns {() => void} berhenti mendengar */
-export function onRegulations(fn) {
-  subs.add(fn);
-  regulationsContent();
-  return () => subs.delete(fn);
-}
+export const onRegulations = (fn) => onContent('regulations', fn);

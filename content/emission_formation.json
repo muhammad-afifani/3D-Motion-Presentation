@@ -1,0 +1,291 @@
+{
+  "version": 1,
+  "status": "draft-unverified",
+  "note": "Qualitative formation content for Scene 9 'Formation' tab. No site data and no invented numbers. Every card cites ids from references.json. The 'modeled' field says what the app actually computes: 'calibrated' = thermo.js function exists, 'mass-balance' = closed-form balance, 'semi-empirical' = a shape correlation exists in thermo.js but is not calibrated to data (turbine CO, coDLN), 'qualitative' = direction arrows only, 'site-input' = presenter types a measured value. Directions: up = increases, down = decreases, flat = little effect, mixed = depends on regime. Check every locator against the book/paper before presenting.",
+  "equipment": {
+    "diesel": {
+      "label": "Diesel engine (compression ignition)",
+      "params": {
+        "NOx": {
+          "modeled": "calibrated",
+          "formation": {
+            "summary": "Almost all NOx is thermal NO formed in the hot burned gas behind the flame. NO2 is a small fraction at the exhaust and forms mostly by NO oxidation in cooler zones. Regulations express the total as NO2.",
+            "reactions": [
+              "O + N2 <=> NO + N",
+              "N + O2 <=> NO + O",
+              "N + OH <=> NO + H"
+            ],
+            "reactionsName": "Extended Zeldovich mechanism",
+            "rateNote": "The first step has a high activation energy, so the rate rises very steeply with burned-gas temperature and with residence time at that temperature.",
+            "refs": ["zeldovich-1946", "lavoie-1970", "heywood", "turns"]
+          },
+          "drivers": [
+            { "id": "peakT", "label": "Peak burned-gas temperature", "direction": "up", "why": "Rate is exponential in temperature." },
+            { "id": "timing", "label": "Injection timing", "direction": "mixed", "why": "Earlier injection raises peak pressure and temperature, so more NO." },
+            { "id": "o2", "label": "Local oxygen availability", "direction": "up", "why": "N + O2 step needs O2; very rich zones make little NO." },
+            { "id": "residence", "label": "Time at high temperature", "direction": "up", "why": "Zeldovich NO is kinetically limited, not at equilibrium." }
+          ],
+          "levers": [
+            { "id": "retard", "label": "Retard injection timing", "effects": { "NOx": "down", "PM": "up", "CO": "up", "eta": "down" }, "consequence": "Lower peak temperature. Combustion moves later in the expansion stroke, so brake efficiency drops and exhaust temperature rises. Soot burnout gets worse.", "refs": ["heywood", "dec-1997"] },
+            { "id": "egr", "label": "Exhaust gas recirculation", "effects": { "NOx": "down", "PM": "up", "CO": "up", "eta": "down" }, "consequence": "Inert gas lowers flame temperature and oxygen. Needs cooling to be effective. Raises soot and wear risk. Not available on every engine.", "refs": ["ladommatos-1996", "heywood"] },
+            { "id": "chargeCool", "label": "Lower charge-air temperature", "effects": { "NOx": "down", "PM": "flat", "eta": "up" }, "consequence": "Lower start-of-compression temperature lowers the whole cycle temperature. Slightly denser charge also helps.", "refs": ["heywood"] },
+            { "id": "injP", "label": "Higher injection pressure", "effects": { "NOx": "up", "PM": "down" }, "consequence": "Better atomization cuts soot but raises local temperature. This is the classic NOx-PM trade-off.", "refs": ["heywood", "dec-1997"] }
+          ]
+        },
+        "CO": {
+          "modeled": "site-input",
+          "formation": {
+            "summary": "CO is an intermediate of hydrocarbon oxidation. Diesel runs lean overall, so CO comes from local over-rich zones and from zones that cool before burnout finishes.",
+            "reactions": [
+              "CO + OH <=> CO2 + H"
+            ],
+            "reactionsName": "Main CO burnout step",
+            "rateNote": "OH is the key oxidizer. Low temperature, low OH, or short residence time freezes CO.",
+            "refs": ["turns", "heywood"]
+          },
+          "drivers": [
+            { "id": "load", "label": "Very low load (cold gas, wall quench)", "direction": "up", "why": "Lower gas temperature slows burnout." },
+            { "id": "rich", "label": "Locally rich zones", "direction": "up", "why": "Not enough O2 for full oxidation." }
+          ],
+          "levers": [
+            { "id": "retard", "label": "Retard injection timing", "effects": { "CO": "up" }, "consequence": "Later burn means lower temperature during burnout.", "refs": ["heywood"] }
+          ]
+        },
+        "PM": {
+          "modeled": "site-input",
+          "formation": {
+            "summary": "Soot forms in fuel-rich regions of the spray, where pyrolysis and PAH growth beat oxidation. Most of it is oxidized later in the cycle. What leaves the stack is the surviving fraction, plus ash and condensed hydrocarbons.",
+            "reactions": [],
+            "reactionsName": "Conceptual spray model, no single global reaction",
+            "rateNote": "Net soot = formation minus oxidation. Anything that starves late-cycle oxidation (low temperature, low O2, poor mixing) leaves more soot.",
+            "refs": ["dec-1997", "kittelson-1998", "heywood"]
+          },
+          "drivers": [
+            { "id": "rich", "label": "Rich spray core", "direction": "up", "why": "Soot precursors form where there is no O2." },
+            { "id": "lateMix", "label": "Poor late-cycle mixing", "direction": "up", "why": "Less soot burnout." }
+          ],
+          "levers": [
+            { "id": "retard", "label": "Retard injection timing", "effects": { "PM": "up", "NOx": "down" }, "consequence": "NOx-PM trade-off.", "refs": ["heywood"] },
+            { "id": "injP", "label": "Higher injection pressure", "effects": { "PM": "down", "NOx": "up" }, "consequence": "Better mixing.", "refs": ["heywood"] }
+          ]
+        },
+        "SO2": {
+          "modeled": "mass-balance",
+          "formation": {
+            "summary": "SO2 follows from the sulfur in the fuel. Almost all fuel sulfur leaves as SO2 (a small part as SO3 or sulfate). Engine tuning does not change it.",
+            "reactions": ["S + O2 -> SO2"],
+            "reactionsName": "Sulfur mass balance",
+            "rateNote": "Mass of SO2 = 2 x mass of sulfur burned (molar mass 64.07 / 32.06). The only levers are fuel sulfur and after-treatment.",
+            "refs": ["epa-ap42-3-1", "heywood"]
+          },
+          "drivers": [
+            { "id": "fuelS", "label": "Fuel sulfur content", "direction": "up", "why": "Direct proportion." }
+          ],
+          "levers": [
+            { "id": "fuelS", "label": "Lower-sulfur fuel", "effects": { "SO2": "down" }, "consequence": "Cost and availability. No effect on efficiency.", "refs": [] }
+          ]
+        },
+        "CO2": {
+          "modeled": "mass-balance",
+          "formation": {
+            "summary": "CO2 follows from the carbon in the fuel. Specific CO2 (g/kWh) falls only when efficiency rises or the fuel has less carbon per unit energy.",
+            "reactions": ["C + O2 -> CO2"],
+            "reactionsName": "Carbon mass balance",
+            "rateNote": "Mass of CO2 = 44.01 / 12.011 x mass of carbon burned.",
+            "refs": ["epa-ap42-3-1", "heywood"]
+          },
+          "drivers": [
+            { "id": "eta", "label": "Brake efficiency", "direction": "down", "why": "More work per kg fuel means less CO2 per kWh." }
+          ],
+          "levers": [
+            { "id": "retard", "label": "Retard injection timing", "effects": { "CO2": "up" }, "consequence": "Efficiency loss raises g CO2 per kWh.", "refs": [] }
+          ]
+        }
+      }
+    },
+    "gas-engine": {
+      "label": "Gas engine (spark ignition, lean-burn)",
+      "params": {
+        "NOx": {
+          "modeled": "calibrated",
+          "formation": {
+            "summary": "Thermal NO again. In a premixed lean-burn engine the flame temperature is set mostly by air-fuel ratio (lambda) and by ignition timing. Lean burn lowers flame temperature and NOx steeply, until misfire limits it.",
+            "reactions": ["O + N2 <=> NO + N", "N + O2 <=> NO + O", "N + OH <=> NO + H"],
+            "reactionsName": "Extended Zeldovich mechanism",
+            "rateNote": "Peak NO is near slightly lean mixtures, where flame temperature and O2 are both high. Going leaner cuts temperature faster than O2 helps.",
+            "refs": ["zeldovich-1946", "lavoie-1970", "heywood"]
+          },
+          "drivers": [
+            { "id": "lambda", "label": "Air-fuel ratio (lambda)", "direction": "mixed", "why": "NOx peaks slightly lean of stoichiometric and falls steeply on the lean side." },
+            { "id": "timing", "label": "Spark timing", "direction": "up", "why": "Advance raises peak pressure and temperature." },
+            { "id": "intakeT", "label": "Intake manifold temperature", "direction": "up", "why": "Hotter charge, hotter flame." },
+            { "id": "compRatio", "label": "Compression ratio", "direction": "up", "why": "Higher end-of-compression temperature." }
+          ],
+          "levers": [
+            { "id": "lambda", "label": "Increase lambda (leaner)", "effects": { "NOx": "down", "CO": "up", "UHC": "up", "eta": "mixed" }, "consequence": "Efficiency tends to rise as mixture gets leaner, then falls near the lean limit as combustion gets slow and incomplete. Misfire and unburned methane rise near the limit.", "refs": ["heywood"] },
+            { "id": "retard", "label": "Retard spark timing", "effects": { "NOx": "down", "eta": "down", "exhaustT": "up" }, "consequence": "Lower peak pressure and temperature. Efficiency loss and hotter exhaust. Also lowers knock risk.", "refs": ["heywood"] },
+            { "id": "intakeT", "label": "Lower intake temperature", "effects": { "NOx": "down", "knock": "down", "eta": "up" }, "consequence": "Needs charge cooler capacity.", "refs": ["heywood"] }
+          ]
+        },
+        "CO": {
+          "modeled": "site-input",
+          "formation": {
+            "summary": "Lean-burn gas engines make CO from incomplete burnout in cool zones near walls and crevices, and from slow combustion near the lean limit. CO rises when flame temperature is pushed down to cut NOx.",
+            "reactions": ["CO + OH <=> CO2 + H"],
+            "reactionsName": "Main CO burnout step",
+            "rateNote": "Same chemistry as the diesel card. Lower temperature slows it.",
+            "refs": ["turns", "heywood"]
+          },
+          "drivers": [
+            { "id": "lambda", "label": "Very lean mixture", "direction": "up", "why": "Low flame temperature and slow burn." },
+            { "id": "load", "label": "Low load", "direction": "up", "why": "Lower gas temperature." }
+          ],
+          "levers": [
+            { "id": "lambda", "label": "Increase lambda (leaner)", "effects": { "CO": "up", "NOx": "down" }, "consequence": "NOx-CO trade-off along lambda.", "refs": ["heywood"] }
+          ]
+        },
+        "UHC": {
+          "modeled": "qualitative",
+          "formation": {
+            "summary": "Unburned hydrocarbons in a gas engine are mostly methane. Sources: crevice volumes (piston ring land), flame quench at walls, partial burn or misfire, and scavenging losses with valve overlap.",
+            "reactions": [],
+            "reactionsName": "No single reaction",
+            "rateNote": "Methane is the hardest hydrocarbon to oxidize, so it survives where other fuels would burn out. Methane has a much higher warming potential than CO2, so slip matters for GHG even where there is no regulated limit.",
+            "refs": ["heywood", "ipcc-ar6-wg1-ch7"]
+          },
+          "drivers": [
+            { "id": "lambda", "label": "Lean limit proximity", "direction": "up", "why": "Partial burn and misfire." },
+            { "id": "load", "label": "Low load", "direction": "up", "why": "Cooler walls and slower burn." },
+            { "id": "overlap", "label": "Valve overlap / scavenging", "direction": "up", "why": "Fresh charge passes straight to exhaust." }
+          ],
+          "levers": [
+            { "id": "lambda", "label": "Stay away from lean limit", "effects": { "UHC": "down", "NOx": "up" }, "consequence": "Gives back some of the NOx benefit.", "refs": ["heywood"] }
+          ]
+        },
+        "SO2": {
+          "modeled": "mass-balance",
+          "formation": {
+            "summary": "From sulfur compounds in the fuel gas, mainly H2S. Pipeline-quality gas has very little. Sour or associated gas can have much more.",
+            "reactions": ["H2S + 1.5 O2 -> SO2 + H2O"],
+            "reactionsName": "Sulfur mass balance",
+            "rateNote": "Set by fuel gas H2S and total sulfur, not by engine tuning.",
+            "refs": ["epa-ap42-3-2"]
+          },
+          "drivers": [{ "id": "fuelS", "label": "H2S in fuel gas", "direction": "up", "why": "Direct proportion." }],
+          "levers": [{ "id": "fuelS", "label": "Treat or switch fuel gas", "effects": { "SO2": "down" }, "consequence": "Gas treatment cost.", "refs": [] }]
+        },
+        "CO2": {
+          "modeled": "mass-balance",
+          "formation": {
+            "summary": "Carbon balance on fuel gas composition. Heavier hydrocarbons in the gas add carbon per unit energy.",
+            "reactions": ["CH4 + 2 O2 -> CO2 + 2 H2O"],
+            "reactionsName": "Carbon mass balance",
+            "rateNote": "Inert CO2 already in the fuel gas passes through and also counts at the stack.",
+            "refs": ["epa-ap42-3-2", "iso-6976"]
+          },
+          "drivers": [
+            { "id": "eta", "label": "Brake efficiency", "direction": "down", "why": "Less fuel per kWh." },
+            { "id": "composition", "label": "Fuel gas composition", "direction": "mixed", "why": "Heavier hydrocarbons and CO2 content change carbon per unit energy." }
+          ],
+          "levers": []
+        }
+      }
+    },
+    "turbine": {
+      "label": "Gas turbine (DLN combustor, single-shaft and twin-shaft)",
+      "params": {
+        "NOx": {
+          "modeled": "calibrated",
+          "formation": {
+            "summary": "Dry low-NOx combustors burn a lean premixed charge so the flame temperature stays low. Thermal NO still dominates, with prompt NO and the N2O route becoming relatively more important at low flame temperature.",
+            "reactions": [
+              "O + N2 <=> NO + N",
+              "N + O2 <=> NO + O",
+              "N + OH <=> NO + H",
+              "CH + N2 <=> HCN + N   (prompt route)",
+              "N2O route: O + N2 + M <=> N2O + M, then N2O + O <=> 2 NO"
+            ],
+            "reactionsName": "Thermal (Zeldovich), prompt (Fenimore), N2O route",
+            "rateNote": "In a lean premix flame the flame temperature is set by the fuel-air ratio at the flame, so mixing uniformity matters as much as the average.",
+            "refs": ["lefebvre", "lieuwen-yang", "fenimore-1971", "correa-1992", "miller-bowman-1989"]
+          },
+          "drivers": [
+            { "id": "flameT", "label": "Flame temperature", "direction": "up", "why": "Exponential rate dependence." },
+            { "id": "residence", "label": "Residence time in the hot zone", "direction": "up", "why": "Kinetically limited." },
+            { "id": "mixing", "label": "Premixer uniformity", "direction": "down", "why": "Hot spots make most of the NO." },
+            { "id": "inletT", "label": "Compressor discharge temperature", "direction": "up", "why": "Raises flame temperature at a given fuel-air ratio." }
+          ],
+          "levers": [
+            { "id": "flameT", "label": "Lower flame temperature (leaner premix)", "effects": { "NOx": "down", "CO": "up" }, "consequence": "Leaner flame is cooler but CO burnout slows. The operating window closes at both ends: NOx at the top, CO and flame stability at the bottom.", "refs": ["lefebvre", "lieuwen-yang"] },
+            { "id": "loadStrategy", "label": "Part-load strategy (IGV closure vs fuel-only turndown)", "effects": { "NOx": "mixed", "CO": "mixed", "eta": "down" }, "consequence": "Closing IGVs holds exhaust and flame temperature up at part load so CO stays low, at some cost in efficiency and compressor margin. This model uses a fixed premix split.", "refs": ["saravanamuttoo", "boyce"] }
+          ]
+        },
+        "CO": {
+          "modeled": "semi-empirical",
+          "formation": {
+            "summary": "CO is the partially burned intermediate. In a DLN combustor it rises when flame temperature falls, because CO + OH slows down and the residence time is too short to finish burning it. Quenching on liner walls adds to it.",
+            "reactions": ["CO + OH <=> CO2 + H"],
+            "reactionsName": "Main CO burnout step",
+            "rateNote": "The Gas Turbine table in Permen LH 13/2009 has no CO limit. A turbine CO limit comes from the site permit or the OEM guarantee.",
+            "refs": ["lefebvre", "lieuwen-yang", "turns"]
+          },
+          "drivers": [
+            { "id": "flameT", "label": "Low flame temperature", "direction": "up", "why": "Slow burnout." },
+            { "id": "load", "label": "Low load", "direction": "up", "why": "Flame temperature and pressure both fall." }
+          ],
+          "levers": [
+            { "id": "loadStrategy", "label": "Hold flame temperature with IGV", "effects": { "CO": "down", "eta": "down" }, "consequence": "Lower CO at part load, small efficiency cost.", "refs": ["saravanamuttoo"] }
+          ]
+        },
+        "UHC": {
+          "modeled": "qualitative",
+          "formation": {
+            "summary": "Unburned hydrocarbons in a turbine are usually small at normal load and rise near lean blowout and at very low load.",
+            "reactions": [],
+            "reactionsName": "No single reaction",
+            "rateNote": "Not modeled. Enter measured values as site data.",
+            "refs": ["lefebvre"]
+          },
+          "drivers": [{ "id": "blowout", "label": "Approaching lean blowout", "direction": "up", "why": "Incomplete burn." }],
+          "levers": []
+        },
+        "SO2": {
+          "modeled": "mass-balance",
+          "formation": {
+            "summary": "Sulfur mass balance from the fuel. No combustor setting changes it.",
+            "reactions": ["H2S + 1.5 O2 -> SO2 + H2O"],
+            "reactionsName": "Sulfur mass balance",
+            "rateNote": "Set by fuel sulfur only.",
+            "refs": ["epa-ap42-3-1"]
+          },
+          "drivers": [{ "id": "fuelS", "label": "Fuel sulfur", "direction": "up", "why": "Direct proportion." }],
+          "levers": []
+        },
+        "PM": {
+          "modeled": "site-input",
+          "formation": {
+            "summary": "On clean gas fuel particulate is very low. On liquid fuel, soot comes from fuel-rich pockets and ash from fuel impurities.",
+            "reactions": [],
+            "reactionsName": "Not modeled",
+            "rateNote": "Enter measured values as site data.",
+            "refs": ["epa-ap42-3-1"]
+          },
+          "drivers": [],
+          "levers": []
+        },
+        "CO2": {
+          "modeled": "mass-balance",
+          "formation": {
+            "summary": "Carbon balance on the fuel. Specific CO2 falls only with higher efficiency or lower-carbon fuel.",
+            "reactions": ["CH4 + 2 O2 -> CO2 + 2 H2O"],
+            "reactionsName": "Carbon mass balance",
+            "rateNote": "",
+            "refs": ["epa-ap42-3-1"]
+          },
+          "drivers": [{ "id": "eta", "label": "Efficiency", "direction": "down", "why": "Less fuel per kWh." }],
+          "levers": []
+        }
+      }
+    }
+  }
+}
