@@ -619,5 +619,5 @@ button.chart__level:hover, .hud__note .level[data-basis]:hover, .cyc-level[data-
 .lev-notes p, .lev-pane p { margin: 0; }
 .lev-strong { color: var(--text); font-weight: 600; }
 .lev-h { margin: 4px 0 0; font-size: 13px; }
-.scene--policy[data-tab="levers"] .hud { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+.scene--policy:is([data-tab="levers"], [data-tab="B"]) .hud { grid-template-columns: repeat(8, minmax(0, 1fr)); }
 .scene--policy[data-tab="levers"] .hud__sub { overflow-wrap: anywhere; }

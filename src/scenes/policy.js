@@ -9,7 +9,7 @@ import { policyInitialState, limitsInitialState } from '../state/store.js';
 import { derivePolicy, limitsInputPatch } from '../state/derivePolicy.js';
 import { leverSweepParams, leverSweepKey, leverPatch, leverEngine, leversResetPatch } from '../state/deriveLevers.js';
 import { createSimClient } from '../state/simClient.js';
-import { POLICY, LOAD_RANGE, LEVER_AXIS_DISPLAY } from '../model/presets.js';
+import { POLICY, LOAD_RANGE, LEVER_AXIS_DISPLAY, EMIS } from '../model/presets.js';
 import { SPECIES_COLORS } from '../gfx/species.js';
 import { createMultiLineChart } from '../charts/multiLineChart.js';
 import { decadeTicks, decadeFmt } from '../charts/xyChart.js';
@@ -70,7 +70,10 @@ export function hudItems(f) {
   if (f.tab === 'B') {
     return [
       { id: 'pen', label: H.penB.label, unit: U.pct, value: (x) => fmt(x.B.value, 1), tip: H.penB.tip },
+      { id: 'slip', label: H.slip.label, unit: U.pct, value: (x) => fmt(x.B.slip, 1), tip: H.slip.tip },
       ...f.B.machines.map((m, i) => ({ id: `co2${m.id}`, label: H.co2B(STR.scene8.machines[m.id]), unit: U.gkWh, value: (x) => H.before(x.B.machines[i].current.co2_0, x.B.machines[i].current.co2_1), tip: H.co2BTip })),
+      ...f.B.machines.flatMap((m, i) => (m.gasFired ? [{ id: `co2e${m.id}`, label: H.co2e(STR.scene8.machines[m.id]), unit: U.gkWh, value: (x) => H.before(x.B.machines[i].current.co2_1, x.B.machines[i].currentE.co2e), tip: H.co2eTip }] : [])),
+      { id: 'share', label: H.share.label, unit: U.pct, value: (x) => pct(x.B.machines.find((m) => m.id === 'gas').currentE.slipShare, 1), tip: H.share.tip },
     ];
   }
   const c = f.C, unitLbl = S.unitLabel[c.unit];
@@ -136,6 +139,7 @@ export function createScene(ctx) {
           <p class="pol-result num" data-k="result"></p>
           <p class="pol-note" data-k="note"></p>
           <p class="pol-note" data-k="strategy"></p>
+          <p class="pol-note pol-ref" data-k="ref" hidden><span></span><a class="fm-ref"></a></p>
           <div class="pol-disclaimer" data-k="disclaimer"></div>
         </div>
         <div class="pl-emis chart-slot"></div>
@@ -150,10 +154,11 @@ export function createScene(ctx) {
     const s = store.get();
     ctl.tab = segmented({ label: S.tab, tip: S.tips.tab, options: POLICY.tabs.map((t, i) => ({ value: t, label: S.tabs[t], key: String(i + 1) })), value: s.pTab, onChange: (v) => store.set({ pTab: v }) });
     ctl.penalty = slider({ label: S.penalty, ...POLICY.penalty, value: s.pPenalty, digits: 1, unit: U.pct, tip: S.tips.penalty, onInput: (v) => store.set({ pPenalty: v }) });
+    ctl.slip = slider({ label: S.slip, ...EMIS.slip, value: s.eSlip ?? EMIS.slip.default, digits: 1, unit: U.pct, tip: S.tips.slip, onInput: (v) => store.set({ eSlip: v }) });
     ctl.unit = segmented({ label: S.unit, tip: S.tips.unit, options: POLICY.limUnits.map((u) => ({ value: u, label: S.units[u] })), value: s.limUnit, onChange: (v) => store.set({ limUnit: v }) });
     ctl.reset = button({ label: C.reset, key: 'R', tip: S.tips.reset, onClick: () => resetParams() });
     const g1 = html('<div class="ctl-group"></div>');
-    g1.append(ctl.tab.el, ctl.penalty.el, ctl.unit.el);
+    g1.append(ctl.tab.el, ctl.penalty.el, ctl.slip.el, ctl.unit.el);
     const g2 = html('<div class="ctl-group"></div>');
     lim = createLimitsInput(g2, {
       onChange: (p) => store.set(limitsInputPatch(store.get(), p)),
@@ -172,8 +177,8 @@ export function createScene(ctx) {
   }
 
   function syncControls(s) {
-    ctl.tab.set(s.pTab); ctl.unit.set(s.limUnit); ctl.penalty.set(s.pPenalty);
-    ctl.penalty.el.hidden = s.pTab !== 'B';
+    ctl.tab.set(s.pTab); ctl.unit.set(s.limUnit); ctl.penalty.set(s.pPenalty); ctl.slip.set(s.eSlip ?? EMIS.slip.default);
+    ctl.penalty.el.hidden = s.pTab !== 'B'; ctl.slip.el.hidden = s.pTab !== 'B';
     ctl.unit.el.hidden = s.pTab !== 'C'; ctl.limits.hidden = s.pTab !== 'C';
   }
 
@@ -235,7 +240,10 @@ export function createScene(ctx) {
   function updateCard(f) {
     setText(q('[data-k="title"]'), S.titles[f.tab]);
     setText(q('[data-k="result"]'), resultLine(f));
-    setText(q('[data-k="note"]'), '');
+    setText(q('[data-k="note"]'), f.tab === 'B' ? S.B.slipNote(f.B.gwp) : f.tab === 'C' ? S.C.model : '');
+    const ref = q('[data-k="ref"]');
+    ref.hidden = f.tab !== 'B' || !f.B.gwpRef;
+    if (!ref.hidden) { setText(ref.querySelector('span'), `${S.B.source}: `); const a = ref.querySelector('a'); setText(a, f.B.gwpRef); a.href = `#/references/${f.B.gwpRef}`; }
     setText(q('[data-k="strategy"]'), f.tab === 'C' ? S.C.strategy(f.C.strategy) : '');
     setText(q('[data-k="disclaimer"]'), S.disclaimer(basisText('nox', f.C.unit, f.C.basis), basisText('co', f.C.unit, f.C.basis)));
   }
@@ -273,22 +281,34 @@ export function createScene(ctx) {
     sub.setPoints([{ x: px, y: L.presetPoint.etaBrake * 100, fill: 'rgba(0,0,0,0)', ring: '#e6ebf3', guide: false }, { x: L.currentX, y: L.etaPct[L.i], fill: ETA_COLOR }]);
   }
 
+  /** Tab GHG: CO₂ (garis penuh) dan CO₂e dengan slip (putus-putus, mesin gas) vs penalti; CO₂e vs slip di grafik pendamping. */
   function chartsB(f) {
-    const B = f.B;
-    const k = `b|${B.machines.map((m) => m.eta).join(',')}`;
+    const B = f.B, gasM = B.machines.filter((m) => m.gasFired);
+    const k = `b|${B.machines.map((m) => m.eta).join(',')}|${B.slip}|${B.value}`;
     if (k !== mainKey) {
       mainKey = k;
       main.setTitle(S.B.main.title); main.setXLabel(S.B.main.xLabel); main.setYLabel(S.B.main.yLabel); main.setLog(false);
-      const all = B.machines.flatMap((m) => m.co2);
-      main.setData({ series: B.machines.map((m) => ({ x: B.penalty, y: m.co2, color: MCOLOR[m.id] })), xDomain: [B.penalty[0], B.penalty.at(-1)], yDomain: [Math.floor(Math.min(...all) / 50) * 50, niceCeil(Math.max(...all) * 1.02)], xFmt: (v) => fmt(v, 0) });
-      main.setCaption(S.B.sub.caption);
-      sub.setTitle(S.B.sub.title); sub.setXLabel(S.B.main.xLabel); sub.setYLabel(S.B.sub.yLabel); sub.setLog(false);
-      const allD = B.machines.flatMap((m) => m.dCo2);
-      sub.setData({ series: B.machines.map((m) => ({ x: B.penalty, y: m.dCo2, color: MCOLOR[m.id] })), xDomain: [B.penalty[0], B.penalty.at(-1)], yDomain: [0, niceCeil(Math.max(...allD) * 1.1)], xFmt: (v) => fmt(v, 0) });
+      const series = [
+        ...B.machines.map((m) => ({ x: B.penalty, y: m.co2, color: MCOLOR[m.id] })),
+        ...gasM.map((m) => ({ x: B.penalty, y: m.co2e, color: MCOLOR[m.id], dash: [7, 5] })),
+      ];
+      const all = series.flatMap((x) => x.y);
+      main.setData({ series, xDomain: [B.penalty[0], B.penalty.at(-1)], yDomain: [Math.floor(Math.min(...all) / 50) * 50, niceCeil(Math.max(...all) * 1.02)], xFmt: (v) => fmt(v, 0) });
+      main.setCaption(S.B.caption(B.slip));
+      sub.setTitle(S.B.sub.title); sub.setXLabel(S.B.sub.xLabel); sub.setYLabel(S.B.sub.yLabel); sub.setLog(false);
+      const allS = gasM.flatMap((m) => [...m.co2eVsSlip, m.current.co2_1]);
+      sub.setData({
+        series: gasM.map((m) => ({ x: B.slips, y: m.co2eVsSlip, color: MCOLOR[m.id] })),
+        hlines: gasM.map((m) => ({ y: m.current.co2_1, color: MCOLOR[m.id], dash: [2, 3] })),
+        xDomain: [B.slips[0], B.slips.at(-1)], yDomain: [Math.floor(Math.min(...allS) / 50) * 50, niceCeil(Math.max(...allS) * 1.02)], xFmt: (v) => fmt(v, 1),
+      });
       sub.setCaption(S.B.sub.caption);
     }
-    main.setPoints(B.machines.map((m) => ({ x: B.value, y: m.current.co2_1, fill: MCOLOR[m.id] })));
-    sub.setPoints(B.machines.map((m) => ({ x: B.value, y: m.current.co2_1 - m.current.co2_0, fill: MCOLOR[m.id] })));
+    main.setPoints([
+      ...B.machines.map((m) => ({ x: B.value, y: m.current.co2_1, fill: MCOLOR[m.id] })),
+      ...gasM.map((m) => ({ x: B.value, y: m.currentE.co2e, fill: 'rgba(0,0,0,0)', ring: MCOLOR[m.id] })),
+    ]);
+    sub.setPoints(gasM.map((m) => ({ x: B.slip, y: m.currentE.co2e, fill: MCOLOR[m.id] })));
   }
 
   function chartsC(f) {

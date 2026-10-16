@@ -1,7 +1,7 @@
 // Scene 9: ghgPenalty (B), kurva Scene 6 + batas presenter (C). Tab Levers (pengganti panel A): tests/levers.test.js.
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { ghgPenalty, ppmToMgNm3, mgNm3ToPpm, mgNm3ToPpmReg, MW } from '../src/model/thermo.js';
+import { ghgPenalty, co2eWithSlip, GWP_CH4, ppmToMgNm3, mgNm3ToPpm, mgNm3ToPpmReg, MW } from '../src/model/thermo.js';
 import { fmt } from '../src/ui/format.js';
 import { policyInitialState, calibInitialState, basisInitialState, limitsInitialState, loadInitialState } from '../src/state/store.js';
 import { derivePolicy, limitsInputPatch, toDisplay } from '../src/state/derivePolicy.js';
@@ -31,7 +31,33 @@ describe('Scene 9 panel B: ghgPenalty', () => {
   });
 });
 
+describe('Scene 9 tab GHG: CO₂ dan CO₂e dengan methane slip', () => {
+  it('CO₂e = co2eWithSlip(η setelah penalti, slip) untuk mesin gas; diesel tanpa CO₂e; CO₂ biasa tanpa slip', () => {
+    const f = derivePolicy(st({ pTab: 'B', pPenalty: 3, eSlip: 1.5 }), null);
+    expect(f.B.gwp).toBe(GWP_CH4); expect(f.B.gwp).toBe(29.8); expect(f.B.gwpRef).toBe('ipcc-ar6-wg1-ch7');
+    for (const m of f.B.machines) {
+      if (m.id === 'diesel') { expect(m.co2e).toBeNull(); expect(m.currentE).toBeNull(); continue; }
+      const g = ghgPenalty({ eta: m.eta, fuelPenaltyPct: 3, fuel: 'gas' });
+      const e = co2eWithSlip({ eta: g.eta1, slipFrac: 0.015, fuel: 'gas' });
+      expect(m.currentE.co2e).toBe(e.co2e);
+      expect(m.currentE.co2).toBeCloseTo(m.current.co2_1, 9); // CO₂ biasa pada titik yang sama: tanpa slip
+      expect(m.co2e[f.B.penalty.indexOf(3)]).toBe(e.co2e);
+      expect(m.co2eVsSlip[0]).toBeCloseTo(m.current.co2_1, 9); // slip 0 → CO₂e = CO₂
+      expect(m.co2eVsSlip.at(-1)).toBeGreaterThan(m.co2eVsSlip[0]);
+    }
+    expect(f.B.slips[0]).toBe(0); expect(f.B.slips.at(-1)).toBe(3);
+    expect(STR.scene9.B.slipNote(f.B.gwp)).toBe('Methane slip is not in plain CO₂. CO₂e = CO₂ + GWP × CH₄ slip, with GWP 29.8 (IPCC AR6, 100-year).');
+    const ids = hudItems(f).map((x) => x.id);
+    expect(ids).toEqual(['pen', 'slip', 'co2diesel', 'co2gas', 'co2turbine', 'co2egas', 'co2eturbine', 'share']);
+  });
+});
+
 describe('Scene 9 panel C: baku mutu seragam', () => {
+  it('kalimat model dijaga: single-shaft "cliff" CO setelah IGV habis; twin-shaft bergeser dan menyempit', () => {
+    expect(STR.scene9.C.model).toMatch(/single-shaft\) shows a CO "cliff" once the IGV runs out/);
+    expect(STR.scene9.C.model).toMatch(/twin-shaft\): the operating window shifts and narrows/);
+    expect(STR.scene9.C.model).toMatch(/CO line appears only when a permit or OEM CO value is entered/);
+  });
   it('tanpa isian presenter: NOx dari regulations.json, CO kosong (tabel turbin tanpa limit CO) → ajakan mengisi, tanpa jendela', () => {
     const f = derivePolicy(st({ pTab: 'C' }), null);
     expect(f.C.limits.set).toBe(false);
