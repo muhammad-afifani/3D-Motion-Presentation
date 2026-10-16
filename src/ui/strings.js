@@ -79,6 +79,32 @@ export const STR = {
     },
   },
 
+  // ─────────────────────────── navigation (M9 Step 06: Explore / Present) ───────────────────────────
+  nav: {
+    label: 'Navigation',
+    scenesTitle: 'Scenes',
+    pagesTitle: 'Pages',
+    toolsTitle: 'Tools',
+    scenes: {
+      1: 'Piston & P-V', 2: 'Ideal vs real cycles', 3: 'Combustion & flame T', 4: 'NOx & temperature', 5: 'Gas turbine',
+      6: 'Part-load', 7: 'Gas compressor', 8: 'Combined emissions', 9: 'Regulated emissions', 10: 'Control devices', 11: 'Closing',
+    },
+    sceneTip: (n, title) => `Scene ${n}: ${title}`,
+    pages: { regulations: 'Regulations', formation: 'Emission formation', references: 'References', glossary: 'Glossary', assumptions: 'Assumptions' },
+    pagesShort: { regulations: 'Rg', formation: 'Fm', references: 'Rf', glossary: 'Gl', assumptions: 'As' },
+    pageKeys: { regulations: 'G', references: '?', assumptions: 'H' },
+    collapse: 'Collapse navigation',
+    expand: 'Expand navigation',
+    present: 'Present mode',
+    presentShort: 'Pr',
+    toolsShort: { snapshot: 'Sn', presenter: 'Pw' },
+    presentTip: 'Clean full-screen view for presenting: navigation hidden, ← → change scene. M returns to Explore.',
+    modeKey: 'M',
+    hintPresent: 'M: Explore',
+    toastExplore: 'Explore mode: navigation on the left. ← → change scene only when the navigation has focus.',
+    keysHint: 'In the navigation: ↑ ↓ move, ← → change scene.',
+  },
+
   // ─────────────────────────── shared charts ───────────────────────────
   charts: {
     pv: {

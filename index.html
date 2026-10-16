@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Engine &amp; Turbine Emission Lab</title>
   </head>
-  <body>
+  <body class="mode-explore">
+    <div class="shell">
     <header class="topbar">
       <div class="topbar__left">
         <div class="brand"></div>
@@ -17,6 +18,8 @@
       </div>
     </header>
     <main id="app"></main>
+    </div>
+    <div class="mode-hint" id="mode-hint" aria-hidden="true"></div>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script type="module" src="./src/main.js"></script>
   </body>

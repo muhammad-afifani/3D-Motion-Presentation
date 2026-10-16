@@ -23,9 +23,10 @@ const groupsOf = (names) => Object.keys(BASIS_GROUPS).filter((g) => names.some((
 
 /**
  * @param {HTMLElement} [parent]
- * @param {{win?: Window}} [opts] win = jendela untuk hash/riwayat (uji)
+ * @param {{win?: Window, homeHash?: () => string}} [opts] win = jendela untuk hash/riwayat (uji); homeHash = alamat saat
+ *   halaman ditutup (Step 06: kembali ke #/scene/N); tanpa homeHash → alamat tanpa hash
  */
-export function createReferencesPage(parent = document.body, { win = window } = {}) {
+export function createReferencesPage(parent = document.body, { win = window, homeHash = null } = {}) {
   const el = h('div', 'refs');
   el.hidden = true;
   el.setAttribute('role', 'dialog');
@@ -84,7 +85,7 @@ export function createReferencesPage(parent = document.body, { win = window } = 
       /** @type {HTMLElement|null} */ (box.querySelector('button'))?.focus();
       if (!fromHash && !isReferencesHash(win.location.hash)) win.history.replaceState(null, '', REFERENCES_HASH);
     } else {
-      if (!fromHash && isReferencesHash(win.location.hash)) win.history.replaceState(null, '', `${win.location.pathname}${win.location.search}`);
+      if (!fromHash && isReferencesHash(win.location.hash)) win.history.replaceState(null, '', homeHash?.() ?? `${win.location.pathname}${win.location.search}`);
       /** @type {HTMLElement|null} */ (opener)?.focus?.();
     }
   }

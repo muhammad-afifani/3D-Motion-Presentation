@@ -23,9 +23,9 @@ function h(tag, cls = '', text = '') {
 
 /**
  * @param {HTMLElement} [parent]
- * @param {{win?: Window}} [opts]
+ * @param {{win?: Window, homeHash?: () => string}} [opts] homeHash = alamat saat halaman ditutup (Step 06: #/scene/N)
  */
-export function createRegulationsPage(parent = document.body, { win = window } = {}) {
+export function createRegulationsPage(parent = document.body, { win = window, homeHash = null } = {}) {
   const el = h('div', 'refs refs--regs');
   el.hidden = true;
   el.setAttribute('role', 'dialog');
@@ -102,7 +102,7 @@ export function createRegulationsPage(parent = document.body, { win = window } =
       /** @type {HTMLElement|null} */ (box.querySelector('button'))?.focus();
       if (!fromHash && !isRegulationsHash(win.location.hash)) win.history.replaceState(null, '', REGULATIONS_HASH);
     } else {
-      if (!fromHash && isRegulationsHash(win.location.hash)) win.history.replaceState(null, '', `${win.location.pathname}${win.location.search}`);
+      if (!fromHash && isRegulationsHash(win.location.hash)) win.history.replaceState(null, '', homeHash?.() ?? `${win.location.pathname}${win.location.search}`);
       /** @type {HTMLElement|null} */ (opener)?.focus?.();
     }
   }
