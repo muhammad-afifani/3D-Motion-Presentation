@@ -40,22 +40,25 @@ describe('CO₂ spesifik', () => {
   it('co2Specific(0.42, diesel) = 635,1 g/kWh', () => near(co2Specific(0.42, 'diesel'), 635.1, 0.3));
 });
 
+// M10: cv(T) udara dari polinomial NASA (dulu fit linear, sampai −7,5 % di 1200–1400 K). cv lebih tinggi di suhu tinggi
+// → kenaikan T dan P per kalor lebih kecil dan k lebih rendah → Pmax dan η turun. Dulu: diesel 116 bar / 0,441 / 192;
+// gas 109 bar / 0,423 / 177 g/kWh. NOx dikalibrasi ulang ke target literatur yang sama (11 / 2,5 g/kWh): dulu 10,7 / 2,6.
 describe('cylinderSim preset', () => {
   const sd = cylinderSim(ENGINE_PRESETS.diesel);
   const sg = cylinderSim(ENGINE_PRESETS.gas);
-  it('diesel: Pmax 116 bar / η rem 0,441 / BSFC 192 g/kWh', () => {
-    near(sd.Pmax / 1e5, 116, 3);
-    near(sd.etaBrake, 0.441, 0.005);
-    near(sd.bsfc, 192, 3);
+  it('diesel: Pmax 112,4 bar / η rem 0,425 / BSFC 199 g/kWh', () => {
+    near(sd.Pmax / 1e5, 112.4, 3);
+    near(sd.etaBrake, 0.425, 0.005);
+    near(sd.bsfc, 199.4, 3);
   });
-  it('gas: Pmax 109 bar / η rem 0,423 / BSFC 177 g/kWh', () => {
-    near(sg.Pmax / 1e5, 109, 3);
-    near(sg.etaBrake, 0.423, 0.005);
-    near(sg.bsfc, 177, 3);
+  it('gas: Pmax 104,6 bar / η rem 0,406 / BSFC 184,5 g/kWh', () => {
+    near(sg.Pmax / 1e5, 104.6, 3);
+    near(sg.etaBrake, 0.406, 0.005);
+    near(sg.bsfc, 184.5, 3);
   });
-  it('NOx terkalibrasi diesel 10,7 / gas 2,6 g/kWh', () => {
-    near(sd.NOx_gkWh, 10.7, 0.5);
-    near(sg.NOx_gkWh, 2.6, 0.2);
+  it('NOx terkalibrasi (faktor 0,185) diesel 11,1 / gas 2,5 g/kWh', () => {
+    near(sd.NOx_gkWh, 11.06, 0.5);
+    near(sg.NOx_gkWh, 2.46, 0.2);
   });
 });
 
@@ -86,10 +89,12 @@ describe('Waterfall (lossWaterfall)', () => {
   // window 'full' (default, fase tertutup ±180°).
   // M9 Step 04: batas ideal diesel diganti Otto 67,0 → dual dari preset 63,2 % (alasan: Otto = batas volume-tetap;
   // untuk mesin CI batas yang dapat dilacak ke preset adalah siklus dual). Langkah 2–5 diesel dan seluruh gas tidak berubah.
-  it('full: diesel 63,2 → 62,3 → 58,3 → 50,6 → 44,9 % (dulu 67,0 → …)', () => nearAll(pct(lossWaterfall('diesel')), [63.2, 62.3, 58.3, 50.6, 44.9]));
-  it('full: gas 61,7 → 56,6 → 53,9 → 47,1 → 43,1 %', () => nearAll(pct(lossWaterfall('gas')), [61.7, 56.6, 53.9, 47.1, 43.1]));
+  // M10: batas ideal tetap (k = 1,4); langkah k(T) dan seterusnya turun karena cv(T) NASA (dulu 62,3 / 58,3 / 50,6 / 44,9 dan 56,6 / 53,9 / 47,1 / 43,1)
+  it('full: diesel 63,2 → 60,4 → 56,3 → 48,9 → 43,3 %', () => nearAll(pct(lossWaterfall('diesel')), [63.2, 60.4, 56.3, 48.9, 43.3]));
+  it('full: gas 61,7 → 54,6 → 52,0 → 45,4 → 41,4 %', () => nearAll(pct(lossWaterfall('gas')), [61.7, 54.6, 52.0, 45.4, 41.4]));
   // window 'preset' (IVC/EVO preset) — dipakai Scene 2, langkah terakhir = η rem HUD
-  it('preset: diesel 63,2 → 61,7 → 57,5 → 49,9 → 44,1 % (dulu 67,0 → …)', () => nearAll(pct(lossWaterfall('diesel', {}, { window: 'preset' })), [63.2, 61.7, 57.5, 49.9, 44.1]));
+  // M10: dulu 63,2 → 61,7 → 57,5 → 49,9 → 44,1 (diesel) dan 61,7 → 55,8 → 53,1 → 46,4 → 42,3 (gas)
+  it('preset: diesel 63,2 → 59,7 → 55,5 → 48,3 → 42,5 %', () => nearAll(pct(lossWaterfall('diesel', {}, { window: 'preset' })), [63.2, 59.7, 55.5, 48.3, 42.5]));
   it('batas ideal: gas = Otto r = 11; diesel = dualIdealLimit(preset) dengan rp 1,406 dan rc 1,826', () => {
     near(lossWaterfall('gas')[0].eta, otto({ r: 11 }).eta, 1e-12);
     const d = dualIdealLimit({ ...ENGINE_PRESETS.diesel });
@@ -108,7 +113,7 @@ describe('Waterfall (lossWaterfall)', () => {
     const d0 = dualIdealLimit({ ...P, premixFrac: 0 });
     near(d0.rp, 1, 1e-12); near(d0.eta, diesel({ r: P.r, T1: P.Tivc, qin: d0.qin }).eta, 1e-9);
   });
-  it('preset: gas 61,7 → 55,8 → 53,1 → 46,4 → 42,3 %', () => nearAll(pct(lossWaterfall('gas', {}, { window: 'preset' })), [61.7, 55.8, 53.1, 46.4, 42.3]));
+  it('preset: gas 61,7 → 53,9 → 51,2 → 44,8 → 40,6 %', () => nearAll(pct(lossWaterfall('gas', {}, { window: 'preset' })), [61.7, 53.9, 51.2, 44.8, 40.6]));
   it('preset: langkah terakhir = η rem cylinderSim preset', () => {
     for (const k of ['diesel', 'gas']) {
       const wf = lossWaterfall(k, {}, { window: 'preset' });
@@ -118,7 +123,8 @@ describe('Waterfall (lossWaterfall)', () => {
 });
 
 describe('simStates (entropi cylinderSim untuk T-s real)', () => {
-  for (const [k, sEvo] of [['diesel', 854.5], ['gas', 1014.3]]) {
+  // M10: ∫cv/T dT dari s° NASA (dulu fit linear: 854,5 / 1014,3); cv lebih tinggi → kenaikan entropi pembakaran lebih besar
+  for (const [k, sEvo] of [['diesel', 881.8], ['gas', 1045.2]]) {
     it(`${k}: kompresi adiabatik Δs ≈ 0; s(EVO) − s(IVC) = ${sEvo} J/(kg·K)`, () => {
       const sim = cylinderSim(ENGINE_PRESETS[k]);
       const { v, s } = simStates(sim);
@@ -188,10 +194,11 @@ describe('NOx (Scene 4)', () => {
   const sd = cylinderSim(ENGINE_PRESETS.diesel);
   const sg = cylinderSim(ENGINE_PRESETS.gas);
 
-  it('jejak TbTrace/noTrace tidak mengubah golden lama (10,7 / 2,6 g/kWh; 116 / 109 bar; η 0,441 / 0,423)', () => {
-    near(sd.NOx_gkWh, 10.7, 0.5); near(sg.NOx_gkWh, 2.6, 0.2);
-    near(sd.Pmax / 1e5, 116, 3); near(sg.Pmax / 1e5, 109, 3);
-    near(sd.etaBrake, 0.441, 0.005); near(sg.etaBrake, 0.423, 0.005);
+  // M10: golden preset baru (cv(T) NASA + faktor NOx 0,185); dulu 10,7 / 2,6 g/kWh; 116 / 109 bar; η 0,441 / 0,423
+  it('jejak TbTrace/noTrace tidak mengubah golden preset (11,1 / 2,5 g/kWh; 112,4 / 104,6 bar; η 0,425 / 0,406)', () => {
+    near(sd.NOx_gkWh, 11.06, 0.5); near(sg.NOx_gkWh, 2.46, 0.2);
+    near(sd.Pmax / 1e5, 112.4, 3); near(sg.Pmax / 1e5, 104.6, 3);
+    near(sd.etaBrake, 0.425, 0.005); near(sg.etaBrake, 0.406, 0.005);
   });
   it('max(TbTrace) = TburnedMax; noTrace monoton, ujungnya = nNOkmol', () => {
     for (const s of [sd, sg]) {
@@ -236,13 +243,14 @@ describe('NOx (Scene 4)', () => {
     near(r.NOx_gkWh, 5, 0.01);
     expect(r.calib).toBeLessThan(ENGINE_NOX_CALIB);
   });
-  it('retardSweep diesel −4° → 0°: NOx −31%, CO₂ +3,0%; gas −14° → −6°: NOx 2,57 → 0,74', () => {
+  // M10: jejak tekanan baru (cv(T) NASA) + faktor 0,185; dulu diesel −30,6 % / +2,97 %, gas 2,57 → 0,74
+  it('retardSweep diesel −4° → 0°: NOx −30 %, CO₂ +3,1 %; gas −14° → −6°: NOx 2,46 → 0,73', () => {
     const [a, b] = retardSweep('diesel', [-4, 0]);
-    near((b.NOx_gkWh / a.NOx_gkWh - 1) * 100, -31, 1);
-    near((b.co2_gkWh / a.co2_gkWh - 1) * 100, 3.0, 0.2);
+    near((b.NOx_gkWh / a.NOx_gkWh - 1) * 100, -30.2, 1);
+    near((b.co2_gkWh / a.co2_gkWh - 1) * 100, 3.06, 0.2);
     const [g0, g1] = retardSweep('gas', [-14, -6]);
-    near(g0.NOx_gkWh, 2.57, 0.05);
-    near(g1.NOx_gkWh, 0.74, 0.05);
+    near(g0.NOx_gkWh, 2.46, 0.05);
+    near(g1.NOx_gkWh, 0.73, 0.05);
   });
 });
 
@@ -344,11 +352,12 @@ describe('Kompresor gas + compressor drive (Scene 7)', () => {
 
 describe('Emisi gabungan & trade-off (Scene 8–9) — slide S8/S9', () => {
   const sd = cylinderSim(ENGINE_PRESETS.diesel), sg = cylinderSim(ENGINE_PRESETS.gas);
-  it('co2Specific: gas η 42 % = 480,9, diesel η 44 % = 606,3; pada η preset (42,3 % / 44,1 %) ≈ 478 / 605 (gas 21 % lebih rendah)', () => {
+  // M10: η preset turun (cv(T) NASA) → CO₂ spesifik naik; dulu η 42,3 / 44,1 %, CO₂ 478 / 605 g/kWh (gas 21,0 % lebih rendah)
+  it('co2Specific: gas η 42 % = 480,9, diesel η 44 % = 606,3; pada η preset (40,6 % / 42,5 %) ≈ 497 / 628 (gas 21 % lebih rendah)', () => {
     near(co2Specific(0.42, 'gas'), 480.9, 0.1); near(co2Specific(0.44, 'diesel'), 606.3, 0.1);
-    near(sg.etaBrake, 0.423, 0.001); near(sd.etaBrake, 0.441, 0.001);
-    near(sg.co2_gkWh, 478, 0.5); near(sd.co2_gkWh, 605, 0.5);
-    near((1 - sg.co2_gkWh / sd.co2_gkWh) * 100, 21, 0.2);
+    near(sg.etaBrake, 0.4064, 0.001); near(sd.etaBrake, 0.4249, 0.001);
+    near(sg.co2_gkWh, 496.9, 0.5); near(sd.co2_gkWh, 627.8, 0.5);
+    near((1 - sg.co2_gkWh / sd.co2_gkWh) * 100, 20.85, 0.2);
     near(co2Specific(braytonReal({}).eta, 'gas'), 534.7, 0.2);
   });
   it('methane slip @ η 40 %: 1 % → CO₂e 561 vs 505 (+11,1 %), 3 % → 673 (+33,2 %); GWP 29,8', () => {
@@ -356,12 +365,13 @@ describe('Emisi gabungan & trade-off (Scene 8–9) — slide S8/S9', () => {
     near(a.co2, 504.9, 0.1); near(a.ch4_g, 1.875, 0.001); near(a.co2e, 560.8, 0.1); near((a.co2e / a.co2 - 1) * 100, 11.1, 0.05);
     near(b.co2e, 672.5, 0.1); near((b.co2e / b.co2 - 1) * 100, 33.2, 0.05);
   });
-  it('retardSweep diesel −8/−4/0/+4: NOx 15,1/10,7/7,4/5,3; η 44,9/44,1/42,8/41,3 %; CO₂ 593/605/623/645; −8→+4 NOx −65 %, CO₂ +8,7 %', () => {
+  // M10: dulu NOx 15,10/10,69/7,42/5,26; η 0,449/0,441/0,428/0,413; CO₂ 593,5/604,8/622,8/645,2; −8→+4 NOx −65,2 %, CO₂ +8,7 %
+  it('retardSweep diesel −8/−4/0/+4: NOx 15,6/11,1/7,7/5,5; η 43,4/42,5/41,2/39,8 %; CO₂ 615/628/647/671; −8→+4 NOx −65 %, CO₂ +9,0 %', () => {
     const r = retardSweep('diesel', [-8, -4, 0, 4]);
-    [15.10, 10.69, 7.42, 5.26].forEach((v, i) => near(r[i].NOx_gkWh, v, 0.01));
-    [0.449, 0.441, 0.428, 0.413].forEach((v, i) => near(r[i].etaBrake, v, 0.001));
-    [593.5, 604.8, 622.8, 645.2].forEach((v, i) => near(r[i].co2_gkWh, v, 0.2));
-    near((r[3].NOx_gkWh / r[0].NOx_gkWh - 1) * 100, -65.2, 0.2); near((r[3].co2_gkWh / r[0].co2_gkWh - 1) * 100, 8.7, 0.1);
+    [15.55, 11.06, 7.72, 5.51].forEach((v, i) => near(r[i].NOx_gkWh, v, 0.01));
+    [0.4335, 0.4249, 0.4123, 0.3977].forEach((v, i) => near(r[i].etaBrake, v, 0.001));
+    [615.4, 627.8, 647.0, 670.8].forEach((v, i) => near(r[i].co2_gkWh, v, 0.2));
+    near((r[3].NOx_gkWh / r[0].NOx_gkWh - 1) * 100, -64.56, 0.2); near((r[3].co2_gkWh / r[0].co2_gkWh - 1) * 100, 9.0, 0.1);
   });
   it('ghgPenalty 3 %: η 35 % → 577,0 → 594,3 (+3,00 %); CO₂ ∝ bahan bakar', () => {
     const g = ghgPenalty({ eta: 0.35, fuelPenaltyPct: 3 });

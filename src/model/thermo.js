@@ -78,8 +78,37 @@ export function calibrateTo(fn, target) {
   return base > 0 ? target / base : 1;
 }
 
-/** cv(T) udara (J/kg·K), fit linear 300–2500 K; k(T) turunannya. */
-export const cvOfT = (T) => CV_AIR + 0.115 * (T - 300);
+/**
+ * Udara kering sebagai gas ideal dengan cp(T) dari polinomial NASA 7 koefisien (M10, menggantikan fit linear lama).
+ * Sumber: data termo GRI-Mech 3.0 (gri-mech-3) untuk N₂, O₂, Ar, digabung berbobot fraksi mol udara kering
+ * (N₂ 78,084 %, O₂ 20,946 %, Ar 0,934 %, dinormalkan; MW 28,960 kg/kmol). Koefisien campuran = Σ xᵢ·aᵢ (eksak untuk
+ * cp/R dan h/RT; s°/R tanpa suku pencampuran). Diekstrak sekali lewat Cantera 3.2 (bukan dependensi aplikasi).
+ * Dicek terhadap NIST-JANAF edisi ke-4 (Chase 1998) untuk N₂/O₂/Ar: cv dalam 0,5 % di 300–2000 K (tests/cvT.test.js).
+ * Bentuk NASA: cp/R = a1 + a2·T + a3·T² + a4·T³ + a5·T⁴; h/(RT) = a1 + a2·T/2 + … + a6/T; s°/R = a1·lnT + a2·T + … + a7.
+ * Rentang: lo 300–1000 K, hi 1000–3500 K (O₂ terbatas 3500 K). R = R_AIR (287) dipakai agar k = 1 + R/cv konsisten.
+ * Dipakai untuk seluruh muatan silinder (tak terbakar dan terbakar) sebagai udara: cv gas produk 7–14 % lebih tinggi
+ * di 1000–2000 K tidak dimodelkan, jadi Pmax dan efisiensi sedikit terlalu tinggi (lihat basis.js).
+ */
+export const AIR_NASA7 = Object.freeze({
+  Tmin: 300, Tmid: 1000, Tmax: 3500, MW: 28.960312,
+  lo: Object.freeze([3.3925835879e+00, 4.7208444718e-04, -1.0323980508e-06, 2.3781326308e-09, -1.2300512714e-12, -1.0273447426e+03, 3.8929251239e+00]),
+  hi: Object.freeze([2.9972269553e+00, 1.4730496185e-03, -6.0286953136e-07, 1.2276160815e-10, -9.8161913368e-15, -9.5585161918e+02, 5.8549555335e+00]),
+});
+const nasaCoeffs = (T, range) => (range ? AIR_NASA7[range] : T < AIR_NASA7.Tmid ? AIR_NASA7.lo : AIR_NASA7.hi);
+const cpROf = (a, T) => a[0] + T * (a[1] + T * (a[2] + T * (a[3] + T * a[4])));
+/**
+ * Properti udara per kg pada T (K): cp, cv [J/kg·K], h [J/kg, acuan NASA], s0 [J/kg·K, s° pada 1 bar].
+ * range 'lo' | 'hi' memaksa satu rentang (untuk uji kontinuitas di Tmid); tanpa range dipilih otomatis.
+ */
+export function airProps(T, range = null) {
+  const a = nasaCoeffs(T, range);
+  const cpR = cpROf(a, T);
+  const hRT = a[0] + T * (a[1] / 2 + T * (a[2] / 3 + T * (a[3] / 4 + T * a[4] / 5))) + a[5] / T;
+  const sR = a[0] * Math.log(T) + T * (a[1] + T * (a[2] / 2 + T * (a[3] / 3 + T * a[4] / 4))) + a[6];
+  return { cp: R_AIR * cpR, cv: R_AIR * (cpR - 1), h: R_AIR * hRT * T, s0: R_AIR * sR };
+}
+/** cv(T) udara (J/kg·K) dari polinomial NASA; k(T) turunannya. Jalur cepat (dipanggil tiap langkah RK4). */
+export const cvOfT = (T) => R_AIR * (cpROf(nasaCoeffs(T), T) - 1);
 export const kOfT = (T) => 1 + R_AIR / cvOfT(T);
 
 // ─────────────────── Jalur proses (untuk kurva P-V & T-s) ───────────────────
@@ -472,11 +501,14 @@ export function chenFlynnFMEP(PmaxBar, Sp, { C = 0.4, PF = 0.005, MPSF = 0.09, M
 
 /**
  * Faktor kalibrasi laju NOx engine. Zeldovich + asumsi kesetimbangan atom O cenderung
- * OVERESTIMATE ~6× pada zona terbakar non-seragam. 0,17 dipilih agar diesel ≈ 11 g/kWh dan gas
- * lean-burn ≈ 2,5 g/kWh (nilai tipikal literatur, tanpa kontrol). BUKAN data unit Anda:
+ * OVERESTIMATE ~5–6× pada zona terbakar non-seragam. Satu faktor untuk kedua mesin, dipilih agar diesel ≈ 11 g/kWh dan
+ * gas lean-burn ≈ 2,5 g/kWh (nilai tipikal literatur, tanpa kontrol). BUKAN data unit Anda:
  * ganti dengan hasil CEMS/OEM via cylinderSim({ calib }) atau calibrateTo().
+ * M10 (cv(T) NASA): faktor tepat per mesin 0,1832 (diesel) / 0,1875 (gas) → 0,185 (rata-rata geometrik, dibulatkan);
+ * hasil 11,06 / 2,46 g/kWh. Sebelumnya 0,17 (cv linear; tepat 0,1774 / 0,1654 → 10,69 / 2,57 g/kWh).
+ * Target literatur tidak berubah; faktor tidak disetel terhadap limit regulasi.
  */
-export const ENGINE_NOX_CALIB = 0.17;
+export const ENGINE_NOX_CALIB = 0.185;
 
 export const ENGINE_PRESETS = {
   diesel: { fuel: 'diesel', bore: 0.2, stroke: 0.26, conrod: 0.52, r: 16, N: 1000, Pivc: 2.0e5, Tivc: 330, ivc: -150, evo: 150,
@@ -1062,16 +1094,16 @@ export function lossWaterfall(kind = 'diesel', over = {}, { window = 'full' } = 
 
 /**
  * Volume spesifik & entropi sepanjang hasil cylinderSim (untuk diagram T-s real).
- * v = V/m; s − s(IVC) = ∫cv(T)/T dT + R·ln(v/v_ivc), memakai cvOfT yang sama dengan simulasi
- * (cv = CV_AIR + 0,115·(T−300) → ∫cv/T dT = (CV_AIR − 34,5)·ln(T/T0) + 0,115·(T−T0)).
+ * v = V/m; s − s(IVC) = ∫cv(T)/T dT + R·ln(v/v_ivc), memakai properti udara yang sama dengan simulasi:
+ * cv = cp − R → ∫cv/T dT = [s°(T) − s°(T0)] − R·ln(T/T0) (s° dari polinomial NASA, airProps).
  * Kompresi adiabatik → Δs ≈ 0; pembakaran menaikkan s. Acuan s = 0 di IVC.
  */
 export function simStates(sim) {
   const n = sim.th.length, v = new Float64Array(n), s = new Float64Array(n);
-  const T0 = sim.T[0], v0 = sim.V[0] / sim.mass, a = CV_AIR - 0.115 * 300;
+  const T0 = sim.T[0], v0 = sim.V[0] / sim.mass, s00 = airProps(T0).s0;
   for (let i = 0; i < n; i++) {
     v[i] = sim.V[i] / sim.mass;
-    s[i] = a * Math.log(sim.T[i] / T0) + 0.115 * (sim.T[i] - T0) + R_AIR * Math.log(v[i] / v0);
+    s[i] = airProps(sim.T[i]).s0 - s00 - R_AIR * Math.log(sim.T[i] / T0) + R_AIR * Math.log(v[i] / v0);
   }
   return { v, s };
 }

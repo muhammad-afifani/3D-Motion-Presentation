@@ -26,10 +26,14 @@ describe('Scene 9 strip: deriveCompliance', () => {
     expect(f.rows.find((r) => r.param === 'CO')?.status ?? 'notModeled').toBe('notModeled');
     expect(STR.regulation.singleCylinder).toBe('Model is a single-cylinder preset. The capacity class only selects the limit.');
   });
-  it('gas engine terkalibrasi berada di atas limit kelas mana pun (tampil apa adanya, kalibrasi tidak disetel)', () => {
-    for (const cls of ['100-500', '500-1000', '1000-3000']) {
+  // M10: dengan cv(T) NASA dan faktor 0,185 (target literatur tetap 2,5 g/kWh) NOx gas engine 316 → 292 mg/Nm³ pada basis
+  // regulasi: η lebih rendah → gas buang per kWh lebih banyak → konsentrasi lebih rendah pada g/kWh yang sama. Hasil apa
+  // adanya: Within untuk kelas 100–500 dan 500–1000 kW (margin tipis), Above untuk 1000–3000 kW. Dulu Above di semua kelas.
+  it('gas engine terkalibrasi: Within (margin tipis) di kelas 100–500 / 500–1000 kW, Above di 1000–3000 kW (tampil apa adanya, kalibrasi tidak disetel)', () => {
+    const want = { '100-500': 'within', '500-1000': 'within', '1000-3000': 'above' };
+    for (const cls of Object.keys(want)) {
       const f = deriveCompliance(st({ regEquip: 'gasEngine', regClass: cls, regFuel: 'gas' }), regs);
-      expect(f.rows.find((r) => r.param === 'NOx').status, cls).toBe('above');
+      expect(f.rows.find((r) => r.param === 'NOx').status, cls).toBe(want[cls]);
     }
     expect(calibInitialState().calEngine.gas).toBeGreaterThan(0); // faktor default tidak diubah di sini
   });

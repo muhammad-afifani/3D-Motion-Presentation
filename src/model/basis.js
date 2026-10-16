@@ -38,7 +38,7 @@ export const UTILITY = Object.freeze({
 /** extra.knownIssue: penyimpangan yang diketahui dan perbaikan yang direncanakan (tampil di kartu Basis dan panel H). */
 const e = (level, refs, derivation, assumptions = [], toVerify = [], extra = {}) => Object.freeze({ level, refs: Object.freeze(refs), derivation, assumptions: Object.freeze(assumptions), toVerify: Object.freeze(toVerify), ...extra });
 
-const AIR = ['Ideal gas with constant specific heats (k = 1.4) except where cv(T) is stated.'];
+const AIR = ['Ideal gas with constant specific heats (k = 1.4); only the engine cycle uses cv(T).'];
 const EMISSION_INDICATIVE = 'Indicative correlation: the trend is physical, the absolute level is calibrated to typical literature values, not to site data.';
 
 export const BASIS = Object.freeze({
@@ -75,11 +75,14 @@ export const BASIS = Object.freeze({
   // ───────────────────────────── numerical helpers with physics content ─────────────────────────────
   calibrateTo: e('Site data', [], 'Scale factor c so that a model output reaches a target value (c = target / model(1)).',
     ['Assumes the output is roughly linear in c (NOx saturates, so the calibration functions iterate).', 'Only as good as the target: the default targets are typical literature values, not data from your unit.']),
-  cvOfT: e('Semi-empirical', ['cengel-boles', 'nist-janaf', 'gri-mech-3'], 'Linear fit of the specific heat of air with temperature, cv(T) = cv0 + 0.115·(T − 300).',
-    ['Straight-line fit; within 0.5 % up to 500 K, then below the NASA-polynomial values: −2.9 % at 700 K, −6.7 % at 1000 K, −7.5 % at 1200–1400 K, −5.3 % at 2000 K.'],
-    ['Compare the fit against a printed property table before quoting accuracy.'],
-    { knownIssue: 'The linear cv(T) runs up to 7.5 % below NASA-polynomial air data at 1200–1400 K. A correction with recalibration of the engine presets and NOx factor is planned (M10). Peak pressure, brake efficiency and engine NOx depend on it.' }),
-  kOfT: e('Semi-empirical', ['cengel-boles'], 'k = 1 + R / cv(T) for an ideal gas with temperature-dependent cv.', ['Follows cvOfT, so it inherits its fit error.']),
+  AIR_NASA7: e('Real', ['gri-mech-3', 'nist-janaf'], 'NASA 7-coefficient polynomials of dry air (N₂ 78.084 %, O₂ 20.946 %, Ar 0.934 %): mole-weighted sums of the GRI-Mech 3.0 species coefficients, two ranges 300–1000 K and 1000–3500 K.',
+    ['Dry air, ideal gas; species data from GRI-Mech 3.0 (read once with Cantera, not a runtime dependency).', 'Checked against NIST-JANAF (4th ed., 1998) N₂, O₂ and Ar tables: cv within 0.5 % at 300, 1000, 1500 and 2000 K; cp, h and s continuous at 1000 K.']),
+  airProps: e('Real', ['gri-mech-3', 'nist-janaf'], 'Air properties per kg from the NASA polynomials: cp, cv = cp − R, enthalpy h and standard entropy s°.', ['Ideal gas; R = 287 J/(kg·K) so that k = 1 + R/cv stays consistent with the rest of the model.']),
+  cvOfT: e('Real', ['gri-mech-3', 'nist-janaf'], 'Specific heat of air at constant volume from the NASA polynomials, cv(T) = R·(cp/R − 1); applied to the whole cylinder charge.',
+    ['The whole charge (unburned and burned) is treated as air: burned-gas cv is 7–9 % higher for the diesel (φ 0.5) and 11–14 % higher for the gas engine (φ 0.62) at 1000–2000 K and is not modeled.',
+      'Engine cycle uses temperature-dependent cp(T); the gas-turbine cycles use constant cp and k. The two are not on the same property basis.'],
+    [], { knownIssue: 'Pmax and efficiency slightly overestimated; products\' cv not modeled (whole charge treated as air).' }),
+  kOfT: e('Real', ['gri-mech-3'], 'k = 1 + R / cv(T) for an ideal gas with temperature-dependent cv.', ['Follows cvOfT (air for the whole charge).']),
   processPath: e('Ideal', ['cengel-boles'], 'Ideal-gas state paths: isentropic (P·vᵏ constant), isochoric, isobaric and polytropic.', AIR),
 
   // ───────────────────────────── ideal cycles ─────────────────────────────
@@ -90,14 +93,14 @@ export const BASIS = Object.freeze({
 
   // ───────────────────────────── real gas-turbine cycles ─────────────────────────────
   braytonReal: e('Real', ['saravanamuttoo', 'boyce'], 'Brayton cycle with compressor and turbine isentropic efficiencies, combustor pressure loss and mechanical loss.',
-    ['Constant cp and k on the air side and on the hot-gas side.', 'Fuel mass flow is not added to the turbine flow; no cooling-air bleed, no inlet/exhaust losses.', 'Heat added is cpg·(T3 − T2), a mixed-property simplification.']),
+    ['Constant cp and k on the air side and on the hot-gas side (not the temperature-dependent air properties of the engine model).', 'Fuel mass flow is not added to the turbine flow; no cooling-air bleed, no inlet/exhaust losses.', 'Heat added is cpg·(T3 − T2), a mixed-property simplification.']),
   pressureAtAltitude: e('Ideal', ['iso-2533'], 'International-standard-atmosphere pressure at altitude h in the troposphere.', ['Standard atmosphere; no weather variation.']),
   braytonDerated: e('Real', ['saravanamuttoo', 'boyce'], 'Re-runs braytonReal at the site ambient temperature and pressure; mass flow scales with air density (∝ P/T).',
     ['Mass flow ∝ P/T: constant volumetric flow at constant shaft speed, so mass flow follows air density. A P/√T scaling applies instead at constant corrected speed (N/√T), which this model does not use.', 'Turbine inlet temperature T3 is held constant (no control limit).']),
   singleShaftLoad: e('Real', ['saravanamuttoo'], 'Part-load of a single-shaft machine at constant speed: first close the IGV to cut air flow with T3 held, then lower T3 once the IGV reaches its minimum.',
     ['Fixed IGV minimum; compressor and turbine efficiencies are held constant off-design (no component map).']),
   twinShaft: e('Real', ['saravanamuttoo', 'boyce'], 'Gas generator plus free power turbine: the gas-generator turbine only drives the compressor, the rest expands in the power turbine.',
-    ['Mass flow ∝ Ngg and pressure rise ∝ Ngg² are simple scaling laws, not a compressor map.', 'Constant component efficiencies and constant cp, k.']),
+    ['Mass flow ∝ Ngg and pressure rise ∝ Ngg² are simple scaling laws, not a compressor map.', 'Constant component efficiencies and constant cp, k (not the temperature-dependent air properties of the engine model).']),
   twinShaftForLoad: e('Real', ['saravanamuttoo'], 'Finds the gas-generator speed and T3 that deliver a given fraction of design power, with a linear T3 schedule vs Ngg.',
     ['The T3 schedule (default 0.75 + 0.25·Ngg) is an assumption, not an OEM schedule.']),
   compressorStages: e('Real', ['saravanamuttoo'], 'Per-stage temperature of the axial compressor for the 3D colouring: equal pressure-ratio steps through the same T2 formula as the cycle.',
@@ -127,8 +130,8 @@ export const BASIS = Object.freeze({
   ENGINE_PRESETS: e('Semi-empirical', ['heywood'], 'Typical large-bore diesel and lean-burn gas engine parameter sets (geometry, boost, burn timing).',
     ['Illustrative values, not any specific engine; replace with unit data for site work.']),
   cylinderSim: e('Semi-empirical', ['heywood', 'ghojel-2010'], 'Closed-cycle first-law model from IVC to EVO: dP/dθ = −k(T)·(P/V)·dV/dθ + (k − 1)/V·dQ/dθ with Wiebe heat release, integrated with RK4.',
-    ['Single zone for pressure and temperature; no pumping work, no work after EVO.', 'Wall heat loss is a fixed fraction of the heat release (lossFrac).', 'Friction by the Chen–Flynn fit.', 'Uses the cv(T) fit (cvOfT).']),
-  simStates: e('Semi-empirical', ['heywood'], 'Specific volume and entropy along a cylinderSim result for the T-s diagram: s − s(IVC) = ∫cv(T)/T dT + R·ln(v/v_ivc).', ['Uses the cv(T) fit; the entropy reference is the IVC state.']),
+    ['Single zone for pressure and temperature; no pumping work, no work after EVO.', 'Wall heat loss is a fixed fraction of the heat release (lossFrac).', 'Friction by the Chen–Flynn fit.', 'Uses air cv(T) from the NASA polynomials (cvOfT) for the whole charge: products\' cv not modeled, so Pmax and efficiency are slightly overestimated.']),
+  simStates: e('Semi-empirical', ['heywood'], 'Specific volume and entropy along a cylinderSim result for the T-s diagram: s − s(IVC) = ∫cv(T)/T dT + R·ln(v/v_ivc).', ['Uses the same air properties as the simulation (∫cv/T dT from the NASA standard entropy); the entropy reference is the IVC state.']),
   sampleSim: e('Semi-empirical', ['heywood'], 'Interpolates the cylinderSim result for the animation; outside the closed phase (intake, exhaust) it uses simple decay laws.',
     ['Intake and exhaust strokes are schematic: constant intake state, exponential blow-down to exhaust pressure.']),
   lossWaterfall: e('Semi-empirical', ['heywood', 'cengel-boles'], 'Steps from the ideal efficiency limit to brake efficiency by switching on one real effect at a time: variable specific heat, finite burn time, heat loss and unburned fuel, friction.',
@@ -202,7 +205,7 @@ export const BASIS = Object.freeze({
  * (Pure bookkeeping: the groups say which functions feed a chart, they hold no numbers.)
  */
 export const BASIS_GROUPS = Object.freeze({
-  engineCycle: ['engineGeometry', 'wiebe', 'cylinderSim', 'chenFlynnFMEP', 'cvOfT', 'kOfT', 'simStates', 'sampleSim'],
+  engineCycle: ['engineGeometry', 'wiebe', 'cylinderSim', 'chenFlynnFMEP', 'cvOfT', 'kOfT', 'AIR_NASA7', 'airProps', 'simStates', 'sampleSim'],
   idealCycles: ['processPath', 'otto', 'diesel', 'dual', 'braytonIdeal'],
   realCycles: ['processPath', 'braytonReal', 'braytonDerated', 'twinShaft', 'twinShaftCycle', 'compressorStages', 'turbineStages'],
   lossWaterfall: ['lossWaterfall', 'cylinderSim', 'cvOfT', 'wiebe', 'chenFlynnFMEP'],

@@ -28,11 +28,12 @@ describe('Scene 4: angka dari model', () => {
     expect(noxInitialState()).toEqual({ nEngine: 'diesel', nTheta0: ENGINE_PRESETS.diesel.theta0 });
     expect(noxDefaults('gas').nTheta0).toBe(ENGINE_PRESETS.gas.theta0);
   });
-  it('slider default: diesel NOx 10,7 g/kWh, η 0,441; gas 2,6 g/kWh, η 0,423 (golden), calib 0,17', () => {
+  // M10: cv(T) NASA + faktor 0,185 (dulu 10,7 / 0,441; 2,6 / 0,423 dengan 0,17)
+  it('slider default: diesel NOx 11,1 g/kWh, η 0,425; gas 2,5 g/kWh, η 0,406 (golden), calib 0,185', () => {
     const d = deriveNox(st('diesel'), SIMS.diesel, SWEEPS.diesel);
     const g = deriveNox(st('gas'), SIMS.gas, SWEEPS.gas);
-    near(d.NOx.gkWh, 10.7, 0.5); near(d.eta.brake, 0.441, 0.005);
-    near(g.NOx.gkWh, 2.6, 0.2); near(g.eta.brake, 0.423, 0.005);
+    near(d.NOx.gkWh, 11.06, 0.5); near(d.eta.brake, 0.425, 0.005);
+    near(g.NOx.gkWh, 2.46, 0.2); near(g.eta.brake, 0.406, 0.005);
     expect(d.calib).toBe(ENGINE_NOX_CALIB);
     expect(d.NOx.refO2).toBe(15); expect(d.NOx.TrefC).toBe(0); expect(d.NOx.basisDefault).toBe(true);
     near(d.NOx.ppm, SIMS.diesel.NOx_ppmvd_ref, 1e-9); near(d.NOx.mgNm3, SIMS.diesel.NOx_mgNm3_ref, 1e-9);
@@ -198,7 +199,7 @@ describe('Scene 4: istilah, label indikatif, basis O₂ & volume', () => {
     expect(H.noxMg.unit).toBe('mg/Nm³');
     expect(STR.common.basis.full(15, 0)).toBe('as NO₂, dry (ppmvd), @ 15 % O₂, 0 °C');
     expect(STR.common.basis.full(3.5, 25)).toBe('as NO₂, dry (ppmvd), @ 3.5 % O₂, 25 °C');
-    expect(H.calib.value(0.17)).toBe('×0.17');
+    expect(H.calib.value(0.185)).toBe('×0.185'); // M10: faktor engine tampil 3 desimal (0,185 bukan ×0.19)
   });
   it('Scene 5: label model pada angka derating', () => {
     expect(STR.scene5.hud.derateModel).toEqual({ generator: 'Generator model', compressorDrive: 'Compressor-drive model' });
@@ -249,7 +250,7 @@ describe('M4b: basis O₂ & volume (global, panel H)', () => {
 });
 
 describe('M4b: kalibrasi NOx (panel Calibration, store global)', () => {
-  it('default: engine 0,17 (diesel & gas), DLN single 14,33 / twin 4,38 (calibrateDLN → 15 ppmvd @15% O₂ per konfigurasi)', () => {
+  it('default: engine 0,185 (diesel & gas; M10, dulu 0,17), DLN single 14,33 / twin 4,38 (calibrateDLN → 15 ppmvd @15% O₂ per konfigurasi)', () => {
     const c = calibInitialState();
     expect(c.calEngine).toEqual({ diesel: ENGINE_NOX_CALIB, gas: ENGINE_NOX_CALIB });
     near(c.calDln.single, 14.33, 0.005);
@@ -287,7 +288,7 @@ describe('M4b: kalibrasi NOx (panel Calibration, store global)', () => {
     expect(store.get().calEngine.gas).toBe(cal.r.calib);
     expect(store.get().calEngine.diesel).toBe(ENGINE_NOX_CALIB);
   });
-  it('Apply DLN per konfigurasi: target ppmvd @ basis O₂ aktif → calibrateDLN; Reset mengembalikan 0,17, 14,33 dan 4,38', () => {
+  it('Apply DLN per konfigurasi: target ppmvd @ basis O₂ aktif → calibrateDLN; Reset mengembalikan 0,185, 14,33 dan 4,38', () => {
     const s0 = st('diesel');
     const r20 = dlnCalibration(s0, 'single', 20, 15);
     near(r20.result.NOx_ppm, 20, 0.01);
@@ -304,13 +305,13 @@ describe('M4b: kalibrasi NOx (panel Calibration, store global)', () => {
     expect(f1.calDln).toEqual(r20.patch.calDln);
     store.set(calibResetPatch());
     const s = store.get();
-    expect(s.calEngine).toEqual({ diesel: 0.17, gas: 0.17 });
+    expect(s.calEngine).toEqual({ diesel: 0.185, gas: 0.185 });
     near(s.calDln.single, 14.33, 0.005);
     near(s.calDln.twin, 4.38, 0.005);
     const f2 = deriveNox(s, run(s), SWEEPS.diesel);
-    expect(hudVal(f2, 'calib').value(f2)).toBe('×0.17');
+    expect(hudVal(f2, 'calib').value(f2)).toBe('×0.185');
     expect(hudVal(f2, 'calib').sub).toBe(STR.scene4.hud.calib.sub(true));
-    expect(STR.scene4.hud.note(0.17, { single: 14.33, twin: 4.38 })).toMatch(/×0\.17 · DLN single ×14\.33 \/ twin ×4\.38/);
+    expect(STR.scene4.hud.note(0.185, { single: 14.33, twin: 4.38 })).toMatch(/×0\.185 · DLN single ×14\.33 \/ twin ×4\.38/);
     expect(STR.scene4.calib.note).toMatch(/typical literature values, not to unit or vendor data/);
   });
 });

@@ -417,11 +417,11 @@ export const STR = {
       eta: { label: 'Brake η', tip: 'Brake efficiency from the cylinder model (same as Scene 1 at the preset).' },
       co2: { label: 'CO₂', tip: 'Specific CO₂ = fuel emission factor × 3.6 / brake η. Retard → η drops → CO₂ rises.' },
       calib: {
-        label: 'NOx calib', value: (c) => `×${fmt(c, c < 0.1 ? 3 : 2)}`,
+        label: 'NOx calib', value: (c) => `×${fmt(c, c < 1 ? 3 : 2)}`,
         sub: (isDefault) => (isDefault ? 'default calibration' : 'custom · Calibration'),
-        tip: 'Engine Zeldovich rate factor (default 0.17, so the preset lands near typical literature values: diesel ≈ 11, gas lean-burn ≈ 2.5 g/kWh). Shown because it is not 1. Change it in the Calibration panel.',
+        tip: 'Engine Zeldovich rate factor (the default lands the preset near typical literature values: diesel ≈ 11, gas lean-burn ≈ 2.5 g/kWh). Shown because it is not 1. Change it in the Calibration panel.',
       },
-      note: (eng, dln) => `NOx: thermal Zeldovich per burned-zone element (cylinder model, Wiebe). Calibration: engine ×${fmt(eng, 2)} · DLN single ×${fmt(dln.single, 2)} / twin ×${fmt(dln.twin, 2)} (Scene 6). Absolute NOx levels are calibrated to typical literature values, not to unit or vendor data. Indicative.`,
+      note: (eng, dln) => `NOx: thermal Zeldovich per burned-zone element (cylinder model, Wiebe). Calibration: engine ×${fmt(eng, eng < 1 ? 3 : 2)} · DLN single ×${fmt(dln.single, 2)} / twin ×${fmt(dln.twin, 2)} (Scene 6). Absolute NOx levels are calibrated to typical literature values, not to unit or vendor data. Indicative.`,
     },
     calib: {
       button: 'Calibration',
@@ -435,7 +435,7 @@ export const STR = {
       engineTitle: 'Engine (Zeldovich rate factor)',
       engines: { diesel: 'Diesel', gas: 'Gas lean-burn' },
       factor: 'Factor',
-      defaultEngine: (c) => `default ×${fmt(c, 2)} (typical-literature calibration)`,
+      defaultEngine: (c) => `default ×${fmt(c, c < 1 ? 3 : 2)} (typical-literature calibration)`,
       targetEngine: 'Target NOx at preset timing [g/kWh]',
       litEngine: (v) => `typical literature ≈ ${fmt(v, 1)} g/kWh`,
       dlnTitle: 'DLN combustor (design point per configuration)',
@@ -641,7 +641,7 @@ export const STR = {
       sub: (eta, co2, ch4) => `η ${fmt(eta * 100, 1)} % · CO₂ ${fmt(co2, 0)}${ch4 > 0 ? ` + CH₄ ${fmt(ch4, 2)} g` : ''}`,
       subTurbine: (ppm, basis) => `${fmt(ppm, 1)} ppmvd ${basis}`,
       noxNote: (eng, gas, dln, litD, litG, litDln, ref) =>
-        `NOx is calibrated to typical literature values, not to unit or vendor data · engine ×${fmt(eng, 2)} (diesel) / ×${fmt(gas, 2)} (gas), target ≈ ${fmt(litD, 0)} / ${fmt(litG, 1)} g/kWh · DLN ×${fmt(dln, 2)}, target ${fmt(litDln, 0)} ppmvd @ ${fmt(ref, 0)} % O₂`,
+        `NOx is calibrated to typical literature values, not to unit or vendor data · engine ×${fmt(eng, eng < 1 ? 3 : 2)} (diesel) / ×${fmt(gas, gas < 1 ? 3 : 2)} (gas), target ≈ ${fmt(litD, 0)} / ${fmt(litG, 1)} g/kWh · DLN ×${fmt(dln, 2)}, target ${fmt(litDln, 0)} ppmvd @ ${fmt(ref, 0)} % O₂`,
     },
     pm: { label: 'PM', value: 'qualitative', sub: 'qualitative, not modeled', levels: { high: 'high', low: 'low', veryLow: 'very low' }, tip: 'Particulate matter is not modeled. The dark-gray 3D particles only show a fixed qualitative level: diesel high, gas engine low, turbine very low.' },
     hud: {
@@ -651,7 +651,7 @@ export const STR = {
       slip: { label: 'CH₄ slip', value: (slip, ch4) => `${fmt(slip * 100, 1)} % · ${fmt(ch4, 2)} g/kWh`, tip: 'Fraction of fuel that escapes; CH₄ in g/kWh for the gas engine.' },
       inc: { label: 'Slip → CO₂e', value: (inc) => `+${fmt(inc * 100, 1)}`, tip: 'CO₂e increase caused by slip (the same for the gas engine and the turbine, because it does not depend on η).' },
       gwp: { label: 'GWP CH₄', sub: 'AR6 · 100-year horizon · fossil', tip: 'A different time horizon gives a different result (see panel H).' },
-      calib: { label: 'NOx calib', value: (eng, dln) => `×${fmt(eng, 2)} / ×${fmt(dln, 2)}`, sub: 'engine (diesel) / DLN', tip: 'Active calibration factors. Targets: engine ≈ 11 (diesel) / 2.5 (gas) g/kWh, DLN 15 ppmvd @ 15 % O₂. Not unit or vendor data.' },
+      calib: { label: 'NOx calib', value: (eng, dln) => `×${fmt(eng, eng < 1 ? 3 : 2)} / ×${fmt(dln, 2)}`, sub: 'engine (diesel) / DLN', tip: 'Active calibration factors. Targets: engine ≈ 11 (diesel) / 2.5 (gas) g/kWh, DLN 15 ppmvd @ 15 % O₂. Not unit or vendor data.' },
       note: 'NOx is calibrated to typical literature values, not to unit or vendor data. Indicative. PM: qualitative, not modeled.',
     },
     labels3d: { diesel: 'Diesel engine', gas: 'Gas engine', turbine: 'Gas turbine', pm: 'PM: qualitative, not modeled' },
@@ -1111,8 +1111,8 @@ export const STR = {
       refs: 'All references',
     },
     issues: {
-      title: 'Known model deviations (planned fixes)',
-      intro: 'From the basis registry. These are known limits of the current model, not hidden corrections.',
+      title: 'Known model deviations',
+      intro: 'From the basis registry. These are known limits of the current model and the direction of their bias, not hidden corrections.',
     },
   },
 };
