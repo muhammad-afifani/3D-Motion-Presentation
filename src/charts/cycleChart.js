@@ -4,7 +4,7 @@
  * (hover → T, P, v, s), titik berjalan = frame.point (di polyline yang sama).
  * Konversi satuan hanya di sini: P → bar, s → kJ/(kg·K).
  */
-import { createChartBase, makeScale, niceTicks, drawAxes, CHART_FONT } from './chartBase.js';
+import { createChartBase, makeScale, niceTicks, drawAxes, CHART_FONT, CV } from './chartBase.js';
 import { STR } from '../ui/strings.js';
 
 const S = STR.charts.cycle;
@@ -17,7 +17,7 @@ const conv = { v: (x) => x, P: (x) => x / 1e5, T: (x) => x, s: (x) => x / 1e3 };
 
 /** Warna per peran proses (kompresi dingin → pemanasan panas → ekspansi → buang); peran dari derive. */
 const ROLE_COLOR = {
-  closing: 'rgba(120,170,230,0.6)', real: '#ffb15c', compression: '#7cc4ff', rejection: '#5fd0c7', heat: '#ff7a3c', expansion: '#ffcc66',
+  closing: CV.closing, real: CV.main, compression: CV.compression, rejection: CV.rejection, heat: CV.heat, expansion: CV.expansion,
 };
 
 /** Teks tooltip state (catatan titik acuan real dari STR.scene2.refNotes). */
@@ -31,6 +31,7 @@ export const stateInfo = (st) => S.stateInfo(st.label, st.noteKey ? STR.scene2.r
 export function createCycleChart(container, which, { onHover, basis = null } = {}) {
   const ax = AXES[which];
   const base = createChartBase(container, { title: ax.title, modelLevel: 'ideal', basis, pad: { l: 58, r: 18, t: 58, b: 40 } });
+  const { col } = base;
   const tip = document.createElement('div');
   tip.className = 'chart__tip num';
   tip.hidden = true;
@@ -65,32 +66,32 @@ export function createCycleChart(container, which, { onHover, basis = null } = {
 
     const stroke = (pr, color, width, dash = []) => {
       ctx.save();
-      ctx.strokeStyle = color; ctx.lineWidth = width; ctx.setLineDash(dash); ctx.lineJoin = 'round';
+      ctx.strokeStyle = col(color); ctx.lineWidth = width; ctx.setLineDash(dash); ctx.lineJoin = 'round';
       ctx.beginPath();
       for (let i = 0; i < pr.v.length; i++) (i ? ctx.lineTo(X(pr, i), Y(pr, i)) : ctx.moveTo(X(pr, i), Y(pr, i)));
       ctx.stroke();
       ctx.restore();
     };
-    for (const pr of data.ghost ?? []) stroke(pr, 'rgba(230,235,243,0.35)', 1.5, [5, 4]);
+    for (const pr of data.ghost ?? []) stroke(pr, CV.ghost, 1.5, [5, 4]);
     data.procs.forEach((pr) => stroke(pr, ROLE_COLOR[pr.role], pr.role === 'closing' ? 1.5 : 2.5, pr.role === 'closing' ? [4, 4] : []));
 
     // titik state berlabel
     ctx.font = `600 ${CHART_FONT}`;
     data.states.forEach((st, i) => {
       const x = sx(conv[ax.x](st[ax.x])), y = sy(conv[ax.y](st[ax.y]));
-      ctx.fillStyle = i === hover ? '#ffffff' : '#0b0f16';
-      ctx.strokeStyle = '#e6ebf3';
+      ctx.fillStyle = col(i === hover ? CV.ring : CV.hollow);
+      ctx.strokeStyle = col(CV.title);
       ctx.lineWidth = 1.5;
       ctx.beginPath(); ctx.arc(x, y, i === hover ? 7 : 5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-      ctx.fillStyle = '#e6ebf3';
+      ctx.fillStyle = col(CV.title);
       ctx.textAlign = 'left';
       ctx.textBaseline = 'bottom';
       ctx.fillText(st.label, x + 7, y - 4);
     });
 
     const legend = [];
-    if (data.ghost) legend.push(`<span class="sw sw--line" style="background:rgba(230,235,243,0.5)"></span>${S.ghost}`);
-    if (data.procs.some((p) => p.role === 'closing')) legend.push(`<span class="sw sw--line" style="background:rgba(120,170,230,0.8)"></span>${S.closing}`);
+    if (data.ghost) legend.push(`<span class="sw sw--line" style="background:${CV.ghost}"></span>${S.ghost}`);
+    if (data.procs.some((p) => p.role === 'closing')) legend.push(`<span class="sw sw--line" style="background:${CV.closing}"></span>${S.closing}`);
     base.setCaption(legend.join(' · ') || S.hoverHint);
   }
 
@@ -144,7 +145,7 @@ export function createCycleChart(container, which, { onHover, basis = null } = {
       if (!f.point.visible) return;
       const x = sx(conv[ax.x](f.point[ax.x])), y = sy(conv[ax.y](f.point[ax.y]));
       ctx.fillStyle = `rgb(${(f.pointRGB ?? f.rig?.gasRGB ?? f.schematic?.gasRGB ?? [1, 1, 1]).map((c) => Math.round(c * 255)).join(',')})`;
-      ctx.strokeStyle = '#fff';
+      ctx.strokeStyle = col(CV.ring);
       ctx.lineWidth = 2;
       ctx.beginPath(); ctx.arc(x, y, 7, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
     },

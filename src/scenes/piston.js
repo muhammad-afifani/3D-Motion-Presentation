@@ -19,6 +19,7 @@ import { animSpeedSlider } from '../ui/animSpeed.js';
 import { createHud } from '../ui/hud.js';
 import { fmt, pct, toBar, toLiter, toMm } from '../ui/format.js';
 import { STR, signedDeg, plusDeg } from '../ui/strings.js';
+import { CV } from '../charts/chartBase.js';
 
 const S = STR.scene1, C = STR.common, U = STR.common.units;
 
@@ -181,16 +182,16 @@ export function createScene(ctx) {
         xFmt: (v) => `${v < 0 ? '−' : ''}${Math.abs(v)}`,
         yMax: Math.ceil((PmaxBar * 1.15) / 20) * 20,
         bands: [
-          { x0: -360, x1: g.ivc, label: C.phase.intake, color: 'rgba(90,169,255,0.07)' },
-          { x0: g.ivc, x1: 0, label: C.phase.kompresi, color: 'rgba(255,255,255,0.025)' },
-          { x0: g.theta0, x1: g.theta0 + g.dur, label: '', color: 'rgba(255,154,60,0.13)' },
-          { x0: 0, x1: g.evo, label: C.phase.ekspansi, color: 'rgba(255,255,255,0.025)' },
-          { x0: g.evo, x1: 360, label: C.phase.exhaust, color: 'rgba(255,138,76,0.07)' },
+          { x0: -360, x1: g.ivc, label: C.phase.intake, color: CV.bandIntake },
+          { x0: g.ivc, x1: 0, label: C.phase.kompresi, color: CV.bandNeutral },
+          { x0: g.theta0, x1: g.theta0 + g.dur, label: '', color: CV.bandComb },
+          { x0: 0, x1: g.evo, label: C.phase.ekspansi, color: CV.bandNeutral },
+          { x0: g.evo, x1: 360, label: C.phase.exhaust, color: CV.bandExhaust },
         ],
         vlines: [[-360, S.ptheta.tdc], [-180, S.ptheta.bdc], [0, S.ptheta.tdc], [180, S.ptheta.bdc], [360, S.ptheta.tdc]].map(([x, label]) => ({ x, label })),
         markers: [{ x: f.summary.thetaPmax, y: PmaxBar, label: S.ptheta.pmax(PmaxBar) }],
       });
-      pth.setCaption(`<span class="sw" style="background:rgba(255,154,60,0.35)"></span>${S.ptheta.caption(g.theta0, g.theta0 + g.dur)}`);
+      pth.setCaption(`<span class="sw" style="background:${CV.bandCombSw}"></span>${S.ptheta.caption(g.theta0, g.theta0 + g.dur)}`);
     }
     pth.setCursor(f.theta, toBar(f.P), `rgb(${f.gasRGB.map((v) => Math.round(v * 255)).join(',')})`);
   }

@@ -52,7 +52,8 @@ Alur data satu arah: `UI control → store.set → derive() → frame → { rig 
 ## Konvensi
 - Satuan SI di dalam model; konversi hanya di lapisan tampilan.
 - Sudut engkol dalam derajat, 0 = TDC pembakaran; 4-tak −360…+360.
-- Kode warna spesies konsisten di semua scene: NOx oranye, CO merah-magenta, CO₂ abu-biru, CH₄ hijau, PM abu gelap. Skala suhu (`tempToRGB`) selalu disertai legenda K.
+- Kode warna spesies konsisten di semua scene: NOx oranye, CO merah-magenta, CO₂ abu-biru, CH₄ hijau, PM abu gelap. Satu sumber: `src/gfx/species.js` (palet `dark`, `light`, `lightInk`; variabel CSS `--sp-*` dicocokkan oleh tes). Skala suhu (`tempToRGB`) selalu disertai legenda K dan sama di kedua tema.
+- Tema Dark / Light (`src/state/theme.js`, kunci `etel:theme`, default Dark, tanpa `prefers-color-scheme`): semua warna lewat variabel CSS di blok token `src/styles.css`; grafik canvas memakai rujukan `CV.*` / `var(--…)` yang diterjemahkan `chartBase` (teks berwarna: varian `-ink`). Viewport 3D (`--vp-*`) tetap arang di kedua tema; `.vp-scope` dan `.nox-species` memakai nilai gelap. Tidak ada literal warna di `charts/`, `scenes/`, `ui/` selain warna suhu model (dijaga `tests/theme.test.js`).
 - Angka UI: font tabular-nums; format en-US (titik desimal, koma ribuan, mis. 1,500 dan 0.87). Sejak M9 Step 02 pemisah desimal koma (id-ID) tidak dipakai lagi di layar; `presenter.json` tetap menulis angka gaya Indonesia di naskah lisan.
 - Bahasa UI:
   - **English** untuk semua teks di layar: label, tombol, legenda, tooltip, catatan, toast, pesan galat, HUD, kartu, judul scene, pesan kunci. `index.html` dan `presenter.html` memakai `lang="en"`.
@@ -83,8 +84,8 @@ Alur data satu arah: `UI control → store.set → derive() → frame → { rig 
 - [x] M6 Part-load (Scene 6): single-shaft IGV/fuel-only vs twin-shaft, loadSweep, kalibrasi DLN per konfigurasi, batas presenter + jendela beban
 - [x] M7a Emisi gabungan (Scene 8) dan trade-off kebijakan (Scene 9): ppmToGkWh, methane slip, retardSweep, ghgPenalty, baku mutu seragam
 - [x] M7b Pengendali emisi dan penutup (Scene 10–11)
-- [x] M8a Fitur presentasi: mode presenter (P, jendela kedua + BroadcastChannel, panel pengganti), content/presenter.json, snapshot PNG 2× tema gelap (S), persistensi ringan (localStorage), dock panel Calibration, Animation speed 0,1×–2× bersama
-- [x] M8b Finishing: overlay debug (Shift+D), kualitas adaptif Auto/High/Low + bloom global (Q/B), uji dispose e2e (npm run e2e), transisi fade-through, paket offline (npm run package:offline), cek Pages & bundle, laser pointer/spotlight (K/Shift+K); ekspor PNG tema terang belum dikerjakan
+- [x] M8a Fitur presentasi: mode presenter (P, jendela kedua + BroadcastChannel, panel pengganti), content/presenter.json, snapshot PNG 2× (S; sejak bagian B mengikuti tema aktif), persistensi ringan (localStorage), dock panel Calibration, Animation speed 0,1×–2× bersama
+- [x] M8b Finishing: overlay debug (Shift+D), kualitas adaptif Auto/High/Low + bloom global (Q/B), uji dispose e2e (npm run e2e), transisi fade-through, paket offline (npm run package:offline), cek Pages & bundle, laser pointer/spotlight (K/Shift+K)
 
 - [x] M9 Perbaikan dan kedalaman (pack `docs/m9_pack/`, satu Step per permintaan)
   - [x] Step 01 Perbaikan Scene 7 dan Scene 9 (smoke test tampilan `npm run e2e:smoke`)
@@ -95,6 +96,8 @@ Alur data satu arah: `UI control → store.set → derive() → frame → { rig 
   - [x] Step 05b Scene 9: tab Levers (`leverSweep` di Worker, lima tuas milik Scene 9 + panel Fuel, NOx mg/Nm³ basis regulasi + garis limit, η rem, Limits ikut slider, lencana Preset/Modified + Reset to preset), Load window (kalimat model), GHG (CO₂ vs CO₂e dengan slip, GWP AR6); smoke: interaksi Levers + PNG (S) per tab (tanpa `@media print`)
   - [x] Step 06 Mode Explore / Present (`M`; `P` tetap jendela presenter), navigasi kiri yang dapat dilipat menggantikan bilah atas, router hash `src/state/route.js` (`#/scene/N[/tab]`, `#/regulations`, `#/formation`, `#/references[/id]`, `#/glossary`, `#/assumptions`), halaman Emission formation, Glossary (`content/glossary.json`, definisi saja), Assumptions (panel H sebagai halaman); halaman penuh menghentikan loop render; smoke deep link + sinkron jendela presenter
 - [x] M10 cv(T) correction + recalibration: `cvOfT` dari polinomial NASA udara kering (`AIR_NASA7`, GRI-Mech 3.0; golden ≤ 0,5 % terhadap NIST-JANAF 4th ed.), seluruh muatan sebagai udara (cv produk tidak dimodelkan → Pmax dan η sedikit terlalu tinggi), `ENGINE_NOX_CALIB` 0,17 → 0,185 (target literatur sama), golden mesin diperbarui; margin kepatuhan (%) di samping chip (`complianceCheck`, keterangan bila < 10 %). Mesin (cp(T)) dan turbin (cp konstan) tidak berbasis properti yang sama.
+- [x] UI bagian A: tombol Explore (M) di Present, chip "ƒ Formula" (panel rumus dapat dilipat, default terlipat)
+- [x] UI bagian B: tema Dark / Light (sakelar header, `etel:theme`, token CSS kedua tema, kontras WCAG AA, PNG ikut tema)
 
 ## Golden test acuan (ringkas; tabel lengkap di `docs/PROMPT_simulasi_3D.md` bagian 12)
 Otto r=10 η 0,602 · Diesel r=18 rc=2 η 0,632 · Brayton ideal rp=15 η 0,539 · Brayton real η 0,378 · CO₂ gas η=0,35 → 577 g/kWh · preset diesel Pmax ≈ 112,4 bar, η rem 0,425 · preset gas Pmax ≈ 104,6 bar, η rem 0,406 · NOx terkalibrasi (0,185) diesel 11,1 / gas 2,5 g/kWh · cv(T) udara vs JANAF ≤ 0,5 %.

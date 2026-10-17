@@ -13,7 +13,7 @@ import { createCalibrationPanel } from '../ui/calibrationPanel.js';
 import { NOX_TIMING, NOX_WINDOW, NOX_CALIB_DEFAULTS } from '../model/presets.js';
 import { createRenderer } from '../gfx/renderer.js';
 import { createNoxRig } from '../gfx/noxRig.js';
-import { SPECIES_COLORS } from '../gfx/species.js';
+import { SPECIES_VAR } from '../gfx/species.js';
 import { createXYChart, decadeTicks, decadeFmt } from '../charts/xyChart.js';
 import { niceCeil } from '../charts/chartBase.js';
 import { createTempLegend } from '../charts/legend.js';
@@ -22,6 +22,7 @@ import { animSpeedSlider } from '../ui/animSpeed.js';
 import { createHud } from '../ui/hud.js';
 import { fmt, pct } from '../ui/format.js';
 import { STR, signedDeg, plusDeg } from '../ui/strings.js';
+import { CV } from '../charts/chartBase.js';
 
 const S = STR.scene4, C = STR.common, U = STR.common.units, H = STR.scene4.hud;
 
@@ -93,7 +94,7 @@ export function createScene(ctx) {
             </div>
           </div>
           <div class="overlay overlay--legend">
-            <div class="nox-species"><span class="sw" style="background:${SPECIES_COLORS.NOx}"></span>${S.speciesNo}</div>
+            <div class="nox-species"><span class="sw" style="background:${SPECIES_VAR.NOx}"></span>${S.speciesNo}</div>
           </div>
           <div class="overlay overlay--labels"></div>
           <div class="overlay overlay--status num"></div>
@@ -225,7 +226,7 @@ export function createScene(ctx) {
       }
     }
     if (t) {
-      tradeChart.setPoints([{ x: f.current.eta * 100, y: f.current.nox, fill: SPECIES_COLORS.NOx, label: S.tradeoff.now(f.current.nox, f.current.eta), guide: true }]);
+      tradeChart.setPoints([{ x: f.current.eta * 100, y: f.current.nox, fill: SPECIES_VAR.NOx, label: S.tradeoff.now(f.current.nox, f.current.eta), guide: true }]);
       tradeChart.setCaption(f.vsPreset ? S.tradeoff.caption(f.vsPreset.nox, f.vsPreset.co2) : '');
     } else {
       tradeChart.setCaption(S.tradeoff.captionWait);
@@ -247,8 +248,8 @@ export function createScene(ctx) {
         yFmt: decadeFmt,
         xFmt: (v) => fmt(v, 0),
         bands: [
-          { x0: A.dlnBand[0], x1: A.dlnBand[1], label: S.arrhenius.bandDln, color: 'rgba(79,179,255,0.10)' },
-          { x0: A.engineBand[0], x1: A.engineBand[1], label: S.arrhenius.bandEngine, color: 'rgba(255,154,60,0.10)', labelPos: 'bottom' },
+          { x0: A.dlnBand[0], x1: A.dlnBand[1], label: S.arrhenius.bandDln, color: CV.bandDln },
+          { x0: A.engineBand[0], x1: A.engineBand[1], label: S.arrhenius.bandEngine, color: CV.bandEngine, labelPos: 'bottom' },
         ],
         markers: [{ x: A.peak.T, y: A.peak.rel, label: S.arrhenius.peak }],
       });
@@ -303,8 +304,8 @@ export function createScene(ctx) {
     mount() {
       buildDom();
       buildControls();
-      tradeChart = createXYChart(q('.chart-slot--main'), { title: S.tradeoff.title, modelLevel: 'semiEmpirical', basis: 'noxCo', xLabel: S.tradeoff.xLabel, yLabel: S.tradeoff.yLabel, color: SPECIES_COLORS.NOx, pad: CHART_PAD });
-      arrChart = createXYChart(q('.chart-slot--sub'), { title: S.arrhenius.title, modelLevel: 'semiEmpirical', basis: 'zeldovich', xLabel: S.arrhenius.xLabel, yLabel: S.arrhenius.yLabel(noxKeyNumbers().Tref), logY: true, color: '#e6ebf3', pad: CHART_PAD });
+      tradeChart = createXYChart(q('.chart-slot--main'), { title: S.tradeoff.title, modelLevel: 'semiEmpirical', basis: 'noxCo', xLabel: S.tradeoff.xLabel, yLabel: S.tradeoff.yLabel, color: SPECIES_VAR.NOx, pad: CHART_PAD });
+      arrChart = createXYChart(q('.chart-slot--sub'), { title: S.arrhenius.title, modelLevel: 'semiEmpirical', basis: 'zeldovich', xLabel: S.arrhenius.xLabel, yLabel: S.arrhenius.yLabel(noxKeyNumbers().Tref), logY: true, color: CV.fg, pad: CHART_PAD });
       legend = createTempLegend(q('.overlay--legend'), { title: S.tempLegend });
       buildCalibration();
       q('.overlay--legend').append(q('.nox-species'));

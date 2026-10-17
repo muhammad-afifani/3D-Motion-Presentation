@@ -10,7 +10,7 @@ import { derivePolicy, limitsInputPatch } from '../state/derivePolicy.js';
 import { leverSweepParams, leverSweepKey, leverPatch, leverEngine, leversResetPatch } from '../state/deriveLevers.js';
 import { createSimClient } from '../state/simClient.js';
 import { POLICY, LOAD_RANGE, LEVER_AXIS_DISPLAY, EMIS } from '../model/presets.js';
-import { SPECIES_COLORS } from '../gfx/species.js';
+import { SPECIES_VAR } from '../gfx/species.js';
 import { createMultiLineChart } from '../charts/multiLineChart.js';
 import { decadeTicks, decadeFmt } from '../charts/xyChart.js';
 import { niceCeil } from '../charts/chartBase.js';
@@ -30,6 +30,7 @@ import { fuelSulfurPatch, fuelGasPatch } from '../state/deriveFuel.js';
 import { createLeversTab } from '../ui/leversTab.js';
 import { fmt, pct } from '../ui/format.js';
 import { STR } from '../ui/strings.js';
+import { CV } from '../charts/chartBase.js';
 
 const S = STR.scene9, C = STR.common, U = STR.common.units, H = STR.scene9.hud, LV = STR.scene9.leversTab, R = STR.regulation;
 
@@ -38,9 +39,9 @@ export const meta = { id: 'policy', number: 9, title: S.title, message: S.messag
 const KEYS_TAB = Object.fromEntries(POLICY.tabs.map((t, i) => [String(i + 1), t]));
 /** Tab berlayout lebar (tanpa grafik dan HUD). */
 export const WIDE_TABS = Object.freeze(['limits', 'formation']);
-const MCOLOR = { diesel: '#a9b4c7', gas: '#4fb3ff', turbine: '#ffb15c' };
+const MCOLOR = { diesel: CV.diesel, gas: CV.cold, turbine: CV.main };
 const DASH = { single: [], twin: [7, 5] };
-const ETA_COLOR = '#e6ebf3';
+const ETA_COLOR = CV.fg;
 const LEVER_DEBOUNCE_MS = 150;
 /** Perubahan state yang memicu sapuan tuas baru (di Worker, setelah debounce). */
 const SWEEP_FIELDS = ['p9Lev', 'p9Axis', 'regEquip', 'pEngine', 'calEngine'];
@@ -276,9 +277,9 @@ export function createScene(ctx) {
         sub.setData({ series: [], xDomain, yDomain: [0, 1], xFmt });
         main.setCaption(LV.computing); sub.setCaption(LV.computing);
       } else {
-        const hlines = L.limit.mg == null ? [] : [{ y: L.limit.mg, color: SPECIES_COLORS.NOx, dash: [6, 4], label: LV.limitLabel, align: 'left' }];
+        const hlines = L.limit.mg == null ? [] : [{ y: L.limit.mg, color: SPECIES_VAR.NOx, dash: [6, 4], label: LV.limitLabel, align: 'left' }];
         const yMax = niceCeil(Math.max(...L.noxMg, L.limit.mg ?? 0) * 1.25);
-        main.setData({ series: [{ x: L.x, y: L.noxMg, color: SPECIES_COLORS.NOx }], xDomain, yDomain: [0, yMax], xFmt, hlines });
+        main.setData({ series: [{ x: L.x, y: L.noxMg, color: SPECIES_VAR.NOx }], xDomain, yDomain: [0, yMax], xFmt, hlines });
         main.setCaption(LV.caption(basis, limTxt));
         const lo = Math.floor(Math.min(...L.etaPct) - 0.5), hi = Math.ceil(Math.max(...L.etaPct) + 0.5);
         sub.setData({ series: [{ x: L.x, y: L.etaPct, color: ETA_COLOR }], xDomain, yDomain: [lo, hi], yTicks: [lo, (lo + hi) / 2, hi], yFmt: (v) => fmt(v, Number.isInteger(v) ? 0 : 1), xFmt });
@@ -287,8 +288,8 @@ export function createScene(ctx) {
     }
     if (!L.ready) { main.setPoints([]); sub.setPoints([]); return; }
     const px = L.presetX;
-    main.setPoints([{ x: px, y: L.presetPoint.noxMg, fill: 'rgba(0,0,0,0)', ring: '#e6ebf3', guide: false }, { x: L.currentX, y: L.point.noxMg, fill: SPECIES_COLORS.NOx }]);
-    sub.setPoints([{ x: px, y: L.presetPoint.etaBrake * 100, fill: 'rgba(0,0,0,0)', ring: '#e6ebf3', guide: false }, { x: L.currentX, y: L.etaPct[L.i], fill: ETA_COLOR }]);
+    main.setPoints([{ x: px, y: L.presetPoint.noxMg, fill: 'transparent', ring: CV.fg, guide: false }, { x: L.currentX, y: L.point.noxMg, fill: SPECIES_VAR.NOx }]);
+    sub.setPoints([{ x: px, y: L.presetPoint.etaBrake * 100, fill: 'transparent', ring: CV.fg, guide: false }, { x: L.currentX, y: L.etaPct[L.i], fill: ETA_COLOR }]);
   }
 
   /** Tab GHG: CO₂ (garis penuh) dan CO₂e dengan slip (putus-putus, mesin gas) vs penalti; CO₂e vs slip di grafik pendamping. */
@@ -316,7 +317,7 @@ export function createScene(ctx) {
     }
     main.setPoints([
       ...B.machines.map((m) => ({ x: B.value, y: m.current.co2_1, fill: MCOLOR[m.id] })),
-      ...gasM.map((m) => ({ x: B.value, y: m.currentE.co2e, fill: 'rgba(0,0,0,0)', ring: MCOLOR[m.id] })),
+      ...gasM.map((m) => ({ x: B.value, y: m.currentE.co2e, fill: 'transparent', ring: MCOLOR[m.id] })),
     ]);
     sub.setPoints(gasM.map((m) => ({ x: B.slip, y: m.currentE.co2e, fill: MCOLOR[m.id] })));
   }
@@ -329,26 +330,26 @@ export function createScene(ctx) {
       mainKey = k;
       main.setTitle(S.C.main.title); main.setXLabel(S.C.main.xLabel); main.setYLabel(S.unitLabel[c.unit]); main.setLog(true);
       const series = ['single', 'twin'].flatMap((cfg) => [
-        { x: c[cfg].load, y: c[cfg].nox, color: SPECIES_COLORS.NOx, dash: DASH[cfg] },
-        { x: c[cfg].load, y: c[cfg].co, color: SPECIES_COLORS.CO, dash: DASH[cfg] },
+        { x: c[cfg].load, y: c[cfg].nox, color: SPECIES_VAR.NOx, dash: DASH[cfg] },
+        { x: c[cfg].load, y: c[cfg].co, color: SPECIES_VAR.CO, dash: DASH[cfg] },
       ]);
       const yMax = 10 ** Math.ceil(Math.log10(Math.max(...series.flatMap((x) => [...x.y]), c.limits.nox ?? 0, c.limits.co ?? 0)));
       const yDomain = [yMax / 1e4, yMax];
       const hlines = [];
-      if (c.limits.nox != null) hlines.push({ y: c.limits.nox, color: SPECIES_COLORS.NOx, label: c.limits.source.nox === 'override' ? STR.scene6.charts.limit.noxOverride : STR.scene6.charts.limit.nox, align: 'left' });
-      if (c.limits.co != null) hlines.push({ y: c.limits.co, color: SPECIES_COLORS.CO, label: STR.scene6.charts.limit.co });
-      const bands = ['single', 'twin'].flatMap((cfg) => c[cfg].coViolation.map(([hi, lo]) => ({ x0: hi + 0.5, x1: lo - 0.5, color: cfg === 'single' ? 'rgba(224,64,122,0.16)' : 'rgba(224,64,122,0.08)' })));
+      if (c.limits.nox != null) hlines.push({ y: c.limits.nox, color: SPECIES_VAR.NOx, label: c.limits.source.nox === 'override' ? STR.scene6.charts.limit.noxOverride : STR.scene6.charts.limit.nox, align: 'left' });
+      if (c.limits.co != null) hlines.push({ y: c.limits.co, color: SPECIES_VAR.CO, label: STR.scene6.charts.limit.co });
+      const bands = ['single', 'twin'].flatMap((cfg) => c[cfg].coViolation.map(([hi, lo]) => ({ x0: hi + 0.5, x1: lo - 0.5, color: cfg === 'single' ? CV.coBandSingle : CV.coBandTwin })));
       main.setData({ series, xDomain, yDomain, yTicks: decadeTicks(...yDomain), yFmt: decadeFmt, xFmt: (v) => fmt(v, 0), hlines, bands });
-      main.setCaption(S.C.caption(SPECIES_COLORS.NOx, SPECIES_COLORS.CO, basisText('nox', c.unit, c.basis), basisText('co', c.unit, c.basis), bands.length > 0));
+      main.setCaption(S.C.caption(SPECIES_VAR.NOx, SPECIES_VAR.CO, basisText('nox', c.unit, c.basis), basisText('co', c.unit, c.basis), bands.length > 0));
       sub.setTitle(S.C.sub.title); sub.setXLabel(S.C.sub.xLabel); sub.setYLabel(''); sub.setLog(false);
       const segs = [];
-      ['single', 'twin'].forEach((cfg, i) => (c[cfg].window?.ranges ?? []).forEach(([hi, lo]) => segs.push({ x: [hi + 0.4, lo - 0.4], y: [2 - i, 2 - i], color: cfg === 'single' ? '#e6ebf3' : '#4fb3ff', width: 14 })));
+      ['single', 'twin'].forEach((cfg, i) => (c[cfg].window?.ranges ?? []).forEach(([hi, lo]) => segs.push({ x: [hi + 0.4, lo - 0.4], y: [2 - i, 2 - i], color: cfg === 'single' ? CV.fg : CV.cold, width: 14 })));
       sub.setData({ series: segs, xDomain, yDomain: [0.4, 2.6], yTicks: [1, 2], yFmt: (v) => (v === 2 ? S.C.sub.yLabels.single : S.C.sub.yLabels.twin), xFmt: (v) => fmt(v, 0) });
       sub.setCaption(c.limits.set ? '' : S.C.prompt);
     }
     main.setPoints(['single', 'twin'].flatMap((cfg) => [
-      { x: c[cfg].point.load, y: c[cfg].point.nox, fill: SPECIES_COLORS.NOx, ring: cfg === 'twin' ? '#4fb3ff' : '#fff' },
-      { x: c[cfg].point.load, y: c[cfg].point.co, fill: SPECIES_COLORS.CO, ring: cfg === 'twin' ? '#4fb3ff' : '#fff' },
+      { x: c[cfg].point.load, y: c[cfg].point.nox, fill: SPECIES_VAR.NOx, ring: cfg === 'twin' ? CV.cold : CV.ring },
+      { x: c[cfg].point.load, y: c[cfg].point.co, fill: SPECIES_VAR.CO, ring: cfg === 'twin' ? CV.cold : CV.ring },
     ]));
     sub.setPoints([]);
   }

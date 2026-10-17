@@ -39,7 +39,8 @@ Kirim satu step per sesi Claude Code, berurutan, dan merge PR tiap step sebelum 
 |---|---|---|
 | Chip rumus "ƒ Formula" (sudah ada, bagian A) | Pojok **kiri atas viewport 3D** (12 px, 12 px); panel rumus terbuka tepat di bawahnya | Explore dan Present (di Present kecil dan samar) |
 | Tombol "Explore (M)" (sudah ada, bagian A) | **Header kanan atas**, paling kiri di kelompok kanan | Hanya Present |
-| Sakelar bahasa EN/ID (Step 01 / paket D) | **Header kanan atas**, di antara "Explore (M)" dan lencana "Model OK"; urutan: [Explore (M)] [EN/ID] [Model OK] | Explore dan Present |
+| Sakelar bahasa EN/ID (Step 01 / paket D) | **Header kanan atas**, di slot `#lang-slot` yang sudah disiapkan bagian B; urutan: [Explore (M)] [EN/ID] [Dark/Light] [Model OK] | Explore dan Present |
+| Sakelar tema Dark/Light (sudah ada, bagian B) | **Header kanan atas**, tepat di kiri lencana "Model OK" | Explore dan Present; tidak ikut ekspor PNG |
 | Pil "← Back to lesson" (Step 02) | **Header kiri**, tepat di bawah tag scene (tidak di atas visual 3D atau grafik) | Hanya Explore, setelah Try it |
 | Tombol ⓘ grafik (Step 03) | **Pojok kanan atas tiap grafik**, di kiri tag "Basis · …" pada baris judul grafik (tidak menutupi area plot) | Hanya Explore; tidak ikut ekspor PNG |
 

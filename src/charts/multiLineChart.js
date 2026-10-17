@@ -3,7 +3,7 @@
  * (mis. batas presenter), dan titik dinamis. Domain x boleh terbalik (mis. beban 100 → 40 %).
  * Data sudah dalam satuan tampilan; chart tidak menghitung model. Dipakai Scene 6.
  */
-import { createChartBase, makeScale, niceTicks, logTicks, drawAxes, CHART_FONT, CHART_COLORS } from './chartBase.js';
+import { createChartBase, makeScale, niceTicks, logTicks, drawAxes, CHART_FONT, CV } from './chartBase.js';
 
 /**
  * @typedef {{x:ArrayLike<number>, y:ArrayLike<number>, color:string, dash?:number[], width?:number}} Series
@@ -22,6 +22,7 @@ import { createChartBase, makeScale, niceTicks, logTicks, drawAxes, CHART_FONT, 
 /** @param {HTMLElement} container */
 export function createMultiLineChart(container, { title, modelLevel, basis = null, xLabel, yLabel, logY = false, indicative = true, pad = { l: 60, r: 18, t: 74, b: 40 } }) {
   const base = createChartBase(container, { title, modelLevel, basis, pad, indicative });
+  const { col, ink } = base;
   /** @type {MultiData|null} */
   let data = null;
   let sx = null, sy = null, yl = yLabel, xl = xLabel, logNow = logY;
@@ -40,9 +41,9 @@ export function createMultiLineChart(container, { title, modelLevel, basis = nul
     ctx.textAlign = 'center';
     for (const b of data.bands ?? []) {
       const a = sx(b.x0), z = sx(b.x1), l = Math.min(a, z), w = Math.abs(z - a);
-      ctx.fillStyle = b.color;
+      ctx.fillStyle = col(b.color);
       ctx.fillRect(l, y1, Math.max(2, w), y0 - y1);
-      if (b.label) { ctx.fillStyle = CHART_COLORS.title; ctx.fillText(b.label, l + w / 2, y1 + 3); }
+      if (b.label) { ctx.fillStyle = col(CV.title); ctx.fillText(b.label, l + w / 2, y1 + 3); }
     }
     ctx.restore();
 
@@ -58,15 +59,15 @@ export function createMultiLineChart(container, { title, modelLevel, basis = nul
     ctx.clip();
     for (const h of data.hlines ?? []) {
       const Y = sy(h.y);
-      ctx.strokeStyle = h.color;
+      ctx.strokeStyle = col(h.color);
       ctx.lineWidth = 1.5;
       ctx.setLineDash(h.dash ?? [6, 4]);
       ctx.beginPath(); ctx.moveTo(x0, Y); ctx.lineTo(x1, Y); ctx.stroke();
       ctx.setLineDash([]);
-      if (h.label) { const left = h.align === 'left'; ctx.fillStyle = h.color; ctx.font = CHART_FONT; ctx.textAlign = left ? 'left' : 'right'; ctx.textBaseline = 'bottom'; ctx.fillText(h.label, left ? x0 + 4 : x1 - 4, Y - 3); }
+      if (h.label) { const left = h.align === 'left'; ctx.fillStyle = ink(h.color); ctx.font = CHART_FONT; ctx.textAlign = left ? 'left' : 'right'; ctx.textBaseline = 'bottom'; ctx.fillText(h.label, left ? x0 + 4 : x1 - 4, Y - 3); }
     }
     for (const s of data.series) {
-      ctx.strokeStyle = s.color;
+      ctx.strokeStyle = col(s.color);
       ctx.lineWidth = s.width ?? 2;
       ctx.setLineDash(s.dash ?? []);
       ctx.beginPath();
@@ -95,7 +96,7 @@ export function createMultiLineChart(container, { title, modelLevel, basis = nul
       if (base.dirty) drawStatic();
       const ctx = base.beginDynamic();
       const { box } = base;
-      ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+      ctx.strokeStyle = col(CV.guide);
       ctx.lineWidth = 1;
       ctx.setLineDash([4, 4]);
       const xs = new Set(pts.filter((p) => p.guide !== false).map((p) => p.x));
@@ -104,8 +105,8 @@ export function createMultiLineChart(container, { title, modelLevel, basis = nul
       for (const p of pts) {
         if (!Number.isFinite(p.y) || (logNow && p.y <= 0)) continue;
         const X = sx(p.x), Y = sy(logNow ? Math.max(p.y, data.yDomain[0] * 0.5) : p.y);
-        ctx.fillStyle = p.fill;
-        ctx.strokeStyle = p.ring ?? '#fff';
+        ctx.fillStyle = col(p.fill ?? 'transparent');
+        ctx.strokeStyle = col(p.ring ?? CV.ring);
         ctx.lineWidth = 2;
         ctx.beginPath(); ctx.arc(X, Y, 5.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
       }

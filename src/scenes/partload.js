@@ -12,7 +12,7 @@ import { createEngineCalibrator, dlnCalibration } from '../state/calibration.js'
 import { LOAD_RANGE, GT_STAGES, NOX_CALIB_DEFAULTS } from '../model/presets.js';
 import { createRenderer } from '../gfx/renderer.js';
 import { createGasTurbineRig } from '../gfx/turbineRig.js';
-import { SPECIES_COLORS } from '../gfx/species.js';
+import { SPECIES_VAR } from '../gfx/species.js';
 import { createMultiLineChart } from '../charts/multiLineChart.js';
 import { decadeTicks, decadeFmt } from '../charts/xyChart.js';
 import { niceCeil } from '../charts/chartBase.js';
@@ -24,6 +24,7 @@ import { createLimitsInput } from '../ui/limitsInput.js';
 import { createCalibrationPanel } from '../ui/calibrationPanel.js';
 import { fmt, pct } from '../ui/format.js';
 import { STR } from '../ui/strings.js';
+import { CV } from '../charts/chartBase.js';
 
 const S = STR.scene6, C = STR.common, U = STR.common.units, H = STR.scene6.hud;
 
@@ -31,7 +32,7 @@ export const meta = { id: 'partload', number: 6, title: S.title, message: S.mess
 
 const CFGS = ['single', 'twin'];
 const DASH = { single: [], twin: [7, 5] };
-const WINDOW_FILL = { single: 'rgba(230,235,243,0.10)', twin: 'rgba(79,179,255,0.12)' };
+const WINDOW_FILL = { single: CV.winSingle, twin: CV.winTwin };
 const RIG_POS = { single: [0.75, 1.05, 0], twin: [-0.95, -1.2, 0] };
 const KEYS_STRATEGY = { 1: 'igv', 2: 'fuelOnly' };
 
@@ -106,7 +107,7 @@ export function createScene(ctx) {
           <div class="view3d"></div>
           <div class="overlay overlay--note"></div>
           <div class="overlay overlay--legend">
-            <div class="nox-species"><span class="sw" style="background:${SPECIES_COLORS.NOx}"></span>${S.species.nox} · <span class="sw" style="background:${SPECIES_COLORS.CO}"></span>${S.species.co}</div>
+            <div class="nox-species"><span class="sw" style="background:${SPECIES_VAR.NOx}"></span>${S.species.nox} · <span class="sw" style="background:${SPECIES_VAR.CO}"></span>${S.species.co}</div>
           </div>
           <div class="overlay overlay--labels"></div>
           <div class="overlay overlay--status num"></div>
@@ -219,20 +220,20 @@ export function createScene(ctx) {
     if (key !== emisKey) {
       emisKey = key;
       const series = CFGS.flatMap((cfg) => [
-        { x: f[cfg].curve.load, y: f[cfg].curve.nox, color: SPECIES_COLORS.NOx, dash: DASH[cfg] },
-        { x: f[cfg].curve.load, y: f[cfg].curve.co, color: SPECIES_COLORS.CO, dash: DASH[cfg] },
+        { x: f[cfg].curve.load, y: f[cfg].curve.nox, color: SPECIES_VAR.NOx, dash: DASH[cfg] },
+        { x: f[cfg].curve.load, y: f[cfg].curve.co, color: SPECIES_VAR.CO, dash: DASH[cfg] },
       ]);
       const yMax = 10 ** Math.ceil(Math.log10(Math.max(...series.flatMap((x) => [...x.y]), f.limits.nox ?? 0, f.limits.co ?? 0)));
       const yDomain = [yMax / 1e4, yMax];
       const hlines = [];
-      if (f.limits.nox != null) hlines.push({ y: f.limits.nox, color: SPECIES_COLORS.NOx, label: f.limits.source.nox === 'override' ? S.charts.limit.noxOverride : S.charts.limit.nox, align: 'left' });
-      if (f.limits.co != null) hlines.push({ y: f.limits.co, color: SPECIES_COLORS.CO, label: S.charts.limit.co });
+      if (f.limits.nox != null) hlines.push({ y: f.limits.nox, color: SPECIES_VAR.NOx, label: f.limits.source.nox === 'override' ? S.charts.limit.noxOverride : S.charts.limit.nox, align: 'left' });
+      if (f.limits.co != null) hlines.push({ y: f.limits.co, color: SPECIES_VAR.CO, label: S.charts.limit.co });
       emis.setData({ series, xDomain, yDomain, yTicks: decadeTicks(...yDomain), yFmt: decadeFmt, xFmt: (v) => fmt(v, 0), hlines, bands: windowBands(f) });
-      emis.setCaption(S.charts.emisCaption(SPECIES_COLORS.NOx, SPECIES_COLORS.CO, C.basis.full(f.basis.refO2, f.basis.TrefC), C.basis.fullCO(f.basis.refO2, f.basis.TrefC), f.limits.set));
+      emis.setCaption(S.charts.emisCaption(SPECIES_VAR.NOx, SPECIES_VAR.CO, C.basis.full(f.basis.refO2, f.basis.TrefC), C.basis.fullCO(f.basis.refO2, f.basis.TrefC), f.limits.set));
     }
     emis.setPoints(CFGS.flatMap((cfg) => [
-      { x: f.load, y: f[cfg].point.nox, fill: SPECIES_COLORS.NOx, ring: cfg === 'twin' ? '#4fb3ff' : '#fff' },
-      { x: f.load, y: f[cfg].point.co, fill: SPECIES_COLORS.CO, ring: cfg === 'twin' ? '#4fb3ff' : '#fff' },
+      { x: f.load, y: f[cfg].point.nox, fill: SPECIES_VAR.NOx, ring: cfg === 'twin' ? CV.cold : CV.ring },
+      { x: f.load, y: f[cfg].point.co, fill: SPECIES_VAR.CO, ring: cfg === 'twin' ? CV.cold : CV.ring },
     ]));
   }
 
@@ -249,12 +250,12 @@ export function createScene(ctx) {
       const lo = Math.min(...all), hi = Math.max(...all), padY = (hi - lo) * 0.08 || 1;
       const yDomain = flame ? [Math.floor((lo - padY) / 50) * 50, niceCeil(hi + padY)] : [Math.floor(lo - padY), Math.ceil(hi + padY)];
       aux.setData({
-        series: CFGS.map((cfg) => ({ x: f[cfg].curve.load, y: val(cfg), color: flame ? '#ffb15c' : '#e6ebf3', dash: DASH[cfg] })),
+        series: CFGS.map((cfg) => ({ x: f[cfg].curve.load, y: val(cfg), color: flame ? CV.main : CV.fg, dash: DASH[cfg] })),
         xDomain, yDomain, xFmt: (v) => fmt(v, 0), bands: windowBands(f),
       });
       aux.setCaption(S.charts.auxCaption);
     }
-    aux.setPoints(CFGS.map((cfg) => ({ x: f.load, y: flame ? f[cfg].point.Tflame : f[cfg].point.eta * 100, fill: flame ? '#ffb15c' : '#e6ebf3', ring: cfg === 'twin' ? '#4fb3ff' : '#fff' })));
+    aux.setPoints(CFGS.map((cfg) => ({ x: f.load, y: flame ? f[cfg].point.Tflame : f[cfg].point.eta * 100, fill: flame ? CV.main : CV.fg, ring: cfg === 'twin' ? CV.cold : CV.ring })));
   }
 
   function updateOverlay(f, s) {

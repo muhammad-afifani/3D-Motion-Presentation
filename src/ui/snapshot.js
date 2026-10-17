@@ -1,6 +1,6 @@
 /**
  * snapshot.js — snapshot PNG tampilan scene saat ini (tombol S): canvas 3D + grafik + teks DOM (HUD, judul, pesan
- * kunci, caption, basis, label tingkat model), resolusi 2×, tema gelap. Tanpa dependensi: renderer & grafik
+ * kunci, caption, basis, label tingkat model), resolusi 2×, mengikuti tema aktif (Dark/Light). Tanpa dependensi: renderer & grafik
  * digambar ulang sementara pada skala 2, lalu pohon DOM dilukis ke satu canvas (latar, border, canvas, teks).
  *
  * Bila melukis teks DOM gagal → PNG berisi canvas saja (3D + grafik) dan toast yang menjelaskannya (tidak diam-diam).

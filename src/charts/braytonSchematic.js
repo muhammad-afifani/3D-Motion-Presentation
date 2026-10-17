@@ -1,9 +1,10 @@
 /**
  * braytonSchematic.js — skema 2D sederhana Brayton (kompresor → combustor → turbin) sebagai
  * penanda state 1–4 dan posisi titik berjalan. BUKAN rig turbin (rig 3D di Scene 5 / M5).
- * Warna stasiun & titik = frame.schematic (tempToRGB dihitung di derive).
+ * Warna stasiun & titik = frame.schematic (tempToRGB dihitung di derive). Skema tampil di atas viewport 3D arang
+ * (`.vp-scope`), jadi token warnanya tetap bernilai gelap di kedua tema.
  */
-import { createChartBase, CHART_FONT } from './chartBase.js';
+import { createChartBase, CHART_FONT, CV } from './chartBase.js';
 import { fmt } from '../ui/format.js';
 import { STR } from '../ui/strings.js';
 
@@ -14,6 +15,7 @@ const rgb = (c) => `rgb(${c.map((v) => Math.round(v * 255)).join(',')})`;
 /** @param {HTMLElement} container */
 export function createBraytonSchematic(container, { basis = null } = {}) {
   const base = createChartBase(container, { title: S.title, modelLevel: 'ideal', basis, pad: { l: 20, r: 20, t: 50, b: 30 } });
+  const { col } = base;
   base.setCaption(S.note);
 
   /** Lintasan aliran: 4 ruas (1→2 kompresor, 2→3 combustor, 3→4 turbin, 4→1 lingkungan). */
@@ -56,7 +58,7 @@ export function createBraytonSchematic(container, { basis = null } = {}) {
       const g = layout();
       const st = sc.stations;
       // poros
-      ctx.strokeStyle = '#6c7480';
+      ctx.strokeStyle = col(CV.pipe);
       ctx.lineWidth = 6;
       ctx.beginPath(); ctx.moveTo(g.xc0 - 10, g.cy); ctx.lineTo(g.xt1 + 10, g.cy); ctx.stroke();
       // kompresor (menyempit) & turbin (melebar), isi gradasi suhu stasiun
@@ -69,8 +71,8 @@ export function createBraytonSchematic(container, { basis = null } = {}) {
         ctx.moveTo(x0, g.cy - h0 / 2); ctx.lineTo(x1, g.cy - h1 / 2); ctx.lineTo(x1, g.cy + h1 / 2); ctx.lineTo(x0, g.cy + h0 / 2); ctx.closePath();
         ctx.fill();
         ctx.globalAlpha = 1;
-        ctx.strokeStyle = '#e6ebf3'; ctx.lineWidth = 1.2; ctx.stroke();
-        ctx.fillStyle = '#e6ebf3'; ctx.font = `600 ${CHART_FONT}`; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+        ctx.strokeStyle = col(CV.title); ctx.lineWidth = 1.2; ctx.stroke();
+        ctx.fillStyle = col(CV.title); ctx.font = `600 ${CHART_FONT}`; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
         ctx.fillText(label, (x0 + x1) / 2, g.cy - Math.max(h0, h1) / 2 - 6);
       };
       trap(g.xc0, g.xc1, g.hBig, g.hSmall, st[0].rgb, st[1].rgb, S.compressor);
@@ -82,19 +84,19 @@ export function createBraytonSchematic(container, { basis = null } = {}) {
       ctx.globalAlpha = 0.85;
       ctx.beginPath(); ctx.roundRect(g.xb0, g.cy - g.hSmall * 0.75, g.xb1 - g.xb0, g.hSmall * 1.5, 10); ctx.fill();
       ctx.globalAlpha = 1;
-      ctx.strokeStyle = '#e6ebf3'; ctx.stroke();
-      ctx.fillStyle = '#e6ebf3'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+      ctx.strokeStyle = col(CV.title); ctx.stroke();
+      ctx.fillStyle = col(CV.title); ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
       ctx.fillText(S.combustor, (g.xb0 + g.xb1) / 2, g.cy - g.hSmall * 0.75 - 6);
       // lintasan aliran (ruas aktif disorot)
       g.segs.forEach((seg, i) => {
         ctx.save();
-        ctx.strokeStyle = i === sc.proc ? '#ffffff' : 'rgba(169,180,199,0.45)';
+        ctx.strokeStyle = i === sc.proc ? col(CV.ring) : col(CV.path);
         ctx.lineWidth = i === sc.proc ? 2.5 : 1.5;
         if (i === 3) ctx.setLineDash([5, 5]);
         ctx.beginPath(); seg.forEach(([x, y], k) => (k ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); ctx.stroke();
         ctx.restore();
       });
-      ctx.fillStyle = '#a9b4c7'; ctx.font = CHART_FONT; ctx.textBaseline = 'top';
+      ctx.fillStyle = col(CV.text); ctx.font = CHART_FONT; ctx.textBaseline = 'top';
       ctx.fillText(S.returnPath, (g.xc0 + g.xt1) / 2, g.yRet + 6);
       ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
       ctx.fillText(S.note, 12, base.box.h - 8);
@@ -102,16 +104,16 @@ export function createBraytonSchematic(container, { basis = null } = {}) {
       // penanda state 1–4
       for (let i = 0; i < 4; i++) {
         const [x, y] = g.P[i + 1];
-        ctx.fillStyle = '#0b0f16'; ctx.strokeStyle = '#e6ebf3'; ctx.lineWidth = 1.5;
+        ctx.fillStyle = col(CV.hollow); ctx.strokeStyle = col(CV.title); ctx.lineWidth = 1.5;
         ctx.beginPath(); ctx.arc(x, y, 11, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-        ctx.fillStyle = '#e6ebf3'; ctx.font = `700 ${CHART_FONT}`; ctx.textBaseline = 'middle';
+        ctx.fillStyle = col(CV.title); ctx.font = `700 ${CHART_FONT}`; ctx.textBaseline = 'middle';
         ctx.fillText(st[i].label, x, y + 0.5);
-        ctx.font = CHART_FONT; ctx.fillStyle = '#a9b4c7'; ctx.textBaseline = 'top';
+        ctx.font = CHART_FONT; ctx.fillStyle = col(CV.text); ctx.textBaseline = 'top';
         ctx.fillText(`${fmt(st[i].T, 0)} K`, x, y + g.hBig * 0.5 + 6);
       }
       // titik berjalan
       const [px, py] = along(g.segs[sc.proc], sc.t);
-      ctx.fillStyle = rgb(sc.gasRGB); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+      ctx.fillStyle = rgb(sc.gasRGB); ctx.strokeStyle = col(CV.ring); ctx.lineWidth = 2;
       ctx.beginPath(); ctx.arc(px, py, 8, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
     },
     dispose() { base.dispose(); },

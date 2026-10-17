@@ -10,8 +10,13 @@ import { isTypingTarget } from './ui/keys.js';
 import { loadContent, fallbackContent } from './state/content.js';
 import { openChannel, createPresenterLink } from './state/presenterSync.js';
 import { SCENE_NUMBERS } from './state/scenes.js';
+import { THEME_KEY, themeStorage, readThemeChoice, applyTheme } from './state/theme.js';
 
 document.title = STR.presenter.docTitle;
+// tema ikut jendela utama hanya bila storage terbaca (pilihan tersimpan); selain itu tetap Dark
+const syncTheme = () => { const c = readThemeChoice(themeStorage()); applyTheme(c.stored ? c.theme : 'dark'); };
+syncTheme();
+window.addEventListener('storage', (e) => { if (e.key === THEME_KEY || e.key === null) syncTheme(); });
 const channel = openChannel();
 let link = null;
 const view = createPresenterView(document.getElementById('presenter'), {

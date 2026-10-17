@@ -12,6 +12,8 @@ const intersect = (a, b) => {
   return { l, t, r: Math.max(l, r), b: Math.max(t, bo) };
 };
 const rectOf = (r) => ({ l: r.left, t: r.top, r: r.right, b: r.bottom });
+/** Token warna tema aktif (bagian B): PNG mengikuti tema yang tampil. */
+const token = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 
 function roundRect(ctx, x, y, w, h, rad) {
   ctx.beginPath();
@@ -50,10 +52,10 @@ function paintBox(ctx, r, cs, k) {
 
 function paintInput(ctx, el, r, cs, k) {
   const x = r.left * k, y = r.top * k, w = r.width * k, h = r.height * k;
-  const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent-hot').trim() || cs.color;
+  const accent = token('--accent-hot') || cs.color;
   if (el.type === 'range') {
     const min = Number(el.min || 0), max = Number(el.max || 100), f = max > min ? (Number(el.value) - min) / (max - min) : 0;
-    ctx.fillStyle = 'rgba(139,151,173,0.35)'; ctx.fillRect(x, y + h / 2 - 2 * k, w, 4 * k);
+    ctx.fillStyle = token('--track') || cs.color; ctx.fillRect(x, y + h / 2 - 2 * k, w, 4 * k);
     ctx.fillStyle = accent; ctx.fillRect(x, y + h / 2 - 2 * k, w * f, 4 * k);
     ctx.beginPath(); ctx.arc(x + w * f, y + h / 2, 7 * k, 0, Math.PI * 2); ctx.fill();
   } else if (el.type === 'checkbox' || el.type === 'radio') {
@@ -118,12 +120,12 @@ export function paintCanvases(ctx, root, k) {
   }
 }
 
-/** Warna latar dasar halaman (token --bg-0). */
-export const pageBackground = () => getComputedStyle(document.documentElement).getPropertyValue('--bg-0').trim() || '#0b0f16';
+/** Warna latar dasar halaman (token --bg-0 tema aktif). */
+export const pageBackground = () => token('--bg-0') || 'black';
 
 /** Teks footer satu baris di bawah tangkapan. */
 export function paintFooter(ctx, text, { x, y, maxWidth, k }) {
-  ctx.fillStyle = 'rgba(139,151,173,0.9)';
+  ctx.fillStyle = token('--snap-footer') || token('--muted');
   ctx.font = `${12 * k}px Inter, system-ui, sans-serif`;
   ctx.textBaseline = 'middle';
   ctx.fillText(text, x, y, maxWidth);

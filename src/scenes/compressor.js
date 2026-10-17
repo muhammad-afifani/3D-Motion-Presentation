@@ -20,13 +20,14 @@ import { animSpeedSlider } from '../ui/animSpeed.js';
 import { createHud } from '../ui/hud.js';
 import { fmt } from '../ui/format.js';
 import { STR } from '../ui/strings.js';
+import { CV } from '../charts/chartBase.js';
 
 const S = STR.scene7, C = STR.common, U = STR.common.units, H = STR.scene7.hud, SU = STR.scene7.units;
 
 export const meta = { id: 'compressor', number: 7, title: S.title, message: S.message };
 
 const LABEL_KEYS = ['impeller', 'volute', 'inlet', 'discharge', 'coupling'];
-const WHATIF = '#4fb3ff';
+const WHATIF = CV.cold;
 
 /** Item HUD baris kompresor (diekspor untuk tes). */
 export function compHudItems() {
@@ -156,29 +157,29 @@ export function createScene(ctx) {
       hqKey = kq;
       const xMax = niceCeil(Math.max(...c.Q, f.comp.Qd) * 1.08);
       const yMax = niceCeil(Math.max(...c.H, f.comp.Hd / 1e3) * 1.08);
-      hq.setData({ series: [{ x: c.Q, y: c.H, color: '#e6ebf3' }], xDomain: [0, xMax], yDomain: [0, yMax], xFmt: (v) => fmt(v, v < 10 ? 1 : 0) });
+      hq.setData({ series: [{ x: c.Q, y: c.H, color: CV.fg }], xDomain: [0, xMax], yDomain: [0, yMax], xFmt: (v) => fmt(v, v < 10 ? 1 : 0) });
       hq.setCaption(S.charts.hq.caption);
       pnKey = '';
     }
     hq.setPoints([
-      { x: f.comp.Qd, y: f.comp.Hd / 1e3, fill: 'rgba(0,0,0,0)', ring: '#ffb15c', guide: false },
+      { x: f.comp.Qd, y: f.comp.Hd / 1e3, fill: 'transparent', ring: CV.main, guide: false },
       { x: f.whatIf.Q, y: f.whatIf.H / 1e3, fill: WHATIF },
-      { x: f.comp.Q, y: f.comp.head / 1e3, fill: '#ffffff', ring: '#ffffff' },
+      { x: f.comp.Q, y: f.comp.head / 1e3, fill: CV.ring, ring: CV.ring },
     ]);
     const kp = `${kq}|${f.train.ptPower}`;
     if (kp !== pnKey) {
       pnKey = kp;
       const yMax = niceCeil(Math.max(...c.P, f.train.ptPower / 1e6) * 1.1);
       pn.setData({
-        series: [{ x: c.N, y: c.P, color: '#e6ebf3' }],
+        series: [{ x: c.N, y: c.P, color: CV.fg }],
         xDomain: [c.N[0], c.N[c.N.length - 1]], yDomain: [0, yMax], xFmt: (v) => fmt(v, 0),
-        hlines: [{ y: f.train.ptPower / 1e6, color: '#ffb15c', label: S.charts.pn.ptLine }],
+        hlines: [{ y: f.train.ptPower / 1e6, color: CV.main, label: S.charts.pn.ptLine }],
       });
       pn.setCaption(S.charts.pn.caption);
     }
     pn.setPoints([
       { x: f.whatIf.N * 100, y: f.whatIf.P / 1e6, fill: WHATIF },
-      { x: f.Nreq * 100, y: f.comp.power / 1e6, fill: '#ffffff' },
+      { x: f.Nreq * 100, y: f.comp.power / 1e6, fill: CV.ring },
     ]);
   }
 

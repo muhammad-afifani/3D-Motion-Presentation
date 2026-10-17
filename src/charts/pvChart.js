@@ -3,19 +3,20 @@
  * titik = (frame.V, frame.P) dari sampleSim yang sama → titik selalu di kurva.
  * Area fase tertutup (IVC→EVO) diarsir = kerja kotor per siklus.
  */
-import { createChartBase, makeScale, niceTicks, logTicks, niceCeil, drawAxes, CHART_FONT } from './chartBase.js';
+import { createChartBase, makeScale, niceTicks, logTicks, niceCeil, drawAxes, CHART_FONT, CV } from './chartBase.js';
 import { toBar, toLiter } from '../ui/format.js';
 import { STR } from '../ui/strings.js';
 
 const S = STR.charts.pv;
 
-const C_LOOP = '#ffb15c';
-const C_GASX = 'rgba(120,170,230,0.75)';
-const C_FILL = 'rgba(255,154,60,0.16)';
+const C_LOOP = CV.main;
+const C_GASX = CV.gasx;
+const C_FILL = CV.pvFill;
 
 /** @param {HTMLElement} container */
 export function createPVChart(container, { modelLevel = 'semiEmpirical', basis = null } = {}) {
   const base = createChartBase(container, { title: S.title, modelLevel, basis });
+  const { col } = base;
   let log = false;
   let curve = null, engine = null, yMax = 0;
   let sx = null, sy = null;
@@ -53,9 +54,9 @@ export function createPVChart(container, { modelLevel = 'semiEmpirical', basis =
     // garis TDC / BDC
     ctx.save();
     ctx.setLineDash([4, 4]);
-    ctx.strokeStyle = 'rgba(169,180,199,0.35)';
+    ctx.strokeStyle = col(CV.dash);
     ctx.font = CHART_FONT;
-    ctx.fillStyle = '#a9b4c7';
+    ctx.fillStyle = col(CV.text);
     ctx.textAlign = 'center';
     for (const [V, lbl] of [[g.Vc, S.tdc], [g.Vc + g.Vd, S.bdc]]) {
       const x = sx(toLiter(V));
@@ -71,12 +72,12 @@ export function createPVChart(container, { modelLevel = 'semiEmpirical', basis =
     ctx.moveTo(px(c.iClosed0), py(c.iClosed0));
     for (let i = c.iClosed0 + 1; i <= c.iClosed1; i++) ctx.lineTo(px(i), py(i));
     ctx.closePath();
-    ctx.fillStyle = C_FILL;
+    ctx.fillStyle = col(C_FILL);
     ctx.fill();
 
     // pertukaran gas (intake/exhaust)
     ctx.lineWidth = 1.5;
-    ctx.strokeStyle = C_GASX;
+    ctx.strokeStyle = col(C_GASX);
     ctx.beginPath();
     ctx.moveTo(px(c.iClosed1), py(c.iClosed1));
     for (let i = c.iClosed1 + 1; i < c.n; i++) ctx.lineTo(px(i), py(i));
@@ -88,7 +89,7 @@ export function createPVChart(container, { modelLevel = 'semiEmpirical', basis =
 
     // fase tertutup (kompresi–pembakaran–ekspansi)
     ctx.lineWidth = 2.5;
-    ctx.strokeStyle = C_LOOP;
+    ctx.strokeStyle = col(C_LOOP);
     ctx.beginPath();
     ctx.moveTo(px(c.iClosed0), py(c.iClosed0));
     for (let i = c.iClosed0 + 1; i <= c.iClosed1; i++) ctx.lineTo(px(i), py(i));
@@ -110,7 +111,7 @@ export function createPVChart(container, { modelLevel = 'semiEmpirical', basis =
       const iFrom = Math.max(0, iNow - Math.round(40 / c.step));
       ctx.lineWidth = 4;
       ctx.lineCap = 'round';
-      ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+      ctx.strokeStyle = col(CV.guide);
       ctx.beginPath();
       ctx.moveTo(sx(toLiter(c.V[iFrom])), sy(toBar(c.P[iFrom])));
       for (let i = iFrom + 1; i <= iNow; i++) ctx.lineTo(sx(toLiter(c.V[i])), sy(toBar(c.P[i])));
@@ -119,7 +120,7 @@ export function createPVChart(container, { modelLevel = 'semiEmpirical', basis =
       // titik state saat ini
       const x = sx(toLiter(f.V)), y = sy(toBar(f.P));
       ctx.fillStyle = `rgb(${f.gasRGB.map((v) => Math.round(v * 255)).join(',')})`;
-      ctx.strokeStyle = '#fff';
+      ctx.strokeStyle = col(CV.ring);
       ctx.lineWidth = 2;
       ctx.beginPath(); ctx.arc(x, y, 7, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
     },
