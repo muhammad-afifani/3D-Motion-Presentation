@@ -12,7 +12,7 @@ export const SPECIES_PALETTES = Object.freeze({
   lightInk: Object.freeze({ NOx: '#984900', CO: '#b61e55', CO2: '#4a6182', CH4: '#246b49', PM: '#4a4f57' }),
 });
 
-/** Warna spesies untuk visual 3D: viewport selalu berlatar arang, jadi selalu palet gelap. */
+/** Palet gelap (tema Dark, viewport gelap). Partikel 3D memilih palet lewat speciesColors3D(tone) di viewportTone.js. */
 export const SPECIES_COLORS = SPECIES_PALETTES.dark;
 
 /** Nama variabel CSS per spesies. */

@@ -8,8 +8,8 @@
  *   5. M9 Step 06: setiap deep link (scene, tab Scene 9, halaman penuh) terbuka di halaman baru tanpa galat dan tanpa
  *      grafik kosong; tanpa scroll horizontal; panah di Explore / Present; jendela presenter ikut saat scene berganti di
  *      Present (juga lewat alamat #/scene/N); tinggi grafik Scene 6 dilaporkan.
- *   6. Bagian B: tema terang di 1366×768 (semua scene/tab, viewport 3D tetap arang, halaman penuh, PNG ikut tema,
- *      sakelar tersimpan setelah muat ulang).
+ *   6. Bagian B: tema terang di 1366×768 (semua scene/tab, latar viewport varian A, kotak overlay kaca + blur tanpa
+ *      latar opak putih, halaman penuh, PNG ikut tema, sakelar tersimpan setelah muat ulang).
  * Sengaja TIDAK memeriksa isi kartu info kiri Scene 9 (`.pol-card`): isinya akan dirombak.
  * Gagal (exit 1) bila ada grafik kosong, canvas 0, teks meluber, atau galat. Screenshot Scene 7 dan 9 disimpan di
  * scripts/e2e/shots/after/ (tidak di-commit).
@@ -260,8 +260,9 @@ function pngCornerLum(buf) {
 
 /**
  * Bagian B: tema terang. Sakelar di header (urutan, aria), tersimpan di etel:theme dan bertahan setelah muat ulang;
- * semua scene + tab Scene 9 tanpa grafik kosong / teks meluber di tema terang; viewport 3D tetap arang; token grafik
- * ikut tema (skema di atas viewport tetap gelap); halaman penuh berlatar terang; PNG (S) mengikuti tema aktif.
+ * semua scene + tab Scene 9 tanpa grafik kosong / teks meluber di tema terang; latar viewport varian A; kotak overlay
+ * kaca tembus pandang + blur; token grafik
+ * ikut tema (skema di atas viewport ikut tone viewport); halaman penuh berlatar terang; PNG (S) mengikuti tema aktif.
  */
 async function themeInteraction(browser, url) {
   const fails = [];
@@ -309,20 +310,34 @@ async function themeInteraction(browser, url) {
       for (const c of res.charts) if (!c.ok) fails.push(`${label}: grafik #${c.i} "${c.title}" kosong (terisi ${c.pct} %)`);
       for (const o of res.overflow) fails.push(`${label}: teks meluber di ${o.el}: ${o.reasons[0]}`);
       if (res.hscroll) fails.push(`${label}: scroll horizontal`);
-      // viewport 3D tetap arang: semua warna gradasi latar gelap (luminans terkode gamma < 0,3; latar halaman terang ≈ 0,94)
+      // viewport 3D tema terang = varian A (abu-krem terang): warna gradasi latar berluminans terkode gamma 0,68–0,90
+      // (#c2bcae ≈ 0,74 … #d8d3c6 ≈ 0,83). Kotak di atas viewport: tidak ada latar opak putih (alpha > 0,6 dan terang),
+      // dan setiap kotak berlatar memakai backdrop-filter blur (panel Calibration yang di-dock dikecualikan).
       const vp = await p.evaluate(() => {
-        const v = document.querySelector('.scene__view, .cyc-view, .fl-view, .gt-view, .pl-view');
-        if (!v || !v.checkVisibility()) return null;
-        const cols = (getComputedStyle(v).backgroundImage.match(/rgba?\([^)]+\)/g) ?? []).map((c) => c.match(/[\d.]+/g).slice(0, 3).map(Number));
-        return cols.map(([r, g, b]) => (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255);
+        const v = [...document.querySelectorAll('.scene__view, .cyc-view, .fl-view, .gt-view, .pl-view:not(.pol-card):not(.pol-levers)')].find((x) => x.checkVisibility());
+        if (!v) return null;
+        const rgba = (c) => { const m = (c.match(/[\d.]+/g) ?? []).map(Number); return { l: (0.2126 * m[0] + 0.7152 * m[1] + 0.0722 * m[2]) / 255, a: m.length > 3 ? m[3] : 1 }; };
+        const lums = (getComputedStyle(v).backgroundImage.match(/rgba?\([^)]+\)/g) ?? []).map((c) => rgba(c).l);
+        const boxes = [];
+        for (const el of v.querySelectorAll('*')) {
+          if (el.closest('.cal-panel, canvas') || !el.checkVisibility()) continue;
+          const cs = getComputedStyle(el), r = el.getBoundingClientRect();
+          if (!cs.backgroundColor || cs.backgroundColor === 'rgba(0, 0, 0, 0)' || r.width < 24 || r.height < 14) continue;
+          const c = rgba(cs.backgroundColor);
+          const name = `${el.tagName.toLowerCase()}.${String(el.className).trim().split(/\s+/)[0]}`;
+          if (c.a > 0.6 && c.l > 0.5) boxes.push(`${name}: latar opak terang ${cs.backgroundColor}`);
+          else if (!/blur\(/.test(cs.backdropFilter)) boxes.push(`${name}: tanpa backdrop-filter blur`);
+        }
+        return { lums, boxes };
       });
-      if (vp?.length && vp.some((l) => l > 0.3)) fails.push(`${label}: viewport 3D tidak arang (luminans ${vp.map((l) => l.toFixed(2)).join(', ')})`);
+      if (vp && (!vp.lums.length || vp.lums.some((l) => l < 0.68 || l > 0.9))) fails.push(`${label}: latar viewport bukan varian A (luminans ${vp.lums.map((l) => l.toFixed(2)).join(', ')})`);
+      for (const b of vp?.boxes ?? []) fails.push(`${label}: ${b}`);
     }
   }
-  // token grafik: panel ikut tema; skema Brayton di atas viewport (.vp-scope) tetap gelap
+  // token grafik: panel ikut tema; skema Brayton di atas viewport terang (.vp-scope) juga memakai token terang
   await goScene(p, 2, 300);
   const tok = await p.evaluate(() => ({ chart: getComputedStyle(document.querySelector('.cyc-pv .chart')).getPropertyValue('--c-text').trim(), vp: getComputedStyle(document.querySelector('.vp-scope')).getPropertyValue('--c-text').trim() }));
-  if (tok.chart !== '#4f4a41' || tok.vp !== '#a9b4c7') fails.push(`tema: token grafik ${JSON.stringify(tok)}`);
+  if (tok.chart !== '#4f4a41' || tok.vp !== '#4f4a41') fails.push(`tema: token grafik ${JSON.stringify(tok)}`);
   const lightPng = await png('Light');
   if (lightPng != null && lightPng < 0.6) fails.push(`tema: PNG Light tidak mengikuti tema (luminans pojok ${lightPng.toFixed(2)})`);
   // halaman penuh berlatar terang

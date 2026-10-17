@@ -1,9 +1,11 @@
 /**
- * flame.js — material nyala prosedural (ShaderMaterial + noise fbm), additive, cocok dengan bloom.
+ * flame.js — material nyala prosedural (ShaderMaterial + noise fbm): aditif + bloom di viewport gelap; di viewport
+ * terang blending normal dengan tepi siluet sedikit digelapkan agar inti panas (putih/kuning) tetap terbaca.
  * Sumbu nyala = koordinat uv.y geometri (0 = pangkal, 1 = ujung). Warna dari frame (flameColor),
  * intensitas (0…1) dari frame (laju pelepasan panas). Tidak ada perhitungan model di sini.
  */
 import * as THREE from 'three';
+import { viewportTone, glowBlending } from './viewportTone.js';
 
 const vert = /* glsl */ `
   varying vec2 vUv;
@@ -24,6 +26,7 @@ const frag = /* glsl */ `
   uniform vec3 uColor;
   uniform vec3 uCore;
   uniform float uAlongPow;
+  uniform float uOnLight;
   varying vec2 vUv;
   varying vec3 vN;
   varying vec3 vView;
@@ -42,13 +45,17 @@ const frag = /* glsl */ `
     // kecerahan naik monoton dengan intensitas; lantai 0,4 agar nyala kecil tetap terbaca (ukuran tetap ∝ intensitas)
     float a = clamp(body * rim * (0.4 + 0.8 * uIntensity), 0.0, 1.0);
     vec3 col = mix(uColor, uCore, rim * (1.0 - along));
-    gl_FragColor = vec4(col * (0.5 + 0.7 * uIntensity), a);
+    col *= 0.5 + 0.7 * uIntensity;
+    // latar terang: tepi siluet digelapkan (warna inti = warna suhu tetap), alpha sedikit dinaikkan
+    col = mix(col, col * (0.45 + 0.55 * rim), uOnLight);
+    a = mix(a, clamp(a * 1.35, 0.0, 1.0), uOnLight);
+    gl_FragColor = vec4(col, a);
   }`;
 
 /**
- * @param {{color?: number[], core?: number[], flicker?: number, alongPow?: number}} [o]
+ * @param {{color?: number[], core?: number[], flicker?: number, alongPow?: number, tone?: 'dark'|'light'}} [o]
  */
-export function createFlameMaterial({ color = [1, 0.6, 0.2], core = [1, 1, 1], flicker = 1, alongPow = 1.2 } = {}) {
+export function createFlameMaterial({ color = [1, 0.6, 0.2], core = [1, 1, 1], flicker = 1, alongPow = 1.2, tone = viewportTone() } = {}) {
   return new THREE.ShaderMaterial({
     uniforms: {
       uTime: { value: 0 },
@@ -57,12 +64,13 @@ export function createFlameMaterial({ color = [1, 0.6, 0.2], core = [1, 1, 1], f
       uColor: { value: new THREE.Color().setRGB(...color, THREE.SRGBColorSpace) },
       uCore: { value: new THREE.Color().setRGB(...core, THREE.SRGBColorSpace) },
       uAlongPow: { value: alongPow },
+      uOnLight: { value: tone === 'light' ? 1 : 0 },
     },
     vertexShader: vert,
     fragmentShader: frag,
     transparent: true,
     depthWrite: false,
-    blending: THREE.AdditiveBlending,
+    blending: glowBlending(tone),
     side: THREE.DoubleSide,
   });
 }
