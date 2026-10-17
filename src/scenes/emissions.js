@@ -10,7 +10,7 @@ import { deriveEmis } from '../state/deriveEmis.js';
 import { EMIS } from '../model/presets.js';
 import { createRenderer } from '../gfx/renderer.js';
 import { createEmissionRig, UNIT_X, SPECIES } from '../gfx/emissionRig.js';
-import { SPECIES_COLORS } from '../gfx/species.js';
+import { SPECIES_VAR } from '../gfx/species.js';
 import { createBarChart } from '../charts/barChart.js';
 import { slider, button } from '../ui/controls.js';
 import { animSpeedSlider } from '../ui/animSpeed.js';
@@ -39,15 +39,15 @@ export function hudItems() {
 /** Baris bar chart CO₂/CO₂e (diekspor untuk tes): segmen CO₂ + CH₄·GWP. */
 export function co2Rows(f) {
   return f.list.map((r) => ({
-    label: S.machines[r.id], value: r.co2e, color: SPECIES_COLORS.CO2, active: true,
+    label: S.machines[r.id], value: r.co2e, color: SPECIES_VAR.CO2, active: true,
     sub: S.charts.sub(r.eta, r.co2, r.ch4),
-    stack: [{ value: r.co2, color: SPECIES_COLORS.CO2 }, { value: r.co2e - r.co2, color: SPECIES_COLORS.CH4 }],
+    stack: [{ value: r.co2, color: SPECIES_VAR.CO2 }, { value: r.co2e - r.co2, color: SPECIES_VAR.CH4 }],
   }));
 }
 /** Baris bar chart NOx (diekspor untuk tes). */
 export function noxRows(f) {
   return f.list.map((r) => ({
-    label: S.machines[r.id], value: r.nox, color: SPECIES_COLORS.NOx, active: true,
+    label: S.machines[r.id], value: r.nox, color: SPECIES_VAR.NOx, active: true,
     sub: r.id === 'turbine' ? S.charts.subTurbine(r.noxPpm, C.basis.short(f.basis.refO2, f.basis.TrefC)) : undefined,
   }));
 }
@@ -76,7 +76,7 @@ export function createScene(ctx) {
   const setHTML = (n, t) => { if (cache.get(n) !== t) { n.innerHTML = t; cache.set(n, t); } };
 
   function buildDom() {
-    const chips = SPECIES.map((k) => `<span class="sw" style="background:${SPECIES_COLORS[k]}"></span>${S.species[k]}`).join(' · ');
+    const chips = SPECIES.map((k) => `<span class="sw" style="background:${SPECIES_VAR[k]}"></span>${S.species[k]}`).join(' · ');
     el = html(`
       <section class="scene scene--load scene--emis">
         <div class="pl-view">
@@ -160,7 +160,7 @@ export function createScene(ctx) {
     update(dt) {
       const s = store.get();
       const f = deriveEmis(s);
-      co2Chart.update(co2Rows(f), { caption: S.charts.co2.caption(SPECIES_COLORS.CO2, SPECIES_COLORS.CH4, f.gwp) });
+      co2Chart.update(co2Rows(f), { caption: S.charts.co2.caption(SPECIES_VAR.CO2, SPECIES_VAR.CH4, f.gwp) });
       noxChart.update(noxRows(f));
       setText(q('[data-k="noxNote"]'), noxNote(f));
       hud.update(f);

@@ -3,7 +3,7 @@
  * penanda statis, dan titik dinamis. Data sudah dalam satuan tampilan; chart tidak menghitung model.
  * Dipakai Scene 4: NOx vs η (retardSweep) dan Arrhenius (zeldovichCurve).
  */
-import { createChartBase, makeScale, niceTicks, logTicks, drawAxes, CHART_FONT, CHART_COLORS } from './chartBase.js';
+import { createChartBase, makeScale, niceTicks, logTicks, drawAxes, CHART_FONT, CV } from './chartBase.js';
 
 /**
  * @typedef {Object} XYData
@@ -20,8 +20,9 @@ import { createChartBase, makeScale, niceTicks, logTicks, drawAxes, CHART_FONT, 
  */
 
 /** @param {HTMLElement} container */
-export function createXYChart(container, { title, modelLevel, basis = null, xLabel, yLabel, logY = false, color = '#ff9a3c', pad = { l: 60, r: 18, t: 58, b: 40 } }) {
+export function createXYChart(container, { title, modelLevel, basis = null, xLabel, yLabel, logY = false, color = CV.hot, pad = { l: 60, r: 18, t: 58, b: 40 } }) {
   const base = createChartBase(container, { title, modelLevel, basis, pad });
+  const { col } = base;
   /** @type {XYData|null} */
   let data = null;
   let sx = null, sy = null;
@@ -41,10 +42,10 @@ export function createXYChart(container, { title, modelLevel, basis = null, xLab
     for (const b of data.bands ?? []) {
       const a = sx(Math.max(b.x0, data.xDomain[0])), z = sx(Math.min(b.x1, data.xDomain[1]));
       if (z <= a) continue;
-      ctx.fillStyle = b.color;
+      ctx.fillStyle = col(b.color);
       ctx.fillRect(a, y1, z - a, y0 - y1);
       if (b.label) {
-        ctx.fillStyle = CHART_COLORS.text;
+        ctx.fillStyle = col(CV.text);
         const bottom = b.labelPos === 'bottom';
         ctx.textBaseline = bottom ? 'bottom' : 'top';
         ctx.fillText(b.label, (a + z) / 2, bottom ? y0 - 4 : y1 + 4);
@@ -63,14 +64,14 @@ export function createXYChart(container, { title, modelLevel, basis = null, xLab
     ctx.rect(x0, y1, x1 - x0, y0 - y1);
     ctx.clip();
     ctx.lineWidth = 2;
-    ctx.strokeStyle = color;
+    ctx.strokeStyle = col(color);
     ctx.beginPath();
     for (let i = 0; i < data.x.length; i++) {
       const X = sx(data.x[i]), Y = sy(data.y[i]);
       if (i) ctx.lineTo(X, Y); else ctx.moveTo(X, Y);
     }
     ctx.stroke();
-    ctx.fillStyle = color;
+    ctx.fillStyle = col(color);
     ctx.font = CHART_FONT;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'bottom';
@@ -78,9 +79,9 @@ export function createXYChart(container, { title, modelLevel, basis = null, xLab
     for (const p of data.pointLabels ?? []) {
       const X = sx(data.x[p.i]), Y = sy(data.y[p.i]);
       ctx.beginPath(); ctx.arc(X, Y, 2.5, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = CHART_COLORS.text;
+      ctx.fillStyle = col(CV.text);
       ctx.fillText(p.label, X - 5, Y - 5);   // kiri-atas titik (di luar kurva yang naik ke kanan)
-      ctx.fillStyle = color;
+      ctx.fillStyle = col(color);
     }
     ctx.restore();
 
@@ -90,12 +91,12 @@ export function createXYChart(container, { title, modelLevel, basis = null, xLab
     ctx.textBaseline = 'middle';
     for (const m of data.markers ?? []) {
       const X = sx(m.x), Y = sy(m.y);
-      ctx.strokeStyle = CHART_COLORS.title;
+      ctx.strokeStyle = col(CV.title);
       ctx.lineWidth = 1.5;
       ctx.setLineDash([3, 3]);
       ctx.beginPath(); ctx.arc(X, Y, 8, 0, Math.PI * 2); ctx.stroke();
       ctx.setLineDash([]);
-      ctx.fillStyle = CHART_COLORS.title;
+      ctx.fillStyle = col(CV.title);
       if (m.label) ctx.fillText(m.label, X + 12, Y + 12);
     }
     ctx.restore();
@@ -118,19 +119,19 @@ export function createXYChart(container, { title, modelLevel, basis = null, xLab
         if (!Number.isFinite(p.x) || !Number.isFinite(p.y)) continue;
         const X = sx(p.x), Y = sy(p.y);
         if (p.guide) {
-          ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+          ctx.strokeStyle = col(CV.guide);
           ctx.lineWidth = 1;
           ctx.setLineDash([4, 4]);
           ctx.beginPath(); ctx.moveTo(X, box.h - box.pad.b); ctx.lineTo(X, Y); ctx.lineTo(box.pad.l, Y); ctx.stroke();
           ctx.setLineDash([]);
         }
-        ctx.fillStyle = p.fill ?? '#fff';
-        ctx.strokeStyle = '#fff';
+        ctx.fillStyle = col(p.fill ?? CV.ring);
+        ctx.strokeStyle = col(CV.ring);
         ctx.lineWidth = 2;
         ctx.beginPath(); ctx.arc(X, Y, 6, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
         if (p.label) {
           ctx.font = CHART_FONT;
-          ctx.fillStyle = CHART_COLORS.title;
+          ctx.fillStyle = col(CV.title);
           const right = X > box.w - 170;
           ctx.textAlign = right ? 'right' : 'left';
           ctx.textBaseline = 'middle';

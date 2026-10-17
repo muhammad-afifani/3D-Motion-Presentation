@@ -2,7 +2,7 @@
  * lineChart.js — grafik garis generik (mis. P-θ) dengan pita fase, garis vertikal, penanda,
  * dan kursor berjalan. Data sudah dalam satuan tampilan; chart tidak menghitung model.
  */
-import { createChartBase, makeScale, niceTicks, drawAxes, CHART_FONT } from './chartBase.js';
+import { createChartBase, makeScale, niceTicks, drawAxes, CHART_FONT, CV } from './chartBase.js';
 
 /**
  * @typedef {Object} LineData
@@ -18,8 +18,9 @@ import { createChartBase, makeScale, niceTicks, drawAxes, CHART_FONT } from './c
  */
 
 /** @param {HTMLElement} container */
-export function createLineChart(container, { title, modelLevel, basis = null, xLabel, yLabel, color = '#ffb15c' }) {
+export function createLineChart(container, { title, modelLevel, basis = null, xLabel, yLabel, color = CV.main }) {
   const base = createChartBase(container, { title, modelLevel, basis, pad: { l: 56, r: 16, t: 58, b: 40 } });
+  const { col } = base;
   /** @type {LineData|null} */
   let data = null;
   let sx = null, sy = null;
@@ -37,9 +38,9 @@ export function createLineChart(container, { title, modelLevel, basis = null, xL
     ctx.textBaseline = 'bottom';
     for (const b of data.bands ?? []) {
       const a = sx(Math.max(b.x0, data.xDomain[0])), z = sx(Math.min(b.x1, data.xDomain[1]));
-      ctx.fillStyle = b.color;
+      ctx.fillStyle = col(b.color);
       ctx.fillRect(a, y1, z - a, y0 - y1);
-      if (b.label && z - a > 30) { ctx.fillStyle = '#a9b4c7'; ctx.fillText(b.label, (a + z) / 2, y0 - 6); }
+      if (b.label && z - a > 30) { ctx.fillStyle = col(CV.text); ctx.fillText(b.label, (a + z) / 2, y0 - 6); }
     }
     ctx.restore();
 
@@ -50,8 +51,8 @@ export function createLineChart(container, { title, modelLevel, basis = null, xL
 
     ctx.save();
     ctx.setLineDash([4, 4]);
-    ctx.strokeStyle = 'rgba(169,180,199,0.35)';
-    ctx.fillStyle = '#a9b4c7';
+    ctx.strokeStyle = col(CV.dash);
+    ctx.fillStyle = col(CV.text);
     ctx.font = CHART_FONT;
     ctx.textAlign = 'center';
     for (const v of data.vlines ?? []) {
@@ -62,7 +63,7 @@ export function createLineChart(container, { title, modelLevel, basis = null, xL
     ctx.restore();
 
     ctx.lineWidth = 2;
-    ctx.strokeStyle = color;
+    ctx.strokeStyle = col(color);
     ctx.beginPath();
     for (let i = 0; i < data.x.length; i++) {
       const X = sx(data.x[i]), Y = sy(data.y[i]);
@@ -71,11 +72,11 @@ export function createLineChart(container, { title, modelLevel, basis = null, xL
     ctx.stroke();
 
     ctx.font = CHART_FONT;
-    ctx.fillStyle = '#e6ebf3';
+    ctx.fillStyle = col(CV.title);
     ctx.textAlign = 'left';
     for (const m of data.markers ?? []) {
       const X = sx(m.x), Y = sy(m.y);
-      ctx.beginPath(); ctx.moveTo(X, Y); ctx.lineTo(X + 14, Y - 10); ctx.strokeStyle = '#e6ebf3'; ctx.lineWidth = 1; ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(X, Y); ctx.lineTo(X + 14, Y - 10); ctx.strokeStyle = col(CV.title); ctx.lineWidth = 1; ctx.stroke();
       ctx.fillText(m.label, X + 17, Y - 12);
     }
   }
@@ -84,17 +85,17 @@ export function createLineChart(container, { title, modelLevel, basis = null, xL
     /** @param {LineData} d */
     setData(d) { data = d; drawStatic(); },
     /** Kursor vertikal + titik (x,y) dalam satuan tampilan. */
-    setCursor(x, y, fill = '#fff') {
+    setCursor(x, y, fill = CV.ring) {
       if (!data) return;
       if (base.dirty) drawStatic();
       const ctx = base.beginDynamic();
       const { box } = base;
       const X = sx(x), Y = sy(y);
-      ctx.strokeStyle = 'rgba(255,255,255,0.45)';
+      ctx.strokeStyle = col(CV.guide);
       ctx.lineWidth = 1;
       ctx.beginPath(); ctx.moveTo(X, box.pad.t); ctx.lineTo(X, box.h - box.pad.b); ctx.stroke();
-      ctx.fillStyle = fill;
-      ctx.strokeStyle = '#fff';
+      ctx.fillStyle = col(fill);
+      ctx.strokeStyle = col(CV.ring);
       ctx.lineWidth = 2;
       ctx.beginPath(); ctx.arc(X, Y, 5.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
     },

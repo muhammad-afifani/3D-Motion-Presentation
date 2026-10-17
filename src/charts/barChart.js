@@ -1,14 +1,17 @@
 /**
  * barChart.js — bar horizontal sederhana (label, nilai, warna per bar). Data sudah dalam satuan tampilan.
  */
-import { createChartBase, makeScale, niceTicks, drawAxes, CHART_FONT, CHART_FONT_NUM } from './chartBase.js';
+import { createChartBase, makeScale, niceTicks, drawAxes, CHART_FONT, CHART_FONT_NUM, CV } from './chartBase.js';
 import { fmt } from '../ui/format.js';
 
-const rgb = (c) => (typeof c === 'string' ? c : `rgb(${c.map((v) => Math.round(v * 255)).join(',')})`);
+const rgbOf = (c) => `rgb(${c.map((v) => Math.round(v * 255)).join(',')})`;
 
 /** @param {HTMLElement} container */
 export function createBarChart(container, { title, modelLevel = 'semiEmpirical', basis = null, unit = '', xLabel = '', digits = 0, labelWidth = 190, indicative = false, padTop = 54 } = {}) {
   const base = createChartBase(container, { title, modelLevel, basis, pad: { l: labelWidth, r: 70, t: padTop, b: 40 }, indicative });
+  const { col } = base;
+  /** warna bar: token tema `var(--…)`, warna CSS, atau RGB 0–1 dari model (suhu) */
+  const rgb = (c) => (typeof c === 'string' ? col(c) : rgbOf(c));
   let key = '';
   return {
     /**
@@ -41,11 +44,11 @@ export function createBarChart(container, { title, modelLevel = 'semiEmpirical',
           ctx.fillRect(sx(vmin), yc - bh / 2, sx(r.value) - sx(vmin), bh);
         }
         ctx.globalAlpha = 1;
-        if (r.active) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(sx(vmin), yc - bh / 2, sx(r.value) - sx(vmin), bh); }
-        ctx.fillStyle = '#e6ebf3'; ctx.font = `${r.active ? '700 ' : ''}${CHART_FONT}`; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+        if (r.active) { ctx.strokeStyle = col(CV.ring); ctx.lineWidth = 2; ctx.strokeRect(sx(vmin), yc - bh / 2, sx(r.value) - sx(vmin), bh); }
+        ctx.fillStyle = col(CV.title); ctx.font = `${r.active ? '700 ' : ''}${CHART_FONT}`; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
         ctx.fillText(r.label, box.pad.l - 10, yc - (r.sub ? 7 : 0));
-        if (r.sub) { ctx.fillStyle = '#a9b4c7'; ctx.font = CHART_FONT; ctx.fillText(r.sub, box.pad.l - 10, yc + 9); }
-        ctx.fillStyle = '#e6ebf3'; ctx.font = `600 ${CHART_FONT_NUM}`; ctx.textAlign = 'left';
+        if (r.sub) { ctx.fillStyle = col(CV.text); ctx.font = CHART_FONT; ctx.fillText(r.sub, box.pad.l - 10, yc + 9); }
+        ctx.fillStyle = col(CV.title); ctx.font = `600 ${CHART_FONT_NUM}`; ctx.textAlign = 'left';
         ctx.fillText(`${fmt(r.value, digits)}${unit ? ` ${unit}` : ''}`, sx(r.value) + 6, yc);
       });
     },

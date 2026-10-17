@@ -27,9 +27,6 @@ const VAR_RE = /^var\((--[\w-]+)\)$/;
 const FALLBACK = '#888888';
 const INK = 'ink'; // akhiran varian teks: --c-main → --c-main-ink
 
-/** Sementara (dihapus di commit grafik): warna tetap lama untuk grafik yang belum memakai token. */
-export const CHART_COLORS = { grid: 'rgba(139,151,173,0.14)', axis: 'rgba(139,151,173,0.55)', text: '#a9b4c7', title: '#e6ebf3' };
-
 /** Ganti tema: semua grafik aktif membaca ulang token dan menggambar ulang lapis statis pada frame berikutnya. */
 export function refreshChartTheme() {
   for (const b of BASES) b.retheme?.();
