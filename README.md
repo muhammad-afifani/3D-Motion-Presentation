@@ -81,11 +81,20 @@ Bila **pop-up diblokir** browser (atau `BroadcastChannel` tidak tersedia), muncu
 
 ## Snapshot PNG (tombol S)
 
-Tekan `S` (atau tombol **Snapshot**) untuk mengunduh PNG tampilan scene saat ini: canvas 3D, grafik, HUD, judul, pesan kunci, caption, dan basis emisi, pada **resolusi 2×** dengan **tema gelap**. Nama berkas: `etel-scene-NN-YYYYMMDD-HHMM.png`; footer gambar memuat judul scene, waktu, dan pengingat bahwa angka emisi indikatif. Panel H, panel presenter, dan toast tidak ikut.
+Tekan `S` (atau tombol **Snapshot**) untuk mengunduh PNG tampilan scene saat ini: canvas 3D, grafik, HUD, judul, pesan kunci, caption, dan basis emisi, pada **resolusi 2×**, mengikuti **tema aktif** (Dark atau Light). Nama berkas: `etel-scene-NN-YYYYMMDD-HHMM.png`; footer gambar memuat judul scene, waktu, dan pengingat bahwa angka emisi indikatif. Panel H, panel presenter, dan toast tidak ikut.
 
 - Tidak ada dependensi tambahan: 3D dan grafik digambar ulang sesaat pada skala 2×, lalu teks halaman dilukis ke gambar. Font dan posisi teks bisa sedikit berbeda dari layar.
 - Bila teks halaman gagal digabung, yang disimpan hanya canvas (3D + grafik) dan muncul pesan yang menjelaskannya.
-- Ekspor tema terang (untuk cetak) direncanakan di M8b.
+- Untuk cetak: pilih Light di header, lalu tekan `S`.
+
+## Tema Dark / Light
+
+Sakelar **Dark | Light** ada di header kanan (urutan: Explore (M) · tempat sakelar EN/ID · Dark/Light · Model OK). Pilihan disimpan di browser (kunci `etel:theme`). Tanpa pilihan tersimpan, aplikasi selalu mulai dengan **Dark** dan tidak mengikuti setelan terang/gelap sistem operasi, supaya tampilan di proyektor tidak berubah karena setelan laptop.
+
+- Light: latar krem/abu hangat, teks abu gelap, kontras teks ≥ 4,5:1 dan garis grafik ≥ 3:1 (WCAG AA; dijaga `tests/theme.test.js`).
+- Viewport 3D tetap berlatar abu arang di kedua tema, jadi nyala, bloom, dan skala suhu tetap terbaca. Label 3D dan kartu di atasnya mengikuti tema.
+- Warna spesies: hue sama; di Light sedikit lebih gelap. Partikel 3D dan legendanya selalu memakai palet gelap. Skala suhu dan legenda K tidak berubah.
+- Jendela presenter mengikuti tema hanya bila penyimpanan browser terbaca; bila diblokir, tetap Dark.
 
 ## Pengaturan tersimpan
 

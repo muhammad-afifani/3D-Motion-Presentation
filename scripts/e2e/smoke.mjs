@@ -8,13 +8,16 @@
  *   5. M9 Step 06: setiap deep link (scene, tab Scene 9, halaman penuh) terbuka di halaman baru tanpa galat dan tanpa
  *      grafik kosong; tanpa scroll horizontal; panah di Explore / Present; jendela presenter ikut saat scene berganti di
  *      Present (juga lewat alamat #/scene/N); tinggi grafik Scene 6 dilaporkan.
+ *   6. Bagian B: tema terang di 1366×768 (semua scene/tab, viewport 3D tetap arang, halaman penuh, PNG ikut tema,
+ *      sakelar tersimpan setelah muat ulang).
  * Sengaja TIDAK memeriksa isi kartu info kiri Scene 9 (`.pol-card`): isinya akan dirombak.
  * Gagal (exit 1) bila ada grafik kosong, canvas 0, teks meluber, atau galat. Screenshot Scene 7 dan 9 disimpan di
  * scripts/e2e/shots/after/ (tidak di-commit).
  * Jalankan: npm run e2e:smoke   (build + skrip ini; butuh Playwright, lihat lib.mjs)
  * Catatan: tanpa GPU, Chromium memakai SwiftShader (rendering software); uji ini tidak bergantung pada fps.
  */
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, readFileSync } from 'node:fs';
+import { inflateSync } from 'node:zlib';
 import { loadPlaywright, startPreview, launchers, goScene } from './lib.mjs';
 
 export const VIEWPORTS = [[1366, 768], [1920, 1080], [1280, 720]];
@@ -240,6 +243,101 @@ async function snapshotPerTab(page) {
   return fails;
 }
 
+/** Pojok kiri-atas PNG (piksel 0,0) tanpa dependensi: IHDR + IDAT → inflate; piksel pertama tidak terpengaruh filter. */
+function pngCornerLum(buf) {
+  let off = 8, w = 0, colorType = 6; const idat = [];
+  while (off < buf.length) {
+    const len = buf.readUInt32BE(off), type = buf.toString('ascii', off + 4, off + 8), data = buf.subarray(off + 8, off + 8 + len);
+    if (type === 'IHDR') { w = data.readUInt32BE(0); colorType = data[9]; }
+    if (type === 'IDAT') idat.push(data);
+    off += 12 + len;
+  }
+  const raw = inflateSync(Buffer.concat(idat));
+  const [r, g, b] = [raw[1], raw[2], raw[3]];
+  void w; void colorType;
+  return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+}
+
+/**
+ * Bagian B: tema terang. Sakelar di header (urutan, aria), tersimpan di etel:theme dan bertahan setelah muat ulang;
+ * semua scene + tab Scene 9 tanpa grafik kosong / teks meluber di tema terang; viewport 3D tetap arang; token grafik
+ * ikut tema (skema di atas viewport tetap gelap); halaman penuh berlatar terang; PNG (S) mengikuti tema aktif.
+ */
+async function themeInteraction(browser, url) {
+  const fails = [];
+  const p = await browser.newPage({ viewport: { width: 1366, height: 768 }, acceptDownloads: true });
+  const errs = [];
+  p.on('pageerror', (e) => errs.push(e.message));
+  p.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
+  const base = url.replace(/#.*$/, '');
+  await p.goto(`${base}#/scene/1`);
+  await p.waitForFunction(() => window.__etelDebug?.scene() === 1 && !window.__etelDebug.loading(), null, { timeout: 30000 });
+  const png = async (label) => {
+    await p.evaluate(() => document.activeElement?.blur?.());
+    try {
+      const [dl] = await Promise.all([p.waitForEvent('download', { timeout: 30000 }), p.keyboard.press('s')]);
+      const path = await dl.path();
+      return pngCornerLum(readFileSync(path));
+    } catch (e) { fails.push(`tema: PNG ${label} gagal (${e.message.slice(0, 60)})`); return null; }
+  };
+  const st0 = await p.evaluate(() => ({
+    theme: document.documentElement.dataset.theme,
+    order: [...document.querySelector('.topbar__right').children].filter((el) => !el.matches('.calib-flag, .quality-flag')).map((el) => el.className.split(' ').find((c) => /present-exit|lang-slot|theme-switch/.test(c)) ?? el.id),
+    pressed: [...document.querySelectorAll('.theme-switch__btn')].map((b) => `${b.dataset.theme}:${b.getAttribute('aria-checked')}`).join(','),
+  }));
+  if (st0.theme !== 'dark') fails.push(`tema: tanpa pilihan tersimpan harus Dark (dapat ${st0.theme})`);
+  if (st0.order.join('|') !== 'present-exit|lang-slot|theme-switch|model-badge') fails.push(`tema: urutan header kanan ${st0.order.join(' | ')}`);
+  if (st0.pressed !== 'dark:true,light:false') fails.push(`tema: aria-checked awal ${st0.pressed}`);
+  const darkPng = await png('Dark');
+  if (darkPng != null && darkPng > 0.15) fails.push(`tema: PNG Dark terlalu terang (luminans pojok ${darkPng.toFixed(2)})`);
+
+  await p.click('.theme-switch__btn[data-theme="light"]');
+  await p.waitForTimeout(300);
+  await p.reload();
+  await p.waitForFunction(() => window.__etelDebug?.scene() === 1 && !window.__etelDebug.loading(), null, { timeout: 30000 });
+  const st1 = await p.evaluate(() => ({ theme: document.documentElement.dataset.theme, stored: localStorage.getItem('etel:theme'), pressed: document.querySelector('.theme-switch__btn.is-on')?.dataset.theme }));
+  if (st1.theme !== 'light' || st1.stored !== 'light' || st1.pressed !== 'light') fails.push(`tema: Light tidak bertahan setelah muat ulang (${JSON.stringify(st1)})`);
+
+  for (let n = 1; n <= 11; n++) {
+    await goScene(p, n, 400);
+    for (const tab of TABS[n] ?? [null]) {
+      if (tab) { await p.keyboard.press(tab); await p.waitForTimeout(300); }
+      let res = null;
+      for (let t = 0; t <= TIMEOUT_MS; t += POLL_MS) { res = await p.evaluate(inspect, { minFill: MIN_FILL_PCT }); if (res.charts.every((c) => c.ok)) break; await p.waitForTimeout(POLL_MS); }
+      const label = `Light 1366×768 · Scene ${n}${tab ? ` · tab ${tab}` : ''}`;
+      report.push({ label, charts: res.charts.map((c) => c.pct), overflow: res.overflow.length });
+      for (const c of res.charts) if (!c.ok) fails.push(`${label}: grafik #${c.i} "${c.title}" kosong (terisi ${c.pct} %)`);
+      for (const o of res.overflow) fails.push(`${label}: teks meluber di ${o.el}: ${o.reasons[0]}`);
+      if (res.hscroll) fails.push(`${label}: scroll horizontal`);
+      // viewport 3D tetap arang: semua warna gradasi latar gelap (luminans terkode gamma < 0,3; latar halaman terang ≈ 0,94)
+      const vp = await p.evaluate(() => {
+        const v = document.querySelector('.scene__view, .cyc-view, .fl-view, .gt-view, .pl-view');
+        if (!v || !v.checkVisibility()) return null;
+        const cols = (getComputedStyle(v).backgroundImage.match(/rgba?\([^)]+\)/g) ?? []).map((c) => c.match(/[\d.]+/g).slice(0, 3).map(Number));
+        return cols.map(([r, g, b]) => (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255);
+      });
+      if (vp?.length && vp.some((l) => l > 0.3)) fails.push(`${label}: viewport 3D tidak arang (luminans ${vp.map((l) => l.toFixed(2)).join(', ')})`);
+    }
+  }
+  // token grafik: panel ikut tema; skema Brayton di atas viewport (.vp-scope) tetap gelap
+  await goScene(p, 2, 300);
+  const tok = await p.evaluate(() => ({ chart: getComputedStyle(document.querySelector('.cyc-pv .chart')).getPropertyValue('--c-text').trim(), vp: getComputedStyle(document.querySelector('.vp-scope')).getPropertyValue('--c-text').trim() }));
+  if (tok.chart !== '#4f4a41' || tok.vp !== '#a9b4c7') fails.push(`tema: token grafik ${JSON.stringify(tok)}`);
+  const lightPng = await png('Light');
+  if (lightPng != null && lightPng < 0.6) fails.push(`tema: PNG Light tidak mengikuti tema (luminans pojok ${lightPng.toFixed(2)})`);
+  // halaman penuh berlatar terang
+  for (const page of ['regulations', 'formation', 'references', 'glossary', 'assumptions']) {
+    await p.goto(`${base}#/${page}`);
+    await p.waitForFunction((pg) => window.__etelDebug?.page() === pg, page, { timeout: 30000 });
+    await p.waitForTimeout(300);
+    const bg = await p.evaluate(() => { const b = document.querySelector('.refs:not([hidden]) .refs__box, .asm:not([hidden]) .asm__box'); return b ? getComputedStyle(b).backgroundColor : null; });
+    if (bg !== 'rgb(246, 241, 230)') fails.push(`tema: halaman ${page} berlatar ${bg}`);
+  }
+  for (const e of [...new Set(errs)]) fails.push(`tema: galat ${e}`);
+  await p.close();
+  return fails;
+}
+
 /** Deep link (M9 Step 06): alamat → keadaan yang diharapkan. Setiap alamat dibuka di halaman (konteks) baru. */
 const DEEP_LINKS = [
   ['#/scene/1', { scene: 1 }], ['#/scene/6', { scene: 6 }], ['#/scene/9/limits', { scene: 9, tab: 'limits' }], ['#/scene/9/formation', { scene: 9, tab: 'formation' }],
@@ -417,6 +515,7 @@ try {
     if (w === 1366) failures.push(...await snapshotPerTab(page));
     if (w === 1366) failures.push(...await formulaInteraction(page));
     if (w === 1366) failures.push(...await modeInteraction(page));
+    if (w === 1366) failures.push(...await themeInteraction(chromium.browser, srv.url));
     if (w === 1366) failures.push(...await deepLinks(chromium.browser, srv.url));
     for (const e of [...new Set(errs)]) failures.push(`${w}×${h}: ${e}`);
     await page.close();
