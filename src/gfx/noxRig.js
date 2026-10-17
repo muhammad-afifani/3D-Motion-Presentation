@@ -9,13 +9,13 @@
 import * as THREE from 'three';
 import { particleScale } from './quality.js';
 import { createPistonRig, HP } from './pistonRig.js';
-import { SPECIES_COLORS } from './species.js';
+import { viewportTone, glowBlending, speciesColors3D } from './viewportTone.js';
 
 export const NO_CAPACITY = 360;
 const SPAWN_PER_DEG = 2.2;    // partikel per derajat engkol pada spawn = 1 (tak bergantung slow-motion)
 const LIFE = 1.8;             // detik
 
-export function createNoxRig({ capacity = NO_CAPACITY, random = Math.random } = {}) {
+export function createNoxRig({ capacity = NO_CAPACITY, random = Math.random, tone = viewportTone() } = {}) {
   const piston = createPistonRig();
   const group = new THREE.Group();
   group.add(piston.group);
@@ -27,14 +27,14 @@ export function createNoxRig({ capacity = NO_CAPACITY, random = Math.random } = 
   bubble.renderOrder = 2;
   bubble.visible = false;
   group.add(bubble);
-  const haloMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.18, depthWrite: false, blending: THREE.AdditiveBlending });
+  const haloMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.18, depthWrite: false, blending: glowBlending(tone) });
   const halo = new THREE.Mesh(bubbleGeo, haloMat);
   halo.renderOrder = 3;
   bubble.add(halo);
   halo.scale.setScalar(1.12);
 
   const pGeo = new THREE.IcosahedronGeometry(1, 0);
-  const pMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(SPECIES_COLORS.NOx), transparent: true, opacity: 0.95, depthWrite: false });
+  const pMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(speciesColors3D(tone).NOx), transparent: true, opacity: 0.95, depthWrite: false });
   const particles = new THREE.InstancedMesh(pGeo, pMat, capacity);
   particles.name = 'noParticles';
   particles.frustumCulled = false;

@@ -1,7 +1,8 @@
 /* ── Token tema (bagian B) ──────────────────────────────────────────────────────────────────────────────────
    Semua warna halaman, panel, HUD, grafik, kartu Basis, halaman penuh, dan kontrol mengambang hanya lewat variabel di
    blok ini. Dark = nilai asli (tidak berubah); Light = :root[data-theme="light"] (krem/abu hangat, teks abu gelap,
-   kontras WCAG AA dijaga tests/theme.test.js). Viewport 3D (--vp-*) tetap arang di kedua tema. */
+   kontras WCAG AA dijaga tests/theme.test.js). Viewport 3D (--vp-*): arang di Dark, abu-krem terang (varian A) di Light.
+   Kotak di atas viewport memakai kaca tembus pandang (--overlay-bg … ≤ 0,6 di Light + --glass-blur). */
 :root {
   color-scheme: dark;
   --bg-0: #0b0f16;
@@ -21,6 +22,20 @@
   --vp-lo-deep: #0b0f16;
   --vp-fl-hi: #1a2133;
   --vp-fl-lo: #07090e;
+  /* tone viewport dibaca gfx/viewportTone.js: dark = nyala aditif + bloom penuh; light = nyala normal + bloom lemah */
+  --vp-tone: dark;
+  /* warna partikel spesies 3D dan legendanya (= species.js: dark untuk viewport gelap, lightInk untuk viewport terang) */
+  --vp-sp-nox: #ff9a3c;
+  --vp-sp-co: #e0407a;
+  --vp-sp-co2: #8fa3bf;
+  --vp-sp-ch4: #4cc38a;
+  --vp-sp-pm: #4a4f57;
+  /* kaca di atas viewport: blur latar (Dark: tidak ada, tampilan lama), pil/tag/track di dalam overlay */
+  --glass-blur: none;
+  --vp-pill-bg: var(--bg-2);
+  --vp-tag-bg: var(--bg-0);
+  --vp-track-bg: var(--bg-2);
+  --legend-frame: transparent;
   /* kartu teks Scene 9 (Load window, GHG) memakai bentuk viewport tetapi tanpa visual 3D: ikut tema */
   --pol-card-bg: radial-gradient(ellipse at 50% 40%, var(--vp-hi) 0%, var(--vp-lo-deep) 80%);
   /* kontrol mengambang di atas visual 3D dan tombol header (bagian A) */
@@ -87,9 +102,8 @@
   --font-num: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 /* Warna spesies (sama dengan src/gfx/species.js) dan token grafik canvas (dibaca chartBase). `.vp-scope` = grafik di
-   atas viewport 3D arang (skema Brayton Scene 2): tetap memakai nilai gelap di kedua tema. `.nox-species` = legenda
-   partikel 3D (Scene 4, 6, 8): swatch sama dengan warna partikel 3D (selalu palet gelap). */
-:root, .vp-scope, .nox-species {
+   atas viewport 3D (skema Brayton Scene 2): mengikuti tone viewport (gelap di Dark, terang di Light varian A). */
+:root, .vp-scope {
   --sp-nox: #ff9a3c;
   --sp-co: #e0407a;
   --sp-co2: #8fa3bf;
@@ -137,7 +151,7 @@
 }
 /* Tema terang: krem/abu hangat, teks abu gelap. Area (pita, jendela) diberi opasitas lebih tinggi agar tetap
    terbedakan dari latar terang setidaknya sama jelas dengan tema gelap. */
-:root[data-theme="light"] {
+:root[data-theme="light"], :root[data-theme="light"] .vp-scope {
   color-scheme: light;
   --bg-0: #ece6d8;
   --bg-1: #f6f1e6;
@@ -150,25 +164,38 @@
   --ok: #1b6c3d;
   --fail: #b8002a;
   --bg-glow: #f4efe4;
-  --vp-hi: #3b3d42;
-  --vp-lo: #26282c;
-  --vp-lo-deep: #232528;
-  --vp-fl-hi: #35373b;
-  --vp-fl-lo: #1c1d20;
+  /* viewport varian A (abu-krem terang, ≈ #cfc9bb). Varian yang dibandingkan (README "Tema Dark / Light"):
+     B = arang #3b3d42 → #26282c (tone dark); C = abu sedang #98938a → #8a857a (gagal: spesies dan teks aksen < AA). */
+  --vp-hi: #d8d3c6;
+  --vp-lo: #c9c3b5;
+  --vp-lo-deep: #c6c0b1;
+  --vp-fl-hi: #d4cfc2;
+  --vp-fl-lo: #c2bcae;
+  --vp-tone: light;
+  --vp-sp-nox: #984900;
+  --vp-sp-co: #b61e55;
+  --vp-sp-co2: #4a6182;
+  --vp-sp-ch4: #246b49;
+  --vp-sp-pm: #4a4f57;
+  --glass-blur: blur(8px) saturate(1.15);
+  --vp-pill-bg: rgba(246, 241, 230, 0.6);
+  --vp-tag-bg: rgba(246, 241, 230, 0.6);
+  --vp-track-bg: rgba(90, 85, 75, 0.25);
+  --legend-frame: #5a554b;
   --pol-card-bg: var(--bg-1);
-  --float-bg: rgba(246, 241, 230, 0.94);
-  --float-bg-hover: rgba(227, 220, 203, 0.96);
+  --float-bg: rgba(246, 241, 230, 0.6);
+  --float-bg-hover: rgba(236, 230, 216, 0.6);
   --float-fg: #2b2925;
   --float-muted: #5a554b;
   --float-border: #b2a68f;
   --float-accent: #00609f;
   --focus-ring: #00609f;
   --topbar-bg: rgba(236, 230, 216, 0.94);
-  --overlay-bg: rgba(246, 241, 230, 0.93);
-  --label-bg: rgba(246, 241, 230, 0.94);
+  --overlay-bg: rgba(246, 241, 230, 0.6);
+  --label-bg: rgba(246, 241, 230, 0.6);
   --label-border: rgba(90, 85, 75, 0.45);
-  --status-bg: rgba(246, 241, 230, 0.93);
-  --marker-bg: rgba(246, 241, 230, 0.95);
+  --status-bg: rgba(246, 241, 230, 0.6);
+  --marker-bg: rgba(246, 241, 230, 0.6);
   --nav-bg: rgba(236, 230, 216, 0.97);
   --dock-bg: rgba(246, 241, 230, 0.98);
   --pres-host-bg: rgba(246, 241, 230, 0.98);
@@ -339,14 +366,14 @@ kbd {
 .ro-grid { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; font-size: 14px; }
 .ro-grid span { color: var(--muted); }
 .ro-grid b { text-align: right; font-weight: 600; }
-.gauge { margin-top: 8px; height: 6px; border-radius: 3px; background: var(--bg-2); overflow: hidden; }
+.gauge { margin-top: 8px; height: 6px; border-radius: 3px; background: var(--vp-track-bg); overflow: hidden; }
 .gauge__bar { height: 100%; width: 100%; transform-origin: left; background: linear-gradient(90deg, var(--accent-cold), var(--accent-hot)); }
 
 .overlay--legend { right: 12px; top: 50%; transform: translateY(-50%); }
 .temp-legend { padding: 8px 10px; border-radius: 10px; background: var(--overlay-bg); border: 1px solid var(--line); }
 .temp-legend__title { font-size: 12px; color: var(--muted); margin-bottom: 6px; white-space: nowrap; }
 .temp-legend__body { position: relative; height: 200px; display: flex; gap: 6px; }
-.temp-legend__body canvas { width: 14px; height: 200px; border-radius: 3px; }
+.temp-legend__body canvas { width: 14px; height: 200px; border-radius: 3px; box-shadow: 0 0 0 1px var(--legend-frame); }
 .temp-legend__ticks { position: relative; width: 44px; font-size: 11px; color: var(--muted); }
 .temp-legend__ticks span { position: absolute; left: 0; transform: translateY(-50%); }
 .temp-legend__marker { position: absolute; left: 16px; transform: translateY(-50%); font-size: 12px; font-weight: 700; color: var(--text); white-space: nowrap; background: var(--marker-bg); padding: 0 3px; border-radius: 3px; }
@@ -426,6 +453,8 @@ kbd {
 .scene--nox .overlay--legend { display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
 .nox-species { font-size: 12px; color: var(--text); padding: 6px 10px; border-radius: 10px; background: var(--overlay-bg); border: 1px solid var(--line); white-space: nowrap; }
 .nox-species .sw { border-radius: 50%; width: 10px; border-color: var(--label-border); }
+/* legenda partikel 3D: swatch = warna partikel (palet tone viewport) */
+.nox-species { --sp-nox: var(--vp-sp-nox); --sp-co: var(--vp-sp-co); --sp-co2: var(--vp-sp-co2); --sp-ch4: var(--vp-sp-ch4); --sp-pm: var(--vp-sp-pm); }
 .ro-tb { pointer-events: auto; cursor: help; text-decoration: underline dotted; }
 
 /* ── Scene 6: part-load ── */
@@ -975,3 +1004,11 @@ body.mode-explore.nav-collapsed { --nav-w: 52px; }
 .theme-switch__btn.is-on { color: var(--text); background: var(--tint-cold); font-weight: 600; box-shadow: inset 0 -2px 0 var(--accent-cold); }
 .theme-switch__btn:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: -2px; }
 .lang-slot[hidden] { display: none; }
+
+/* ── Kaca di atas viewport 3D (perbaikan bagian B): tembus pandang + blur di Light, Dark tidak berubah ── */
+.overlay--formula, .overlay--readout, .temp-legend, .temp-legend__marker, .label3d, .overlay--status, .note-chip, .nox-species,
+.overlay--note, .f-toggle, .cyc-level, .overlay .pill {
+  -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
+}
+.overlay .pill, :is(.scene__view, .cyc-view, .fl-view, .gt-view, .pl-view) .pill { background: var(--vp-pill-bg); }
+.cyc-level { background: var(--vp-tag-bg); }

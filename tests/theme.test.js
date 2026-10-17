@@ -21,7 +21,7 @@ function block(selector) {
   return { start: i, end: j + 2, text: css.slice(i, j + 2) };
 }
 const vars = (text) => Object.fromEntries([...text.matchAll(/^\s*(--[\w-]+):\s*([^;]+);/gm)].map((m) => [m[1], m[2].trim()]));
-const B_DARK = block(':root'), B_SHARED = block(':root, .vp-scope, .nox-species'), B_LIGHT = block(':root[data-theme="light"]');
+const B_DARK = block(':root'), B_SHARED = block(':root, .vp-scope'), B_LIGHT = block(':root[data-theme="light"], :root[data-theme="light"] .vp-scope');
 const DARK = { ...vars(B_DARK.text), ...vars(B_SHARED.text) };
 const LIGHT = { ...DARK, ...vars(B_LIGHT.text) };
 const LIGHT_OWN = vars(B_LIGHT.text);
@@ -102,7 +102,7 @@ describe('sakelar Dark/Light di header kanan', () => {
 });
 
 describe('token CSS: lengkap di kedua tema, tanpa warna tetap di luar blok token', () => {
-  const SAME_BOTH = new Set(['--font-ui', '--font-num', '--laser-core', '--laser-red', '--laser-halo', '--laser-glow', '--spot-dim', '--c-pipe', '--sp-pm']);
+  const SAME_BOTH = new Set(['--font-ui', '--font-num', '--laser-core', '--laser-red', '--laser-halo', '--laser-glow', '--spot-dim', '--c-pipe', '--sp-pm', '--vp-sp-pm']);
   it('setiap token warna gelap punya nilai terang', () => {
     const missing = Object.keys(DARK).filter((k) => !SAME_BOTH.has(k) && !(k in LIGHT_OWN));
     expect(missing).toEqual([]);
@@ -157,16 +157,21 @@ describe('warna spesies: satu sumber (species.js) ↔ --sp-*', () => {
     expect(css).toMatch(/\.pl-view\.pol-card \{ background: var\(--pol-card-bg\); \}/);
     expect(LIGHT_OWN['--pol-card-bg']).toBe('var(--bg-1)');
   });
-  it('legenda partikel 3D memakai palet gelap (sama dengan partikel)', () => {
-    expect(css).toMatch(/^:root, \.vp-scope, \.nox-species \{/m);
+  it('partikel 3D dan legendanya memakai palet tone viewport (gelap: dark, terang: lightInk)', () => {
+    expect(css).toMatch(/\.nox-species \{ --sp-nox: var\(--vp-sp-nox\);/);
+    for (const [sp, v] of Object.entries(SPECIES_CSS_VAR)) {
+      expect(DARK[v.replace('--sp-', '--vp-sp-')], sp).toBe(SPECIES_PALETTES.dark[sp]);
+      expect(LIGHT[v.replace('--sp-', '--vp-sp-')], sp).toBe(SPECIES_PALETTES.lightInk[sp]);
+    }
   });
 });
 
 describe('kontras WCAG AA tema terang', () => {
+  const VP_STOPS = ['--vp-hi', '--vp-lo', '--vp-lo-deep', '--vp-fl-hi', '--vp-fl-lo'];
   const L = (k) => LIGHT[k];
   const BGS = ['--bg-0', '--bg-1', '--bg-2'].map(L);
   // kartu tembus pandang di atas viewport arang (gelap dan terang gradasi)
-  const GLASS = ['--overlay-bg', '--label-bg', '--float-bg', '--status-bg', '--marker-bg'].flatMap((k) => ['--vp-lo', '--vp-hi', '--vp-fl-lo'].map((v) => over(L(k), L(v))));
+  const GLASS = ['--overlay-bg', '--label-bg', '--float-bg', '--status-bg', '--marker-bg', '--vp-pill-bg', '--vp-tag-bg'].flatMap((k) => VP_STOPS.map((v) => over(L(k), L(v))));
   const TEXT = ['--text', '--muted', '--accent-hot', '--accent-cold', '--ok', '--fail', '--cold-text', '--info-text', '--mag-text', '--dir-lowers', '--dir-raises', '--float-fg', '--float-muted', '--c-text', '--c-title', '--c-note',
     ...Object.keys(LIGHT_OWN).filter((k) => k.endsWith('-ink'))];
   const report = [];
@@ -204,5 +209,69 @@ describe('kontras WCAG AA tema terang', () => {
     const out = ['text', 'line', 'area'].map((k) => { const m = min(k); return m ? `${k}: ${m[1]} ${m[2].toFixed(2)}${m[3] ? ` (dark ${m[3].toFixed(2)})` : ''}` : ''; });
     if (process.env.THEME_REPORT) console.log(out.join('\n'));
     expect(out.every(Boolean)).toBe(true);
+  });
+});
+
+// ── perbaikan bagian B: kaca di atas viewport, viewport tema terang varian A ──
+describe('kotak di atas viewport: kaca tembus pandang + blur di tema terang, tanpa latar opak putih', () => {
+  const alpha = (c) => parse(c)[3];
+  const GLASS_TOKENS = ['--overlay-bg', '--label-bg', '--status-bg', '--marker-bg', '--float-bg', '--float-bg-hover', '--vp-pill-bg', '--vp-tag-bg'];
+  it('token kaca tema terang: opasitas ≤ 0,6; blur aktif; tema gelap tanpa blur (tidak berubah)', () => {
+    for (const k of GLASS_TOKENS) expect(alpha(LIGHT_OWN[k]), k).toBeLessThanOrEqual(0.6);
+    expect(LIGHT_OWN['--glass-blur']).toMatch(/^blur\(\d+px\)/);
+    expect(DARK['--glass-blur']).toBe('none');
+    expect(DARK['--overlay-bg']).toBe('rgba(11, 15, 22, 0.72)');
+  });
+  it('setiap kotak overlay viewport: latar dari token kaca dan backdrop-filter blur', () => {
+    const OVERLAYS = { '.overlay--formula': '--overlay-bg', '.overlay--readout': '--overlay-bg', '.temp-legend': '--overlay-bg', '.label3d': '--label-bg', '.overlay--status': '--status-bg', '.nox-species': '--overlay-bg', '.overlay--note': '--label-bg', '.f-toggle': '--float-bg', '.temp-legend__marker': '--marker-bg' };
+    const glassRule = css.slice(css.indexOf('/* ── Kaca di atas viewport 3D'));
+    for (const [sel, tok] of Object.entries(OVERLAYS)) {
+      const rules = [...css.matchAll(new RegExp(`(^|\\n)${sel.replace('.', '\\.')}\\s*\\{([^}]*)\\}`, 'g'))].map((m) => m[2]).join(';');
+      expect(rules, sel).toMatch(new RegExp(`background: var\\(${tok}\\)`));
+      expect(glassRule, sel).toContain(sel);
+    }
+    expect(glassRule).toMatch(/backdrop-filter: var\(--glass-blur\)/);
+    expect(glassRule).toMatch(/\.overlay \.pill, :is\(\.scene__view, \.cyc-view, \.fl-view, \.gt-view, \.pl-view\) \.pill \{ background: var\(--vp-pill-bg\); \}/);
+    expect(glassRule).toMatch(/\.cyc-level \{ background: var\(--vp-tag-bg\); \}/);
+    expect(css).toMatch(/\.gauge \{[^}]*background: var\(--vp-track-bg\)/);
+  });
+  it('teks di kaca ≥ 4,5:1 terhadap latar viewport; bingkai skala suhu ≥ 3:1', () => {
+    const stops = ['--vp-hi', '--vp-lo', '--vp-lo-deep', '--vp-fl-hi', '--vp-fl-lo'].map((k) => LIGHT[k]);
+    for (const g of ['--overlay-bg', '--label-bg', '--status-bg', '--float-bg', '--vp-pill-bg']) for (const st of stops) {
+      const bg = over(LIGHT[g], st);
+      for (const t of ['--text', '--muted', '--accent-hot', '--accent-cold', '--float-fg', '--float-muted', '--cold-text', '--c-text']) expect(ratio(LIGHT[t], bg), `${t} on ${g}/${st}`).toBeGreaterThanOrEqual(4.5);
+      expect(ratio(LIGHT['--legend-frame'], bg), `frame ${g}/${st}`).toBeGreaterThanOrEqual(3);
+    }
+  });
+});
+
+describe('latar viewport tema terang: varian A (abu-krem terang); C ditolak; tema gelap tidak berubah', () => {
+  const STOPS = ['--vp-hi', '--vp-lo', '--vp-lo-deep', '--vp-fl-hi', '--vp-fl-lo'];
+  it('varian A: luminans relatif 0,45–0,70 (≈ #cfc9bb, 0,58); tone light', () => {
+    for (const k of STOPS) { const l = lum(LIGHT_OWN[k]); expect(l, k).toBeGreaterThanOrEqual(0.45); expect(l, k).toBeLessThanOrEqual(0.7); }
+    expect(Math.abs(lum(LIGHT_OWN['--vp-lo']) - lum('#cfc9bb'))).toBeLessThan(0.06);
+    expect(LIGHT_OWN['--vp-tone']).toBe('light');
+    expect(DARK['--vp-tone']).toBe('dark');
+    expect([DARK['--vp-hi'], DARK['--vp-lo'], DARK['--vp-lo-deep'], DARK['--vp-fl-hi'], DARK['--vp-fl-lo']]).toEqual(['#1a2540', '#0d121c', '#0b0f16', '#1a2133', '#07090e']);
+  });
+  it('warna partikel spesies ≥ 3:1 terhadap setiap titik gradasi latar viewport terang', () => {
+    for (const k of STOPS) for (const [sp, c] of Object.entries(SPECIES_PALETTES.lightInk)) expect(ratio(c, LIGHT_OWN[k]), `${sp} on ${k}`).toBeGreaterThanOrEqual(3);
+  });
+  it('varian C (abu sedang ≈ #8d887c) tercatat gagal: tidak ada palet spesies yang ≥ 3:1 dan teks aksen < 4,5:1', () => {
+    const C = '#8d887c';
+    for (const pal of ['dark', 'light', 'lightInk']) expect(Math.max(...Object.entries(SPECIES_PALETTES[pal]).filter(([sp]) => sp !== 'PM').map(([, c]) => ratio(c, C))), pal).toBeLessThan(3);
+    expect(ratio(LIGHT['--accent-hot'], over(LIGHT['--overlay-bg'], C))).toBeLessThan(4.5);
+  });
+  it('tone viewport: bloom lemah dan blending normal di latar terang', async () => {
+    const { TONE_PARAMS, glowBlending, speciesColors3D } = await import('../src/gfx/viewportTone.js');
+    const THREE = await import('three');
+    expect(TONE_PARAMS.light.bloomStrength).toBeLessThan(TONE_PARAMS.dark.bloomStrength / 2);
+    expect(glowBlending('light')).toBe(THREE.NormalBlending);
+    expect(glowBlending('dark')).toBe(THREE.AdditiveBlending);
+    expect(speciesColors3D('light')).toBe(SPECIES_PALETTES.lightInk);
+    expect(speciesColors3D('dark')).toBe(SPECIES_PALETTES.dark);
+  });
+  it('main.js memasang ulang scene bila tone viewport berubah saat ganti tema', () => {
+    expect(read('src/main.js')).toMatch(/if \(viewportTone\(\) !== toneBefore && index >= 0\) goTo\(index, true\);/);
   });
 });

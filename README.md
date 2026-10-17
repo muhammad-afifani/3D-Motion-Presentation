@@ -92,8 +92,10 @@ Tekan `S` (atau tombol **Snapshot**) untuk mengunduh PNG tampilan scene saat ini
 Sakelar **Dark | Light** ada di header kanan (urutan: Explore (M) · tempat sakelar EN/ID · Dark/Light · Model OK). Pilihan disimpan di browser (kunci `etel:theme`). Tanpa pilihan tersimpan, aplikasi selalu mulai dengan **Dark** dan tidak mengikuti setelan terang/gelap sistem operasi, supaya tampilan di proyektor tidak berubah karena setelan laptop.
 
 - Light: latar krem/abu hangat, teks abu gelap, kontras teks ≥ 4,5:1 dan garis grafik ≥ 3:1 (WCAG AA; dijaga `tests/theme.test.js`).
-- Viewport 3D tetap berlatar abu arang di kedua tema, jadi nyala, bloom, dan skala suhu tetap terbaca. Label 3D dan kartu di atasnya mengikuti tema.
-- Warna spesies: hue sama; di Light sedikit lebih gelap. Partikel 3D dan legendanya selalu memakai palet gelap. Skala suhu dan legenda K tidak berubah.
+- Latar viewport 3D: arang di Dark; **abu-krem terang (varian A, ≈ #cfc9bb)** di Light. Di latar terang bloom dilemahkan (0,7 → 0,22), nyala/percikan/halo memakai blending normal (bukan aditif) dengan tepi siluet sedikit digelapkan, dan partikel spesies memakai varian ink (≥ 3:1 terhadap latar). Ganti tema memasang ulang scene bila tone viewport berubah.
+- Varian yang dibandingkan: A abu-krem terang (dipilih), C abu sedang ≈ #8d887c (ditolak: pada latar abu sedang tidak ada warna spesies ber-hue jelas yang mencapai 3:1, dan teks aksen di kotak transparan < 4,5:1), B arang (dipakai sebelumnya).
+- Kotak di atas viewport (rumus, readout, legenda suhu, label 3D, status, catatan, chip Formula, tag Basis) di Light memakai kaca tembus pandang: latar opasitas ≤ 0,6 + `backdrop-filter: blur`. Teks ≥ 4,5:1 terhadap latar viewport; batang skala suhu diberi bingkai ≥ 3:1.
+- Warna spesies: hue sama; di Light sedikit lebih gelap. Skala suhu dan legenda K tidak berubah.
 - Jendela presenter mengikuti tema hanya bila penyimpanan browser terbaca; bila diblokir, tetap Dark.
 
 ## Pengaturan tersimpan

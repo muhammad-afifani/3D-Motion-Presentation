@@ -32,6 +32,7 @@ import { button } from './ui/controls.js';
 import { createThemeSwitch } from './ui/themeSwitch.js';
 import { themeStorage, readTheme, writeTheme, applyTheme } from './state/theme.js';
 import { refreshChartTheme } from './charts/chartBase.js';
+import { viewportTone } from './gfx/viewportTone.js';
 import { createPresenterMode } from './ui/presenterMode.js';
 import { takeSnapshot } from './ui/snapshot.js';
 import { createDebugOverlay } from './ui/debugOverlay.js';
@@ -175,10 +176,13 @@ document.getElementById('model-badge').before(langSlot, themeSwitch.el);
 /** Ganti tema: atribut data-theme, simpan (etel:theme), grafik canvas membaca ulang token warna. */
 function setTheme(t) {
   if (t === theme) return;
+  const toneBefore = viewportTone();
   theme = applyTheme(t);
   writeTheme(themeStore, theme);
   themeSwitch.set(theme);
   refreshChartTheme();
+  // nyala, bloom, dan partikel 3D dipilih saat rig dibuat: tone viewport berubah → pasang ulang scene (state di store tetap)
+  if (viewportTone() !== toneBefore && index >= 0) goTo(index, true);
 }
 function applyMode() {
   document.body.classList.toggle('mode-explore', mode === 'explore');
@@ -206,9 +210,10 @@ function setMode(m) {
 }
 applyMode();
 
-async function goTo(i) {
+/** @param {number} i @param {boolean} [force] pasang ulang scene yang sama (mis. tone viewport berubah karena ganti tema) */
+async function goTo(i, force = false) {
   if (i < 0 || i >= SCENES.length) { toast(STR.app.toast.noScene); return; }
-  if (i === index || loading) return;
+  if ((i === index && !force) || loading) return;
   loading = true;
   try {
     const mod = await SCENES[i].load();
