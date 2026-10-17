@@ -3,6 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- tema (bagian B): dipasang sebelum CSS agar tidak berkedip; Dark bila belum dipilih atau storage diblokir -->
+    <script>try{if(localStorage.getItem('etel:theme')==='light')document.documentElement.dataset.theme='light'}catch(e){}</script>
     <title>Presenter · Engine &amp; Turbine Emission Lab</title>
   </head>
   <body class="pres-page">

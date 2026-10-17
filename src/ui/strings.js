@@ -107,6 +107,14 @@ export const STR = {
     exitPresentTip: 'Leave Present mode and show the navigation again (M).',
   },
 
+  // ─────────────────────────── color theme switch (header) ───────────────────────────
+  theme: {
+    label: 'Color theme',
+    dark: 'Dark',
+    light: 'Light',
+    tip: 'Dark or light panels and charts. The 3D view keeps its charcoal background in both themes. The choice is saved.',
+  },
+
   // ─────────────────────────── formula panel over the 3D view ───────────────────────────
   formula: {
     icon: 'ƒ',

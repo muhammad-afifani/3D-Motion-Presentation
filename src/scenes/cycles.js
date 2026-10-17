@@ -104,7 +104,7 @@ export function createScene(ctx) {
       <section class="scene scene--cycles">
         <div class="cyc-view">
           <div class="view3d"></div>
-          <div class="cyc-schem chart-slot" hidden></div>
+          <div class="cyc-schem chart-slot vp-scope" hidden></div>
           <div class="overlay overlay--formula num">
             <div class="f-line"><b data-k="formula"></b></div>
             <div class="f-vals"><span data-k="proc"></span></div>

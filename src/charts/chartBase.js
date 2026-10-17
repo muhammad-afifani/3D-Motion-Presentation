@@ -8,12 +8,32 @@ import { STR } from '../ui/strings.js';
 
 export const CHART_FONT = '12px Inter, system-ui, sans-serif';
 export const CHART_FONT_NUM = '11px "JetBrains Mono", ui-monospace, monospace';
-export const CHART_COLORS = {
-  grid: 'rgba(139,151,173,0.14)',
-  axis: 'rgba(139,151,173,0.55)',
-  text: '#a9b4c7',
-  title: '#e6ebf3',
-};
+/**
+ * Token warna grafik (bagian B). Nilai warna tinggal di styles.css (variabel --c-*, --sp-*), dua tema; grafik hanya
+ * memegang rujukan `var(--…)` dan menerjemahkannya per grafik lewat `base.col` dari gaya terhitung elemen grafik.
+ * Jadi grafik mengikuti tema aktif, dan grafik di dalam `.vp-scope` (skema di atas viewport 3D arang) tetap memakai
+ * nilai gelap. Teks berwarna memakai `base.ink`: varian `--…-ink` bila tema mendefinisikannya (kontras teks ≥ 4,5:1).
+ */
+export const CHART_TOKENS = Object.freeze([
+  'grid', 'axis', 'text', 'title', 'fg', 'ring', 'hollow', 'guide', 'ghost', 'ref', 'dash',
+  'main', 'hot', 'cold', 'loss', 'ok', 'note', 'closing', 'gasx', 'pv-fill', 'compression', 'rejection', 'heat', 'expansion',
+  'pipe', 'path', 'diesel', 'band-intake', 'band-neutral', 'band-comb', 'band-comb-sw', 'band-exhaust', 'band-dln', 'band-engine',
+  'win-single', 'win-twin', 'co-band-single', 'co-band-twin',
+]);
+const camel = (k) => k.replace(/-(\w)/g, (_, c) => c.toUpperCase());
+/** Rujukan token grafik, mis. CV.text = 'var(--c-text)', CV.pvFill = 'var(--c-pv-fill)'. */
+export const CV = Object.freeze(Object.fromEntries(CHART_TOKENS.map((k) => [camel(k), `var(--c-${k})`])));
+const VAR_RE = /^var\((--[\w-]+)\)$/;
+const FALLBACK = '#888888';
+const INK = 'ink'; // akhiran varian teks: --c-main → --c-main-ink
+
+/** Sementara (dihapus di commit grafik): warna tetap lama untuk grafik yang belum memakai token. */
+export const CHART_COLORS = { grid: 'rgba(139,151,173,0.14)', axis: 'rgba(139,151,173,0.55)', text: '#a9b4c7', title: '#e6ebf3' };
+
+/** Ganti tema: semua grafik aktif membaca ulang token dan menggambar ulang lapis statis pada frame berikutnya. */
+export function refreshChartTheme() {
+  for (const b of BASES) b.retheme?.();
+}
 
 /**
  * Pengaman redraw: ukuran grafik diukur ulang bila container berubah ukuran (ResizeObserver) DAN pada saat
@@ -65,7 +85,31 @@ export function createChartBase(container, { title, modelLevel, basis = null, pa
   const ctxS = cs.getContext('2d');
   const ctxD = cd.getContext('2d');
 
-  const box = { w: 0, h: 0, dpr: 1, pad, plotW: 0, plotH: 0 };
+  // warna token per grafik (cache dibersihkan saat tema berganti); elemen yang belum terpasang → tanpa cache
+  const cache = new Map();
+  /** @param {any} v warna CSS atau rujukan `var(--…)` @returns {any} */
+  function col(v) {
+    if (typeof v !== 'string') return v;
+    const m = VAR_RE.exec(v);
+    if (!m) return v;
+    let r = cache.get(m[1]);
+    if (r === undefined) {
+      r = (root.isConnected && getComputedStyle(root).getPropertyValue(m[1]).trim()) || '';
+      if (root.isConnected) cache.set(m[1], r);
+    }
+    return r || FALLBACK;
+  }
+  /** Warna untuk teks: varian `-ink` bila didefinisikan tema aktif, selain itu warna yang sama. */
+  function ink(v) {
+    const m = typeof v === 'string' ? VAR_RE.exec(v) : null;
+    if (!m) return col(v);
+    const k = `${m[1]}-${INK}`;
+    let r = cache.get(k);
+    if (r === undefined) { r = (root.isConnected && getComputedStyle(root).getPropertyValue(k).trim()) || ''; if (root.isConnected) cache.set(k, r); }
+    return r || col(v);
+  }
+
+  const box = { w: 0, h: 0, dpr: 1, pad, plotW: 0, plotH: 0, col, ink };
   let dirty = true, wasHidden = false;
 
   function resize() {
@@ -86,11 +130,11 @@ export function createChartBase(container, { title, modelLevel, basis = null, pa
   const io = typeof IntersectionObserver === 'function' ? new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { resize(); dirty = true; } }) : null;
   io?.observe(root);
   resize();
-  const entry = { resize };
+  const entry = { resize, retheme() { cache.clear(); dirty = true; } };
   BASES.add(entry);
 
   return {
-    root, box, ctxS, ctxD, caption,
+    root, box, ctxS, ctxD, caption, col, ink,
     get dirty() { return dirty; },
     markDirty() { dirty = true; },
     /** Ukur ulang sekarang dan gambar ulang lapis statis (dipanggil saat tab dibuka). */
@@ -166,8 +210,9 @@ export function drawAxes(ctx, box, sx, sy, { xTicks, yTicks, xLabel, yLabel, xFm
   ctx.save();
   ctx.lineWidth = 1;
   ctx.font = CHART_FONT_NUM;
-  ctx.fillStyle = CHART_COLORS.text;
-  ctx.strokeStyle = CHART_COLORS.grid;
+  const col = box.col ?? ((v) => v);
+  ctx.fillStyle = col(CV.text);
+  ctx.strokeStyle = col(CV.grid);
   ctx.textAlign = 'center';
   ctx.textBaseline = 'top';
   for (const t of xTicks) {
@@ -182,7 +227,7 @@ export function drawAxes(ctx, box, sx, sy, { xTicks, yTicks, xLabel, yLabel, xFm
     ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
     ctx.fillText(yFmt ? yFmt(t) : fmt(t, tickDigits(t)), x0 - 6, y);
   }
-  ctx.strokeStyle = CHART_COLORS.axis;
+  ctx.strokeStyle = col(CV.axis);
   ctx.beginPath(); ctx.moveTo(x0 + 0.5, y1); ctx.lineTo(x0 + 0.5, y0 + 0.5); ctx.lineTo(x1, y0 + 0.5); ctx.stroke();
   ctx.font = CHART_FONT;
   ctx.textAlign = 'center';

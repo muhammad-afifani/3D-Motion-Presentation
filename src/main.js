@@ -29,6 +29,9 @@ import { modeStorage, readMode, saveMode, otherMode, readNavCollapsed, saveNavCo
 import { createNav } from './ui/nav.js';
 import { attachFormulaToggles } from './ui/formulaToggle.js';
 import { button } from './ui/controls.js';
+import { createThemeSwitch } from './ui/themeSwitch.js';
+import { themeStorage, readTheme, writeTheme, applyTheme } from './state/theme.js';
+import { refreshChartTheme } from './charts/chartBase.js';
 import { createPresenterMode } from './ui/presenterMode.js';
 import { takeSnapshot } from './ui/snapshot.js';
 import { createDebugOverlay } from './ui/debugOverlay.js';
@@ -160,6 +163,23 @@ const exitPresent = button({ label: STR.nav.exitPresent, key: STR.nav.modeKey, t
 exitPresent.el.classList.add('present-exit');
 exitPresent.el.dataset.snapSkip = '';
 document.querySelector('.topbar__right').prepend(exitPresent.el);
+// header kanan: [Explore (M)] … [slot EN/ID] [Dark/Light] [Model OK]; slot bahasa diisi paket M11 / D
+const themeStore = themeStorage();
+let theme = applyTheme(readTheme(themeStore));
+const themeSwitch = createThemeSwitch({ value: theme, onChange: (t) => setTheme(t) });
+const langSlot = document.createElement('span');
+langSlot.className = 'lang-slot';
+langSlot.id = 'lang-slot';
+langSlot.hidden = true;
+document.getElementById('model-badge').before(langSlot, themeSwitch.el);
+/** Ganti tema: atribut data-theme, simpan (etel:theme), grafik canvas membaca ulang token warna. */
+function setTheme(t) {
+  if (t === theme) return;
+  theme = applyTheme(t);
+  writeTheme(themeStore, theme);
+  themeSwitch.set(theme);
+  refreshChartTheme();
+}
 function applyMode() {
   document.body.classList.toggle('mode-explore', mode === 'explore');
   document.body.classList.toggle('mode-present', mode === 'present');
