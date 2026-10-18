@@ -34,7 +34,9 @@ describe('router hash', () => {
     for (const p of PAGES) expect(parseHash(pageHash(p))).toEqual({ type: 'page', page: p, id: null });
     expect(parseHash('#/references/heywood')).toEqual({ type: 'page', page: 'references', id: 'heywood' });
     expect(parseHash('#/glossary/x')).toBeNull();
-    for (const h of ['', '#', '#/', '#/nope', 'scene/3', '#scene/3', null, undefined]) expect(parseHash(h), String(h)).toBeNull();
+    for (const h of ['#/nope', 'scene/3', '#scene/3', '#/about/x', '#/learn/a/b']) expect(parseHash(h), String(h)).toBeNull();
+    // M11: alamat tanpa hash, '#', '#/' (dan null/undefined = tanpa hash) → landing
+    for (const h of ['', '#', '#/', null, undefined]) expect(parseHash(h), String(h)).toEqual({ type: 'learn', view: 'landing', id: null });
   });
 });
 

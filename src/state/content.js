@@ -28,7 +28,9 @@ export const FORMATION_DIRECTIONS = Object.freeze(['up', 'down', 'flat', 'mixed'
 export const REG_UNITS = Object.freeze(['mg/Nm3', '%']);
 export const REG_FUELS = Object.freeze(['oil', 'gas']);
 /** Jenis sumber di references.json (urutan = urutan kelompok di halaman References). */
-export const REFERENCE_TYPES = Object.freeze(['book', 'paper', 'standard', 'regulation', 'database', 'report']);
+export const REFERENCE_TYPES = Object.freeze(['book', 'paper', 'standard', 'regulation', 'database', 'report', 'web']);
+/** Tingkat sumber opsional (M11): 'intro' = sumber pengantar (lencana "Start here"). */
+export const REFERENCE_LEVELS = Object.freeze(['intro']);
 /** Batas atas target durasi per scene (menit) di presenter.json. */
 export const TARGET_MIN_MAX = 120;
 const DEFAULT_SCENES = Array.from({ length: 11 }, (_, i) => i + 1);
@@ -111,7 +113,7 @@ export function validatePresenter(j, sceneNumbers = DEFAULT_SCENES) {
 /**
  * Validasi references.json: { version: 1, references: [{ id, type, cite, use, locator, locatorVerified }] }.
  * id unik (huruf kecil/angka/-); locator boleh kosong; locatorVerified wajib boolean (hanya pemilik proyek yang
- * mengubahnya menjadi true).
+ * mengubahnya menjadi true). Opsional (M11): level ∈ REFERENCE_LEVELS, accessed (tanggal ISO YYYY-MM-DD), url (http/https).
  */
 export function validateReferences(j) {
   const e = [];
@@ -130,6 +132,9 @@ export function validateReferences(j) {
     if (!isText(r.use)) e.push({ field: f('use'), code: 'text' });
     if (typeof r.locator !== 'string') e.push({ field: f('locator'), code: 'string' });
     if (typeof r.locatorVerified !== 'boolean') e.push({ field: f('locatorVerified'), code: 'boolean' });
+    if (r.level !== undefined && !REFERENCE_LEVELS.includes(r.level)) e.push({ field: f('level'), code: 'refLevel' });
+    if (r.accessed !== undefined && !(typeof r.accessed === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(r.accessed))) e.push({ field: f('accessed'), code: 'date' });
+    if (r.url !== undefined && !(typeof r.url === 'string' && /^https?:\/\/\S+$/.test(r.url))) e.push({ field: f('url'), code: 'url' });
   });
   return e;
 }
@@ -306,3 +311,132 @@ export async function loadContent(kind, { fetchFn = globalThis.fetch, base, scen
 
 /** Konten bawaan (sinkron) — dipakai sebelum fetch selesai. */
 export const fallbackContent = (kind) => FALLBACK[kind];
+
+// ── M11: content/learn.json (Landing, About, Learn, Chart guide; teks dua bahasa) ──────────────────────────────────
+
+/** File learn.json tidak dibundel statis: fallback lewat dynamic import (chunk terpisah, lihat state/learnStore.js). */
+export const LEARN_FILE = 'learn.json';
+const isPair = (x) => !!x && typeof x === 'object' && !Array.isArray(x) && isText(x.en) && isText(x.id);
+const looksPair = (x) => !!x && typeof x === 'object' && !Array.isArray(x) && Object.keys(x).length === 2 && 'en' in x && 'id' in x;
+
+/**
+ * Validasi learn.json (skema: docs/m11_pack/seeds/learn.seed.json). Setiap teks = pasangan { en, id } yang keduanya
+ * string tidak kosong. Opsi: refIds (id references.json), glossaryIds (id glossary.json), parseRoute (state/route.js
+ * parseHash; disuntikkan agar tidak ada impor melingkar), sceneNumbers.
+ * @param {any} j
+ * @param {{refIds?:Iterable<string>, glossaryIds?:Iterable<string>, parseRoute?:(h:string)=>any, sceneNumbers?:number[]}} [o]
+ */
+export function validateLearn(j, o = {}) {
+  const e = [];
+  if (!j || typeof j !== 'object' || Array.isArray(j)) return [{ field: '(root)', code: 'notObject' }];
+  if (j.version !== 1) e.push({ field: 'version', code: 'version' });
+  if (!['en', 'id'].includes(j.defaultLang)) e.push({ field: 'defaultLang', code: 'lang' });
+  if (typeof j.reviewed !== 'boolean') e.push({ field: 'reviewed', code: 'boolean' });
+  const refIds = o.refIds ? new Set(o.refIds) : null;
+  const glossaryIds = o.glossaryIds ? new Set(o.glossaryIds) : null;
+  const scenes = o.sceneNumbers ?? DEFAULT_SCENES;
+  const routeOk = (r) => r === 'present' || (isText(r) && (!o.parseRoute || o.parseRoute(r) != null));
+  // semua objek berbentuk pasangan { en, id } di mana pun harus lengkap
+  const walk = (x, path) => {
+    if (Array.isArray(x)) x.forEach((v, i) => walk(v, `${path}[${i}]`));
+    else if (x && typeof x === 'object') {
+      if (looksPair(x)) { if (!isPair(x)) e.push({ field: path, code: 'pair' }); return; }
+      for (const [k, v] of Object.entries(x)) if (path !== 'glossaryId') walk(v, path ? `${path}.${k}` : k);
+    }
+  };
+  walk(j, '');
+  const pair = (x, field) => { if (!isPair(x)) e.push({ field, code: 'pair' }); };
+  const refs = (list, field) => {
+    if (!Array.isArray(list)) { e.push({ field, code: 'array' }); return; }
+    list.forEach((r, i) => { if (!isText(r) || (refIds && !refIds.has(r))) e.push({ field: `${field}[${i}]`, code: 'unknownRef', detail: String(r) }); });
+  };
+  // landing
+  const L = j.landing;
+  if (!L || typeof L !== 'object') e.push({ field: 'landing', code: 'notObject' });
+  else {
+    for (const k of ['kicker', 'title', 'tagline', 'continue', 'honesty', 'links']) pair(L[k], `landing.${k}`);
+    if (!Array.isArray(L.cards) || L.cards.length !== 4) e.push({ field: 'landing.cards', code: 'array' });
+    else L.cards.forEach((c, i) => {
+      if (!isText(c?.id)) e.push({ field: `landing.cards[${i}].id`, code: 'text' });
+      if (!routeOk(c?.route)) e.push({ field: `landing.cards[${i}].route`, code: 'route', detail: String(c?.route) });
+      pair(c?.title, `landing.cards[${i}].title`); pair(c?.text, `landing.cards[${i}].text`);
+    });
+  }
+  // about
+  const A = j.about;
+  if (!A || typeof A !== 'object') e.push({ field: 'about', code: 'notObject' });
+  else {
+    pair(A.title, 'about.title');
+    if (!Array.isArray(A.sections) || !A.sections.length) e.push({ field: 'about.sections', code: 'array' });
+    else A.sections.forEach((s, i) => {
+      if (!isText(s?.id)) e.push({ field: `about.sections[${i}].id`, code: 'text' });
+      pair(s?.title, `about.sections[${i}].title`);
+      if (!Array.isArray(s?.body) || !s.body.length) e.push({ field: `about.sections[${i}].body`, code: 'array' });
+    });
+  }
+  // istilah Learn
+  const termIds = new Set();
+  if (!Array.isArray(j.terms)) e.push({ field: 'terms', code: 'array' });
+  else j.terms.forEach((t, i) => {
+    if (!isText(t?.id) || termIds.has(t.id)) e.push({ field: `terms[${i}].id`, code: termIds.has(t?.id) ? 'duplicate' : 'text' });
+    else termIds.add(t.id);
+    pair(t?.term, `terms[${i}].term`); pair(t?.definition, `terms[${i}].definition`);
+    refs(t?.refs ?? [], `terms[${i}].refs`);
+  });
+  // definisi Indonesia untuk id glossary.json (Glossary dua bahasa, Step 02)
+  if (j.glossaryId !== undefined) {
+    if (!j.glossaryId || typeof j.glossaryId !== 'object') e.push({ field: 'glossaryId', code: 'notObject' });
+    else for (const [k, v] of Object.entries(j.glossaryId)) {
+      if (glossaryIds && !glossaryIds.has(k)) e.push({ field: `glossaryId.${k}`, code: 'unknownTerm' });
+      if (!isText(v?.definition)) e.push({ field: `glossaryId.${k}.definition`, code: 'text' });
+    }
+  }
+  // level dan pelajaran
+  const lessonIds = new Set();
+  if (!Array.isArray(j.levels) || !j.levels.length) e.push({ field: 'levels', code: 'array' });
+  else j.levels.forEach((lv, li) => {
+    const lf = `levels[${li}]`;
+    if (!isText(lv?.id)) e.push({ field: `${lf}.id`, code: 'text' });
+    pair(lv?.title, `${lf}.title`);
+    if (!Array.isArray(lv?.lessons) || !lv.lessons.length) { e.push({ field: `${lf}.lessons`, code: 'array' }); return; }
+    lv.lessons.forEach((ls, i) => {
+      const f = (k) => `${lf}.lessons[${i}].${k}`;
+      if (!isText(ls?.id) || !/^[a-z0-9][a-z0-9-]*$/.test(ls.id) || ls.id === 'charts') e.push({ field: f('id'), code: 'lessonId' });
+      else if (lessonIds.has(ls.id)) e.push({ field: f('id'), code: 'duplicate' });
+      else lessonIds.add(ls.id);
+      pair(ls?.title, f('title')); pair(ls?.goal, f('goal'));
+      if (!(Number.isFinite(ls?.minutes) && ls.minutes > 0)) e.push({ field: f('minutes'), code: 'minutes' });
+      if (!Array.isArray(ls?.body) || !ls.body.length) e.push({ field: f('body'), code: 'array' });
+      for (const t of ls?.terms ?? []) if (!termIds.has(t) && !(glossaryIds?.has(t))) e.push({ field: f('terms'), code: 'unknownTerm', detail: String(t) });
+      if (ls?.tryIt) { if (!routeOk(ls.tryIt.route)) e.push({ field: f('tryIt.route'), code: 'route', detail: String(ls.tryIt.route) }); pair(ls.tryIt.text, f('tryIt.text')); }
+      (ls?.checks ?? []).forEach((c, k) => {
+        const cf = `${f('checks')}[${k}]`;
+        pair(c?.q, `${cf}.q`); pair(c?.why, `${cf}.why`);
+        if (!Array.isArray(c?.options) || c.options.length < 2) e.push({ field: `${cf}.options`, code: 'array' });
+        else if (!(Number.isInteger(c.answer) && c.answer >= 0 && c.answer < c.options.length)) e.push({ field: `${cf}.answer`, code: 'answer' });
+      });
+      refs(ls?.refs ?? [], f('refs'));
+    });
+  });
+  // Chart guide
+  const chartIds = new Set();
+  if (j.charts !== undefined) {
+    if (!Array.isArray(j.charts)) e.push({ field: 'charts', code: 'array' });
+    else j.charts.forEach((c, i) => {
+      const f = (k) => `charts[${i}].${k}`;
+      if (!isText(c?.id) || chartIds.has(c.id)) e.push({ field: f('id'), code: chartIds.has(c?.id) ? 'duplicate' : 'text' });
+      else chartIds.add(c.id);
+      if (c?.scene !== undefined && !scenes.includes(c.scene)) e.push({ field: f('scene'), code: 'scene' });
+      if (c?.route !== undefined && !routeOk(c.route)) e.push({ field: f('route'), code: 'route', detail: String(c.route) });
+      for (const l of c?.lessons ?? []) if (!lessonIds.has(l)) e.push({ field: f('lessons'), code: 'unknownLesson', detail: String(l) });
+    });
+  }
+  return e;
+}
+
+/** Ringkasan Learn untuk kartu landing: jumlah level, pelajaran, total menit (dihitung dari learn.json). */
+export function learnTotals(j) {
+  const levels = Array.isArray(j?.levels) ? j.levels : [];
+  const lessons = levels.flatMap((l) => (Array.isArray(l.lessons) ? l.lessons : []));
+  return { levels: levels.length, lessons: lessons.length, minutes: lessons.reduce((a, l) => a + (Number.isFinite(l.minutes) ? l.minutes : 0), 0) };
+}
