@@ -254,8 +254,8 @@
               "id": "Setiap pelajaran punya dua atau tiga pertanyaan singkat di akhir. Tidak ada nilai. Pertanyaan itu ada supaya Anda tahu apakah konsepnya sudah dipahami sebelum lanjut."
             },
             {
-              "en": "Words in bold have a short definition in the word list of the lesson. The full list is on the Glossary page.",
-              "id": "Kata yang ditebalkan punya definisi singkat di daftar kata pelajaran itu. Daftar lengkapnya ada di halaman Glossary."
+              "en": "Each lesson has a box called Words in this lesson with short definitions. The full list is on the Glossary page.",
+              "id": "Setiap pelajaran punya kotak Words in this lesson berisi definisi singkat. Daftar lengkapnya ada di halaman Glossary."
             },
             {
               "en": "The app has two modes. Explore shows the navigation and lets you open any page. Present hides the navigation for a clean screen in front of an audience. Press M to switch.",

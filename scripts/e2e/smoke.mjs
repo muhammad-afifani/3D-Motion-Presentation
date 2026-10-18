@@ -12,6 +12,8 @@
  *      latar opak putih, halaman penuh, PNG ikut tema, sakelar tersimpan setelah muat ulang).
  *   8. M11 Step 02: daftar level, 21 pelajaran, soal, progres + Reset di halaman, kata/sumber di atas pelajaran, Try it →
  *      pil "Back to lesson", Glossary dua bahasa, halaman langsung → landing, Learn di Present → Explore, panah.
+ *   9. M11 Step 03: tombol ⓘ di setiap grafik (juga skematik Brayton dan panel Limits) tanpa tumpang tindih di 1366/1920/1280,
+ *      ⓘ → panduan → Back to the chart, Present tanpa ⓘ, PNG tanpa ⓘ, indeks 15 panduan, alamat langsung, G/? + Esc.
  *   7. M11 Step 01: landing (tanpa hash), kartu, hero tidak kosong, EN/ID, kualitas Low pada hero, About, Present tanpa
  *      hash → Scene 1, landing minimal bila learn.json gagal; screenshot landing 3 resolusi × 2 tema.
  * Sengaja TIDAK memeriksa isi kartu info kiri Scene 9 (`.pol-card`): isinya akan dirombak.
@@ -28,7 +30,7 @@ export const VIEWPORTS = [[1366, 768], [1920, 1080], [1280, 720]];
 export const MAX_TOPBAR_PX = 140;           // tinggi bilah atas maksimum (4 baris pesan kunci)
 export const MIN_FILL_PCT = 1;            // % piksel non-transparan minimum per grafik (terukur 1,9–63 % pada tampilan normal)
 const SHOT_SCENES = new Set([7, 9]);
-const TABS = { 9: ['1', '2', '3', '4', '5'] }; // tab Scene 9: Limits, Formation, Levers, Load window, GHG
+const TABS = { 2: [null, '4'], 9: ['1', '2', '3', '4', '5'] }; // Scene 2: siklus piston, lalu Brayton (skematik); tab Scene 9: Limits, Formation, Levers, Load window, GHG
 const SHOTS = 'scripts/e2e/shots/after';
 const POLL_MS = 500, TIMEOUT_MS = 9000;    // grafik yang menunggu Worker diberi waktu menggambar
 
@@ -49,7 +51,31 @@ function inspect({ minFill }) {
       out.pct = +(100 * n / (stat.width * stat.height)).toFixed(2);
     }
     out.basis = !!root.querySelector('.chart__level')?.dataset.basis;   // tag Basis terpasang (M9 Step 02)
-    out.ok = out.w > 0 && out.h > 0 && out.cssW > 0 && out.cssH > 0 && out.pct >= minFill && out.basis;
+    // M11 Step 03: tombol ⓘ terlihat (skematik Brayton: di samping tag Basis panel), tidak menutupi judul / tombol skala / tag
+    const inSchem = !!root.closest('.cyc-schem');
+    const guideEl = inSchem ? document.querySelector('.cyc-guide-slot .chart__guide') : root.querySelector('.chart__guide');
+    const shown = (el) => !!el && el.checkVisibility?.() !== false && el.getBoundingClientRect().width > 0;
+    out.guide = shown(guideEl) && /How to read this chart|Cara membaca grafik ini/.test(guideEl.dataset.tip ?? '');
+    const boxes = [];
+    const title = root.querySelector('.chart__title');
+    if (!inSchem && shown(title)) {
+      const rg = document.createRange(); rg.selectNodeContents(title);
+      const q = [...rg.getClientRects()].filter((x) => x.width > 0);
+      if (q.length) boxes.push({ n: 'judul', r: { left: Math.min(...q.map((x) => x.left)), right: Math.max(...q.map((x) => x.right)), top: Math.min(...q.map((x) => x.top)), bottom: Math.max(...q.map((x) => x.bottom)) } });
+    }
+    const cand = inSchem ? [guideEl, document.querySelector('.cyc-level[data-k="level"]')] : [...root.querySelectorAll('.chart__tools > *')];
+    for (const el of cand) if (shown(el)) { const r2 = el.getBoundingClientRect(); boxes.push({ n: el.className.split(/\s+/)[0] || el.tagName, r: { left: r2.left, right: r2.right, top: r2.top, bottom: r2.bottom } }); }
+    const sc = inSchem ? root.closest('.cyc-view').getBoundingClientRect() : r;
+    out.overlap = [];
+    for (let a = 0; a < boxes.length; a++) {
+      const A = boxes[a].r;
+      if (A.right > sc.right + 0.5 || A.left < sc.left - 0.5) out.overlap.push(`${boxes[a].n} keluar kotak grafik`);
+      for (let b = a + 1; b < boxes.length; b++) {
+        const B = boxes[b].r;
+        if (A.left < B.right - 0.5 && B.left < A.right - 0.5 && A.top < B.bottom - 0.5 && B.top < A.bottom - 0.5) out.overlap.push(`${boxes[a].n} × ${boxes[b].n}`);
+      }
+    }
+    out.ok = out.w > 0 && out.h > 0 && out.cssW > 0 && out.cssH > 0 && out.pct >= minFill && out.basis && out.guide && out.overlap.length === 0;
     return out;
   });
 
@@ -260,6 +286,174 @@ function pngCornerLum(buf) {
   const [r, g, b] = [raw[1], raw[2], raw[3]];
   void w; void colorType;
   return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+}
+
+/** PNG RGBA 8-bit tanpa interlace → {w,h,data}; membuka filter baris (0–4). Untuk memeriksa wilayah kecil di ekspor S. */
+function decodePng(buf) {
+  let off = 8, w = 0, h = 0; const idat = [];
+  while (off < buf.length) {
+    const len = buf.readUInt32BE(off), type = buf.toString('ascii', off + 4, off + 8), data = buf.subarray(off + 8, off + 8 + len);
+    if (type === 'IHDR') { w = data.readUInt32BE(0); h = data.readUInt32BE(4); if (data[8] !== 8 || data[9] !== 6 || data[12] !== 0) throw new Error('PNG bukan RGBA 8-bit tanpa interlace'); }
+    if (type === 'IDAT') idat.push(data);
+    off += 12 + len;
+  }
+  const raw = inflateSync(Buffer.concat(idat)), bpp = 4, stride = w * bpp, out = Buffer.alloc(h * stride);
+  for (let y = 0; y < h; y++) {
+    const f = raw[y * (stride + 1)], src = y * (stride + 1) + 1, dst = y * stride;
+    for (let x = 0; x < stride; x++) {
+      const a = x >= bpp ? out[dst + x - bpp] : 0, b = y ? out[dst - stride + x] : 0, c = x >= bpp && y ? out[dst - stride + x - bpp] : 0;
+      let v = raw[src + x];
+      if (f === 1) v += a; else if (f === 2) v += b; else if (f === 3) v += (a + b) >> 1;
+      else if (f === 4) { const pp = a + b - c, pa = Math.abs(pp - a), pb = Math.abs(pp - b), pc = Math.abs(pp - c); v += pa <= pb && pa <= pc ? a : pb <= pc ? b : c; }
+      out[dst + x] = v & 255;
+    }
+  }
+  return { w, h, data: out };
+}
+/** Selisih warna terbesar di wilayah (px PNG) terhadap piksel pertamanya; 0 = rata. */
+function regionSpread(png, r, k = 2, inset = 2) {
+  const x0 = Math.round(r.left * k) + inset, x1 = Math.round(r.right * k) - inset, y0 = Math.round(r.top * k) + inset, y1 = Math.round(r.bottom * k) - inset;
+  const at = (x, y) => png.data.subarray((y * png.w + x) * 4, (y * png.w + x) * 4 + 4);
+  const base = at(x0, y0); let spread = 0;
+  for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) { const p = at(x, y); for (let c = 0; c < 3; c++) spread = Math.max(spread, Math.abs(p[c] - base[c])); }
+  return spread;
+}
+
+/**
+ * M11 Step 03: tombol ⓘ dan Chart guide. Scene 6 → ⓘ pada "NOx & CO vs load" → #/learn/charts/partload → "Back to the chart"
+ * → Scene 6; Limits (Scene 9) dan skematik Brayton (Scene 2) sama; ⓘ tidak tampil di Present dan tidak ikut PNG (S);
+ * indeks (15 panduan per scene), alamat langsung (tanpa Back), bahasa ID; G / ? / Esc kembali ke scene asal (Scene 6, Scene 3).
+ */
+async function chartGuideInteraction(browser, url) {
+  const fails = [];
+  const p = await browser.newPage({ viewport: { width: 1366, height: 768 } });
+  await p.addInitScript(() => { try { if (!localStorage.getItem('etel:lang')) localStorage.setItem('etel:lang', 'en'); } catch { /* storage diblokir */ } }); // kunjungan pertama memakai bahasa default learn.json (ID)
+  const errs = [];
+  p.on('pageerror', (e) => errs.push(`pageerror: ${e.message}`));
+  p.on('console', (m) => { if (m.type() === 'error') errs.push(`console: ${m.text()}`); });
+  const base = url.replace(/#.*$/, '');
+  const hash = () => p.evaluate(() => location.hash);
+  const sceneIs = (n) => p.waitForFunction((x) => window.__etelDebug.scene() === x && window.__etelDebug.learnView() == null && window.__etelDebug.page() == null, n, { timeout: 15000 }).then(() => true, () => false);
+  const waitHash = (h) => p.waitForFunction((x) => location.hash === x, h, { timeout: 15000 }).then(() => true, () => false);
+  await p.goto(`${base}#/scene/6`);
+  await p.waitForFunction(() => window.__etelDebug?.scene() === 6 && !window.__etelDebug.loading(), null, { timeout: 30000 });
+  await p.waitForTimeout(1200);
+
+  // ── Scene 6: ⓘ → panduan → Back to the chart ──
+  const chart = p.locator('.chart', { has: p.getByText('NOx & CO vs load', { exact: true }) });
+  const guide = chart.locator('.chart__guide');
+  if ((await guide.count()) !== 1) fails.push('Scene 6: grafik "NOx & CO vs load" tidak punya tepat satu tombol ⓘ');
+  else {
+    const tip = await guide.getAttribute('data-tip');
+    if (tip !== 'How to read this chart') fails.push(`ⓘ tooltip "${tip}"`);
+    await guide.click();
+    if (!(await waitHash('#/learn/charts/partload'))) fails.push(`ⓘ Scene 6: alamat ${await hash()} (harusnya #/learn/charts/partload)`);
+    else {
+      await p.waitForSelector('.chart-guide .chart-guide__sec', { timeout: 10000 }).catch(() => {});
+      const txt = await p.locator('.chart-guide').innerText();
+      for (const need of ['NOx & CO vs load', 'Scene 6', 'What it shows', 'Axes', 'How to read it', 'What to look for', 'Common mistakes', 'Words in this chart', 'Related lessons', 'Sources', 'Open the chart', 'Back to the chart']) if (!txt.includes(need)) fails.push(`panduan partload: "${need}" tidak tampil`);
+      if (/—/.test(txt)) fails.push('panduan partload: tanda pisah panjang tampil');
+      if ((await p.locator('.chart-guide ol.chart-guide__items li').count()) < 1) fails.push('panduan partload: langkah "How to read it" tidak bernomor');
+      await p.screenshot({ path: `${SHOTS}/chartguide-partload-dark.png` });
+      await p.locator('.chart-guide__back').click();
+      if (!(await waitHash('#/scene/6')) || !(await sceneIs(6))) fails.push(`Back to the chart: kembali ke ${await hash()} (harusnya Scene 6)`);
+      else if (!(await chart.locator('.chart__guide').isVisible())) fails.push('Back to the chart: grafik Scene 6 tidak tampil lagi');
+    }
+  }
+
+  // ── PNG (S): wilayah ⓘ rata (tidak dilukis), wilayah tag Basis terlukis (kontrol) ──
+  try {
+    const rects = await p.evaluate(() => {
+      const r = (el) => { const b = el.getBoundingClientRect(); return { left: b.left, right: b.right, top: b.top, bottom: b.bottom }; };
+      return { guides: [...document.querySelectorAll('.chart__guide')].filter((e) => e.checkVisibility()).map(r), level: r([...document.querySelectorAll('.chart__level')].find((e) => e.checkVisibility())) };
+    });
+    await p.evaluate(() => document.activeElement?.blur?.());
+    const [dl] = await Promise.all([p.waitForEvent('download', { timeout: 30000 }), p.keyboard.press('s')]);
+    const png = decodePng(readFileSync(await dl.path()));
+    if (!rects.guides.length) fails.push('PNG Scene 6: tidak ada ⓘ di layar untuk diperiksa');
+    rects.guides.forEach((g, i) => { const sp = regionSpread(png, g); if (sp > 8) fails.push(`PNG Scene 6: ⓘ #${i} ikut terlukis (selisih warna ${sp})`); });
+    if (regionSpread(png, rects.level) < 30) fails.push('PNG Scene 6: kontrol gagal, tag Basis tidak terlukis di PNG (pemeriksaan tidak valid)');
+  } catch (err) { fails.push(`PNG Scene 6: ${String(err.message ?? err).split('\n')[0]}`); }
+
+  // ── Present: ⓘ tersembunyi ──
+  await p.keyboard.press('m'); await p.waitForTimeout(400);
+  if ((await p.evaluate(() => [...document.querySelectorAll('.chart__guide')].some((e) => e.checkVisibility())))) fails.push('Present: ⓘ masih tampil');
+  await p.keyboard.press('m'); await p.waitForTimeout(300);
+  if (!(await p.evaluate(() => [...document.querySelectorAll('.chart__guide')].some((e) => e.checkVisibility())))) fails.push('Explore: ⓘ tidak kembali setelah Present');
+
+  // ── G dan ? kembali ke scene asal ──
+  await p.keyboard.press('g');
+  await p.waitForFunction(() => window.__etelDebug.regulationsOpen(), null, { timeout: 10000 }).catch(() => fails.push('G dari Scene 6: Regulations tidak terbuka'));
+  await p.keyboard.press('Escape');
+  if (!(await sceneIs(6)) || (await hash()) !== '#/scene/6') fails.push(`G lalu Esc dari Scene 6: kembali ke ${await hash()} (scene ${await p.evaluate(() => window.__etelDebug.scene())}, halaman ${await p.evaluate(() => window.__etelDebug.page())})`);
+  await p.evaluate(() => window.__etelDebug.goToScene(3));
+  await p.waitForFunction(() => window.__etelDebug.scene() === 3 && !window.__etelDebug.loading(), null, { timeout: 30000 });
+  await p.waitForTimeout(500);
+  await p.keyboard.press('?');
+  await p.waitForFunction(() => window.__etelDebug.referencesOpen(), null, { timeout: 10000 }).catch(() => fails.push('? dari Scene 3: References tidak terbuka'));
+  await p.keyboard.press('Escape');
+  if (!(await sceneIs(3)) || (await hash()) !== '#/scene/3') fails.push(`? lalu Esc dari Scene 3: kembali ke ${await hash()} (scene ${await p.evaluate(() => window.__etelDebug.scene())}, halaman ${await p.evaluate(() => window.__etelDebug.page())})`);
+
+  // ── Limits (Scene 9) ──
+  await p.evaluate(() => window.__etelDebug.goToScene(9));
+  await p.waitForFunction(() => window.__etelDebug.scene() === 9 && !window.__etelDebug.loading(), null, { timeout: 30000 });
+  await p.waitForTimeout(600);
+  await p.keyboard.press('1'); await p.waitForTimeout(400);
+  const limGuide = p.locator('.lim-tab__head .chart__guide');
+  if ((await limGuide.count()) !== 1) fails.push('Scene 9 Limits: panel tanpa tombol ⓘ');
+  else {
+    await limGuide.click();
+    if (!(await waitHash('#/learn/charts/limits'))) fails.push(`ⓘ Limits: alamat ${await hash()}`);
+    else {
+      await p.locator('.chart-guide__back').click();
+      if (!(await waitHash('#/scene/9/limits')) || !(await sceneIs(9))) fails.push(`Back to the chart (Limits): ${await hash()}`);
+    }
+  }
+  // ── skematik Brayton (Scene 2) ──
+  await p.evaluate(() => window.__etelDebug.goToScene(2));
+  await p.waitForFunction(() => window.__etelDebug.scene() === 2 && !window.__etelDebug.loading(), null, { timeout: 30000 });
+  await p.waitForTimeout(500);
+  await p.keyboard.press('4'); await p.waitForTimeout(500);
+  const sg = p.locator('.cyc-guide-slot .chart__guide');
+  if (!(await sg.isVisible())) fails.push('Scene 2 Brayton: ⓘ skematik tidak tampil');
+  else {
+    await sg.click();
+    if (!(await waitHash('#/learn/charts/brayton-schematic'))) fails.push(`ⓘ skematik: alamat ${await hash()}`);
+    else {
+      await p.locator('.chart-guide__back').click();
+      if (!(await waitHash('#/scene/2')) || !(await sceneIs(2))) fails.push(`Back to the chart (skematik): ${await hash()}`);
+    }
+  }
+  await p.keyboard.press('1');
+
+  // ── indeks dan alamat langsung, EN lalu ID, dua tema ──
+  const q = await browser.newPage({ viewport: { width: 1366, height: 768 } });
+  await q.addInitScript(() => { try { if (!localStorage.getItem('etel:lang')) localStorage.setItem('etel:lang', 'en'); } catch { /* storage diblokir */ } }); // kunjungan pertama memakai bahasa default learn.json (ID)
+  q.on('pageerror', (e) => errs.push(`pageerror: ${e.message}`));
+  await q.goto(`${base}#/learn/charts`);
+  await q.waitForSelector('.chart-guide__row', { timeout: 30000 }).catch(() => {});
+  const rows = await q.locator('.chart-guide__row').count(), groups = await q.locator('.chart-guide__group').count();
+  if (rows !== 15 || groups !== 8) fails.push(`indeks Chart guide: ${rows} baris / ${groups} kelompok (harusnya 15 / 8)`);
+  const first = await q.locator('.chart-guide__group h3').first().innerText();
+  if (!/^Scene 1/.test(first)) fails.push(`indeks Chart guide: kelompok pertama "${first}"`);
+  await q.screenshot({ path: `${SHOTS}/chartguide-index-dark.png` });
+  await q.goto(`${base}#/learn/charts/pv-ts`);
+  await q.waitForSelector('.chart-guide .chart-guide__sec', { timeout: 30000 }).catch(() => {});
+  if ((await q.locator('.chart-guide__back').count()) !== 0) fails.push('panduan lewat alamat langsung: "Back to the chart" tampil (tidak ada grafik asal)');
+  if (!(await q.locator('.chart-guide__open').isVisible())) fails.push('panduan lewat alamat langsung: "Open the chart" tidak tampil');
+  await q.evaluate(() => { try { localStorage.setItem('etel:lang', 'id'); localStorage.setItem('etel:theme', 'light'); } catch { /* storage diblokir */ } });
+  await q.reload();
+  await q.waitForSelector('.chart-guide .chart-guide__sec', { timeout: 30000 }).catch(() => {});
+  const idTxt = await q.locator('.chart-guide').innerText();
+  for (const need of ['Yang ditampilkan', 'Sumbu', 'Cara membacanya', 'Buka grafik']) if (!idTxt.includes(need)) fails.push(`panduan (ID): "${need}" tidak tampil`);
+  await q.screenshot({ path: `${SHOTS}/chartguide-pv-ts-light-id.png` });
+  await q.goto(`${base}#/learn/charts/tidak-ada`);
+  await q.waitForSelector('.chart-guide__row', { timeout: 30000 }).catch(() => {});
+  if ((await q.locator('.chart-guide__missing').count()) !== 1) fails.push('id panduan tak dikenal: tidak ada pesan, indeks tetap tampil');
+  await q.close();
+  for (const e of [...new Set(errs)]) fails.push(`Chart guide: ${e}`);
+  await p.close();
+  return fails;
 }
 
 /**
@@ -790,7 +984,7 @@ try {
   // E2E_ONLY=learn,landing,deeplinks: hanya alur halaman tersebut (iterasi cepat); tanpa variabel = smoke penuh
   const only = process.env.E2E_ONLY ? new Set(process.env.E2E_ONLY.split(',')) : null;
   if (only) {
-    const flows = { learn: learnInteraction, landing: landingInteraction, deeplinks: deepLinks, theme: themeInteraction };
+    const flows = { learn: learnInteraction, chartguide: chartGuideInteraction, landing: landingInteraction, deeplinks: deepLinks, theme: themeInteraction };
     for (const k of only) if (flows[k]) failures.push(...await flows[k](chromium.browser, srv.url));
   }
   for (const [w, h] of only ? [] : VIEWPORTS) {
@@ -811,15 +1005,21 @@ try {
           if (res.charts.every((c) => c.ok)) break;
           await page.waitForTimeout(POLL_MS);
         }
-        const label = `${w}×${h} · Scene ${n}${tab ? ` · tab ${tab}` : ''}`;
+        const label = `${w}×${h} · Scene ${n}${n === 2 && tab ? ' · Brayton' : tab ? ` · tab ${tab}` : ''}`;
         report.push({ label, charts: res.charts.map((c) => c.pct), overflow: res.overflow.length });
         if (n === 6) s6Heights.push(`${w}×${h}: ${res.charts.map((c) => `${c.cssH} px`).join(' / ')}`);
         if (res.hscroll) failures.push(`${label}: scroll horizontal`);
-        for (const c of res.charts) if (!c.ok) failures.push(`${label}: grafik #${c.i} "${c.title}" kosong/0/tanpa tag Basis (canvas ${c.w}×${c.h}, css ${c.cssW}×${c.cssH}, terisi ${c.pct} %, minimum ${MIN_FILL_PCT} %, tag Basis ${c.basis ? 'ada' : 'HILANG'})`);
+        for (const c of res.charts) if (!c.ok) failures.push(`${label}: grafik #${c.i} "${c.title}" kosong/0/tanpa tag Basis (canvas ${c.w}×${c.h}, css ${c.cssW}×${c.cssH}, terisi ${c.pct} %, minimum ${MIN_FILL_PCT} %, tag Basis ${c.basis ? 'ada' : 'HILANG'}, ⓘ ${c.guide ? 'ada' : 'HILANG'}${c.overlap?.length ? `, bertumpuk: ${c.overlap.join('; ')}` : ''})`);
         for (const o of res.overflow) failures.push(`${label}: teks meluber di ${o.el}: ${o.reasons[0]}`);
         if (res.topbarH > MAX_TOPBAR_PX) failures.push(`${label}: bilah atas ${res.topbarH} px > ${MAX_TOPBAR_PX} px (pesan kunci terlalu banyak baris)`);
+        // M11 Step 03: setiap judul grafik yang tampil punya panduan
+        for (const c of res.charts) {
+          const id = await page.evaluate((t) => window.__etelDebug.guideFor(t), c.title || (n === 2 ? 'Brayton schematic (state markers)' : ''));
+          if (!id) failures.push(`${label}: grafik "${c.title}" tanpa panduan di Chart guide`);
+        }
         if (SHOT_SCENES.has(n) && (!tab || tab === '1')) await page.screenshot({ path: `${SHOTS}/scene${n}-${w}x${h}.png` });
       }
+      if (n === 2) { await page.keyboard.press('1'); await page.waitForTimeout(200); }
     }
     if (w === 1366) failures.push(...await basisInteraction(page, srv.url, chromium.browser));
     if (w === 1366) failures.push(...await regulationInteraction(page, srv.url, chromium.browser));
@@ -831,6 +1031,7 @@ try {
     if (w === 1366) failures.push(...await deepLinks(chromium.browser, srv.url));
     if (w === 1366) failures.push(...await landingInteraction(chromium.browser, srv.url));
     if (w === 1366) failures.push(...await learnInteraction(chromium.browser, srv.url));
+    if (w === 1366) failures.push(...await chartGuideInteraction(chromium.browser, srv.url));
     for (const e of [...new Set(errs)]) failures.push(`${w}×${h}: ${e}`);
     await page.close();
   }

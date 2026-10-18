@@ -6,6 +6,8 @@ Nomor scene sama dengan aplikasi (Scene 1–11) dan prompt simulasi 3D. Semua **
 
 **Navigasi:** mode **Explore** (default saat dibuka, navigasi di kiri: scene, halaman Regulations, Emission formation, References, Glossary, Assumptions) dan mode **Present** (tombol `M`; navigasi disembunyikan, `←`/`→` dan `Spasi` seperti biasa, jendela presenter `P` tetap sinkron). Setiap scene punya alamat langsung `#/scene/N` (contoh `#/scene/6`); Scene 9 juga per tab, mis. `#/scene/9/levers`. Halaman: `#/regulations`, `#/formation`, `#/references`, `#/glossary`, `#/assumptions`.
 
+**Scene 0 (landing):** tidak dipresentasikan; dipakai untuk belajar mandiri (Learn, Chart guide, About). Present dimulai di Scene 1.
+
 **Baku mutu:** angka limit hanya dari `content/regulations.json` (tabel ditranskripsi dari Permen LH 13/2009 untuk turbin gas dan Permen LHK 11/2021 untuk mesin; selama `verified: false`, banner "Transcribed from the published tables…" tampil). Basis perbandingan kedua grup: **15 % O₂, kering, 25 °C, NOx sebagai NO₂**. Chip "Model value vs limit (indicative)" (`Within` / `Above` / `Not modeled`) selalu memakai basis ini dan menampilkan margin %; bila margin < 10 % muncul keterangan "margin is smaller than model uncertainty". Dokumen ini tidak menyalin angka limit; lihat halaman Regulations.
 
 ## Ringkasan waktu

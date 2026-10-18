@@ -9,6 +9,7 @@ import { fmt } from './format.js';
 import { SITE_PARAMS } from '../state/regulations.js';
 import { COVERAGE_PARAMS, COVERAGE_EQUIP, MODEL_COVERAGE } from '../state/coverage.js';
 import { REG_UNITS } from '../state/content.js';
+import { createGuideButton } from './chartGuideButton.js';
 
 const R = STR.regulation, L = STR.scene9.limitsTab;
 
@@ -21,7 +22,7 @@ export function createLimitsTab(container, cb) {
   el.className = 'lim-tab';
   el.innerHTML = `
     <section class="lim-tab__main">
-      <h3 class="reg__title"></h3>
+      <div class="lim-tab__head"><h3 class="reg__title"></h3></div>
       <div class="reg__note num" data-v="basis"></div>
       <table class="reg__table num"><thead></thead><tbody></tbody></table>
       <div class="lim-tab__notes">
@@ -45,6 +46,8 @@ export function createLimitsTab(container, cb) {
   container.appendChild(el);
   const V = (k) => el.querySelector(`[data-v="${k}"]`);
   el.querySelector('.lim-tab__main .reg__title').textContent = R.title;
+  const guide = createGuideButton({ getTitle: () => R.title }); // ⓘ "How to read this chart" → panduan Limits
+  el.querySelector('.lim-tab__head').append(guide.el);
   el.querySelector('.lim-tab__main thead').innerHTML = `<tr>${L.head.map((h) => `<th>${h}</th>`).join('')}</tr>`;
   V('covTitle').textContent = L.coverageTitle;
   const covHead = el.querySelector('.cov-table thead'), covBody = el.querySelector('.cov-table tbody');
@@ -144,6 +147,6 @@ export function createLimitsTab(container, cb) {
         }
       }
     },
-    dispose() { el.remove(); },
+    dispose() { guide.dispose(); el.remove(); },
   };
 }

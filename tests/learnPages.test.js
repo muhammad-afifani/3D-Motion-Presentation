@@ -216,7 +216,7 @@ describe('kabel main.js dan komponen (DOM diuji di smoke)', () => {
     expect(main).toMatch(/\.\.\.learnHost\.pages \}/);
   });
   it('pilihan bahasa tunggal: tidak ada percabangan lang tersebar di komponen halaman Learn', () => {
-    for (const f of ['learnPage', 'lessonPage', 'learnHost', 'chartGuidePlaceholder', 'glossaryPage', 'backLessonPill', 'aboutPage', 'landingPage']) {
+    for (const f of ['learnPage', 'lessonPage', 'learnHost', 'chartGuidePage', 'chartGuideButton', 'readingParts', 'glossaryPage', 'backLessonPill', 'aboutPage', 'landingPage']) {
       expect(read(`src/ui/${f}.js`), f).not.toMatch(/\blang\b\s*(===|!==|==|\?)|['"](id|en)['"]\s*===|\[\s*(o\.)?lang\s*\]/);
     }
   });
