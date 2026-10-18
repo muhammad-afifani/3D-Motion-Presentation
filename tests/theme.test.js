@@ -291,3 +291,37 @@ describe('landing: teks hero AA terhadap latar viewport di kedua tema; kartu dan
     expect(css).toMatch(/\.landing__hero \{[^}]*var\(--vp-hi\)[^}]*var\(--vp-lo-deep\)/);
   });
 });
+
+// ── M11 Step 02: halaman Learn (daftar level, pelajaran, soal, pil Back to lesson) memakai token tema, AA di kedua tema ──
+describe('Learn Step 02: teks AA pada latar halaman Learn dan komponennya (Dark dan Light)', () => {
+  for (const [name, T] of [['dark', DARK], ['light', LIGHT]]) {
+    it(`${name}: pasangan teks/latar ≥ 4,5:1`, () => {
+      const bg = (k) => T[k];
+      const pairs = [
+        ['--text', over(T['--tint-cold-faint'], bg('--bg-0')), 'tujuan pelajaran / Try it di atas latar halaman'],
+        ['--text', over(T['--tint-cold-faint'], bg('--bg-1')), 'Try it di dalam kartu'],
+        ['--text', over(T['--ok-bg'], bg('--bg-1')), 'opsi soal benar'],
+        ['--text', over(T['--fail-bg'], bg('--bg-1')), 'opsi soal salah'],
+        ['--ok', bg('--bg-1'), 'umpan balik benar, tanda selesai'],
+        ['--fail', bg('--bg-1'), 'umpan balik salah'],
+        ['--fail', bg('--bg-2'), 'tombol Yes, reset'],
+        ['--text', over(T['--ok-bg'], bg('--bg-2')), 'tombol Mark as done (aktif)'],
+        ['--accent-cold', over(T['--tint-cold-soft'], over(T['--topbar-bg'], bg('--bg-0'))), 'pil Back to lesson di header'],
+        ['--accent-cold', bg('--bg-1'), 'judul level, tautan'],
+        ['--accent-hot', bg('--bg-1'), 'meta kartu / Try it'],
+        ['--muted', bg('--bg-1'), 'menit, meta, remah roti'],
+        ['--muted', bg('--bg-0'), 'remah roti di atas latar halaman'],
+      ];
+      const bad = pairs.map(([fg, b, what]) => [what, ratio(T[fg], b)]).filter(([, r]) => r < 4.5).map(([w, r]) => `${w}: ${r.toFixed(2)}`);
+      expect(bad).toEqual([]);
+    });
+  }
+  it('CSS Step 02: kelas baru memakai token; tidak ada warna tetap (sudah dijaga tes blok token)', () => {
+    const blk = css.slice(css.indexOf('/* ── M11 Step 02:'));
+    expect(blk.length).toBeGreaterThan(1000);
+    expect(blk).not.toMatch(/#[0-9a-f]{3,8}\b|rgba?\(/i);
+    expect(blk).toMatch(/\.back-pill \{[^}]*color: var\(--accent-cold\)/);
+    expect(blk).toMatch(/\.reading\.lesson-page \{[^}]*70ch/);
+    expect(blk).toMatch(/\.reading \.lesson__p \{[^}]*font-size: 17px/);
+  });
+});

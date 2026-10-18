@@ -1,20 +1,27 @@
 /**
- * learnHost.js — wadah kelompok Learn (M11): landing (#/), About, Learn, Chart guide. Mengisi area di bawah header
- * (header dengan sakelar bahasa dan tema tetap terlihat, navigasi kiri tetap ada); area scene (#app) disembunyikan
- * selama terbuka dan loop render scene berhenti (main.js). Bahasa: state/lang.js (etel:lang; kunjungan pertama =
- * learn.defaultLang). Konten: state/learnStore.js (fetch → fallback dynamic import → minimal English).
+ * learnHost.js — wadah kelompok Learn (M11): landing (#/), About, Learn (daftar level + pelajaran), Chart guide.
+ * Mengisi area di bawah header (header dengan sakelar bahasa dan tema tetap terlihat, navigasi kiri tetap ada); area scene
+ * (#app) disembunyikan selama terbuka dan loop render scene berhenti (main.js). Halaman penuh lain (References,
+ * Glossary, …) dibuka DI ATAS halaman ini tanpa menutupnya. Bahasa: state/langStore.js (etel:lang; kunjungan pertama =
+ * learn.defaultLang). Konten: state/learnStore.js (fetch → fallback dynamic import → minimal English). Progres: etel:learnDone.
  */
 import { STR } from './strings.js';
 import { learnHash } from '../state/route.js';
-import { langStorage, readLangChoice, resolveLang, writeLang } from '../state/lang.js';
+import { tr } from '../state/lang.js';
+import { langStore } from '../state/langStore.js';
 import { onLearn } from '../state/learnStore.js';
+import { createLearnProgress } from '../state/learnProgress.js';
+import { contentOf, onContent } from '../state/contentStore.js';
 import { createLanding } from './landingPage.js';
 import { createAbout } from './aboutPage.js';
-import { createLearnPlaceholder } from './learnPage.js';
+import { createLearnList } from './learnPage.js';
+import { createLesson } from './lessonPage.js';
+import { createChartGuidePlaceholder } from './chartGuidePlaceholder.js';
 
 /**
  * @param {{shell:HTMLElement, app:HTMLElement, continueScene:() => number|null, onPresent:() => void, onChange?:() => void,
- *   win?:Window}} o
+ *   onTry?:(lessonId:string, route:string)=>void, onWord?:(termId:string, from:'learn'|'glossary')=>void, win?:Window,
+ *   progress?:ReturnType<typeof createLearnProgress>}} o
  */
 export function createLearnHost(o) {
   const win = o.win ?? window;
@@ -22,37 +29,39 @@ export function createLearnHost(o) {
   host.className = 'learn-host';
   host.hidden = true;
   o.app.after(host);
-  const storage = langStorage();
+  const progress = o.progress ?? createLearnProgress();
   let learn = null, loaded = false, view = null, viewId = null, child = null;
-  let choice = readLangChoice(storage);
-  let lang = resolveLang(choice, null);
-  const langSubs = new Set();
   const tagEl = () => document.getElementById('scene-tag'), msgEl = () => document.getElementById('key-message');
   let saved = null;
 
-  const setLangInternal = (l) => {
-    if (l === lang) return;
-    lang = l;
-    for (const fn of langSubs) fn(lang);
-    render();
-  };
   onLearn((r) => {
     learn = r.data;
     loaded = true;
-    if (!choice.stored) setLangInternal(resolveLang(choice, learn?.defaultLang)); // kunjungan pertama: bahasa default learn.json
-    render();
+    // kunjungan pertama: bahasa default learn.json (bila berubah, langganan di bawah yang merender)
+    if (!langStore.applyDefault(learn?.defaultLang)) render();
   });
+  langStore.subscribe(() => { setTag(); render(); });
+  // References / Glossary berubah isi (fetch selesai): pelajaran memakai sumber dan kata dari keduanya
+  onContent('references', () => { if (view === 'learn' && viewId) render(); });
+  onContent('glossary', () => { if (view === 'learn' && viewId) render(); });
 
+  function setTag() {
+    if (!view || !tagEl()) return;
+    tagEl().textContent = tr(STR.bi.tags[view], langStore.lang);
+  }
   function render() {
     if (!view) return;
     child?.dispose();
-    host.lang = lang;
+    host.lang = langStore.lang;
     host.replaceChildren();
     if (!loaded) { child = null; host.classList.add('is-loading'); return; }
     host.classList.remove('is-loading');
+    const lang = langStore.lang;
     if (view === 'landing') child = createLanding(host, { learn, lang, continueScene: o.continueScene, onPresent: o.onPresent });
     else if (view === 'about') child = createAbout(host, { learn, lang });
-    else child = createLearnPlaceholder(host, { learn, lang, view, id: viewId });
+    else if (view === 'charts') child = createChartGuidePlaceholder(host, { learn, lang, id: viewId });
+    else if (viewId) child = createLesson(host, { learn, glossary: contentOf('glossary').data, references: contentOf('references').data, lang, id: viewId, progress, onTry: (id, route) => o.onTry?.(id, route), onWord: (id, from) => o.onWord?.(id, from) });
+    else child = createLearnList(host, { learn, lang, progress });
     host.scrollTop = 0;
   }
 
@@ -65,7 +74,7 @@ export function createLearnHost(o) {
       host.hidden = false;
     }
     view = v; viewId = id;
-    if (tagEl()) tagEl().textContent = v === 'landing' ? STR.landing.tag : (STR.nav.learn[v] ?? STR.landing.tag);
+    setTag();
     if (msgEl()) msgEl().textContent = '';
     if (!fromHash) { const h = learnHash(v, id); if (win.location.hash !== h) win.history.replaceState(null, '', h); }
     if (!same) render();
@@ -86,15 +95,14 @@ export function createLearnHost(o) {
 
   return {
     el: host,
+    progress,
     get view() { return view; },
+    get viewId() { return viewId; },
     get open() { return view != null; },
-    get lang() { return lang; },
+    get lang() { return langStore.lang; },
     get learn() { return learn; },
     pages: { landing: pageApi('landing'), learn: pageApi('learn'), charts: pageApi('charts'), about: pageApi('about') },
     show, close,
-    /** Sakelar EN/ID: simpan pilihan (etel:lang) dan render ulang. */
-    setLang(l) { writeLang(storage, l); choice = { lang: l, stored: true }; setLangInternal(l); },
-    onLangChange(fn) { langSubs.add(fn); return () => langSubs.delete(fn); },
     update(dt) { child?.update?.(dt); },
     /** Tone viewport berubah (ganti tema): hero dipasang ulang. */
     retheme() { if (view === 'landing') render(); },
