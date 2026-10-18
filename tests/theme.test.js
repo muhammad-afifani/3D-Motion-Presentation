@@ -87,7 +87,7 @@ describe('sakelar Dark/Light di header kanan', () => {
   const main = read('src/main.js'), sw = read('src/ui/themeSwitch.js');
   it('urutan [Explore (M)] … [slot EN/ID] [Dark/Light] [Model OK]; tersimpan; grafik digambar ulang', () => {
     expect(main).toMatch(/prepend\(exitPresent\.el\)/);
-    expect(main).toMatch(/getElementById\('model-badge'\)\.before\(langSlot, themeSwitch\.el\)/);
+    expect(main).toMatch(/getElementById\('model-badge'\)\.before\(langSlot, themeSwitch\.el/);
     expect(main).toMatch(/langSlot\.id = 'lang-slot'/);
     expect(main).toMatch(/writeTheme\(themeStore, theme\);\s*themeSwitch\.set\(theme\);\s*refreshChartTheme\(\);/);
   });

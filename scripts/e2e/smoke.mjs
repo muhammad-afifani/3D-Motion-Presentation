@@ -14,6 +14,7 @@
  *      pil "Back to lesson", Glossary dua bahasa, halaman langsung → landing, Learn di Present → Explore, panah.
  *   9. M11 Step 03: tombol ⓘ di setiap grafik (juga skematik Brayton dan panel Limits) tanpa tumpang tindih di 1366/1920/1280,
  *      ⓘ → panduan → Back to the chart, Present tanpa ⓘ, PNG tanpa ⓘ, indeks 15 panduan, alamat langsung, G/? + Esc.
+ *  10. Bagian C: bantuan ⓘ (kartu di HUD, slider, navigasi; Glossary / Lesson; Present; PNG; ID) di 3 viewport × 2 tema; tumpang tindih ⓘ semua scene.
  *   7. M11 Step 01: landing (tanpa hash), kartu, hero tidak kosong, EN/ID, kualitas Low pada hero, About, Present tanpa
  *      hash → Scene 1, landing minimal bila learn.json gagal; screenshot landing 3 resolusi × 2 tema.
  * Sengaja TIDAK memeriksa isi kartu info kiri Scene 9 (`.pol-card`): isinya akan dirombak.
@@ -105,10 +106,41 @@ function inspect({ minFill }) {
     }
     if (reasons.length) overflow.push({ el: name(el), reasons });
   }
+  // Bagian C: tombol bantuan ⓘ tidak bertumpuk dengan ⓘ lain, ⓘ grafik, chip Formula, tombol Explore (M), tag Basis; area klik 24 px
+  // tidak menimpa angka HUD; titik 18 px tidak menimpa label atau angka sekitarnya; semua di dalam layar
+  const helpOverlap = [];
+  {
+    const shown = (e) => !!e && e.checkVisibility?.() !== false && e.getBoundingClientRect().width > 0;
+    const R = (e) => { const b = e.getBoundingClientRect(); return { left: b.left, right: b.right, top: b.top, bottom: b.bottom }; };
+    const hit = (a, b, m = 0.5) => a.left < b.right - m && b.left < a.right - m && a.top < b.bottom - m && b.top < a.bottom - m;
+    const textRects = (e) => {
+      const out = [], w = document.createTreeWalker(e, NodeFilter.SHOW_TEXT);
+      for (let n = w.nextNode(); n; n = w.nextNode()) {
+        if (!n.textContent.trim() || n.parentElement.closest('.help-btn')) continue;
+        const rg = document.createRange(); rg.selectNodeContents(n);
+        // teks yang dipotong ellipsis (overflow hidden) hanya dihitung sebatas kotak elemennya
+        const pe = n.parentElement, cs = getComputedStyle(pe), clipR = cs.overflowX !== 'visible' ? pe.getBoundingClientRect().right - parseFloat(cs.paddingRight) - parseFloat(cs.borderRightWidth) : null; // ellipsis: sebatas kotak isi
+        for (const q of rg.getClientRects()) if (q.width > 0 && q.height > 0) out.push({ left: q.left, right: clipR != null ? Math.min(q.right, clipR) : q.right, top: q.top, bottom: q.bottom });
+      }
+      return out;
+    };
+    const dots = [...document.querySelectorAll('.help-btn')].filter(shown).map((b) => ({ b, id: b.dataset.help, dot: R(b.querySelector('.help-btn__dot')), box: R(b) }));
+    const others = ['.chart__guide', '.f-toggle', '.present-exit', '.chart__level', '.cyc-level', '.chart__toggle'].flatMap((s) => [...document.querySelectorAll(s)]).filter(shown).map((e) => ({ n: e.className.split(/\s+/)[0], r: R(e) }));
+    for (const d of dots) {
+      if (d.dot.left < -0.5 || d.dot.top < -0.5 || d.dot.right > window.innerWidth + 0.5 || d.dot.bottom > window.innerHeight + 0.5) helpOverlap.push(`${d.id}: keluar layar`);
+      for (const o of others) if (hit(d.dot, o.r)) helpOverlap.push(`${d.id} × ${o.n}`);
+      const host = d.b.closest('.hud__item, .ctl, .nav__title, .nav__hint, .temp-legend, .lim-tab th, .asm__head, .cal-panel__head, .bcard__head, .pol-head__state, .pl-reg-wrap, .nox-species');
+      // angka HUD: area klik 24 px tidak boleh menimpa angka mana pun
+      for (const v of document.querySelectorAll('.hud__value')) if (shown(v)) for (const t of textRects(v)) if (hit(d.box, t, 1)) helpOverlap.push(`${d.id}: area klik menimpa angka HUD`);
+      // titik 18 px tidak menimpa teks di sel/kontrol sendiri
+      if (host) for (const t of textRects(host)) if (hit(d.dot, t, 2.5)) helpOverlap.push(`${d.id}: titik menimpa teks "${(host.textContent || '').trim().slice(0, 18)}"`);
+    }
+    for (let a = 0; a < dots.length; a++) for (let b = a + 1; b < dots.length; b++) if (hit(dots[a].dot, dots[b].dot)) helpOverlap.push(`${dots[a].id} × ${dots[b].id}`);
+  }
   // bilah atas tidak boleh tumbuh tinggi (pesan kunci membungkus karena tombol terlalu lebar)
   const topbarH = Math.round(document.querySelector('.topbar')?.getBoundingClientRect().height ?? 0);
   const hscroll = document.documentElement.scrollWidth > window.innerWidth + 1;
-  return { charts, overflow, topbarH, hscroll };
+  return { charts, overflow, topbarH, hscroll, helpOverlap, helpCount: document.querySelectorAll('.help-btn').length };
 }
 
 /** Interaksi Basis (M9 Step 02): tag grafik → kartu Basis → Esc; tombol ? → References → Esc; alamat #/references. */
@@ -457,6 +489,135 @@ async function chartGuideInteraction(browser, url) {
 }
 
 /**
+ * Bagian C: bantuan ⓘ. Di 1280 / 1366 / 1920 × Dark / Light: kartu terbuka di satu HUD, satu slider, dan satu kelompok navigasi
+ * (di dalam layar, aria-expanded/aria-labelledby, tanda Draft, hanya satu kartu, Esc mengembalikan fokus, klik luar menutup);
+ * Read more → Glossary (Esc kembali ke scene) dan Lesson (← Back to the scene); Present menyembunyikan ⓘ dan menutup kartu;
+ * ⓘ tidak ikut PNG (S); kartu ID. Tumpang tindih ⓘ diperiksa untuk semua scene di inspect().
+ */
+async function helpInteraction(browser, url) {
+  const fails = [];
+  const base = url.replace(/#.*$/, '');
+  for (const [w, h] of VIEWPORTS) {
+    for (const theme of ['dark', 'light']) {
+      const tag = `${w}×${h} ${theme}`;
+      const p = await browser.newPage({ viewport: { width: w, height: h } });
+      const errs = [];
+      p.on('pageerror', (e) => errs.push(`pageerror: ${e.message}`));
+      await p.addInitScript(([t]) => { try { localStorage.setItem('etel:lang', 'en'); localStorage.setItem('etel:theme', t); } catch { /* storage diblokir */ } }, [theme]);
+      await p.goto(`${base}#/scene/6`);
+      await p.waitForFunction(() => window.__etelDebug?.scene() === 6 && !window.__etelDebug.loading(), null, { timeout: 30000 });
+      await p.waitForTimeout(1000);
+      const openId = () => p.evaluate(() => window.__etelDebug.helpOpen());
+      const cardInfo = () => p.evaluate(() => {
+        const c = [...document.querySelectorAll('.help-card')].filter((e) => !e.hidden);
+        const k = c[0];
+        const r = k?.getBoundingClientRect();
+        const lab = k && document.getElementById(k.getAttribute('aria-labelledby') ?? '');
+        return { visible: c.length, inside: !!r && r.left >= 0 && r.top >= 0 && r.right <= window.innerWidth && r.bottom <= window.innerHeight, label: lab?.textContent ?? '', draft: !!k?.querySelector('.help-card__draft'), role: k?.getAttribute('role'), text: k?.textContent.length ?? 0 };
+      });
+      const check = async (what, id) => {
+        await p.waitForFunction((x) => window.__etelDebug.helpOpen() === x, id, { timeout: 8000 }).catch(() => {});
+        const o = await openId();
+        if (o !== id) { fails.push(`${tag}: ${what}: kartu ${id} tidak terbuka (terbuka: ${o})`); return false; }
+        const c = await cardInfo();
+        if (c.visible !== 1) fails.push(`${tag}: ${what}: ${c.visible} kartu terbuka (harusnya satu)`);
+        if (!c.inside) fails.push(`${tag}: ${what}: kartu keluar layar`);
+        if (c.role !== 'dialog' || c.label.length < 10) fails.push(`${tag}: ${what}: aria-labelledby tidak menunjuk kalimat what`);
+        if (!c.draft) fails.push(`${tag}: ${what}: tanda Draft tidak tampil`);
+        return true;
+      };
+      // HUD
+      const hud = p.locator('.pl-hud__body .hud__item .help-btn').first();
+      await hud.click();
+      if (await check('HUD', 'hud.etaThermal')) {
+        if ((await hud.getAttribute('aria-expanded')) !== 'true') fails.push(`${tag}: HUD: aria-expanded tidak true`);
+        await p.keyboard.press('Escape');
+        if ((await openId()) !== null) fails.push(`${tag}: HUD: Esc tidak menutup kartu`);
+        if (!(await p.evaluate(() => document.activeElement?.classList.contains('help-btn')))) fails.push(`${tag}: HUD: fokus tidak kembali ke ⓘ setelah Esc`);
+        if (await p.evaluate(() => window.__etelDebug.page() != null)) fails.push(`${tag}: HUD: Esc menutup halaman di belakang kartu`);
+      }
+      // slider, lalu HUD: hanya satu kartu; klik di luar menutup
+      await p.locator('.scene__controls .ctl--slider .help-btn').first().click();
+      if (await check('slider', 'ctl.load')) {
+        await hud.dispatchEvent('click'); // kartu slider bisa menutupi ⓘ HUD: klik lewat peristiwa, bukan penunjuk
+        await check('slider → HUD (hanya satu)', 'hud.etaThermal');
+        await p.mouse.click(Math.round(w * 0.45), Math.round(h * 0.2));
+        await p.waitForTimeout(150);
+        if ((await openId()) !== null) fails.push(`${tag}: klik di luar tidak menutup kartu`);
+      }
+      // navigasi (rail terlipat → buka dulu)
+      if (await p.evaluate(() => document.querySelector('.nav')?.classList.contains('is-collapsed'))) await p.locator('.nav__toggle').click();
+      await p.waitForTimeout(200);
+      await p.locator('[data-help="nav.scenes"]').click();
+      if (await check('navigasi', 'nav.scenes')) await p.keyboard.press('Escape');
+      // Read more → Glossary, Esc kembali ke scene
+      await p.locator('.pl-hud__body .hud__item .help-btn').nth(5).click(); // IGV opening? pastikan kartu dengan tautan
+      await p.waitForTimeout(300);
+      const gl = p.locator('.help-card .help-card__link[data-term]').first();
+      if (await gl.count()) {
+        await gl.click();
+        await p.waitForFunction(() => window.__etelDebug.glossaryOpen(), null, { timeout: 8000 }).catch(() => fails.push(`${tag}: Read more → Glossary tidak terbuka`));
+        await p.keyboard.press('Escape');
+        await p.waitForFunction(() => window.__etelDebug.scene() === 6 && window.__etelDebug.page() == null, null, { timeout: 8000 }).catch(() => fails.push(`${tag}: Esc dari Glossary tidak kembali ke Scene 6`));
+        if ((await p.evaluate(() => location.hash)) !== '#/scene/6') fails.push(`${tag}: alamat setelah Glossary bukan #/scene/6`);
+      } else fails.push(`${tag}: kartu tanpa tautan Glossary (diharapkan pada HUD ke-6)`);
+      // Present: ⓘ hilang dan kartu tertutup
+      await p.locator('.scene__controls .ctl--slider .help-btn').first().click();
+      await p.waitForTimeout(250);
+      await p.keyboard.press('m');
+      await p.waitForTimeout(400);
+      if ((await openId()) !== null) fails.push(`${tag}: Present tidak menutup kartu`);
+      if (await p.evaluate(() => [...document.querySelectorAll('.help-btn')].some((e) => e.checkVisibility()))) fails.push(`${tag}: Present: ⓘ masih tampil`);
+      await p.keyboard.press('m');
+      await p.waitForTimeout(300);
+      if (w === 1366) {
+        // PNG: area titik ⓘ pada baris label kontrol tidak dilukis; tag Basis (kontrol) terlukis
+        try {
+          const rects = await p.evaluate(() => {
+            const r = (el) => { const b = el.getBoundingClientRect(); return { left: b.left, right: b.right, top: b.top, bottom: b.bottom }; };
+            return { dots: [...document.querySelectorAll('.scene__controls .ctl .help-btn__dot')].filter((e) => e.checkVisibility()).map(r), level: r([...document.querySelectorAll('.chart__level')].find((e) => e.checkVisibility())) };
+          });
+          await p.evaluate(() => document.activeElement?.blur?.());
+          const [dl] = await Promise.all([p.waitForEvent('download', { timeout: 30000 }), p.keyboard.press('s')]);
+          const png = decodePng(readFileSync(await dl.path()));
+          if (!rects.dots.length) fails.push(`${tag}: PNG: tidak ada ⓘ kontrol untuk diperiksa`);
+          rects.dots.forEach((d, i) => { const sp = regionSpread(png, d, 2, 3); if (sp > 10) fails.push(`${tag}: PNG: ⓘ kontrol #${i} ikut terlukis (selisih warna ${sp})`); });
+          if (regionSpread(png, rects.level) < 30) fails.push(`${tag}: PNG: kontrol gagal, tag Basis tidak terlukis`);
+        } catch (err) { fails.push(`${tag}: PNG: ${String(err.message ?? err).split('\n')[0]}`); }
+        // Lesson: Read more → pelajaran + "← Back to the scene"
+        await p.locator('.pl-hud__body .hud__item .help-btn').nth(7).click(); // Load window
+        await p.waitForTimeout(300);
+        const lk = p.locator('.help-card a.help-card__link[data-lesson]').first();
+        if (await lk.count()) {
+          await lk.click();
+          await p.waitForFunction(() => /^#\/learn\/l3-4$/.test(location.hash), null, { timeout: 8000 }).catch(() => fails.push(`${tag}: Read more → Lesson: alamat bukan #/learn/l3-4`));
+          await p.waitForSelector('.lesson__back', { timeout: 8000 }).catch(() => {});
+          if (!(await p.locator('.lesson__back').isVisible().catch(() => false))) fails.push(`${tag}: pelajaran tanpa "← Back to the scene"`);
+          else {
+            await p.locator('.lesson__back').click();
+            await p.waitForFunction(() => window.__etelDebug.scene() === 6 && window.__etelDebug.learnView() == null, null, { timeout: 8000 }).catch(() => fails.push(`${tag}: Back to the scene tidak kembali ke Scene 6`));
+          }
+        } else fails.push(`${tag}: kartu tanpa tautan Lesson`);
+      }
+      for (const e of [...new Set(errs)]) fails.push(`${tag}: ${e}`);
+      await p.close();
+    }
+  }
+  // kartu berbahasa ID
+  const q = await browser.newPage({ viewport: { width: 1366, height: 768 } });
+  await q.addInitScript(() => { try { localStorage.setItem('etel:lang', 'id'); } catch { /* storage diblokir */ } });
+  await q.goto(`${base}#/scene/6`);
+  await q.waitForFunction(() => window.__etelDebug?.scene() === 6 && !window.__etelDebug.loading(), null, { timeout: 30000 });
+  await q.waitForTimeout(800);
+  await q.locator('.pl-hud__body .hud__item .help-btn').first().click();
+  await q.waitForFunction(() => window.__etelDebug.helpOpen() === 'hud.etaThermal', null, { timeout: 8000 }).catch(() => fails.push('kartu ID tidak terbuka'));
+  const idTxt = await q.locator('.help-card').innerText();
+  if (!/draf/i.test(idTxt) || !/Bagian energi bahan bakar/.test(idTxt)) fails.push(`kartu ID: teks Indonesia / Draf tidak tampil ("${idTxt.slice(0, 50)}")`);
+  await q.close();
+  return fails;
+}
+
+/**
  * Bagian B: tema terang. Sakelar di header (urutan, aria), tersimpan di etel:theme dan bertahan setelah muat ulang;
  * semua scene + tab Scene 9 tanpa grafik kosong / teks meluber di tema terang; latar viewport varian A; kotak overlay
  * kaca tembus pandang + blur; token grafik
@@ -481,7 +642,7 @@ async function themeInteraction(browser, url) {
   };
   const st0 = await p.evaluate(() => ({
     theme: document.documentElement.dataset.theme,
-    order: [...document.querySelector('.topbar__right').children].filter((el) => !el.matches('.calib-flag, .quality-flag')).map((el) => el.className.split(' ').find((c) => /present-exit|lang-slot|theme-switch/.test(c)) ?? el.id),
+    order: [...document.querySelector('.topbar__right').children].filter((el) => !el.matches('.calib-flag, .quality-flag, .help-btn')).map((el) => el.className.split(' ').find((c) => /present-exit|lang-slot|theme-switch/.test(c)) ?? el.id),
     pressed: [...document.querySelectorAll('.theme-switch:not(.lang-switch) .theme-switch__btn')].map((b) => `${b.dataset.theme}:${b.getAttribute('aria-checked')}`).join(','),
   }));
   if (st0.theme !== 'dark') fails.push(`tema: tanpa pilihan tersimpan harus Dark (dapat ${st0.theme})`);
@@ -984,7 +1145,7 @@ try {
   // E2E_ONLY=learn,landing,deeplinks: hanya alur halaman tersebut (iterasi cepat); tanpa variabel = smoke penuh
   const only = process.env.E2E_ONLY ? new Set(process.env.E2E_ONLY.split(',')) : null;
   if (only) {
-    const flows = { learn: learnInteraction, chartguide: chartGuideInteraction, landing: landingInteraction, deeplinks: deepLinks, theme: themeInteraction };
+    const flows = { learn: learnInteraction, chartguide: chartGuideInteraction, help: helpInteraction, landing: landingInteraction, deeplinks: deepLinks, theme: themeInteraction };
     for (const k of only) if (flows[k]) failures.push(...await flows[k](chromium.browser, srv.url));
   }
   for (const [w, h] of only ? [] : VIEWPORTS) {
@@ -1011,6 +1172,8 @@ try {
         if (res.hscroll) failures.push(`${label}: scroll horizontal`);
         for (const c of res.charts) if (!c.ok) failures.push(`${label}: grafik #${c.i} "${c.title}" kosong/0/tanpa tag Basis (canvas ${c.w}×${c.h}, css ${c.cssW}×${c.cssH}, terisi ${c.pct} %, minimum ${MIN_FILL_PCT} %, tag Basis ${c.basis ? 'ada' : 'HILANG'}, ⓘ ${c.guide ? 'ada' : 'HILANG'}${c.overlap?.length ? `, bertumpuk: ${c.overlap.join('; ')}` : ''})`);
         for (const o of res.overflow) failures.push(`${label}: teks meluber di ${o.el}: ${o.reasons[0]}`);
+        for (const o of [...new Set(res.helpOverlap)]) failures.push(`${label}: bantuan ⓘ bertumpuk: ${o}`);
+        if (n <= 9 && res.helpCount < 5) failures.push(`${label}: hanya ${res.helpCount} tombol bantuan ⓘ`);
         if (res.topbarH > MAX_TOPBAR_PX) failures.push(`${label}: bilah atas ${res.topbarH} px > ${MAX_TOPBAR_PX} px (pesan kunci terlalu banyak baris)`);
         // M11 Step 03: setiap judul grafik yang tampil punya panduan
         for (const c of res.charts) {
@@ -1032,6 +1195,7 @@ try {
     if (w === 1366) failures.push(...await landingInteraction(chromium.browser, srv.url));
     if (w === 1366) failures.push(...await learnInteraction(chromium.browser, srv.url));
     if (w === 1366) failures.push(...await chartGuideInteraction(chromium.browser, srv.url));
+    if (w === 1366) failures.push(...await helpInteraction(chromium.browser, srv.url));
     for (const e of [...new Set(errs)]) failures.push(`${w}×${h}: ${e}`);
     await page.close();
   }
