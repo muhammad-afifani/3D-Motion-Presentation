@@ -36,7 +36,7 @@ export function createReferencesPage(parent = document.body, { win = window, hom
   el.appendChild(box);
   parent.appendChild(el);
 
-  let data = fallbackContent('references'), alive = true, opener = null;
+  let data = fallbackContent('references'), alive = true, opener = null, onlyIntro = false;
 
   function render() {
     box.replaceChildren();
@@ -48,7 +48,21 @@ export function createReferencesPage(parent = document.body, { win = window, hom
     head.appendChild(close);
     box.appendChild(head);
     box.appendChild(h('p', 'refs__intro', R.intro));
-    const groups = groupReferences(data);
+    // M11: saring sumber pengantar (level 'intro', lencana "Start here")
+    const filter = h('div', 'refs__filter');
+    filter.setAttribute('role', 'group');
+    filter.setAttribute('aria-label', R.show);
+    filter.append(h('span', 'bcard__label', `${R.show}:`));
+    for (const [val, label] of [[false, R.showAll], [true, R.showIntro]]) {
+      const b = h('button', 'btn btn--sm refs__show', label);
+      b.type = 'button';
+      b.setAttribute('aria-pressed', String(onlyIntro === val));
+      b.classList.toggle('is-on', onlyIntro === val);
+      b.addEventListener('click', () => { onlyIntro = val; render(); box.querySelector('.refs__show.is-on')?.focus(); });
+      filter.append(b);
+    }
+    box.appendChild(filter);
+    const groups = groupReferences(data).map((g) => ({ ...g, items: onlyIntro ? g.items.filter((r) => r.level === 'intro') : g.items })).filter((g) => g.items.length);
     const all = groups.flatMap((g) => g.items);
     const unchecked = all.filter((r) => !r.locatorVerified).length;
     if (unchecked) box.appendChild(h('div', 'refs__banner', R.banner(unchecked, all.length)));
@@ -59,7 +73,17 @@ export function createReferencesPage(parent = document.body, { win = window, hom
       for (const r of g.items) {
         const li = h('li', 'refs__item');
         li.id = `ref-${r.id}`;
-        li.appendChild(h('div', 'refs__cite', r.cite));
+        const cite = h('div', 'refs__cite', r.cite);
+        if (r.level === 'intro') { const b = h('span', 'bcard__chip bcard__chip--ok refs__start', R.startHere); b.dataset.tip = R.startHereTip; cite.append(' ', b); }
+        li.appendChild(cite);
+        if (r.url) {
+          const a = h('a', 'refs__url', r.url);
+          a.href = r.url; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.title = R.open;
+          const row = h('div', 'refs__link');
+          row.append(a);
+          if (r.accessed) row.append(h('span', 'refs__id', ` · ${R.accessed(r.accessed)}`));
+          li.appendChild(row);
+        }
         li.appendChild(h('div', 'refs__use', `${R.use}: ${r.use}`));
         const loc = h('div', 'refs__loc');
         loc.append(document.createTextNode(r.locator ? R.locator(r.locator) : R.noLocator), ' ',

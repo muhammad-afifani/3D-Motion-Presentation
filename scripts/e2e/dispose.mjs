@@ -20,7 +20,7 @@ try {
     page.on('pageerror', (e) => errs.push(e.message));
     page.on('console', (m) => { if (/too many active webgl|context lost/i.test(m.text()) && !/forceContextLoss/.test(m.text())) errs.push(`console: ${m.text()}`); });
     await page.addInitScript(instrument);
-    await page.goto(srv.url);
+    await page.goto(`${srv.url}#/scene/1`);
     await page.waitForFunction(() => window.__etelDebug?.scene() != null, null, { timeout: 30000 });
     await goScene(page, 1, 1200);
     const probe = () => page.evaluate(() => ({ ...window.__etelProbe(), storeSubs: window.__etelDebug.storeSubs() }));

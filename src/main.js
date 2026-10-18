@@ -4,7 +4,8 @@
  * Pintasan: ←/→ scene (Present; di Explore hanya saat fokus di navigasi) · Spasi play/pause · F beku · R reset · 1/2 pilih
  * mesin · L label · H panel asumsi · ? References · G Regulations · M Explore/Present · P presenter · S snapshot PNG ·
  * Q Quality · B Bloom · K laser pointer · Shift+K spotlight · Shift+D overlay debug.
- * Router (state/route.js): #/scene/N[/tab], #/regulations, #/formation, #/references[/id], #/glossary, #/assumptions.
+ * Router (state/route.js): #/scene/N[/tab], #/regulations, #/formation, #/references[/id], #/glossary, #/assumptions;
+ * M11: tanpa hash / #/ = landing (Explore; Present → Scene 1), #/about, #/learn[/id], #/learn/charts[/id] (ui/learnHost.js).
  * Halaman penuh menghentikan loop render (scene tetap ter-mount) dan melanjutkannya saat ditutup.
  * Animation speed (state.animSpeed, 0,1×–2×) mengalikan dt animasi untuk semua scene; dt mentah ikut sebagai argumen kedua.
  * Persistensi ringan (state/persist.js): batas, satuan, basis, opsi Scene 11, scene awal; kalibrasi tidak disimpan.
@@ -30,6 +31,8 @@ import { createNav } from './ui/nav.js';
 import { attachFormulaToggles } from './ui/formulaToggle.js';
 import { button } from './ui/controls.js';
 import { createThemeSwitch } from './ui/themeSwitch.js';
+import { createLangSwitch } from './ui/langSwitch.js';
+import { createLearnHost } from './ui/learnHost.js';
 import { themeStorage, readTheme, writeTheme, applyTheme } from './state/theme.js';
 import { refreshChartTheme } from './charts/chartBase.js';
 import { viewportTone } from './gfx/viewportTone.js';
@@ -69,7 +72,7 @@ installTooltips();
 const store = createStore({ ...defaultState('diesel'), ...cycleInitialState(), ...flameInitialState(), ...noxInitialState(), ...gtInitialState(), ...basisInitialState(), ...calibInitialState(), ...limitsInitialState(), ...loadInitialState(), ...compInitialState(), ...emisInitialState(), ...policyInitialState(), ...ctrlInitialState(), ...closingInitialState(), ...animInitialState(), ...displayInitialState(), ...regulationsInitialState(), ...fuelInitialState(), ...leverInitialState() });
 const persist = createPersistence(store, { sceneNumbers: SCENES.map((x) => x.number) });
 /** Alamat scene saat ini (dipakai saat halaman penuh ditutup). */
-const homeHash = () => (index >= 0 ? sceneHash(SCENES[index].number, SCENES[index].number === TABBED_SCENE ? store.get().pTab : null) : `${location.pathname}${location.search}`);
+const homeHash = () => (index >= 0 ? sceneHash(SCENES[index].number, SCENES[index].number === TABBED_SCENE ? store.get().pTab : null) : '#/');
 // Basis card dan References dibuat SEBELUM panel asumsi: pendengar Esc-nya jalan lebih dulu, jadi Esc menutup lapisan paling atas
 const references = createReferencesPage(document.body, { homeHash });
 const regulations = createRegulationsPage(document.body, { homeHash });
@@ -115,7 +118,7 @@ let loading = false;
 
 const presenter = createPresenterMode({
   url: `${import.meta.env.BASE_URL}presenter.html`,
-  getState: () => ({ scene: SCENES[index]?.number ?? SCENES[0].number, total: SCENES.length, playing: store.get().playing, frozen: store.get().frozen }),
+  getState: () => ({ scene: SCENES[index]?.number ?? SCENES[0].number, total: SCENES.length, playing: store.get().playing, frozen: store.get().frozen, start: learnHost?.view === 'landing' }),
   onNav: (dir) => goTo(index + dir),
   onGoto: (n) => goToScene(n),
   toast,
@@ -124,7 +127,7 @@ store.subscribe((s, prev, changed) => { if (changed.includes('playing') || chang
 let snapping = false;
 /** Tombol S: PNG 2× tampilan scene saat ini (tema gelap). */
 async function snapshot() {
-  if (snapping || index < 0) return;
+  if (snapping || index < 0 || learnHost.open) return;
   snapping = true;
   toast(STR.snapshot.busy);
   try {
@@ -137,7 +140,14 @@ async function snapshot() {
 // ── halaman penuh (satu yang terbuka; loop render berhenti selama terbuka) ──
 /** Halaman Assumptions = panel H dalam tata letak halaman (satu komponen); overlay H tidak dihitung sebagai halaman. */
 const assumptionsPage = { get open() { return assumptions.isPage; }, setOpen: (on) => (on ? assumptions.setPage(true) : assumptions.isPage && assumptions.setOpen(false)) };
-const PAGE_API = { regulations, formation: formationPage, references, glossary, assumptions: assumptionsPage };
+// M11: landing / Learn / Chart guide / About mengisi area di bawah header (scene disembunyikan, header tetap)
+const learnHost = createLearnHost({
+  shell: document.querySelector('.shell'), app,
+  continueScene: () => (index >= 0 ? SCENES[index].number : persist.savedScene),
+  onPresent: () => { setMode('present'); goToScene(1); },
+  onChange: () => presenter.sync(),
+});
+const PAGE_API = { regulations, formation: formationPage, references, glossary, assumptions: assumptionsPage, ...learnHost.pages };
 const openPage = () => Object.keys(PAGE_API).find((p) => PAGE_API[p].open) ?? null;
 function showPage(p) {
   for (const [k, api] of Object.entries(PAGE_API)) if (k !== p && api.open) api.setOpen(false);
@@ -171,7 +181,9 @@ const themeSwitch = createThemeSwitch({ value: theme, onChange: (t) => setTheme(
 const langSlot = document.createElement('span');
 langSlot.className = 'lang-slot';
 langSlot.id = 'lang-slot';
-langSlot.hidden = true;
+const langSwitch = createLangSwitch({ value: learnHost.lang, onChange: (l) => learnHost.setLang(l) });
+langSlot.append(langSwitch.el);
+learnHost.onLangChange((l) => langSwitch.set(l));
 document.getElementById('model-badge').before(langSlot, themeSwitch.el);
 /** Ganti tema: atribut data-theme, simpan (etel:theme), grafik canvas membaca ulang token warna. */
 function setTheme(t) {
@@ -182,7 +194,7 @@ function setTheme(t) {
   themeSwitch.set(theme);
   refreshChartTheme();
   // nyala, bloom, dan partikel 3D dipilih saat rig dibuat: tone viewport berubah → pasang ulang scene (state di store tetap)
-  if (viewportTone() !== toneBefore && index >= 0) goTo(index, true);
+  if (viewportTone() !== toneBefore) { if (index >= 0) goTo(index, true); learnHost.retheme(); }
 }
 function applyMode() {
   document.body.classList.toggle('mode-explore', mode === 'explore');
@@ -197,6 +209,8 @@ function setMode(m) {
   mode = m;
   saveMode(storage, mode);
   applyMode();
+  // landing tidak tampil di Present: tutup, dan pastikan ada scene (Scene 1 bila belum ada)
+  if (mode === 'present' && learnHost.open) { learnHost.close(); if (index < 0) goTo(0); else syncHash(); }
   if (mode === 'present') {
     if (nav.hasFocus()) /** @type {HTMLElement} */ (document.activeElement)?.blur?.();
     hintEl.textContent = STR.nav.hintPresent;
@@ -251,6 +265,13 @@ store.subscribe((s, prev, changed) => { if (changed.includes('pTab') && SCENES[i
 /** Terapkan alamat: scene (+ tab Scene 9) atau halaman. Halaman References/Regulations juga membaca alamat sendiri. */
 function applyRoute(r) {
   if (!r) return;
+  if (r.type === 'learn') {
+    if (r.view === 'landing' && mode === 'present') { if (index < 0) goTo(0); else syncHash(); return; } // Present: tanpa landing
+    for (const [k, api] of Object.entries(PAGE_API)) if (!(k in learnHost.pages) && api.open) api.setOpen(false);
+    learnHost.show(r.view, r.id, { fromHash: true });
+    return;
+  }
+  if (learnHost.open) learnHost.close();
   if (r.type === 'page') { for (const [k, api] of Object.entries(PAGE_API)) if (k !== r.page && api.open) api.setOpen(false); return; }
   if (r.tab) store.set({ pTab: r.tab });
   const i = SCENES.findIndex((x) => x.number === r.n);
@@ -281,6 +302,7 @@ window.__etelDebug = {
   goToScene: (n) => goToScene(n),
   basisCardOpen: () => basisCard.open, referencesOpen: () => references.open, regulationsOpen: () => regulations.open,
   mode: () => mode, page: () => openPage(), paused: () => paused,
+  hero: () => learnHost.heroInfo(), lang: () => learnHost.lang, learnView: () => learnHost.view,
 };
 
 window.addEventListener('keydown', (e) => {
@@ -335,10 +357,17 @@ function loop(now) {
   last = now;
   const page = openPage();
   if (page !== shownPage) { shownPage = page; nav.setPage(page); if (!page) syncHash(); }
+  // tanpa scene dan tanpa halaman (mis. halaman ditutup dari landing): Explore → landing, Present → Scene 1
+  if (!page && index < 0 && !loading) { if (mode === 'present') goTo(0); else learnHost.show('landing'); }
   // halaman penuh terbuka → render 3D, grafik, dan pengukur kualitas berhenti (scene tetap ter-mount); lanjut saat ditutup
   paused = page != null;
   if (!paused) {
     current?.update(dt * (store.get().animSpeed ?? 1), dt);
+    fpsMeter.sample(rawDt);
+    updateDisplay(rawDt);
+  } else if (page === 'landing') {
+    // hero landing: kualitas adaptif global tetap bekerja (bloom, pixel ratio, jumlah partikel)
+    learnHost.update(dt);
     fpsMeter.sample(rawDt);
     updateDisplay(rawDt);
   }
@@ -346,9 +375,14 @@ function loop(now) {
   requestAnimationFrame(loop);
 }
 
-// alamat langsung (#/scene/N[/tab]) diutamakan atas scene awal yang tersimpan; alamat halaman membuka halaman di atas scene awal
+// alamat langsung (#/scene/N[/tab]) diutamakan atas scene awal yang tersimpan; alamat halaman membuka halaman di atas scene awal.
+// M11: alamat tanpa hash → landing (Explore; scene belum dipasang sampai landing ditinggalkan); Present tanpa hash → Scene 1.
 const route0 = parseHash(location.hash);
 if (route0?.type === 'scene' && route0.tab) store.set({ pTab: route0.tab });
-const startN = route0?.type === 'scene' ? route0.n : persist.startScene;
+const presentLanding = route0?.type === 'learn' && route0.view === 'landing' && mode === 'present';
+const startN = presentLanding ? 1 : route0?.type === 'scene' ? route0.n : persist.startScene;
 const startIdx = Math.max(0, SCENES.findIndex((x) => x.number === startN));
-goTo(startIdx).then(() => requestAnimationFrame(loop));
+if (route0?.type === 'learn' && !presentLanding) {
+  learnHost.show(route0.view, route0.id, { fromHash: true });
+  requestAnimationFrame(loop);
+} else goTo(startIdx).then(() => requestAnimationFrame(loop));

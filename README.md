@@ -15,6 +15,17 @@ npm test           # vitest: golden test + tes UI (hanya butuh Node)
 npm run build      # bundle untuk GitHub Pages (base /3D-Motion-Presentation/)
 ```
 
+## Landing, About, Learn
+
+Alamat tanpa hash (atau `#/`) kini membuka **landing** (halaman Start). Untuk langsung mulai presentasi: buka `#/scene/1`, atau klik kartu **Present** di landing (masuk mode Present di Scene 1). Dalam mode Present, alamat tanpa hash langsung membuka Scene 1, bukan landing.
+
+- **Landing**: hero 3D turbin gas (warna = suhu gas, dengan legenda K tanpa angka model), empat kartu (Learn from zero, Explore the lab, Present, What is this tool for?), tombol "Continue at Scene N" bila ada scene tersimpan, tautan References / Glossary / Regulations / Assumptions, pita warna spesies, dan kalimat kejujuran model. Teks tampil lebih dulu, hero menyusul. Hero mengikuti tema (latar viewport), kualitas (Low = tanpa bloom, partikel dikurangi), dan `prefers-reduced-motion` (diam).
+- **About** (`#/about`): untuk apa alat ini dibuat, untuk siapa, apa yang bisa dan tidak bisa disampaikannya.
+- **Learn** (`#/learn`) dan **Chart guide** (`#/learn/charts`): untuk sekarang daftar level dan grafik; halaman pelajaran dan panduan grafik datang di Step 02 dan 03.
+- Isi teks dari `content/learn.json` (dua bahasa, berstatus draf `reviewed: false`). File ini bisa diedit di `dist/content/` tanpa build ulang; bila rusak atau tidak ada, dipakai salinan bawaan (chunk terpisah). Bila keduanya gagal, landing tampil minimal dalam English.
+- **Bahasa EN / ID**: sakelar di header kanan (di antara Explore (M) dan Dark/Light). Kunjungan pertama memakai bahasa default `learn.json` (Indonesia); pilihan berikutnya diingat (kunci `etel:lang`). Untuk sementara hanya Landing, About, dan Learn yang berganti bahasa; bagian lain tetap English. Keputusan bahasa default global ditinjau lagi saat paket bahasa D.
+- Halaman References: sumber pengantar diberi lencana "Start here" dan bisa disaring (Show: All / Start here); tautan sumber dibuka di tab baru.
+
 ## Explore dan Present (tombol M)
 
 Aplikasi punya dua mode. Pilihan terakhir disimpan di browser.

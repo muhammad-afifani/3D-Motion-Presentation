@@ -1,5 +1,6 @@
 /**
- * nav.js — navigasi Explore (M9 Step 06): sidebar kiri yang bisa dilipat menjadi rail. Isi: Scene 1–11, halaman penuh
+ * nav.js — navigasi Explore (M9 Step 06): sidebar kiri yang bisa dilipat menjadi rail. Isi: Start (landing, M11),
+ * kelompok Learn (Learn, Chart guide, About; M11), Scene 1–11, halaman penuh
  * (Regulations, Emission formation, References, Glossary, Assumptions), dan alat (Snapshot, Presenter, Present mode).
  * DOM murni: klik hanya memanggil callback; status aktif dari setScene / setPage. Di dalam navigasi ↑/↓ menggeser fokus;
  * ←/→ (ganti scene) ditangani main.js agar aturannya sama dengan mode Present.
@@ -45,6 +46,17 @@ export function createNav(parent, cb) {
 
   const body = h('div', 'nav__body');
   const sec = (title) => { const s = h('div', 'nav__sec'); s.append(h('div', 'nav__title', title)); body.append(s); return s; };
+  const start = h('div', 'nav__sec nav__sec--start');
+  body.append(start);
+  const startBtn = item({ short: N.startShort, label: N.start, tip: N.startTip, data: { page: 'landing' } });
+  startBtn.addEventListener('click', () => cb.onPage('landing'));
+  start.append(startBtn);
+  const learn = sec(N.learnTitle);
+  for (const p of ['learn', 'charts', 'about']) {
+    const b = item({ short: N.learnShort[p], label: N.learn[p], tip: N.learn[p], data: { page: p } });
+    b.addEventListener('click', () => cb.onPage(p));
+    learn.append(b);
+  }
   const scenes = sec(N.scenesTitle);
   for (const n of cb.sceneNumbers) {
     const b = item({ short: String(n), label: N.scenes[n], tip: N.sceneTip(n, N.scenes[n]), data: { scene: n } });

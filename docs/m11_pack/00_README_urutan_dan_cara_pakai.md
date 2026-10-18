@@ -27,7 +27,7 @@ Kirim satu step per sesi Claude Code, berurutan, dan merge PR tiap step sebelum 
 
 ## Keputusan yang sudah diambil (mudah dibalik)
 
-- **Bahasa: satu state global** `lang` (`'en' | 'id'`), disimpan di localStorage dengan kunci **`etel:lang`** lewat helper aman (try/catch). Tidak ada state `learnLang` terpisah: sakelar EN/ID di Landing, About, Learn, Chart guide, Glossary, dan nanti seluruh aplikasi (paket D) membaca dan menulis state yang sama. Aturan proyek: English default, Indonesia opsional, kunci wajib lengkap di kedua bahasa (dijaga tes). Akibatnya `learn.defaultLang` tidak lagi menentukan bahasa awal; tanpa pilihan tersimpan, bahasa awal = English.
+- **Bahasa: satu state global** `lang` (`'en' | 'id'`), disimpan di localStorage dengan kunci **`etel:lang`** lewat helper aman (try/catch). Tidak ada state `learnLang` terpisah: sakelar EN/ID di Landing, About, Learn, Chart guide, Glossary, dan nanti seluruh aplikasi (paket D) membaca dan menulis state yang sama. Aturan proyek: English default, Indonesia opsional, kunci wajib lengkap di kedua bahasa (dijaga tes). ~~Akibatnya `learn.defaultLang` tidak lagi menentukan bahasa awal.~~ **Diubah saat Step 01 dikerjakan:** kunjungan pertama (belum ada pilihan tersimpan) memakai `learn.defaultLang` (`'id'`); pilihan berikutnya diingat di `etel:lang`. Untuk sementara hanya Landing, About, dan Learn yang berganti bahasa. Keputusan default global ditinjau lagi saat paket D.
 - Landing muncul bila alamat tanpa hash (`/` atau `#/`). Tautan langsung (`#/scene/6`) tetap langsung ke scene. Ada tombol "Continue at Scene N" bila sebelumnya pernah membuka scene.
 - Mode Present tidak menampilkan landing dan tidak menampilkan tombol ⓘ di grafik.
 - `presenter.json` dan jendela presenter tidak berubah.

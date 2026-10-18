@@ -56,6 +56,20 @@ describe('bahasa UI: English, tanpa sisa kata Indonesia', () => {
     const gl = JSON.parse(read('content/glossary.json')).terms.flatMap((t) => [t.term, t.expansion ?? '', t.definition]);
     expect(gl.filter((t) => ID_RE.test(clean(t)))).toEqual([]);
   });
+  it('content/learn.json (M11): semua field en lolos pemindai yang sama; field id (dan glossaryId) dikecualikan', () => {
+    const en = [], id = [];
+    const walk = (x) => {
+      if (Array.isArray(x)) x.forEach(walk);
+      else if (x && typeof x === 'object') {
+        if (typeof x.en === 'string' && typeof x.id === 'string') { en.push(x.en); id.push(x.id); return; }
+        for (const [k, v] of Object.entries(x)) if (k !== 'glossaryId') walk(v);
+      }
+    };
+    walk(JSON.parse(read('content/learn.json')));
+    expect(en.length).toBeGreaterThan(300);
+    expect(en.filter((t) => ID_RE.test(clean(t))).map((t) => `${t.slice(0, 80)} [${(clean(t).match(ID_RE) ?? [])[0]}]`)).toEqual([]);
+    expect(id.join(' ')).toMatch(/\b(yang|dan|untuk)\b/); // pasangan Indonesia memang berbahasa Indonesia
+  });
   it('presenter.json (naskah lisan) tetap Indonesia dan tidak diubah isinya oleh pass bahasa', () => {
     const t = textsOf(JSON.parse(read('content/presenter.json'))).join(' ');
     expect(t).toMatch(/\b(yang|dan|dengan|tidak|adalah)\b/);

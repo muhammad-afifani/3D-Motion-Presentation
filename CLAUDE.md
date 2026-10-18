@@ -9,7 +9,8 @@ Presentasi web 3D interaktif untuk staf produksi migas: diesel engine, gas engin
 - `src/model/basis.js` + `content/references.json`: dasar teori tiap fungsi `thermo.js` dan daftar sumber (lihat Aturan referensi)
 - `content/regulations.json`: baku mutu (Permen LH 13/2009 turbin gas, Permen LHK 11/2021 mesin), basis, catatan; halaman Regulations (tombol `G`, alamat `#/regulations`)
 - `content/glossary.json`: istilah dan singkatan (English, definisi saja tanpa angka; sumber hanya id `references.json`); halaman Glossary (`#/glossary`)
-- `src/state/route.js` + `src/state/mode.js`: alamat hash dan mode Explore / Present (lihat README "Explore dan Present")
+- `src/state/route.js` + `src/state/mode.js`: alamat hash dan mode Explore / Present (lihat README "Explore dan Present"). M11: tanpa hash / `#/` = landing (Explore; Present → Scene 1), `#/about`, `#/learn[/<lessonId>]`, `#/learn/charts[/<chartId>]` (`ui/learnHost.js`)
+- `content/learn.json` (M11; salinan seed, jangan ditulis ulang): teks dua bahasa `{ en, id }` untuk Landing, About, Learn, Chart guide; `validateLearn` di `state/content.js`, pemuat `state/learnStore.js` (fallback dynamic import). Bahasa: `state/lang.js` (`etel:lang`; kunjungan pertama = `learn.defaultLang`; hanya Landing/About/Learn sampai paket D)
 
 ## Stack
 Vite + JavaScript ES modules (JSDoc untuk tipe), three.js, vitest. Tanpa backend dan tanpa API eksternal saat runtime. Harus jalan offline lewat `npm run build:offline` + server statis lokal (mis. `npm run preview:offline`; lihat README "Cara presentasi offline"; `file://` tidak didukung karena ES module/Web Worker), dan ter-deploy ke GitHub Pages lewat `.github/workflows/deploy.yml` (`npm run build`, base `/<nama-repo>/`). Semua model 3D prosedural (tanpa file aset berhak cipta). Grafik 2D memakai canvas buatan sendiri atau uPlot.
@@ -98,6 +99,10 @@ Alur data satu arah: `UI control → store.set → derive() → frame → { rig 
 - [x] M10 cv(T) correction + recalibration: `cvOfT` dari polinomial NASA udara kering (`AIR_NASA7`, GRI-Mech 3.0; golden ≤ 0,5 % terhadap NIST-JANAF 4th ed.), seluruh muatan sebagai udara (cv produk tidak dimodelkan → Pmax dan η sedikit terlalu tinggi), `ENGINE_NOX_CALIB` 0,17 → 0,185 (target literatur sama), golden mesin diperbarui; margin kepatuhan (%) di samping chip (`complianceCheck`, keterangan bila < 10 %). Mesin (cp(T)) dan turbin (cp konstan) tidak berbasis properti yang sama.
 - [x] UI bagian A: tombol Explore (M) di Present, chip "ƒ Formula" (panel rumus dapat dilipat, default terlipat)
 - [x] UI bagian B: tema Dark / Light (sakelar header, `etel:theme`, token CSS kedua tema, kontras WCAG AA, PNG ikut tema)
+- [ ] M11 Landing, Learn, Chart guide (pack `docs/m11_pack/`, satu Step per permintaan)
+  - [x] Step 01 Sumber pengantar (tipe `web`, "Start here"), `content/learn.json` + `validateLearn`, router landing/About/Learn, sakelar EN/ID (`etel:lang`), landing dengan hero turbin + legenda K, About, placeholder Learn/Chart guide, keadaan Start di jendela presenter
+  - [ ] Step 02 Halaman Learn (pelajaran, kata, soal, progres) dan Glossary dua bahasa
+  - [ ] Step 03 Chart guide dan tombol ⓘ di setiap grafik
 
 ## Golden test acuan (ringkas; tabel lengkap di `docs/PROMPT_simulasi_3D.md` bagian 12)
 Otto r=10 η 0,602 · Diesel r=18 rc=2 η 0,632 · Brayton ideal rp=15 η 0,539 · Brayton real η 0,378 · CO₂ gas η=0,35 → 577 g/kWh · preset diesel Pmax ≈ 112,4 bar, η rem 0,425 · preset gas Pmax ≈ 104,6 bar, η rem 0,406 · NOx terkalibrasi (0,185) diesel 11,1 / gas 2,5 g/kWh · cv(T) udara vs JANAF ≤ 0,5 %.

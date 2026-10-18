@@ -16,7 +16,7 @@ const sceneTitle = (n) => STR[`scene${n}`]?.title ?? '';
 
 /** HTML pratinjau scene berikutnya (diekspor untuk tes): nomor, judul, pesan kunci, catatan pertama. */
 export function nextPreviewHtml(data, n) {
-  const nx = nextSceneNumber(n);
+  const nx = n === 0 ? SCENE_NUMBERS[0] : nextSceneNumber(n); // 0 = landing (Start) → scene pertama
   if (nx == null) return `<p class="pres-dim">${T.end}</p>`;
   const c = presenterNotes(data, nx);
   return `<div class="pres-next__title">${T.nextLine(nx, sceneTitle(nx))}</div>`
@@ -68,11 +68,20 @@ export function createPresenterView(container, o) {
   const V = (k) => q(`[data-v="${k}"]`);
   const banner = createContentBanner(q('.pres__banner'));
   const timer = createTimer(o.now);
-  let data = o.content, scene = null;
+  let data = o.content, scene = null, start = false;
   const setText = (n, t) => { if (n.textContent !== t) n.textContent = t; };
 
   function renderScene() {
     if (scene == null) return;
+    if (start) {
+      // M11: landing terbuka di jendela utama → keadaan "Start" tanpa catatan
+      setText(V('current'), T.start);
+      setText(V('key'), '');
+      V('notes').innerHTML = `<p class="pres-dim">${esc(T.startNotes)}</p>`;
+      V('next').innerHTML = nextPreviewHtml(data, 0);
+      tick();
+      return;
+    }
     setText(V('current'), T.current(scene, SCENE_NUMBERS.length, sceneTitle(scene)));
     const c = presenterNotes(data, scene);
     setText(V('key'), c?.keyMessage ?? '');
@@ -102,10 +111,11 @@ export function createPresenterView(container, o) {
     el, timer,
     get scene() { return scene; },
     /** Scene aktif + status animasi dari jendela utama. */
-    setScene(n, { playing = true, frozen = false } = {}) {
+    setScene(n, { playing = true, frozen = false, start: isStart = false } = {}) {
       timer.markScene(n);
-      const changed = n !== scene;
+      const changed = n !== scene || !!isStart !== start;
       scene = n;
+      start = !!isStart;
       const st = V('status');
       st.hidden = false;
       setText(st, frozen ? T.status.frozen : playing ? T.status.playing : T.status.paused);

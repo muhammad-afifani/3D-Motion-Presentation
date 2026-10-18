@@ -40,10 +40,11 @@ function cleanClosing(v) {
 
 /**
  * Baca & validasi data tersimpan. Tidak pernah throw.
- * @returns {{patch: Record<string, any>, startScene: number}}
+ * @returns {{patch: Record<string, any>, startScene: number, savedScene: number|null}} savedScene = scene tersimpan
+ *   (null bila belum pernah ada; landing M11 memakainya untuk tombol "Continue at Scene N")
  */
 export function readSaved(storage, sceneNumbers = [FIRST_SCENE]) {
-  const empty = { patch: {}, startScene: FIRST_SCENE };
+  const empty = { patch: {}, startScene: FIRST_SCENE, savedScene: null };
   if (!storage) return empty;
   let raw;
   try { raw = storage.getItem(PERSIST_KEY); } catch { return empty; }
@@ -65,7 +66,7 @@ export function readSaved(storage, sceneNumbers = [FIRST_SCENE]) {
   if (d.regFuel === 'oil' || d.regFuel === 'gas') patch.regFuel = d.regFuel;
   if (typeof d.formulaOpen === 'boolean') patch.formulaOpen = d.formulaOpen; // panel rumus (bagian A); selain boolean → default terlipat
   const startScene = sceneNumbers.includes(j.scene) ? j.scene : FIRST_SCENE;
-  return { patch, startScene };
+  return { patch, startScene, savedScene: sceneNumbers.includes(j.scene) ? j.scene : null };
 }
 
 /** Tulis data (tanpa throw). @returns {boolean} berhasil */
@@ -92,6 +93,8 @@ export function createPersistence(store, { storage = safeStorage(), sceneNumbers
   return {
     /** Scene awal (nilai tersimpan, atau 1). */
     startScene: saved.startScene,
+    /** Scene tersimpan dari kunjungan sebelumnya (null bila belum ada). */
+    savedScene: saved.savedScene,
     /** true bila storage bisa dipakai. */
     available: !!storage,
     /** Catat scene aktif (nilai awal pada kunjungan berikutnya). */

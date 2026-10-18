@@ -42,7 +42,7 @@ Tambah ke `src/state/route.js` (fungsi murni, dengan tes):
 - Panah kiri di Scene 1 tidak pindah ke landing (urutan presentasi 1–11 tidak berubah). Jendela presenter tidak berubah; saat landing terbuka, jendela presenter menampilkan keadaan "Start" tanpa catatan.
 
 ### 4. Sakelar bahasa
-- **Satu state global** `lang` (`'en' | 'id'`), default `'en'`, disimpan di localStorage dengan kunci `etel:lang` lewat helper aman yang sudah ada (try/catch; storage kosong atau melempar → `'en'`). Tidak ada `learnLang` terpisah; `learn.defaultLang` tidak lagi menentukan bahasa awal. Paket bahasa D memakai state yang sama untuk seluruh aplikasi.
+- **Satu state global** `lang` (`'en' | 'id'`), default `'en'`, disimpan di localStorage dengan kunci `etel:lang` lewat helper aman yang sudah ada (try/catch; storage kosong atau melempar → `'en'`). Tidak ada `learnLang` terpisah. **Diubah saat Step 01 dikerjakan:** kunjungan pertama memakai `learn.defaultLang` (`'id'`), pilihan berikutnya diingat; ditinjau lagi saat paket D. Paket bahasa D memakai state yang sama untuk seluruh aplikasi.
 - Sakelar `EN | ID` di **header kanan atas** (di antara "Explore (M)" dan lencana "Model OK", lihat peta posisi di `00_README`). Pada Step 01 sakelar ini mengganti teks Landing, About, Learn, Chart guide, dan Glossary; bagian lain aplikasi tetap English sampai paket D.
 - Atribut `lang` pada kontainer halaman mengikuti pilihan (`en` / `id`) untuk pembaca layar.
 - `tests/language.test.js`: kecualikan field `id` di `learn.json` dari pemeriksaan kata Indonesia; tambahkan pemeriksaan bahwa semua field `en` di `learn.json` lolos daftar yang sama.

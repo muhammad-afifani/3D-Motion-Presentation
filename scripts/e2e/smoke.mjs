@@ -10,6 +10,8 @@
  *      Present (juga lewat alamat #/scene/N); tinggi grafik Scene 6 dilaporkan.
  *   6. Bagian B: tema terang di 1366×768 (semua scene/tab, latar viewport varian A, kotak overlay kaca + blur tanpa
  *      latar opak putih, halaman penuh, PNG ikut tema, sakelar tersimpan setelah muat ulang).
+ *   7. M11 Step 01: landing (tanpa hash), kartu, hero tidak kosong, EN/ID, kualitas Low pada hero, About, Present tanpa
+ *      hash → Scene 1, landing minimal bila learn.json gagal; screenshot landing 3 resolusi × 2 tema.
  * Sengaja TIDAK memeriksa isi kartu info kiri Scene 9 (`.pol-card`): isinya akan dirombak.
  * Gagal (exit 1) bila ada grafik kosong, canvas 0, teks meluber, atau galat. Screenshot Scene 7 dan 9 disimpan di
  * scripts/e2e/shots/after/ (tidak di-commit).
@@ -284,7 +286,7 @@ async function themeInteraction(browser, url) {
   const st0 = await p.evaluate(() => ({
     theme: document.documentElement.dataset.theme,
     order: [...document.querySelector('.topbar__right').children].filter((el) => !el.matches('.calib-flag, .quality-flag')).map((el) => el.className.split(' ').find((c) => /present-exit|lang-slot|theme-switch/.test(c)) ?? el.id),
-    pressed: [...document.querySelectorAll('.theme-switch__btn')].map((b) => `${b.dataset.theme}:${b.getAttribute('aria-checked')}`).join(','),
+    pressed: [...document.querySelectorAll('.theme-switch:not(.lang-switch) .theme-switch__btn')].map((b) => `${b.dataset.theme}:${b.getAttribute('aria-checked')}`).join(','),
   }));
   if (st0.theme !== 'dark') fails.push(`tema: tanpa pilihan tersimpan harus Dark (dapat ${st0.theme})`);
   if (st0.order.join('|') !== 'present-exit|lang-slot|theme-switch|model-badge') fails.push(`tema: urutan header kanan ${st0.order.join(' | ')}`);
@@ -296,7 +298,7 @@ async function themeInteraction(browser, url) {
   await p.waitForTimeout(300);
   await p.reload();
   await p.waitForFunction(() => window.__etelDebug?.scene() === 1 && !window.__etelDebug.loading(), null, { timeout: 30000 });
-  const st1 = await p.evaluate(() => ({ theme: document.documentElement.dataset.theme, stored: localStorage.getItem('etel:theme'), pressed: document.querySelector('.theme-switch__btn.is-on')?.dataset.theme }));
+  const st1 = await p.evaluate(() => ({ theme: document.documentElement.dataset.theme, stored: localStorage.getItem('etel:theme'), pressed: document.querySelector('.theme-switch:not(.lang-switch) .theme-switch__btn.is-on')?.dataset.theme }));
   if (st1.theme !== 'light' || st1.stored !== 'light' || st1.pressed !== 'light') fails.push(`tema: Light tidak bertahan setelah muat ulang (${JSON.stringify(st1)})`);
 
   for (let n = 1; n <= 11; n++) {
@@ -350,6 +352,116 @@ async function themeInteraction(browser, url) {
   }
   for (const e of [...new Set(errs)]) fails.push(`tema: galat ${e}`);
   await p.close();
+  return fails;
+}
+
+/**
+ * M11 Step 01: landing (#/ dan tanpa hash), About, sakelar EN/ID, kualitas adaptif hero, Present tanpa hash → Scene 1,
+ * dan landing minimal bila learn.json gagal dimuat. Screenshot landing di tiga resolusi (Dark dan Light).
+ */
+async function landingInteraction(browser, url) {
+  const fails = [];
+  const base = url.replace(/#.*$/, '');
+  const benign = (t) => /Failed to load resource|net::ERR_/.test(t);
+  const open = async (opts = {}, init = null) => {
+    const p = await browser.newPage({ viewport: { width: 1366, height: 768 }, ...opts });
+    const errs = [];
+    p.on('pageerror', (e) => errs.push(`pageerror: ${e.message}`));
+    p.on('console', (m) => { if (m.type() === 'error' && !benign(m.text())) errs.push(`console: ${m.text()}`); });
+    if (init) await p.addInitScript(init.fn, init.arg);
+    return { p, errs };
+  };
+  const heroPixels = (p) => p.evaluate(() => {
+    const c = document.querySelector('.landing__stage canvas');
+    if (!c || !c.width) return 0;
+    const t = document.createElement('canvas'); t.width = 120; t.height = 80;
+    const ctx = t.getContext('2d'); ctx.drawImage(c, 0, 0, 120, 80);
+    const d = ctx.getImageData(0, 0, 120, 80).data; let n = 0;
+    for (let i = 3; i < d.length; i += 4) if (d[i] > 0) n++;
+    return 100 * n / (120 * 80);
+  });
+
+  // 1) alamat tanpa hash → landing; kunjungan pertama = bahasa default learn.json (id); empat kartu; hero tidak kosong
+  {
+    const { p, errs } = await open();
+    await p.goto(base);
+    await p.waitForFunction(() => window.__etelDebug?.learnView?.() === 'landing' && document.querySelectorAll('.lcard').length === 4, null, { timeout: 30000 });
+    const st = await p.evaluate(() => ({ lang: window.__etelDebug.lang(), hostLang: document.querySelector('.learn-host')?.lang, scene: window.__etelDebug.scene(), cards: [...document.querySelectorAll('.lcard')].filter((c) => c.checkVisibility() && c.getBoundingClientRect().right <= innerWidth + 1).length, hscroll: document.documentElement.scrollWidth > innerWidth + 1, tag: document.getElementById('scene-tag').textContent, card0: document.querySelector('.lcard__title')?.textContent }));
+    if (st.lang !== 'id' || st.hostLang !== 'id') fails.push(`landing: bahasa kunjungan pertama ${st.lang}/${st.hostLang} (harusnya id dari learn.defaultLang)`);
+    if (st.cards !== 4) fails.push(`landing: ${st.cards} kartu terlihat (harusnya 4)`);
+    if (st.scene !== null) fails.push(`landing: scene ${st.scene} sudah dipasang di belakang landing`);
+    if (st.hscroll) fails.push('landing: scroll horizontal');
+    try { await p.waitForFunction(() => window.__etelDebug.hero()?.ready, null, { timeout: 20000 }); } catch { fails.push('landing: hero 3D tidak siap'); }
+    await p.waitForTimeout(800);
+    const px = await heroPixels(p);
+    if (!(px > 1)) fails.push(`landing: canvas hero kosong (${px.toFixed(2)} % piksel terisi)`);
+    // EN ↔ ID mengganti teks; pilihan diingat (etel:lang) setelah muat ulang
+    await p.click('.lang-switch [data-lang="en"]');
+    await p.waitForTimeout(200);
+    const en = await p.evaluate(() => ({ card0: document.querySelector('.lcard__title')?.textContent, stored: localStorage.getItem('etel:lang'), lang: document.querySelector('.learn-host').lang }));
+    if (en.card0 === st.card0 || en.lang !== 'en' || en.stored !== 'en') fails.push(`landing: sakelar EN tidak mengganti teks (${st.card0} → ${en.card0}, lang ${en.lang}, tersimpan ${en.stored})`);
+    await p.reload();
+    await p.waitForFunction(() => window.__etelDebug?.learnView?.() === 'landing' && document.querySelectorAll('.lcard').length === 4, null, { timeout: 30000 });
+    if (await p.evaluate(() => window.__etelDebug.lang()) !== 'en') fails.push('landing: pilihan EN tidak diingat setelah muat ulang');
+    // kualitas adaptif: Low = tanpa bloom, partikel dikurangi; High = partikel penuh
+    await p.waitForFunction(() => window.__etelDebug.hero()?.ready, null, { timeout: 20000 }).catch(() => {});
+    // (rendering software bisa > 1 s per frame pada tier penuh: tunggu sampai frame berikutnya selesai)
+    await p.evaluate(() => window.__etelDebug.setQuality('high'));
+    await p.waitForFunction(() => window.__etelDebug.hero()?.particles > 0 && window.__etelDebug.quality().tier === 0, null, { timeout: 15000 }).catch(() => {});
+    await p.waitForTimeout(1500);
+    const high = await p.evaluate(() => window.__etelDebug.hero());
+    await p.evaluate(() => window.__etelDebug.setQuality('low'));
+    await p.waitForFunction((n) => window.__etelDebug.hero()?.particles < n, high?.particles ?? 0, { timeout: 15000 }).catch(() => {});
+    const low = await p.evaluate(() => window.__etelDebug.hero());
+    await p.evaluate(() => window.__etelDebug.setQuality('auto'));
+    if (!low || low.bloom !== false || !(low.particles < high?.particles)) fails.push(`landing: kualitas Low tidak dipatuhi hero (low ${JSON.stringify(low)}, high ${JSON.stringify(high)})`);
+    // About terbuka dari kartu
+    await p.click('.lcard[data-card="about"]');
+    await p.waitForFunction(() => window.__etelDebug.learnView() === 'about', null, { timeout: 10000 }).catch(() => fails.push('landing: kartu About tidak membuka #/about'));
+    const ab = await p.evaluate(() => ({ title: document.querySelector('.reading__title')?.textContent ?? '', secs: document.querySelectorAll('.reading__sec').length, hash: location.hash }));
+    if (!ab.title || ab.secs !== 6 || ab.hash !== '#/about') fails.push(`about: ${JSON.stringify(ab)}`);
+    // kartu Explore → Scene 1, landing tertutup
+    await p.goto(`${base}#/`);
+    await p.waitForFunction(() => window.__etelDebug.learnView() === 'landing', null, { timeout: 10000 });
+    await p.click('.lcard[data-card="explore"]');
+    await p.waitForFunction(() => window.__etelDebug.scene() === 1 && window.__etelDebug.learnView() === null, null, { timeout: 30000 }).catch(() => fails.push('landing: kartu Explore tidak membuka Scene 1'));
+    for (const e of [...new Set(errs)]) fails.push(`landing: ${e}`);
+    await p.close();
+  }
+  // 2) mode Present + alamat tanpa hash → Scene 1 (bukan landing)
+  {
+    const { p, errs } = await open({}, { fn: () => { try { localStorage.setItem('etel:mode', 'present'); } catch {} }, arg: null });
+    await p.goto(base);
+    await p.waitForFunction(() => window.__etelDebug?.scene() === 1, null, { timeout: 30000 }).catch(() => {});
+    const st = await p.evaluate(() => ({ scene: window.__etelDebug.scene(), view: window.__etelDebug.learnView(), mode: window.__etelDebug.mode() }));
+    if (st.scene !== 1 || st.view !== null || st.mode !== 'present') fails.push(`Present tanpa hash: ${JSON.stringify(st)} (harusnya Scene 1)`);
+    for (const e of [...new Set(errs)]) fails.push(`Present tanpa hash: ${e}`);
+    await p.close();
+  }
+  // 3) learn.json dan chunk fallback gagal dimuat → landing minimal English, tanpa layar kosong dan tanpa galat tak tertangani
+  {
+    const { p, errs } = await open();
+    await p.route('**/content/learn.json', (r) => r.abort());
+    await p.route(/assets\/learn-[^/]*\.js/, (r) => r.abort());
+    await p.goto(base);
+    await p.waitForFunction(() => document.querySelector('.landing__title'), null, { timeout: 30000 }).catch(() => {});
+    const st = await p.evaluate(() => ({ title: document.querySelector('.landing__title')?.textContent ?? '', cards: [...document.querySelectorAll('.lcard')].map((c) => c.dataset.card), lang: window.__etelDebug?.lang() }));
+    if (!st.title || st.cards.join(',') !== 'explore,present,about') fails.push(`landing minimal: ${JSON.stringify(st)}`);
+    for (const e of [...new Set(errs)]) fails.push(`landing minimal: ${e}`);
+    await p.close();
+  }
+  // 4) screenshot landing: tiga resolusi × dua tema
+  for (const [w, h] of VIEWPORTS) for (const theme of ['dark', 'light']) {
+    const { p, errs } = await open({ viewport: { width: w, height: h } }, { fn: (t) => { try { localStorage.setItem('etel:theme', t); } catch {} }, arg: theme });
+    await p.goto(base);
+    await p.waitForFunction(() => window.__etelDebug?.hero?.()?.ready && document.querySelectorAll('.lcard').length === 4, null, { timeout: 30000 }).catch(() => fails.push(`landing ${w}×${h} ${theme}: hero/kartu tidak siap`));
+    await p.waitForTimeout(600);
+    const hs = await p.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1);
+    if (hs) fails.push(`landing ${w}×${h} ${theme}: scroll horizontal`);
+    await p.screenshot({ path: `${SHOTS}/landing-${w}x${h}-${theme}.png` });
+    for (const e of [...new Set(errs)]) fails.push(`landing ${w}×${h} ${theme}: ${e}`);
+    await p.close();
+  }
   return fails;
 }
 
@@ -501,7 +613,7 @@ try {
     const errs = [];
     page.on('pageerror', (e) => errs.push(`pageerror: ${e.message}`));
     page.on('console', (m) => { if (m.type() === 'error') errs.push(`console: ${m.text()}`); });
-    await page.goto(srv.url);
+    await page.goto(`${srv.url}#/scene/1`);
     await page.waitForFunction(() => window.__etelDebug?.scene() != null, null, { timeout: 30000 });
     for (let n = 1; n <= 11; n++) {
       await goScene(page, n, 400);
@@ -532,6 +644,7 @@ try {
     if (w === 1366) failures.push(...await modeInteraction(page));
     if (w === 1366) failures.push(...await themeInteraction(chromium.browser, srv.url));
     if (w === 1366) failures.push(...await deepLinks(chromium.browser, srv.url));
+    if (w === 1366) failures.push(...await landingInteraction(chromium.browser, srv.url));
     for (const e of [...new Set(errs)]) failures.push(`${w}×${h}: ${e}`);
     await page.close();
   }

@@ -272,6 +272,22 @@ describe('latar viewport tema terang: varian A (abu-krem terang); C ditolak; tem
     expect(speciesColors3D('dark')).toBe(SPECIES_PALETTES.dark);
   });
   it('main.js memasang ulang scene bila tone viewport berubah saat ganti tema', () => {
-    expect(read('src/main.js')).toMatch(/if \(viewportTone\(\) !== toneBefore && index >= 0\) goTo\(index, true\);/);
+    expect(read('src/main.js')).toMatch(/if \(viewportTone\(\) !== toneBefore\) \{ if \(index >= 0\) goTo\(index, true\); learnHost\.retheme\(\); \}/);
+  });
+});
+
+// ── M11 Step 01: teks hero landing langsung di atas latar viewport ──
+describe('landing: teks hero AA terhadap latar viewport di kedua tema; kartu dan tautan memakai token', () => {
+  const resolve = (T, k) => { let v = T[k]; for (let i = 0; i < 5 && /^var\(/.test(v ?? ''); i++) v = T[v.slice(4, -1)]; return v; };
+  const STOPS = ['--vp-hi', '--vp-lo', '--vp-lo-deep', '--vp-fl-hi', '--vp-fl-lo'];
+  it('--hero-text / --hero-muted / --hero-accent ≥ 4,5:1 terhadap setiap titik gradasi viewport', () => {
+    for (const [name, T] of [['dark', DARK], ['light', LIGHT]]) for (const k of ['--hero-text', '--hero-muted', '--hero-accent']) for (const st of STOPS) {
+      expect(ratio(resolve(T, k), resolve(T, st)), `${name} ${k} on ${st}`).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+  it('CSS landing: teks hero memakai token hero; tanpa warna tetap (blok token saja)', () => {
+    expect(css).toMatch(/\.landing__intro \{[^}]*color: var\(--hero-text\)/);
+    expect(css).toMatch(/\.landing__kicker \{[^}]*color: var\(--hero-accent\)/);
+    expect(css).toMatch(/\.landing__hero \{[^}]*var\(--vp-hi\)[^}]*var\(--vp-lo-deep\)/);
   });
 });

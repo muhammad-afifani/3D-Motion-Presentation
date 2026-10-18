@@ -27,9 +27,10 @@ export function legendTickLayout(ticks, markerFrac, heightPx, { markerGapPx = 16
 }
 
 /** @param {HTMLElement} container */
-export function createTempLegend(container, { title = STR.common.tempLegend, tickStep = 500 } = {}) {
+/** marker = false: tanpa penanda nilai (legenda skala saja, mis. hero landing tanpa angka model). */
+export function createTempLegend(container, { title = STR.common.tempLegend, tickStep = 500, marker: withMarker = true, compact = false } = {}) {
   const root = document.createElement('div');
-  root.className = 'temp-legend';
+  root.className = compact ? 'temp-legend temp-legend--compact' : 'temp-legend';
   root.innerHTML = '<div class="temp-legend__title"></div><div class="temp-legend__body"><canvas></canvas><div class="temp-legend__ticks num"></div><div class="temp-legend__marker num"></div></div>';
   root.querySelector('.temp-legend__title').textContent = title;
   container.appendChild(root);
@@ -65,6 +66,7 @@ export function createTempLegend(container, { title = STR.common.tempLegend, tic
       const { min, max } = f.tempScale;
       const k = `${min}|${max}`;
       if (k !== scaleKey) { scaleKey = k; drawScale(min, max); }
+      if (!withMarker) { marker.hidden = true; return; }
       const u = Math.min(1, Math.max(0, (f.T - min) / (max - min)));
       marker.style.top = `${(1 - u) * 100}%`;
       // label tick yang menimpa penanda (atau tick lain) disembunyikan
