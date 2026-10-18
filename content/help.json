@@ -62,8 +62,8 @@
         "id": "Bagian energi bahan bakar yang sampai ke poros."
       },
       "how": {
-        "en": "It is indicated efficiency minus friction. Lower efficiency means more fuel and more CO₂ for every kWh.",
-        "id": "Nilainya efisiensi indikatif dikurangi gesekan. Efisiensi lebih rendah berarti bahan bakar dan CO₂ per kWh lebih banyak."
+        "en": "It is the indicated efficiency reduced by friction losses. Lower efficiency means more fuel and more CO₂ for every kWh.",
+        "id": "Nilainya efisiensi indikatif yang dikurangi oleh rugi gesekan. Efisiensi lebih rendah berarti bahan bakar dan CO₂ per kWh lebih banyak."
       },
       "glossary": [
         "brake-efficiency"
@@ -703,8 +703,8 @@
         "id": "Membandingkan nilai model dengan limit pada basis regulasi."
       },
       "how": {
-        "en": "Within or Above shows which side the model value falls on. It is not a test result and not a statement that a unit complies. A small margin is smaller than the model uncertainty.",
-        "id": "Within atau Above menunjukkan di sisi mana nilai model jatuh. Ini bukan hasil uji dan bukan pernyataan bahwa unit memenuhi syarat. Margin kecil lebih kecil daripada ketidakpastian model."
+        "en": "Within or Above shows which side the model value falls on. It is not a test result and not a statement that a unit complies. A thin margin is flagged: it is within the model uncertainty.",
+        "id": "Within atau Above menunjukkan di sisi mana nilai model jatuh. Ini bukan hasil uji dan bukan pernyataan bahwa unit memenuhi syarat. Margin tipis diberi tanda: besarnya masih dalam ketidakpastian model."
       },
       "glossary": [
         "indicative"
@@ -1025,7 +1025,7 @@
       },
       "how": {
         "en": "Drag for a what-if. The default comes from the model. A hotter inlet raises the flame temperature.",
-        "id": "Geser untuk skenario bagaimana-jika. Nilai awalnya dari model. Masukan yang lebih panas menaikkan suhu nyala."
+        "id": "Geser untuk skenario bagaimana-jika. Nilai awalnya dari model. Udara masuk yang lebih panas menaikkan suhu nyala."
       },
       "glossary": [
         "flame-temperature"
@@ -1493,8 +1493,8 @@
         "id": "Chip membandingkan nilai model dengan limit pada basis regulasi."
       },
       "how": {
-        "en": "Within or Above shows which side of the limit the model value falls on. Not modeled means the app does not compute that parameter. It is not a test result and not a statement that a unit complies. A margin smaller than the model uncertainty is flagged.",
-        "id": "Within atau Above menunjukkan di sisi mana limit nilai model jatuh. Not modeled berarti aplikasi tidak menghitung parameter itu. Ini bukan hasil uji dan bukan pernyataan bahwa unit memenuhi syarat. Margin yang lebih kecil daripada ketidakpastian model diberi tanda."
+        "en": "Within or Above shows which side of the limit the model value falls on. Not modeled means the app does not compute that parameter. It is not a test result and not a statement that a unit complies. A thin margin is flagged: it is within the model uncertainty.",
+        "id": "Within atau Above menunjukkan di sisi mana limit nilai model jatuh. Not modeled berarti aplikasi tidak menghitung parameter itu. Ini bukan hasil uji dan bukan pernyataan bahwa unit memenuhi syarat. Margin tipis diberi tanda: besarnya masih dalam ketidakpastian model."
       },
       "glossary": [
         "indicative"
