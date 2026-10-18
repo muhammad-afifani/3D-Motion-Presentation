@@ -1,7 +1,10 @@
 /** materials.js — material bersama (logam PBR sederhana, potongan cutaway, gas). */
 import * as THREE from 'three';
+import { viewportTone, glowBlending } from './viewportTone.js';
 
-export function createMaterials() {
+/** @param {'dark'|'light'} [tone] tone viewport: nyala/percikan aditif di latar gelap, normal di latar terang */
+export function createMaterials(tone = viewportTone()) {
+  const glow = glowBlending(tone);
   const m = {
     steel: new THREE.MeshStandardMaterial({ color: 0xb9c0cb, metalness: 0.9, roughness: 0.32 }),
     steelDark: new THREE.MeshStandardMaterial({ color: 0x6c7480, metalness: 0.85, roughness: 0.42 }),
@@ -12,8 +15,8 @@ export function createMaterials() {
     intake: new THREE.MeshStandardMaterial({ color: 0x5aa9ff, metalness: 0.6, roughness: 0.35 }),
     exhaust: new THREE.MeshStandardMaterial({ color: 0xff8a4c, metalness: 0.6, roughness: 0.35 }),
     gas: new THREE.MeshStandardMaterial({ color: 0x3355aa, emissive: 0x3355aa, emissiveIntensity: 0.5, transparent: true, opacity: 0.55, depthWrite: false, roughness: 1, metalness: 0 }),
-    flame: new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }),
-    spark: new THREE.MeshBasicMaterial({ color: 0xe8f0ff, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }),
+    flame: new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, depthWrite: false, blending: glow }),
+    spark: new THREE.MeshBasicMaterial({ color: 0xe8f0ff, transparent: true, opacity: 0, depthWrite: false, blending: glow }),
     ceramic: new THREE.MeshStandardMaterial({ color: 0xf2f2ee, metalness: 0, roughness: 0.4 }),
   };
   return {

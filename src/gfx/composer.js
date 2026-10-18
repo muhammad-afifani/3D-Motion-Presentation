@@ -8,10 +8,11 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
-export function createComposer(renderer, scene, camera) {
+/** @param {{strength?: number}} [o] strength = kekuatan bloom (tone viewport, gfx/viewportTone.js) */
+export function createComposer(renderer, scene, camera, { strength = 0.7 } = {}) {
   const composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
-  const bloom = new UnrealBloomPass(new THREE.Vector2(512, 512), 0.7, 0.4, 0.92);
+  const bloom = new UnrealBloomPass(new THREE.Vector2(512, 512), strength, 0.4, 0.92);
   // bloom aditif hanya ke RGB: alpha tujuan dipertahankan agar latar transparan (gradasi CSS) tetap terlihat;
   // bawaan UnrealBloomPass menulis alpha 1 sehingga latar menjadi hitam
   Object.assign(bloom.blendMaterial, {

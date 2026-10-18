@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { createComposer } from './composer.js';
+import { viewportTone, bloomStrength } from './viewportTone.js';
 
 /** Renderer aktif (snapshot PNG 2×, overlay debug, kualitas). */
 const ACTIVE = new Set();
@@ -118,6 +119,7 @@ export function createRenderer(container, { fov = 35, camPos = [1, 0.8, 1.6], ta
   scene.add(key, rim, new THREE.HemisphereLight(0x8899bb, 0x10131a, 0.35));
 
   let composer = null;
+  const tone = viewportTone(); // latar terang → bloom lemah (bloom aditif mencuci warna di latar terang)
   const bloomOn = () => allowBloom && display.bloom;
 
   function resize() {
@@ -142,7 +144,7 @@ export function createRenderer(container, { fov = 35, camPos = [1, 0.8, 1.6], ta
       renderer.info.reset();
       if (bloomOn()) {
         if (!composer) {
-          composer = createComposer(renderer, scene, camera);
+          composer = createComposer(renderer, scene, camera, { strength: bloomStrength(tone) });
           composer.setPixelRatio(renderer.getPixelRatio());
           composer.setSize(Math.max(1, container.clientWidth), Math.max(1, container.clientHeight));
         }

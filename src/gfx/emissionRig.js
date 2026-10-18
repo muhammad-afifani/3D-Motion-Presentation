@@ -1,12 +1,12 @@
 /**
  * emissionRig.js — Scene 8: tiga unit (diesel engine, gas engine, gas turbine) dengan cerobong yang memancarkan
- * partikel per spesies (warna konvensi SPECIES_COLORS). Laju partikel per unit/spesies = frame.particles[unit][spesies]
+ * partikel per spesies (warna konvensi species.js, palet sesuai tone viewport). Laju partikel per unit/spesies = frame.particles[unit][spesies]
  * (0…1, sudah dipetakan logNorm di deriveEmis; PM = tingkat kualitatif tetap). Satu InstancedMesh, warna per instance.
  * Gerak partikel murni visual; tanpa thermo.js.
  */
 import * as THREE from 'three';
 import { createMaterials } from './materials.js';
-import { SPECIES_COLORS } from './species.js';
+import { viewportTone, speciesColors3D } from './viewportTone.js';
 import { particleScale } from './quality.js';
 
 export const UNIT_X = Object.freeze({ diesel: -2.3, gas: 0, turbine: 2.3 });
@@ -51,7 +51,8 @@ export function createEmissionRig({ capacity = 1400, random = Math.random } = {}
   pts.frustumCulled = false;
   pts.count = 0;
   root.add(pts);
-  const colors = Object.fromEntries(SPECIES.map((k) => [k, new THREE.Color(SPECIES_COLORS[k])]));
+  const spColors = speciesColors3D(viewportTone()); // latar viewport terang → varian ink (≥ 3:1)
+  const colors = Object.fromEntries(SPECIES.map((k) => [k, new THREE.Color(spColors[k])]));
   const size = { NOx: 0.024, CO2: 0.03, CH4: 0.027, PM: 0.022 };
   const drift = { NOx: -0.12, CO2: 0.0, CH4: 0.14, PM: 0.05 };
   const P = Array.from({ length: capacity }, () => ({ alive: false, x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, age: 0, sp: 'NOx', unit: 'diesel' }));
