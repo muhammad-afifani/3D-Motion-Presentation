@@ -14,7 +14,7 @@ try {
   const chromium = (await launchers(pw)).find((x) => x.name === 'chromium' && x.browser);
   if (!chromium) throw new Error('Chromium tidak tersedia');
   const page = await chromium.browser.newPage({ viewport: { width: 1600, height: 900 } });
-  await page.goto(srv.url);
+  await page.goto(`${srv.url}#/scene/1`);
   await page.waitForFunction(() => window.__etelDebug?.scene() != null, null, { timeout: 30000 });
   await page.evaluate((q) => window.__etelDebug.setQuality?.(q), QUALITY);
   const rows = [];
