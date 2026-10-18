@@ -16,7 +16,8 @@ import { createLanding } from './landingPage.js';
 import { createAbout } from './aboutPage.js';
 import { createLearnList } from './learnPage.js';
 import { createLesson } from './lessonPage.js';
-import { createChartGuidePlaceholder } from './chartGuidePlaceholder.js';
+import { createChartGuide } from './chartGuidePage.js';
+import { chartOrigin, clearChartOrigin } from '../state/chartGuide.js';
 
 /**
  * @param {{shell:HTMLElement, app:HTMLElement, continueScene:() => number|null, onPresent:() => void, onChange?:() => void,
@@ -42,8 +43,8 @@ export function createLearnHost(o) {
   });
   langStore.subscribe(() => { setTag(); render(); });
   // References / Glossary berubah isi (fetch selesai): pelajaran memakai sumber dan kata dari keduanya
-  onContent('references', () => { if (view === 'learn' && viewId) render(); });
-  onContent('glossary', () => { if (view === 'learn' && viewId) render(); });
+  onContent('references', () => { if ((view === 'learn' || view === 'charts') && viewId) render(); });
+  onContent('glossary', () => { if ((view === 'learn' || view === 'charts') && viewId) render(); });
 
   function setTag() {
     if (!view || !tagEl()) return;
@@ -59,7 +60,7 @@ export function createLearnHost(o) {
     const lang = langStore.lang;
     if (view === 'landing') child = createLanding(host, { learn, lang, continueScene: o.continueScene, onPresent: o.onPresent });
     else if (view === 'about') child = createAbout(host, { learn, lang });
-    else if (view === 'charts') child = createChartGuidePlaceholder(host, { learn, lang, id: viewId });
+    else if (view === 'charts') child = createChartGuide(host, { learn, glossary: contentOf('glossary').data, references: contentOf('references').data, lang, id: viewId, onWord: (id, from) => o.onWord?.(id, from) });
     else if (viewId) child = createLesson(host, { learn, glossary: contentOf('glossary').data, references: contentOf('references').data, lang, id: viewId, progress, onTry: (id, route) => o.onTry?.(id, route), onWord: (id, from) => o.onWord?.(id, from) });
     else child = createLearnList(host, { learn, lang, progress });
     host.scrollTop = 0;
@@ -68,6 +69,8 @@ export function createLearnHost(o) {
   /** @param {'landing'|'learn'|'charts'|'about'} v @param {string|null} [id] */
   function show(v, id = null, { fromHash = false } = {}) {
     const same = view === v && viewId === id;
+    // asal klik ⓘ hanya berlaku untuk panduan yang baru dibuka darinya
+    if (chartOrigin() && !(v === 'charts' && id === chartOrigin().id)) clearChartOrigin();
     if (!view) {
       saved = { tag: tagEl()?.textContent ?? '', msg: msgEl()?.textContent ?? '' };
       o.app.hidden = true;
@@ -83,6 +86,7 @@ export function createLearnHost(o) {
   function close() {
     if (!view) return;
     child?.dispose(); child = null;
+    clearChartOrigin();
     host.replaceChildren();
     host.hidden = true;
     o.app.hidden = false;

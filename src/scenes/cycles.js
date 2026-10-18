@@ -113,7 +113,7 @@ export function createScene(ctx) {
           <div class="overlay overlay--legend"></div>
           <div class="overlay overlay--notes"></div>
           <div class="overlay overlay--status num"></div>
-          <div class="cyc-level" data-k="level" role="button" tabindex="0"></div>
+          <div class="cyc-tools"><span class="cyc-guide-slot" hidden></span><div class="cyc-level" data-k="level" role="button" tabindex="0"></div></div>
         </div>
         <div class="cyc-pv chart-slot"></div>
         <div class="cyc-ts chart-slot"></div>
@@ -175,6 +175,7 @@ export function createScene(ctx) {
       else ctl.rc.setRange(CYCLES.diesel.ranges.rc);
       q('.view3d').hidden = !piston;
       q('.cyc-schem').hidden = piston;
+      q('.cyc-guide-slot').hidden = piston;
       q('.overlay--legend').hidden = false;
       hudKey = '';
     }
@@ -259,7 +260,7 @@ export function createScene(ctx) {
       pv = createCycleChart(q('.cyc-pv'), 'pv', { onHover: (i) => ts.highlight(i), basis: 'idealCycles' });
       ts = createCycleChart(q('.cyc-ts'), 'ts', { onHover: (i) => pv.highlight(i), basis: 'idealCycles' });
       wf = createWaterfall(q('.cyc-wf'), { basis: 'lossWaterfall' });
-      schem = createBraytonSchematic(q('.cyc-schem'), { basis: 'idealCycles' });
+      schem = createBraytonSchematic(q('.cyc-schem'), { basis: 'idealCycles', guideHost: q('.cyc-guide-slot') });
       legend = createTempLegend(q('.overlay--legend'));
       try {
         gfx = createRenderer(q('.view3d'), { camPos: [1.25, 1.0, 2.1], target: [0, 0.55, 0] });

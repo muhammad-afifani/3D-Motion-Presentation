@@ -38,6 +38,8 @@ import { createLangSwitch } from './ui/langSwitch.js';
 import { createLearnHost } from './ui/learnHost.js';
 import { createBackLessonPill } from './ui/backLessonPill.js';
 import { langStore } from './state/langStore.js';
+import { learnReady } from './state/learnStore.js';
+import { guideIdForTitle } from './state/chartGuide.js';
 import { backPillVisible, backTarget } from './state/learnView.js';
 import { themeStorage, readTheme, writeTheme, applyTheme } from './state/theme.js';
 import { refreshChartTheme } from './charts/chartBase.js';
@@ -327,6 +329,7 @@ window.__etelDebug = {
   mode: () => mode, page: () => openPage(), paused: () => paused,
   hero: () => learnHost.heroInfo(), lang: () => learnHost.lang, learnView: () => learnHost.view, learnViewId: () => learnHost.viewId,
   backPill: () => (backPill.visible ? backPill.el.getAttribute('href') : null), glossaryOpen: () => glossary.open,
+  guideFor: async (title) => guideIdForTitle(title, (await learnReady())?.data?.charts ?? []),
 };
 
 window.addEventListener('keydown', (e) => {

@@ -5,6 +5,7 @@
  */
 import { fmt } from '../ui/format.js';
 import { STR } from '../ui/strings.js';
+import { createGuideButton } from '../ui/chartGuideButton.js';
 
 export const CHART_FONT = '12px Inter, system-ui, sans-serif';
 export const CHART_FONT_NUM = '11px "JetBrains Mono", ui-monospace, monospace';
@@ -55,16 +56,16 @@ export function setChartExportScale(k = null) {
 
 /**
  * @param {HTMLElement} container
- * @param {{title:string, modelLevel:'ideal'|'real'|'semiEmpirical'|'siteData', basis?:string|string[], pad?:{l:number,r:number,t:number,b:number}, indicative?:boolean}} opts
+ * @param {{title:string, modelLevel:'ideal'|'real'|'semiEmpirical'|'siteData', basis?:string|string[], pad?:{l:number,r:number,t:number,b:number}, indicative?:boolean, guideHost?:HTMLElement|null}} opts
  *   modelLevel = kunci; kata level diambil dari STR.common.level. indicative = tambahkan "· indicative".
  *   basis = id kelompok (BASIS_GROUPS) atau daftar kunci BASIS: tag "Basis · <level>" di pojok membuka kartu Basis.
+ *   guideHost = elemen tujuan tombol ⓘ bila bukan baris judul grafik ini.
  */
-export function createChartBase(container, { title, modelLevel, basis = null, pad = { l: 56, r: 16, t: 58, b: 40 }, indicative = false }) {
+export function createChartBase(container, { title, modelLevel, basis = null, pad = { l: 56, r: 16, t: 58, b: 40 }, indicative = false, guideHost = null }) {
   const root = document.createElement('div');
   root.className = 'chart';
   root.innerHTML = `
-    <div class="chart__title"></div>
-    <button type="button" class="chart__level"></button>
+    <div class="chart__head"><div class="chart__title"></div><div class="chart__tools"><button type="button" class="chart__level"></button></div></div>
     <canvas class="chart__layer"></canvas>
     <canvas class="chart__layer"></canvas>
     <div class="chart__caption num"></div>`;
@@ -73,6 +74,9 @@ export function createChartBase(container, { title, modelLevel, basis = null, pa
   const caption = root.querySelector('.chart__caption');
   const titleEl = root.querySelector('.chart__title');
   const levelEl = root.querySelector('.chart__level');
+  // ⓘ "How to read this chart": di kiri tag Basis (atau di guideHost bila tag dipindah ke panel lain, mis. skematik Brayton)
+  const guide = createGuideButton({ getTitle: () => titleEl.textContent });
+  (guideHost ?? root.querySelector('.chart__tools')).prepend(guide.el);
   titleEl.textContent = title;
   levelEl.dataset.tip = STR.basis.tagTip;
   const levelText = (k) => `${STR.basis.tag} · ${STR.common.level[k]}${indicative ? ` · ${STR.common.indicative}` : ''}`;
@@ -132,6 +136,8 @@ export function createChartBase(container, { title, modelLevel, basis = null, pa
 
   return {
     root, box, ctxS, ctxD, caption, col, ink,
+    /** Baris alat di kanan atas (ⓘ, tombol grafik, tag Basis); tombol tambahan di-prepend ke sini. */
+    tools: root.querySelector('.chart__tools'),
     get dirty() { return dirty; },
     markDirty() { dirty = true; },
     /** Ukur ulang sekarang dan gambar ulang lapis statis (dipanggil saat tab dibuka). */
@@ -147,7 +153,7 @@ export function createChartBase(container, { title, modelLevel, basis = null, pa
       if (levelEl.textContent !== t) levelEl.textContent = t;
       if (b) setBasisAttr(b);
     },
-    dispose() { BASES.delete(entry); ro.disconnect(); io?.disconnect(); root.remove(); },
+    dispose() { BASES.delete(entry); ro.disconnect(); io?.disconnect(); guide.dispose(); root.remove(); },
   };
 }
 

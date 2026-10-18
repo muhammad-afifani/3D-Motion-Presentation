@@ -13,8 +13,8 @@ const S = STR.charts.brayton;
 const rgb = (c) => `rgb(${c.map((v) => Math.round(v * 255)).join(',')})`;
 
 /** @param {HTMLElement} container */
-export function createBraytonSchematic(container, { basis = null } = {}) {
-  const base = createChartBase(container, { title: S.title, modelLevel: 'ideal', basis, pad: { l: 20, r: 20, t: 50, b: 30 } });
+export function createBraytonSchematic(container, { basis = null, guideHost = null } = {}) {
+  const base = createChartBase(container, { title: S.title, modelLevel: 'ideal', basis, guideHost, pad: { l: 20, r: 20, t: 50, b: 30 } });
   const { col } = base;
   base.setCaption(S.note);
 

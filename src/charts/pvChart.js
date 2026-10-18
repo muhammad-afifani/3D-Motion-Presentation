@@ -27,7 +27,7 @@ export function createPVChart(container, { modelLevel = 'semiEmpirical', basis =
   btn.textContent = S.scaleLinear;
   btn.dataset.tip = S.scaleTip;
   btn.addEventListener('click', () => { log = !log; btn.textContent = log ? S.scaleLog : S.scaleLinear; base.markDirty(); });
-  base.root.appendChild(btn);
+  base.tools.prepend(btn); // di kiri ⓘ dan tag Basis (baris alat, tidak bertumpuk)
 
   function drawStatic(f) {
     const ctx = base.beginStatic();

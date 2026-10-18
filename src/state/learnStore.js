@@ -55,6 +55,8 @@ export function learnOf() {
   if (!started) started = loadLearn().then((r) => { current = r; for (const fn of subs) fn(r); return r; });
   return current;
 }
+/** Janji hasil pemuatan (memulai pemuatan bila belum). */
+export function learnReady() { learnOf(); return started; }
 /** Dengarkan hasil pemuatan (dipanggil segera bila sudah selesai). @returns {() => void} */
 export function onLearn(fn) {
   subs.add(fn);

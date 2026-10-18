@@ -8,6 +8,7 @@
 import { STR } from './strings.js';
 import { tr } from '../state/lang.js';
 import { findLesson, lessonWords } from '../state/learnView.js';
+import { createWordBox, createSourceList } from './readingParts.js';
 
 const L = STR.bi.lesson, LL = STR.bi.learn;
 
@@ -70,27 +71,7 @@ export function createLesson(root, o) {
 
   // 3) kotak kata (di samping pada layar lebar, di bawah isi pada layar sempit)
   const words = lessonWords(o.learn, o.glossary, lesson, o.lang);
-  if (words.length) {
-    const box = h('section', 'wordbox');
-    box.setAttribute('aria-label', t(L.words));
-    box.append(h('h3', '', t(L.words)));
-    const dl = h('dl', 'wordbox__list');
-    for (const w of words) {
-      const wrap = h('div', 'wordbox__item');
-      wrap.dataset.term = w.id;
-      wrap.append(h('dt', '', w.term));
-      if (w.definition) wrap.append(h('dd', '', w.definition));
-      const a = h('a', 'wordbox__link', t(L.inGlossary));
-      a.href = '#/glossary';
-      a.addEventListener('click', (e) => { e.preventDefault(); o.onWord(w.id, w.from); });
-      const dd = h('dd', '');
-      dd.append(a);
-      wrap.append(dd);
-      dl.append(wrap);
-    }
-    box.append(dl);
-    side.append(box);
-  }
+  if (words.length) side.append(createWordBox(words, { lang: o.lang, title: t(L.words), onWord: o.onWord }));
 
   // 4) Try it
   if (lesson.tryIt) {
@@ -138,34 +119,7 @@ export function createLesson(root, o) {
   }
 
   // 6) sumber
-  if ((lesson.refs ?? []).length) {
-    const byId = new Map((o.references?.references ?? []).map((r) => [r.id, r]));
-    const sec = h('section', 'srcs');
-    sec.append(h('h3', '', t(L.sources)));
-    const ul = h('ul', 'srcs__list');
-    for (const id of lesson.refs) {
-      const r = byId.get(id);
-      const li = h('li', 'srcs__item');
-      li.dataset.ref = id;
-      li.append(h('span', 'srcs__cite', r?.cite ?? id));
-      const row = h('span', 'srcs__row');
-      if (r?.level === 'intro') row.append(h('span', 'bcard__chip bcard__chip--ok', t(L.startHere)));
-      if (!r || r.locatorVerified !== true) row.append(h('span', 'bcard__chip bcard__chip--warn', t(L.toVerify)));
-      if (r?.url) {
-        const a = h('a', 'srcs__url', t(L.sourceOpen));
-        a.href = r.url; a.target = '_blank'; a.rel = 'noopener noreferrer';
-        row.append(a);
-        if (r.accessed) row.append(h('span', 'srcs__acc', t(L.accessed, r.accessed)));
-      }
-      const refs = h('a', 'srcs__refs', t(L.sourceRefs));
-      refs.href = `#/references/${encodeURIComponent(id)}`;
-      row.append(refs);
-      li.append(row);
-      ul.append(li);
-    }
-    sec.append(ul);
-    main.append(sec);
-  }
+  if ((lesson.refs ?? []).length) main.append(createSourceList(lesson.refs, o.references, { lang: o.lang }));
 
   // 7) navigasi + Mark as done
   const nav = h('nav', 'lesson__nav');
