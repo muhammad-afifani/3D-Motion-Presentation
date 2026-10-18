@@ -3279,8 +3279,12 @@
           "id": "Baca ketiga grafik dari atas ke bawah pada beban yang sama. Suhu nyala menjelaskan emisi di atasnya."
         },
         {
-          "en": "Dashed horizontal lines on the top chart are limits. The regulation row under the controls shows the chip and margin.",
-          "id": "Garis putus-putus mendatar pada grafik atas adalah limit. Baris regulasi di bawah kontrol menunjukkan chip dan margin."
+          "en": "Solid curves are the generator turbine. Dashed curves are the compressor-drive turbine.",
+          "id": "Kurva tegas adalah turbin generator. Kurva putus-putus adalah turbin penggerak kompresor."
+        },
+        {
+          "en": "Dashed horizontal lines on the top chart are limits (not curves). The regulation row under the controls shows the chip and margin.",
+          "id": "Garis putus-putus mendatar pada grafik atas adalah limit, bukan kurva mesin. Baris regulasi di bawah kontrol menunjukkan chip dan margin."
         }
       ],
       "lookFor": [
@@ -3436,8 +3440,8 @@
         "id": "Tabel, bukan grafik: baris limit untuk mesin, kelas kapasitas, dan bahan bakar yang dipilih, dengan nilai model pada basis yang sama dan sebuah chip."
       },
       "axes": {
-        "en": "Columns: parameter, limit, unit, model value, chip, margin.",
-        "id": "Kolom: parameter, limit, satuan, nilai model, chip, margin."
+        "en": "Columns: Parameter, Limit, Unit, Test method, Model, Site data, Status. The chip and the margin are both in the Status column.",
+        "id": "Kolom: Parameter, Limit, Unit, Test method, Model, Site data, Status. Chip dan margin sama-sama ada di kolom Status."
       },
       "read": [
         {
@@ -3603,8 +3607,12 @@
       },
       "read": [
         {
-          "en": "Solid lines are CO₂. Dashed lines are CO₂e with slip. Grey = diesel, blue = gas engine, orange = gas turbine.",
-          "id": "Garis tegas adalah CO₂. Garis putus-putus adalah CO₂e dengan slip. Abu = diesel, biru = mesin gas, oranye = turbin gas."
+          "en": "Main chart: solid lines are CO₂. Dashed lines are CO₂e with slip. Grey = diesel, blue = gas engine, orange = gas turbine.",
+          "id": "Grafik utama: garis tegas adalah CO₂. Garis putus-putus adalah CO₂e dengan slip. Abu = diesel, biru = mesin gas, oranye = turbin gas."
+        },
+        {
+          "en": "Second chart: the solid line is CO₂e as slip grows. The flat dotted line is CO₂ without slip, for comparison.",
+          "id": "Grafik kedua: garis tegas adalah CO₂e saat slip bertambah. Garis titik-titik mendatar adalah CO₂ tanpa slip, sebagai pembanding."
         }
       ],
       "lookFor": [
