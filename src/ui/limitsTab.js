@@ -10,6 +10,7 @@ import { SITE_PARAMS } from '../state/regulations.js';
 import { COVERAGE_PARAMS, COVERAGE_EQUIP, MODEL_COVERAGE } from '../state/coverage.js';
 import { REG_UNITS } from '../state/content.js';
 import { createGuideButton } from './chartGuideButton.js';
+import { createHelpButton } from './helpButton.js';
 
 const R = STR.regulation, L = STR.scene9.limitsTab;
 
@@ -49,6 +50,11 @@ export function createLimitsTab(container, cb) {
   const guide = createGuideButton({ getTitle: () => R.title }); // ⓘ "How to read this chart" → panduan Limits
   el.querySelector('.lim-tab__head').append(guide.el);
   el.querySelector('.lim-tab__main thead').innerHTML = `<tr>${L.head.map((h) => `<th>${h}</th>`).join('')}</tr>`;
+  { // ⓘ di judul kolom Site data dan Status (chip)
+    const ths = el.querySelectorAll('.lim-tab__main thead th');
+    ths[5].append(' ', createHelpButton('ui.siteData', { describes: ths[5] }).el);
+    ths[6].append(' ', createHelpButton('ui.statusChip', { describes: ths[6] }).el);
+  }
   V('covTitle').textContent = L.coverageTitle;
   const covHead = el.querySelector('.cov-table thead'), covBody = el.querySelector('.cov-table tbody');
   covHead.innerHTML = `<tr><th>${L.coverageHead}</th>${COVERAGE_EQUIP.map((k) => `<th data-eq="${k}">${L.coverageEquip[k]}</th>`).join('')}</tr>`;

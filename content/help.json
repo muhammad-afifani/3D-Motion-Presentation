@@ -252,8 +252,8 @@
     },
     "hud.timing": {
       "what": {
-        "en": "The start of combustion in crank degrees after top dead centre. Negative means before.",
-        "id": "Awal pembakaran dalam derajat engkol setelah titik mati atas. Negatif berarti sebelum."
+        "en": "The start of combustion, in crank degrees after top dead centre (negative means before).",
+        "id": "Awal pembakaran, dalam derajat engkol setelah titik mati atas (negatif berarti sebelum)."
       },
       "how": {
         "en": "Later timing lowers peak temperature and NOx, but efficiency falls and CO₂ rises.",
@@ -281,8 +281,8 @@
     },
     "hud.noxG": {
       "what": {
-        "en": "NOx for each unit of shaft energy, from a thermal-NOx correlation. Indicative.",
-        "id": "NOx untuk setiap satuan energi poros, dari korelasi NOx termal. Indikatif."
+        "en": "NOx for each unit of shaft energy, from a thermal-NOx correlation (indicative).",
+        "id": "NOx untuk setiap satuan energi poros, dari korelasi NOx termal (indikatif)."
       },
       "how": {
         "en": "The absolute level is calibrated to typical literature values, not to unit data or a vendor prediction. Read the trend when you change a setting.",
@@ -296,8 +296,8 @@
     },
     "hud.noxPpm": {
       "what": {
-        "en": "NOx as a concentration in dry exhaust, from a correlation. Indicative.",
-        "id": "NOx sebagai konsentrasi pada gas buang kering, dari korelasi. Indikatif."
+        "en": "NOx as a concentration in dry exhaust, from a correlation (indicative).",
+        "id": "NOx sebagai konsentrasi pada gas buang kering, dari korelasi (indikatif)."
       },
       "how": {
         "en": "Read it with the reference O₂ and volume basis printed under the number. The absolute level is calibrated to typical literature values, not to unit data or a vendor prediction.",
@@ -311,8 +311,8 @@
     },
     "hud.noxMg": {
       "what": {
-        "en": "NOx as NO₂ in milligrams per normal cubic metre. Indicative.",
-        "id": "NOx sebagai NO₂ dalam miligram per meter kubik normal. Indikatif."
+        "en": "NOx as NO₂ in milligrams per normal cubic metre (indicative).",
+        "id": "NOx sebagai NO₂ dalam miligram per meter kubik normal (indikatif)."
       },
       "how": {
         "en": "The reference O₂ and the volume basis (temperature) are printed beside the number. The level is calibrated to typical literature values, not to unit data or a vendor prediction.",
@@ -446,8 +446,8 @@
     },
     "hud.coPpm": {
       "what": {
-        "en": "CO in dry exhaust, from an illustrative CO-versus-flame-temperature shape. Indicative.",
-        "id": "CO pada gas buang kering, dari bentuk ilustratif CO terhadap suhu nyala. Indikatif."
+        "en": "CO in dry exhaust, from an illustrative CO-versus-flame-temperature shape (indicative).",
+        "id": "CO pada gas buang kering, dari bentuk ilustratif CO terhadap suhu nyala (indikatif)."
       },
       "how": {
         "en": "Read it with the reference O₂ and volume basis printed under the number. A single-shaft turbine shows a CO cliff once the IGV have run out. In a twin-shaft turbine the operating window shifts and narrows.",
@@ -462,8 +462,8 @@
     },
     "hud.igv": {
       "what": {
-        "en": "The IGV opening. Inlet guide vanes close to cut air flow at part load.",
-        "id": "Bukaan IGV. Inlet guide vane menutup untuk mengurangi aliran udara pada beban sebagian."
+        "en": "The IGV opening: inlet guide vanes close to cut air flow at part load.",
+        "id": "Bukaan IGV: inlet guide vane menutup untuk mengurangi aliran udara pada beban sebagian."
       },
       "how": {
         "en": "While they can close, the flame temperature holds steady. Once they run out the flame cools. With the fuel-only strategy they stay open.",
@@ -476,8 +476,8 @@
     },
     "hud.loadWindow": {
       "what": {
-        "en": "The load range where NOx and CO both stay at or below the limits you entered. Indicative.",
-        "id": "Rentang beban tempat NOx dan CO sama-sama tetap pada atau di bawah limit yang Anda isi. Indikatif."
+        "en": "The load range where NOx and CO both stay at or below the limits you entered (indicative).",
+        "id": "Rentang beban tempat NOx dan CO sama-sama tetap pada atau di bawah limit yang Anda isi (indikatif)."
       },
       "how": {
         "en": "A single-shaft turbine loses the window at the CO cliff after the IGV run out. In a twin-shaft turbine the operating window shifts and narrows. It stays empty until limits are entered.",
@@ -685,8 +685,8 @@
     },
     "hud.pm": {
       "what": {
-        "en": "Particulate matter. It is shown only as a qualitative level.",
-        "id": "Partikulat. Ditampilkan hanya sebagai tingkat kualitatif."
+        "en": "Particulate matter, shown only as a qualitative level.",
+        "id": "Partikulat, ditampilkan hanya sebagai tingkat kualitatif."
       },
       "how": {
         "en": "PM is not modeled. The dark-gray particles show a fixed level for each machine type.",
@@ -782,8 +782,8 @@
     },
     "hud.limitNox": {
       "what": {
-        "en": "The NOx limit used for the comparison. It comes from the regulation table unless you typed an override.",
-        "id": "Limit NOx yang dipakai untuk perbandingan. Berasal dari tabel regulasi kecuali Anda mengisi override."
+        "en": "The NOx limit used for the comparison, taken from the regulation table unless you typed an override.",
+        "id": "Limit NOx yang dipakai untuk perbandingan, diambil dari tabel regulasi kecuali Anda mengisi override."
       },
       "how": {
         "en": "The reference O₂ and the volume basis are printed under the number. An override is marked as a user override.",
@@ -947,8 +947,8 @@
     },
     "ctl.timing": {
       "what": {
-        "en": "The start of combustion in degrees from top dead centre. Negative is before.",
-        "id": "Awal pembakaran dalam derajat dari titik mati atas. Negatif berarti sebelum."
+        "en": "The start of combustion in degrees from top dead centre (negative is before).",
+        "id": "Awal pembakaran dalam derajat dari titik mati atas (negatif berarti sebelum)."
       },
       "how": {
         "en": "It is the injection timing in a diesel and the spark timing in a gas engine. Later (retarded) timing lowers peak temperature and NOx, but efficiency falls and CO₂ rises.",
@@ -1420,6 +1420,237 @@
         "en": "It slows the display for viewing. The engine speed in the model does not change.",
         "id": "Memperlambat tampilan agar mudah diamati. Kecepatan mesin dalam model tidak berubah."
       }
+    },
+    "ui.s9tabs": {
+      "what": {
+        "en": "Five views of the emission argument: Limits, Formation, Levers, Load window, and GHG.",
+        "id": "Lima tampilan untuk argumen emisi: Limits, Formation, Levers, Load window, dan GHG."
+      },
+      "how": {
+        "en": "Limits compares the model with the limit table. Formation shows how each pollutant forms. Levers sweeps engine settings and fuel. Load window shows the part-load curves against your limits. GHG shows the fuel penalty and methane slip. The number keys switch tabs. Load is not a separate lever here.",
+        "id": "Limits membandingkan model dengan tabel limit. Formation menunjukkan bagaimana tiap polutan terbentuk. Levers menyapu pengaturan mesin dan bahan bakar. Load window menunjukkan kurva beban sebagian terhadap limit Anda. GHG menunjukkan penalti bahan bakar dan methane slip. Tombol angka berpindah antar tab. Beban bukan tuas terpisah di sini."
+      },
+      "glossary": [
+        "load-window"
+      ],
+      "lesson": "l5-2"
+    },
+    "ui.regSelectors": {
+      "what": {
+        "en": "Choose the machine type, the capacity class, and the fuel that decide which limit rows apply.",
+        "id": "Pilih jenis mesin, kelas kapasitas, dan bahan bakar yang menentukan baris limit yang berlaku."
+      },
+      "how": {
+        "en": "The limit table and the comparison follow your choice. A choice you cannot click has no row in the table for the current selection.",
+        "id": "Tabel limit dan perbandingan mengikuti pilihan Anda. Pilihan yang tidak bisa diklik tidak punya baris di tabel untuk seleksi saat ini."
+      },
+      "lesson": "l5-2"
+    },
+    "ui.siteData": {
+      "what": {
+        "en": "Type values measured at your own unit, with their O₂ basis.",
+        "id": "Isi nilai yang diukur di unit Anda sendiri, beserta basis O₂-nya."
+      },
+      "how": {
+        "en": "Site data takes priority over the model value and is marked as site data. It is a user input. The turbine table has no CO limit, so a CO value comes only from the permit or OEM value you type.",
+        "id": "Data unit diutamakan atas nilai model dan ditandai sebagai data unit. Ini isian pengguna. Tabel turbin tidak punya limit CO, jadi nilai CO hanya berasal dari nilai izin atau OEM yang Anda isi."
+      },
+      "glossary": [
+        "site-data",
+        "permit-oem"
+      ],
+      "lesson": "l5-3"
+    },
+    "ui.limitOverride": {
+      "what": {
+        "en": "Type a NOx limit that replaces the table value, and a permit or OEM value for CO.",
+        "id": "Isi limit NOx yang menggantikan nilai tabel, dan nilai izin atau OEM untuk CO."
+      },
+      "how": {
+        "en": "An override is marked as a user override. The turbine table has no CO limit, so CO is compared only with the permit or OEM value you type, marked as user input. The basis is shown under the boxes.",
+        "id": "Override ditandai sebagai override pengguna. Tabel turbin tidak punya limit CO, jadi CO hanya dibandingkan dengan nilai izin atau OEM yang Anda isi, ditandai sebagai isian pengguna. Basisnya tampil di bawah kotak."
+      },
+      "glossary": [
+        "permit-oem",
+        "o2-correction"
+      ],
+      "lesson": "l5-2"
+    },
+    "ui.presetBadge": {
+      "what": {
+        "en": "Shows whether the levers are at the engine preset or modified.",
+        "id": "Menunjukkan apakah tuas berada pada preset mesin atau sudah diubah."
+      },
+      "how": {
+        "en": "Modified means you moved a lever or changed the fuel. Reset to preset puts them back. The presenter limits and the fuel sulfur are kept.",
+        "id": "Modified berarti Anda menggeser tuas atau mengubah bahan bakar. Reset to preset mengembalikannya. Limit presenter dan sulfur bahan bakar tetap."
+      },
+      "lesson": "l4-3"
+    },
+    "ui.statusChip": {
+      "what": {
+        "en": "The chip compares the model value with the limit on the regulation basis.",
+        "id": "Chip membandingkan nilai model dengan limit pada basis regulasi."
+      },
+      "how": {
+        "en": "Within or Above shows which side of the limit the model value falls on. Not modeled means the app does not compute that parameter. It is not a test result and not a statement that a unit complies. A margin smaller than the model uncertainty is flagged.",
+        "id": "Within atau Above menunjukkan di sisi mana limit nilai model jatuh. Not modeled berarti aplikasi tidak menghitung parameter itu. Ini bukan hasil uji dan bukan pernyataan bahwa unit memenuhi syarat. Margin yang lebih kecil daripada ketidakpastian model diberi tanda."
+      },
+      "glossary": [
+        "indicative"
+      ],
+      "lesson": "l5-2"
+    },
+    "ui.tempLegend": {
+      "what": {
+        "en": "The colour scale for gas temperature, in kelvin.",
+        "id": "Skala warna untuk suhu gas, dalam kelvin."
+      },
+      "how": {
+        "en": "Warm colours are hotter gas. The same scale is used in every scene and in both colour themes, so colours can be compared between scenes. The marker shows the current temperature.",
+        "id": "Warna hangat berarti gas lebih panas. Skala yang sama dipakai di setiap scene dan di kedua tema, sehingga warna bisa dibandingkan antar scene. Penanda menunjukkan suhu saat ini."
+      },
+      "glossary": [
+        "flame-temperature"
+      ],
+      "lesson": "l1-2"
+    },
+    "ui.speciesLegend": {
+      "what": {
+        "en": "The colours that mark each pollutant in the 3D view and the charts.",
+        "id": "Warna yang menandai tiap polutan di tampilan 3D dan grafik."
+      },
+      "how": {
+        "en": "NOx is orange, CO red-magenta, CO₂ grey-blue, methane green, and particulate matter dark grey. The same colours are used in every scene.",
+        "id": "NOx oranye, CO merah-magenta, CO₂ abu-biru, metana hijau, dan partikulat abu gelap. Warna yang sama dipakai di setiap scene."
+      },
+      "glossary": [
+        "nox",
+        "co",
+        "co2",
+        "pm"
+      ],
+      "lesson": "l4-1"
+    },
+    "ui.calibration": {
+      "what": {
+        "en": "The panel that sets the NOx calibration factors.",
+        "id": "Panel untuk mengatur faktor kalibrasi NOx."
+      },
+      "how": {
+        "en": "A factor pins the correlation to a target. The default targets are typical literature values, not unit data or a vendor prediction, so NOx stays indicative. Replace a target with CEMS or OEM data when you have it.",
+        "id": "Faktor mengikat korelasi pada sebuah target. Target bawaan adalah nilai tipikal literatur, bukan data unit atau prediksi vendor, jadi NOx tetap indikatif. Ganti target dengan data CEMS atau OEM bila sudah ada."
+      },
+      "glossary": [
+        "indicative",
+        "cems"
+      ],
+      "lesson": "l5-3"
+    },
+    "ui.basisCard": {
+      "what": {
+        "en": "The Basis card shows how a number or chart is built, and its model level.",
+        "id": "Kartu Basis menunjukkan bagaimana sebuah angka atau grafik dibuat, dan tingkat modelnya."
+      },
+      "how": {
+        "en": "It lists the level (Ideal, Real, Semi-empirical, or Site data), where the formula comes from, the sources, and the assumptions. Use it to judge how far to trust a result. A source marked to verify is not yet checked.",
+        "id": "Kartu ini memuat tingkat (Ideal, Real, Semi-empirical, atau Site data), asal rumus, sumber, dan asumsi. Pakai untuk menilai seberapa jauh hasil bisa dipercaya. Sumber bertanda to verify belum diperiksa."
+      },
+      "glossary": [
+        "indicative"
+      ],
+      "lesson": "l5-3"
+    },
+    "ui.assumptions": {
+      "what": {
+        "en": "The page that lists the assumptions behind the model.",
+        "id": "Halaman yang memuat asumsi di balik model."
+      },
+      "how": {
+        "en": "It also holds the shared O₂ and volume basis, the display options, and the calibration factors. Open it with key H. Read it before you quote a number.",
+        "id": "Halaman ini juga memuat basis O₂ dan volume bersama, opsi tampilan, dan faktor kalibrasi. Buka dengan tombol H. Baca sebelum mengutip sebuah angka."
+      },
+      "glossary": [
+        "o2-correction"
+      ],
+      "lesson": "l5-3"
+    },
+    "nav.learn": {
+      "what": {
+        "en": "Learn, Chart guide, and About are the self-study pages.",
+        "id": "Learn, Chart guide, dan About adalah halaman belajar mandiri."
+      },
+      "how": {
+        "en": "Learn is a path of short lessons that starts from zero. Chart guide explains how to read each chart. About says what the tool is for and what it cannot do.",
+        "id": "Learn adalah jalur pelajaran singkat yang mulai dari nol. Chart guide menjelaskan cara membaca tiap grafik. About menjelaskan untuk apa alat ini dan apa yang tidak bisa dilakukannya."
+      },
+      "lesson": "l0-1"
+    },
+    "nav.scenes": {
+      "what": {
+        "en": "The scenes, in presentation order.",
+        "id": "Daftar scene, dalam urutan presentasi."
+      },
+      "how": {
+        "en": "Click a scene to open it. In Present mode the arrow keys move between scenes. In Explore they do so only while focus is in this list.",
+        "id": "Klik sebuah scene untuk membukanya. Pada mode Present tombol panah berpindah antar scene. Pada Explore hanya saat fokus berada di daftar ini."
+      },
+      "lesson": "l0-2"
+    },
+    "nav.pages": {
+      "what": {
+        "en": "Reference pages: Regulations, Emission formation, References, Glossary, and Assumptions.",
+        "id": "Halaman rujukan: Regulations, Emission formation, References, Glossary, dan Assumptions."
+      },
+      "how": {
+        "en": "They open on top of the scene you are on. Press Esc or Close to go back to it. The shortcut key is shown beside each name.",
+        "id": "Halaman ini terbuka di atas scene yang sedang Anda lihat. Tekan Esc atau Close untuk kembali. Tombol pintasan tampil di samping nama."
+      }
+    },
+    "nav.tools": {
+      "what": {
+        "en": "Tools for the session: Snapshot, Presenter, and Present mode.",
+        "id": "Alat untuk sesi presentasi: Snapshot, Presenter, dan mode Present."
+      },
+      "how": {
+        "en": "Snapshot saves a PNG of the current view. Presenter opens a second window with notes and a timer. Present hides this navigation for a clean screen.",
+        "id": "Snapshot menyimpan PNG tampilan saat ini. Presenter membuka jendela kedua berisi catatan dan pewaktu. Present menyembunyikan navigasi ini agar layar bersih."
+      }
+    },
+    "nav.keys": {
+      "what": {
+        "en": "The keyboard shortcuts for the whole app.",
+        "id": "Pintasan papan ketik untuk seluruh aplikasi."
+      },
+      "how": {
+        "en": "Space pauses, key F freezes, key R resets, key M switches Explore and Present, key P opens the presenter, key S saves a PNG, key H opens Assumptions, key G opens Regulations, and key ? opens References. Shortcuts do not work while you type in a field. In this list the up and down arrows move focus and the left and right arrows change scene.",
+        "id": "Spasi menjeda, tombol F membekukan, tombol R mengatur ulang, tombol M berpindah Explore dan Present, tombol P membuka presenter, tombol S menyimpan PNG, tombol H membuka Assumptions, tombol G membuka Regulations, dan tombol ? membuka References. Pintasan tidak aktif saat Anda mengetik di kolom isian. Pada daftar ini panah atas dan bawah memindahkan fokus dan panah kiri dan kanan berganti scene."
+      }
+    },
+    "hdr.switches": {
+      "what": {
+        "en": "The mode, the language, and the colour theme.",
+        "id": "Mode, bahasa, dan tema warna."
+      },
+      "how": {
+        "en": "Explore shows the navigation and every page. Present hides the navigation for an audience. EN and ID change the language of the translated pages and help cards; the rest of the app stays in English for now. Dark and Light change the colours. Your choices are remembered.",
+        "id": "Explore menampilkan navigasi dan semua halaman. Present menyembunyikan navigasi untuk audiens. EN dan ID mengubah bahasa halaman terjemahan dan kartu bantuan; bagian lain aplikasi sementara tetap berbahasa Inggris. Dark dan Light mengubah warna. Pilihan Anda diingat."
+      },
+      "lesson": "l0-1"
+    },
+    "hdr.status": {
+      "what": {
+        "en": "The Model OK badge and the Quality chip show the state of the app, not of your unit.",
+        "id": "Lencana Model OK dan chip Quality menunjukkan keadaan aplikasi, bukan keadaan unit Anda."
+      },
+      "how": {
+        "en": "Model OK means the built-in model passed its reference checks at start. It does not mean any number matches unit data. The Quality chip appears when the app lowered the 3D quality to keep the frame rate. HUD numbers and charts do not change. Key Q changes quality.",
+        "id": "Model OK berarti model bawaan berhasil melewati pemeriksaan acuan saat mulai. Ini tidak berarti ada angka yang cocok dengan data unit. Chip Quality muncul saat aplikasi menurunkan kualitas 3D agar kecepatan bingkai terjaga. Angka HUD dan grafik tidak berubah. Tombol Q mengubah kualitas."
+      },
+      "glossary": [
+        "indicative"
+      ],
+      "lesson": "l5-3"
     }
   }
 }

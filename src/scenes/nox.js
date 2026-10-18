@@ -21,6 +21,7 @@ import { slider, segmented, button } from '../ui/controls.js';
 import { animSpeedSlider } from '../ui/animSpeed.js';
 import { createHud } from '../ui/hud.js';
 import { fmt, pct } from '../ui/format.js';
+import { createHelpButton } from '../ui/helpButton.js';
 import { STR, signedDeg, plusDeg } from '../ui/strings.js';
 import { CV } from '../charts/chartBase.js';
 
@@ -309,6 +310,7 @@ export function createScene(ctx) {
       legend = createTempLegend(q('.overlay--legend'), { title: S.tempLegend });
       buildCalibration();
       q('.overlay--legend').append(q('.nox-species'));
+      q('.nox-species').append(' ', createHelpButton('ui.speciesLegend', { describes: q('.nox-species') }).el);
       try {
         gfx = createRenderer(q('.view3d'), { camPos: [0.5, 0.8, 0.86], target: [-0.02, 0.69, 0] });
         rig = createNoxRig();

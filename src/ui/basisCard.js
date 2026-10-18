@@ -5,6 +5,7 @@
  * sisanya "source to verify". Teks dari strings.js (STR.basis); nama fungsi hanya tampil di sini dan di panel H.
  */
 import { STR } from './strings.js';
+import { createHelpButton } from './helpButton.js';
 import { cardData } from '../state/basisView.js';
 import { loadContent, fallbackContent } from '../state/content.js';
 
@@ -40,7 +41,9 @@ export function createBasisCard(parent = document.body, { onOpenRefs } = {}) {
     const d = cardData(spec, refs);
     box.replaceChildren();
     const head = h('div', 'bcard__head');
-    head.appendChild(h('h2', '', d.id ? (B.groups[d.id] ?? K.title) : K.custom));
+    const h2 = h('h2', '', d.id ? (B.groups[d.id] ?? K.title) : K.custom);
+    h2.append(' ', createHelpButton('ui.basisCard', { describes: h2 }).el); // ⓘ: apa itu Basis dan tingkat model
+    head.appendChild(h2);
     const close = h('button', 'btn btn--sm', K.close);
     close.type = 'button';
     close.addEventListener('click', () => api.close());

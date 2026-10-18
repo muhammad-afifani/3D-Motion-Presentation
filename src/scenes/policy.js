@@ -16,6 +16,7 @@ import { decadeTicks, decadeFmt } from '../charts/xyChart.js';
 import { niceCeil } from '../charts/chartBase.js';
 import { slider, segmented, button } from '../ui/controls.js';
 import { createHud } from '../ui/hud.js';
+import { createHelpButton } from '../ui/helpButton.js';
 import { createLimitsInput } from '../ui/limitsInput.js';
 import { createRegHeader } from '../ui/regHeader.js';
 import { createLimitsTab } from '../ui/limitsTab.js';
@@ -378,6 +379,7 @@ export function createScene(ctx) {
       });
       presetBtn = button({ label: S.resetPreset, tip: S.resetPresetTip, onClick: () => store.set(leversResetPatch()) });
       q('[data-k="preset"]').append(presetBtn.el);
+      q('[data-k="badge"]').after(createHelpButton('ui.presetBadge', { describes: q('[data-k="badge"]') }).el);
       backBtn = button({ label: S.back(6), key: S.backKey, tip: S.backTip, onClick: () => goBack() });
       backBtn.el.hidden = true;
       q('.pol-head__back').append(backBtn.el);

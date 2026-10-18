@@ -5,6 +5,7 @@
 import { tempToRGB } from '../model/thermo.js';
 import { fmt } from '../ui/format.js';
 import { STR } from '../ui/strings.js';
+import { createHelpButton } from '../ui/helpButton.js';
 
 const rgb = (c) => `rgb(${c.map((v) => Math.round(v * 255)).join(',')})`;
 
@@ -33,6 +34,7 @@ export function createTempLegend(container, { title = STR.common.tempLegend, tic
   root.className = compact ? 'temp-legend temp-legend--compact' : 'temp-legend';
   root.innerHTML = '<div class="temp-legend__title"></div><div class="temp-legend__body"><canvas></canvas><div class="temp-legend__ticks num"></div><div class="temp-legend__marker num"></div></div>';
   root.querySelector('.temp-legend__title').textContent = title;
+  if (!compact) root.append(createHelpButton('ui.tempLegend', { describes: root, cls: 'help-btn--legend' }).el); // ⓘ di bawah skala: arti warna suhu
   container.appendChild(root);
   const canvas = root.querySelector('canvas');
   const ticks = root.querySelector('.temp-legend__ticks');

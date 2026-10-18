@@ -37,6 +37,7 @@ import { createThemeSwitch } from './ui/themeSwitch.js';
 import { createLangSwitch } from './ui/langSwitch.js';
 import { createLearnHost } from './ui/learnHost.js';
 import { closeHelp, setHelpHandlers, openFor as helpOpenFor } from './ui/helpPopover.js';
+import { createHelpButton } from './ui/helpButton.js';
 import { createBackLessonPill } from './ui/backLessonPill.js';
 import { langStore } from './state/langStore.js';
 import { learnReady } from './state/learnStore.js';
@@ -206,7 +207,8 @@ langSlot.id = 'lang-slot';
 const langSwitch = createLangSwitch({ value: langStore.lang, onChange: (l) => langStore.set(l) });
 langSlot.append(langSwitch.el);
 langStore.subscribe((l) => { langSwitch.set(l); backPill.refresh(); });
-document.getElementById('model-badge').before(langSlot, themeSwitch.el);
+document.getElementById('model-badge').before(langSlot, themeSwitch.el, createHelpButton('hdr.switches', { describes: themeSwitch.el }).el); // ⓘ kelompok sakelar
+document.getElementById('model-badge').after(createHelpButton('hdr.status', { describes: document.getElementById('model-badge') }).el); // ⓘ lencana Model OK dan chip Quality
 /** Ganti tema: atribut data-theme, simpan (etel:theme), grafik canvas membaca ulang token warna. */
 function setTheme(t) {
   if (t === theme) return;

@@ -871,7 +871,10 @@ button.chart__level:hover, .hud__note .level[data-basis]:hover, .cyc-level[data-
 .pl-reg:hover { color: var(--text); border-color: var(--accent-cold); }
 .pl-reg [data-k="regline"] { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pl-reg__go { flex: none; color: var(--accent-cold); font-weight: 600; }
-.pl-reg[hidden] { display: none; }
+.pl-reg[hidden], .pl-reg-wrap[hidden] { display: none; }
+.pl-reg-wrap { display: flex; align-items: center; gap: 6px; min-width: 0; width: 100%; }
+.pl-reg-wrap > .pl-reg { flex: 1 1 auto; width: auto; min-width: 0; }
+.pl-reg-wrap > .help-btn { margin: 0 -5px 0 -5px; }
 .refs__item.is-target { border-color: var(--accent-hot); box-shadow: 0 0 0 2px var(--tint-hot-ring); }
 /* ── tab Formation ── */
 .fm-tab { display: grid; gap: 10px; }
@@ -930,7 +933,10 @@ body.mode-explore.nav-collapsed { --nav-w: 52px; }
 .nav__toggle:hover, .nav__toggle:focus-visible { border-color: var(--accent-cold); }
 .nav__body { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 0 6px 10px; display: flex; flex-direction: column; gap: 6px; }
 .nav__sec { display: flex; flex-direction: column; gap: 1px; }
-.nav__title { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); padding: 6px 6px 2px; }
+.nav__title { display: flex; align-items: center; justify-content: space-between; gap: 6px; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); padding: 6px 6px 2px; }
+.nav__title .help-btn { margin: -6px -5px -6px 0; }
+.nav__hint .help-btn { vertical-align: middle; margin: -6px -4px; }
+.nav.is-collapsed .nav__title .help-btn, .nav.is-collapsed .nav__hint .help-btn { display: none; }
 .nav__item { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 28px; padding: 2px 6px; border: 1px solid transparent; border-radius: 8px; background: none; color: var(--text); font: inherit; font-size: 13px; text-align: left; cursor: pointer; }
 .nav__item:hover { background: var(--bg-1); }
 .nav__item:focus-visible { outline: none; border-color: var(--accent-cold); }
@@ -1245,16 +1251,20 @@ body.mode-present .help-btn { display: none; }
 .vp-scope .help-btn__dot, .overlay .help-btn__dot { background: var(--vp-tag-bg); }
 /* HUD: ⓘ di pojok kanan atas sel, label menyisakan ruang */
 .hud__item { position: relative; }
-/* ⓘ separuh keluar dari sudut kanan atas sel: tidak mengambil ruang label dan tidak menyentuh angka */
-.hud__item > .help-btn { position: absolute; top: -8px; right: -8px; margin: 0; z-index: 2; }
+/* ⓘ di sudut kanan atas sel (di dalam kotak sel); label menyisakan ruang, area klik 24 px berakhir di bawah baris label */
+.hud__item > .help-btn { position: absolute; top: -4px; right: 0; margin: 0; z-index: 2; }
+.pl-hud .hud__item > .help-btn { top: -7px; }
+.help-btn--legend { display: flex; margin: 2px 0 -5px -5px; }
+.hud__item--help .hud__label { padding-right: 17px; letter-spacing: -0.01em; }
 /* slider: ⓘ di baris label */
-.ctl--slider.has-help { grid-template-columns: auto auto 1fr; }
+.ctl--slider.has-help { grid-template-columns: auto auto 1fr; column-gap: 2px; }
+.ctl--slider.has-help .ctl__label, .ctl__head .ctl__label { font-size: 11px; }
 .ctl--slider.has-help .ctl__value { justify-self: end; }
 .ctl__head { display: inline-flex; align-items: center; gap: 4px; }
 /* tombol: ⓘ di pojok kanan atas */
 .btn-wrap { position: relative; display: inline-flex; }
 .btn-wrap[hidden] { display: none; }
-.btn-wrap > .help-btn { position: absolute; top: -6px; right: -6px; margin: 0; z-index: 2; }
+.btn-wrap > .help-btn { position: absolute; top: -9px; right: -2px; margin: 0; z-index: 2; }
 /* kartu bantuan: kaca seperti kotak overlay lain */
 .help-card {
   position: fixed; left: 0; top: 0; z-index: 60; width: min(320px, calc(100vw - 16px)); box-sizing: border-box; padding: 10px 12px 9px;

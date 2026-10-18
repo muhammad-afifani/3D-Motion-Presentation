@@ -3,6 +3,7 @@
  * DOM murni: perubahan dikirim lewat callback (store.set(limitsPatch(...))). Dipakai Scene 6 dan M7.
  */
 import { STR } from './strings.js';
+import { createHelpButton } from './helpButton.js';
 
 const T = STR.scene6.limits;
 
@@ -22,6 +23,12 @@ export function createLimitsInput(container, cb) {
     </div>
     <div class="lim__basis" data-v="basis"></div>`;
   el.querySelector('.ctl__label').dataset.tip = T.tip;
+  { // ⓘ di baris label (pembungkus agar tidak menambah baris grid)
+    const lab = el.querySelector('.ctl__label'), head = document.createElement('div');
+    head.className = 'ctl__head';
+    lab.replaceWith(head);
+    head.append(lab, createHelpButton('ui.limitOverride', { describes: el }).el);
+  }
   container.appendChild(el);
   const inp = (k) => /** @type {HTMLInputElement} */ (el.querySelector(`[data-lim="${k}"]`));
   for (const k of ['nox', 'co']) {

@@ -17,6 +17,7 @@ import { animSpeedSlider } from '../ui/animSpeed.js';
 import { createHud } from '../ui/hud.js';
 import { fmt } from '../ui/format.js';
 import { STR } from '../ui/strings.js';
+import { createHelpButton } from '../ui/helpButton.js';
 
 const S = STR.scene8, C = STR.common, U = STR.common.units, H = STR.scene8.hud;
 
@@ -138,6 +139,7 @@ export function createScene(ctx) {
     meta,
     mount() {
       buildDom();
+      q('.nox-species').append(' ', createHelpButton('ui.speciesLegend', { describes: q('.nox-species') }).el);
       buildControls();
       co2Chart = createBarChart(q('.pl-emis'), { basis: 'emissions', title: S.charts.co2.title, xLabel: S.charts.co2.xLabel, unit: U.gkWh, digits: 0, labelWidth: 230, indicative: true, padTop: 64 });
       noxChart = createBarChart(q('.emis-aux__chart'), { basis: 'emissions', title: S.charts.nox.title, xLabel: S.charts.nox.xLabel, unit: U.gkWh, digits: 2, labelWidth: 230, indicative: true });

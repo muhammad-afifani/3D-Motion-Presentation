@@ -21,6 +21,7 @@ import { slider, segmented, button } from '../ui/controls.js';
 import { animSpeedSlider } from '../ui/animSpeed.js';
 import { createHud } from '../ui/hud.js';
 import { createLimitsInput } from '../ui/limitsInput.js';
+import { createHelpButton } from '../ui/helpButton.js';
 import { createCalibrationPanel } from '../ui/calibrationPanel.js';
 import { fmt, pct } from '../ui/format.js';
 import { STR } from '../ui/strings.js';
@@ -120,7 +121,7 @@ export function createScene(ctx) {
           <div class="pl-hud__row"><div class="pl-hud__title">${S.configs.single}</div><div class="pl-hud__body" data-hud="single"></div></div>
           <div class="pl-hud__row"><div class="pl-hud__title">${S.configs.twin}</div><div class="pl-hud__body" data-hud="twin"></div></div>
           <div class="hud__note"><span class="level" role="button" tabindex="0" data-basis="partLoad" data-tip="${STR.basis.tagTip}">${STR.basis.tag} · ${C.level.semiEmpirical}</span>${S.hudNote}</div>
-          <button type="button" class="pl-reg" data-tip="${STR.regulation.scene6Tip}"><span data-k="regline"></span><span class="pl-reg__go">${STR.regulation.scene6Link}</span></button>
+          <div class="pl-reg-wrap"><button type="button" class="pl-reg" data-tip="${STR.regulation.scene6Tip}"><span data-k="regline"></span><span class="pl-reg__go">${STR.regulation.scene6Link}</span></button></div>
         </div>
       </section>`);
     q('.overlay--note').textContent = S.note;
@@ -193,6 +194,7 @@ export function createScene(ctx) {
   function updateReg(f) {
     const n = q('.pl-reg');
     const b = f.regulation.basis;
+    n.parentElement.hidden = !b; // pembungkus (tombol + ⓘ)
     n.hidden = !b;
     if (!b) return;
     setText(n.querySelector('[data-k="regline"]'), regLine(f));
@@ -289,6 +291,7 @@ export function createScene(ctx) {
       buildDom();
       buildControls();
       // tautan ke Scene 9 tab Limits (turbin gas, bahan bakar gas); Scene 9 menyediakan jalan kembali (Esc / ←)
+      q('.pl-reg-wrap').append(createHelpButton('ui.statusChip', { describes: q('.pl-reg') }).el);
       q('.pl-reg').addEventListener('click', () => {
         store.set({ regEquip: 'gasTurbine', regFuel: 'gas', regClass: null, pTab: 'limits', p9Return: meta.number });
         ctx.goToScene?.(9);
@@ -297,6 +300,7 @@ export function createScene(ctx) {
       aux = createMultiLineChart(q('.pl-aux'), { title: S.charts.flame.title, modelLevel: 'semiEmpirical', basis: 'partLoad', xLabel: S.charts.xLabel, yLabel: S.charts.flame.yLabel });
       legend = createTempLegend(q('.overlay--legend'));
       q('.overlay--legend').append(q('.nox-species'));
+      q('.nox-species').append(' ', createHelpButton('ui.speciesLegend', { describes: q('.nox-species') }).el);
       buildCalibration();
       try {
         gfx = createRenderer(q('.view3d'), { camPos: [0.2, 0.6, 8.4], target: [0, -0.15, 0] });
