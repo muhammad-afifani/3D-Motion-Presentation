@@ -39,16 +39,16 @@ export function hudItems(f) {
   const basis = C.basis.full(f.NOx.refO2, f.NOx.TrefC);
   const flag = f.NOx.basisDefault ? undefined : C.basis.flag;
   const items = [
-    { id: 'timing', label: H.timing.label(diesel), unit: U.atdc, value: (x) => plusDeg(x.theta0), tip: H.timing.tip },
-    { id: 'tb', label: H.tbPeak.label, unit: U.K, value: (x) => fmt(x.TbPeak, 0), tip: H.tbPeak.tip },
-    { id: 'noxg', label: H.noxG.label, unit: U.gkWh, value: (x) => fmt(x.NOx.gkWh, 2), tip: H.noxG.tip },
-    { id: 'noxppm', label: H.noxPpm.label, unit: H.noxPpm.unit, sub: basis, flag, value: (x) => fmt(x.NOx.ppm, 0), tip: H.noxPpm.tip },
-    { id: 'noxmg', label: H.noxMg.label, unit: H.noxMg.unit, sub: basis, flag, value: (x) => fmt(x.NOx.mgNm3, 0), tip: H.noxMg.tip },
-    { id: 'eta', label: H.eta.label, unit: U.pct, value: (x) => pct(x.eta.brake, 1), tip: H.eta.tip },
-    { id: 'co2', label: H.co2.label, unit: U.gkWh, value: (x) => fmt(x.CO2.gkWh, 0), tip: H.co2.tip },
+    { id: 'timing', help: 'hud.timing', label: H.timing.label(diesel), unit: U.atdc, value: (x) => plusDeg(x.theta0), tip: H.timing.tip },
+    { id: 'tb', help: 'hud.burnedT', label: H.tbPeak.label, unit: U.K, value: (x) => fmt(x.TbPeak, 0), tip: H.tbPeak.tip },
+    { id: 'noxg', help: 'hud.noxG', label: H.noxG.label, unit: U.gkWh, value: (x) => fmt(x.NOx.gkWh, 2), tip: H.noxG.tip },
+    { id: 'noxppm', help: 'hud.noxPpm', label: H.noxPpm.label, unit: H.noxPpm.unit, sub: basis, flag, value: (x) => fmt(x.NOx.ppm, 0), tip: H.noxPpm.tip },
+    { id: 'noxmg', help: 'hud.noxMg', label: H.noxMg.label, unit: H.noxMg.unit, sub: basis, flag, value: (x) => fmt(x.NOx.mgNm3, 0), tip: H.noxMg.tip },
+    { id: 'eta', help: 'hud.etaBrake', label: H.eta.label, unit: U.pct, value: (x) => pct(x.eta.brake, 1), tip: H.eta.tip },
+    { id: 'co2', help: 'hud.co2', label: H.co2.label, unit: U.gkWh, value: (x) => fmt(x.CO2.gkWh, 0), tip: H.co2.tip },
   ];
   // faktor kalibrasi tampil di HUD bila ≠ 1 (CLAUDE.md → Aturan model)
-  if (f.calib !== 1) items.push({ id: 'calib', label: H.calib.label, unit: '', sub: H.calib.sub(f.calib === f.calibDefault), value: (x) => H.calib.value(x.calib), tip: H.calib.tip });
+  if (f.calib !== 1) items.push({ id: 'calib', help: 'hud.noxCalib', label: H.calib.label, unit: '', sub: H.calib.sub(f.calib === f.calibDefault), value: (x) => H.calib.value(x.calib), tip: H.calib.tip });
   return items;
 }
 
@@ -114,20 +114,20 @@ export function createScene(ctx) {
   // ── kontrol ──
   function buildControls() {
     const s = store.get();
-    ctl.engine = segmented({
+    ctl.engine = segmented({ help: 'ctl.engine',
       label: S.engine, tip: S.tips.engine,
       options: [{ value: 'diesel', label: S.engines.diesel, key: '1' }, { value: 'gas', label: S.engines.gas, key: '2' }],
       value: s.nEngine, onChange: (v) => setEngine(v),
     });
-    ctl.timing = slider({ label: S.timing[s.nEngine], ...NOX_TIMING[s.nEngine], value: s.nTheta0, format: signedDeg, tip: S.tips.timing, onInput: (v) => store.set({ nTheta0: v }) });
-    ctl.theta = slider({ label: S.window, min: NOX_WINDOW.lo, max: NOX_WINDOW.hi, step: 0.5, value: Math.min(NOX_WINDOW.hi, Math.max(NOX_WINDOW.lo, s.theta)), format: signedDeg, tip: S.tips.window, onInput: (v) => store.set(scrubPatch(store.get(), v)) });
+    ctl.timing = slider({ help: 'ctl.timing', label: S.timing[s.nEngine], ...NOX_TIMING[s.nEngine], value: s.nTheta0, format: signedDeg, tip: S.tips.timing, onInput: (v) => store.set({ nTheta0: v }) });
+    ctl.theta = slider({ help: 'ctl.crankAngle', label: S.window, min: NOX_WINDOW.lo, max: NOX_WINDOW.hi, step: 0.5, value: Math.min(NOX_WINDOW.hi, Math.max(NOX_WINDOW.lo, s.theta)), format: signedDeg, tip: S.tips.window, onInput: (v) => store.set(scrubPatch(store.get(), v)) });
     ctl.rpm = animSpeedSlider(store);
-    ctl.play = button({ label: C.pause, key: C.keySpace, tip: C.tips.play, onClick: () => store.set(togglePlayPatch(store.get())) });
-    ctl.freeze = button({ label: C.freeze, key: 'F', tip: C.tips.freeze, onClick: () => store.set(toggleFreezePatch(store.get())) });
-    ctl.reset = button({ label: C.reset, key: 'R', tip: S.tips.reset, onClick: () => resetTiming() });
-    ctl.labels = button({ label: C.labels, key: 'L', tip: S.tips.labels, onClick: toggleLabels });
+    ctl.play = button({ help: 'ctl.play', label: C.pause, key: C.keySpace, tip: C.tips.play, onClick: () => store.set(togglePlayPatch(store.get())) });
+    ctl.freeze = button({ help: 'ctl.freeze', label: C.freeze, key: 'F', tip: C.tips.freeze, onClick: () => store.set(toggleFreezePatch(store.get())) });
+    ctl.reset = button({ help: 'ctl.reset', label: C.reset, key: 'R', tip: S.tips.reset, onClick: () => resetTiming() });
+    ctl.labels = button({ help: 'ctl.labels', label: C.labels, key: 'L', tip: S.tips.labels, onClick: toggleLabels });
     ctl.labels.setOn(true);
-    ctl.calib = button({ label: S.calib.button, key: S.calib.key, tip: S.calib.tip, onClick: () => toggleCalib() });
+    ctl.calib = button({ help: 'ctl.calibration', label: S.calib.button, key: S.calib.key, tip: S.calib.tip, onClick: () => toggleCalib() });
     const g1 = html('<div class="ctl-group"></div>');
     g1.append(ctl.engine.el, ctl.timing.el);
     const g2 = html('<div class="ctl-group"></div>');

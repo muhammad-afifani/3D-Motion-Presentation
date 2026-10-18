@@ -36,6 +36,7 @@ import { button } from './ui/controls.js';
 import { createThemeSwitch } from './ui/themeSwitch.js';
 import { createLangSwitch } from './ui/langSwitch.js';
 import { createLearnHost } from './ui/learnHost.js';
+import { closeHelp, setHelpHandlers, openFor as helpOpenFor } from './ui/helpPopover.js';
 import { createBackLessonPill } from './ui/backLessonPill.js';
 import { langStore } from './state/langStore.js';
 import { learnReady } from './state/learnStore.js';
@@ -164,6 +165,7 @@ const learnHost = createLearnHost({
   onTry: (lessonId, route) => { pendingBack = backTarget(lessonId, parseHash(route)); },
   onWord: (termId, from) => { closeOverlays('glossary'); glossary.focusTerm(termId, from); },
 });
+setHelpHandlers({ onGlossary: (termId) => { closeOverlays('glossary'); glossary.focusTerm(termId, 'glossary'); } }); // kartu bantuan → Read more → Glossary (overlay di atas scene)
 const PAGE_API = { regulations, formation: formationPage, references, glossary, assumptions: assumptionsPage, ...learnHost.pages };
 /** Halaman penuh yang melapisi halaman Learn / landing / scene (Close kembali ke bawahnya). */
 const OVERLAYS = ['regulations', 'formation', 'references', 'glossary', 'assumptions'];
@@ -229,6 +231,7 @@ function setMode(m) {
   if (m === mode) return;
   mode = m;
   saveMode(storage, mode);
+  closeHelp(false); // ⓘ tersembunyi di Present; kartu yang terbuka ikut tertutup
   applyMode();
   // landing tidak tampil di Present: tutup, dan pastikan ada scene (Scene 1 bila belum ada)
   if (mode === 'present' && learnHost.open) { learnHost.close(); if (index < 0) goTo(0); else syncHash(); }
@@ -255,6 +258,7 @@ async function goTo(i, force = false) {
     const mod = await SCENES[i].load();
     // fade-through ±350 ms (instan bila prefers-reduced-motion); data frame & HUD tidak disentuh
     await fadeSwap(app, () => {
+      closeHelp(false); // kartu bantuan milik scene lama
       formulaToggles?.dispose(); formulaToggles = null;
       current?.dispose();
       app.replaceChildren();
@@ -288,6 +292,7 @@ store.subscribe((s, prev, changed) => { if (changed.includes('pTab') && SCENES[i
 /** Terapkan alamat: scene (+ tab Scene 9) atau halaman. Halaman References/Regulations juga membaca alamat sendiri. */
 function applyRoute(r) {
   if (!r) return;
+  closeHelp(false);
   if (r.type === 'learn') {
     if (r.view === 'landing' && mode === 'present') { if (index < 0) goTo(0); else syncHash(); return; } // Present: tanpa landing
     if (mode === 'present') setMode('explore'); // Learn, Chart guide, About = materi Explore
@@ -328,7 +333,7 @@ window.__etelDebug = {
   basisCardOpen: () => basisCard.open, referencesOpen: () => references.open, regulationsOpen: () => regulations.open,
   mode: () => mode, page: () => openPage(), paused: () => paused,
   hero: () => learnHost.heroInfo(), lang: () => learnHost.lang, learnView: () => learnHost.view, learnViewId: () => learnHost.viewId,
-  backPill: () => (backPill.visible ? backPill.el.getAttribute('href') : null), glossaryOpen: () => glossary.open,
+  backPill: () => (backPill.visible ? backPill.el.getAttribute('href') : null), glossaryOpen: () => glossary.open, helpOpen: () => helpOpenFor(),
   guideFor: async (title) => guideIdForTitle(title, (await learnReady())?.data?.charts ?? []),
 };
 
@@ -383,7 +388,7 @@ function loop(now) {
   const dt = Math.min(0.1, rawDt);                  // dt animasi dibatasi (tab kembali aktif, frame lambat)
   last = now;
   const page = openPage();
-  if (page !== shownPage) { shownPage = page; nav.setPage(page); if (!page) syncHash(); }
+  if (page !== shownPage) { shownPage = page; closeHelp(false); nav.setPage(page); if (!page) syncHash(); }
   // tanpa scene dan tanpa halaman (mis. halaman ditutup dari landing): Explore → landing, Present → Scene 1
   if (!page && index < 0 && !loading) { if (mode === 'present') goTo(0); else learnHost.show('landing'); }
   // halaman penuh terbuka → render 3D, grafik, dan pengukur kualitas berhenti (scene tetap ter-mount); lanjut saat ditutup

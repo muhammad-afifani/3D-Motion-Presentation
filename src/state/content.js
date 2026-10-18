@@ -440,3 +440,51 @@ export function learnTotals(j) {
   const lessons = levels.flatMap((l) => (Array.isArray(l.lessons) ? l.lessons : []));
   return { levels: levels.length, lessons: lessons.length, minutes: lessons.reduce((a, l) => a + (Number.isFinite(l.minutes) ? l.minutes : 0), 0) };
 }
+
+// ── Bagian C: content/help.json (kartu bantuan ⓘ untuk HUD, kontrol, panel; teks dua bahasa) ──────────────────────
+
+/** File help.json tidak dibundel statis: fallback lewat dynamic import (chunk terpisah, lihat state/helpStore.js). */
+export const HELP_FILE = 'help.json';
+export const HELP_ID_RE = /^(hud|ctl|ui|nav|hdr)\.[A-Za-z0-9]+$/;
+const HELP_KEYS = Object.freeze(['what', 'how', 'glossary', 'lesson']);
+
+/**
+ * Teks bantuan tanpa angka hasil model. Diizinkan: subskrip kimia Unicode (CO₂, NO₂, O₂, T₃: bukan digit ASCII),
+ * "Scene N", petunjuk tombol "key X" (sisi id: "tombol X"), dan "3D". Digit ASCII lain ditolak.
+ * @param {string} t
+ */
+export const helpHasNumber = (t) => /[0-9]/.test(String(t).replace(/\bScene \d{1,2}\b/g, '').replace(/\b(?:key|tombol) [A-Za-z0-9?]\b/g, '').replace(/\b3D\b/g, ''));
+
+/**
+ * Validasi help.json: { version:1, reviewed:boolean, items:{ <id>:{ what:{en,id}, how:{en,id}, glossary?:string[], lesson?:string } } }.
+ * Opsi: glossaryIds (id glossary.json dan learn.terms), lessonIds (id pelajaran learn.json); bila tidak diberikan, id tidak diperiksa.
+ * @param {any} j @param {{glossaryIds?:Iterable<string>, lessonIds?:Iterable<string>}} [o]
+ */
+export function validateHelp(j, o = {}) {
+  const e = [];
+  if (!j || typeof j !== 'object' || Array.isArray(j)) return [{ field: '(root)', code: 'notObject' }];
+  if (j.version !== 1) e.push({ field: 'version', code: 'version' });
+  if (typeof j.reviewed !== 'boolean') e.push({ field: 'reviewed', code: 'boolean' });
+  if (!j.items || typeof j.items !== 'object' || Array.isArray(j.items) || !Object.keys(j.items).length) return [...e, { field: 'items', code: 'array' }];
+  const gl = o.glossaryIds ? new Set(o.glossaryIds) : null;
+  const ls = o.lessonIds ? new Set(o.lessonIds) : null;
+  for (const [id, it] of Object.entries(j.items)) {
+    const f = (k) => `items.${id}.${k}`;
+    if (!HELP_ID_RE.test(id)) e.push({ field: `items.${id}`, code: 'refId' });
+    if (!it || typeof it !== 'object' || Array.isArray(it)) { e.push({ field: `items.${id}`, code: 'notObject' }); continue; }
+    for (const k of Object.keys(it)) if (!HELP_KEYS.includes(k)) e.push({ field: f(k), code: 'field' });
+    for (const k of ['what', 'how']) {
+      if (!isPair(it[k])) { e.push({ field: f(k), code: 'pair' }); continue; }
+      for (const lang of ['en', 'id']) if (helpHasNumber(it[k][lang])) e.push({ field: f(`${k}.${lang}`), code: 'noNumbers' });
+    }
+    if (it.glossary != null) {
+      if (!Array.isArray(it.glossary) || !it.glossary.every(isText)) e.push({ field: f('glossary'), code: 'refId' });
+      else if (gl) for (const g of it.glossary) if (!gl.has(g)) e.push({ field: f('glossary'), code: 'unknownTerm', detail: g });
+    }
+    if (it.lesson != null) {
+      if (!isText(it.lesson)) e.push({ field: f('lesson'), code: 'refId' });
+      else if (ls && !ls.has(it.lesson)) e.push({ field: f('lesson'), code: 'unknownLesson', detail: it.lesson });
+    }
+  }
+  return e;
+}

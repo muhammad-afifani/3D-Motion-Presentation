@@ -1226,3 +1226,50 @@ body.mode-explore.nav-collapsed { --nav-w: 52px; }
 .chart-guide__lesson-list { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 14px; }
 .chart-guide a:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
 .chart-guide__row:has(.chart-guide__link:focus-visible) { border-color: var(--accent-cold); }
+
+/* ── Bagian C: bantuan ⓘ (tombol + kartu) ──
+   Tombol: tampilan 18 px, area klik 24×24 px (margin negatif -5 px: tinggi baris sekitarnya tidak bertambah). Gaya mengikuti ⓘ grafik. */
+.help-btn {
+  position: relative; flex: none; display: inline-flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px; margin: -5px; padding: 0; border: 0; background: none; cursor: pointer;
+  font: inherit; font-size: 11px; line-height: 1; color: var(--muted);
+}
+.help-btn__dot {
+  display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 999px;
+  background: var(--bg-0); border: 1px solid var(--line); box-sizing: border-box; pointer-events: none;
+}
+.help-btn:hover .help-btn__dot, .help-btn[aria-expanded='true'] .help-btn__dot { color: var(--text); border-color: var(--accent-cold); }
+.help-btn:focus-visible { outline: none; }
+.help-btn:focus-visible .help-btn__dot { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+body.mode-present .help-btn { display: none; }
+.vp-scope .help-btn__dot, .overlay .help-btn__dot { background: var(--vp-tag-bg); }
+/* HUD: ⓘ di pojok kanan atas sel, label menyisakan ruang */
+.hud__item { position: relative; }
+/* ⓘ separuh keluar dari sudut kanan atas sel: tidak mengambil ruang label dan tidak menyentuh angka */
+.hud__item > .help-btn { position: absolute; top: -8px; right: -8px; margin: 0; z-index: 2; }
+/* slider: ⓘ di baris label */
+.ctl--slider.has-help { grid-template-columns: auto auto 1fr; }
+.ctl--slider.has-help .ctl__value { justify-self: end; }
+.ctl__head { display: inline-flex; align-items: center; gap: 4px; }
+/* tombol: ⓘ di pojok kanan atas */
+.btn-wrap { position: relative; display: inline-flex; }
+.btn-wrap[hidden] { display: none; }
+.btn-wrap > .help-btn { position: absolute; top: -6px; right: -6px; margin: 0; z-index: 2; }
+/* kartu bantuan: kaca seperti kotak overlay lain */
+.help-card {
+  position: fixed; left: 0; top: 0; z-index: 60; width: min(320px, calc(100vw - 16px)); box-sizing: border-box; padding: 10px 12px 9px;
+  border-radius: 10px; border: 1px solid var(--line); background: color-mix(in srgb, var(--bg-2) 94%, transparent); color: var(--text);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); box-shadow: 0 6px 18px var(--shadow);
+  font-size: 13px; line-height: 1.45; outline: none;
+}
+.help-card[hidden] { display: none; }
+.help-card p { margin: 0 0 6px; }
+.help-card__what { font-weight: 600; }
+.help-card__how { color: var(--text); }
+.help-card__more { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin-top: 2px; font-size: 12px; }
+.help-card__more-label { color: var(--muted); }
+.help-card__link { font: inherit; font-size: 12px; padding: 0; border: 0; background: none; color: var(--cold-text); text-decoration: underline; cursor: pointer; }
+.help-card__link:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+.help-card__draft { position: absolute; top: 6px; right: 8px; font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 0 6px; }
+.help-card__what { padding-right: 40px; }
+.lesson__back { display: inline-flex; align-items: center; margin: 0 0 8px; text-decoration: none; background: var(--tint-cold); border-color: var(--accent-cold); }

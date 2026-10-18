@@ -34,14 +34,14 @@ const CAM = {
 
 /** HUD per mode (label & tooltip dari STR.scene3.hud). */
 function hudItems(mode) {
-  const items = [{ id: 'tf', label: H.tflame.label, unit: U.K, value: (f) => fmt(f.Tflame, 0), tip: H.tflame.tip(mode === 'diesel') }];
-  if (mode === 'diesel') items.push({ id: 'dT', label: H.dT.label, unit: U.K, value: (f) => `+${fmt(f.dTlocal, 0)}`, tip: H.dT.tip });
+  const items = [{ id: 'tf', help: 'hud.flameT', label: H.tflame.label, unit: U.K, value: (f) => fmt(f.Tflame, 0), tip: H.tflame.tip(mode === 'diesel') }];
+  if (mode === 'diesel') items.push({ id: 'dT', help: 'hud.localDeltaT', label: H.dT.label, unit: U.K, value: (f) => `+${fmt(f.dTlocal, 0)}`, tip: H.dT.tip });
   items.push(
-    { id: 'phi', label: S.phiLabel[mode], unit: '', value: (f) => fmt(f.phi, 2), tip: mode === 'turbine' ? H.phiTip.turbine : H.phiTip.other },
-    { id: 'tin', label: H.tin.label, unit: U.K, value: (f) => fmt(f.Tin, 0), tip: mode === 'turbine' ? H.tin.tipTurbine : H.tin.tipPiston },
+    { id: 'phi', help: 'ctl.equivalence', label: S.phiLabel[mode], unit: '', value: (f) => fmt(f.phi, 2), tip: mode === 'turbine' ? H.phiTip.turbine : H.phiTip.other },
+    { id: 'tin', help: 'ctl.intakeT', label: H.tin.label, unit: U.K, value: (f) => fmt(f.Tin, 0), tip: mode === 'turbine' ? H.tin.tipTurbine : H.tin.tipPiston },
   );
-  if (mode === 'turbine') items.push({ id: 'q', label: H.q.label, unit: U.kJkg, value: (f) => fmt(f.qin / 1e3, 0), tip: H.q.tip });
-  else items.push({ id: 'hr', label: H.hr.label, unit: U.pct, value: (f) => pct(f.intensity, 0), tip: H.hr.tip });
+  if (mode === 'turbine') items.push({ id: 'q', help: 'hud.qin', label: H.q.label, unit: U.kJkg, value: (f) => fmt(f.qin / 1e3, 0), tip: H.q.tip });
+  else items.push({ id: 'hr', help: 'hud.heatRelease', label: H.hr.label, unit: U.pct, value: (f) => pct(f.intensity, 0), tip: H.hr.tip });
   return items;
 }
 
@@ -83,22 +83,22 @@ export function createScene(ctx) {
 
   function buildControls() {
     const s = store.get();
-    ctl.mode = segmented({
+    ctl.mode = segmented({ help: 'ctl.mixMode',
       label: S.chamber,
       options: Object.keys(FLAME_MODES).map((value, i) => ({ value, label: S.modes[value], key: String(i + 1) })),
       value: s.fMode, onChange: (v) => setMode(v),
     });
-    ctl.phi = slider({ label: S.phiLabel[s.fMode], ...FLAME_RANGES.phi, value: s.fPhi, digits: 2, onInput: (v) => store.set({ fPhi: v }) });
-    ctl.phiLocal = slider({ label: S.phiLocal, ...FLAME_RANGES.phiLocal, value: s.fPhiLocal, digits: 2, tip: S.tips.phiLocal, onInput: (v) => store.set({ fPhiLocal: v }) });
-    ctl.tin = slider({ label: S.tin, ...FLAME_RANGES.Tin, value: 300, digits: 0, unit: U.K, tip: S.tips.tin, onInput: (v) => store.set({ fTin: v }) });
-    ctl.tinModel = button({ label: S.tinModel, tip: S.tips.tinModel, onClick: () => store.set({ fTin: null }) });
-    ctl.focus = button({ label: S.focus, tip: S.tips.focus, onClick: () => store.set({ fFocus: !store.get().fFocus }) });
-    ctl.theta = slider({ label: C.crankAngle, min: -360, max: 360, step: 0.5, value: s.theta, format: signedDeg, tip: C.tips.crankAngle, onInput: (v) => store.set(scrubPatch(store.get(), v)) });
+    ctl.phi = slider({ help: 'ctl.equivalence', label: S.phiLabel[s.fMode], ...FLAME_RANGES.phi, value: s.fPhi, digits: 2, onInput: (v) => store.set({ fPhi: v }) });
+    ctl.phiLocal = slider({ help: 'ctl.localPhi', label: S.phiLocal, ...FLAME_RANGES.phiLocal, value: s.fPhiLocal, digits: 2, tip: S.tips.phiLocal, onInput: (v) => store.set({ fPhiLocal: v }) });
+    ctl.tin = slider({ help: 'ctl.intakeT', label: S.tin, ...FLAME_RANGES.Tin, value: 300, digits: 0, unit: U.K, tip: S.tips.tin, onInput: (v) => store.set({ fTin: v }) });
+    ctl.tinModel = button({ help: 'ctl.intakeModel', label: S.tinModel, tip: S.tips.tinModel, onClick: () => store.set({ fTin: null }) });
+    ctl.focus = button({ help: 'ctl.focus', label: S.focus, tip: S.tips.focus, onClick: () => store.set({ fFocus: !store.get().fFocus }) });
+    ctl.theta = slider({ help: 'ctl.crankAngle', label: C.crankAngle, min: -360, max: 360, step: 0.5, value: s.theta, format: signedDeg, tip: C.tips.crankAngle, onInput: (v) => store.set(scrubPatch(store.get(), v)) });
     ctl.rpm = animSpeedSlider(store);
-    ctl.play = button({ label: C.pause, key: C.keySpace, tip: C.tips.play, onClick: () => store.set(togglePlayPatch(store.get())) });
-    ctl.freeze = button({ label: C.freeze, key: 'F', tip: C.tips.freeze, onClick: () => store.set(toggleFreezePatch(store.get())) });
-    ctl.bloom = button({ label: S.bloom.auto, key: 'B', tip: S.tips.bloom, onClick: cycleBloom });
-    ctl.reset = button({ label: C.reset, key: 'R', tip: S.tips.reset, onClick: () => setMode(store.get().fMode, true) });
+    ctl.play = button({ help: 'ctl.play', label: C.pause, key: C.keySpace, tip: C.tips.play, onClick: () => store.set(togglePlayPatch(store.get())) });
+    ctl.freeze = button({ help: 'ctl.freeze', label: C.freeze, key: 'F', tip: C.tips.freeze, onClick: () => store.set(toggleFreezePatch(store.get())) });
+    ctl.bloom = button({ help: 'ctl.bloom', label: S.bloom.auto, key: 'B', tip: S.tips.bloom, onClick: cycleBloom });
+    ctl.reset = button({ help: 'ctl.reset', label: C.reset, key: 'R', tip: S.tips.reset, onClick: () => setMode(store.get().fMode, true) });
 
     const g1 = html('<div class="ctl-group"></div>');
     g1.append(ctl.mode.el, ctl.phi.el, ctl.phiLocal.el, ctl.tin.el, ctl.tinModel.el);

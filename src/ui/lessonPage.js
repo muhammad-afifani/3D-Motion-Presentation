@@ -10,7 +10,7 @@ import { tr } from '../state/lang.js';
 import { findLesson, lessonWords } from '../state/learnView.js';
 import { createWordBox, createSourceList } from './readingParts.js';
 
-const L = STR.bi.lesson, LL = STR.bi.learn;
+const L = STR.bi.lesson, LL = STR.bi.learn, HL = STR.bi.help;
 
 function h(tag, cls = '', text = '') {
   const e = document.createElement(tag);
@@ -22,7 +22,7 @@ function h(tag, cls = '', text = '') {
 /**
  * @param {HTMLElement} root
  * @param {{learn:any|null, glossary:any, references:any, lang:'en'|'id', id:string,
- *   progress:ReturnType<import('../state/learnProgress.js').createLearnProgress>,
+ *   progress:ReturnType<import('../state/learnProgress.js').createLearnProgress>, backHash?:string|null,
  *   onTry:(lessonId:string, route:string)=>void, onWord:(termId:string, from:'learn'|'glossary')=>void}} o
  */
 export function createLesson(root, o) {
@@ -47,6 +47,12 @@ export function createLesson(root, o) {
 
   // banner draf (learn.reviewed === false) di paling atas, lalu 1) remah roti, menit, tujuan
   if (!o.learn.reviewed && o.learn.landing?.draftBanner) main.append(h('div', 'reg__banner learn-page__draft', tr(o.learn.landing.draftBanner, o.lang)));
+  if (o.backHash) {
+    const back = h('a', 'btn btn--sm lesson__back', t(HL.backToScene));
+    back.href = o.backHash;
+    back.dataset.tip = t(HL.backToSceneTip);
+    main.append(back);
+  }
   const crumbs = h('nav', 'lesson__crumbs');
   crumbs.setAttribute('aria-label', t(L.crumbs));
   const ol = h('ol', '');

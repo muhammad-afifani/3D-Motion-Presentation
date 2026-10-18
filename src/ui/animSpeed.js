@@ -12,7 +12,7 @@ const C = STR.common;
 /** @param {{get:()=>any, set:(p:any)=>void}} store */
 export function animSpeedSlider(store) {
   return slider({
-    label: C.animSpeed, min: ANIM_SPEED.min, max: ANIM_SPEED.max, step: ANIM_SPEED.step,
+    help: 'ctl.animSpeed', label: C.animSpeed, min: ANIM_SPEED.min, max: ANIM_SPEED.max, step: ANIM_SPEED.step,
     value: store.get().animSpeed ?? ANIM_SPEED.default,
     format: (v) => C.animSpeedValue(v), tip: C.tips.animSpeed,
     onInput: (v) => store.set(animSpeedPatch(v)),
