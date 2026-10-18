@@ -8,7 +8,8 @@ import { STR } from './strings.js';
 
 /**
  * @param {{className:string, title:string, hash:string, render:(body:HTMLElement)=>void, parent?:HTMLElement, win?:Window,
- *   homeHash?:() => string}} o
+ *   homeHash?:() => string, headExtra?:HTMLElement}} o  headExtra = kontrol tambahan di kepala halaman (mis. sakelar EN/ID Glossary,
+ *   karena halaman penuh menutupi header)
  */
 export function createPageShell(o) {
   const win = o.win ?? window;
@@ -30,7 +31,7 @@ export function createPageShell(o) {
   close.className = 'btn btn--sm';
   close.textContent = STR.pages.close;
   close.addEventListener('click', () => setOpen(false));
-  head.append(h2, close);
+  if (o.headExtra) { const r = document.createElement('div'); r.className = 'refs__head-r'; r.append(o.headExtra, close); head.append(h2, r); } else head.append(h2, close);
   const body = document.createElement('div');
   body.className = 'page__body';
   box.append(head, body);

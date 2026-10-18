@@ -39,5 +39,17 @@ export function writeLang(storage, lang) {
   try { storage?.setItem(LANG_KEY, lang); return !!storage; } catch { return false; }
 }
 
-/** Teks dari pasangan { en, id } (learn.json); pasangan tidak lengkap → English. */
-export const tr = (pair, lang) => (pair && typeof pair === 'object' ? (pair[lang] || pair.en || '') : String(pair ?? ''));
+/**
+ * Pemilih bahasa tunggal untuk teks dua bahasa: pasangan { en, id } (nilai string atau fungsi yang membentuk string).
+ * Satu-satunya tempat pilihan bahasa ditentukan; dipakai Landing, About, Learn, Glossary (Step 01–02) dan nanti paket D
+ * untuk seluruh aplikasi, sehingga tidak ada `if (lang === …)` tersebar. Pasangan tidak lengkap (sisi id kosong) → English.
+ * @param {{en:any, id?:any}|string|null|undefined} pair
+ * @param {'en'|'id'} lang
+ * @param {...any} args argumen untuk pasangan berupa fungsi
+ * @returns {string}
+ */
+export function tr(pair, lang, ...args) {
+  const v = pair && typeof pair === 'object' ? (pair[lang] || pair.en) : pair;
+  const out = typeof v === 'function' ? v(...args) : v;
+  return out == null ? '' : String(out);
+}

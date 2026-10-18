@@ -67,12 +67,16 @@ describe('mode Explore / Present', () => {
     expect(arrowsChangeScene('present', false)).toBe(true);
     expect(arrowsChangeScene('explore', false)).toBe(false);
     expect(arrowsChangeScene('explore', true)).toBe(true);
+    // M11 Step 02: tidak saat halaman (Learn, landing, References, …) terbuka di atas scene; Present tidak berubah
+    expect(arrowsChangeScene('explore', true, true)).toBe(false);
+    expect(arrowsChangeScene('explore', false, true)).toBe(false);
+    expect(arrowsChangeScene('present', false, true)).toBe(true);
   });
   it('main.js: M ganti mode, P tetap jendela presenter, panah lewat aturan mode; petunjuk "M: Explore" saat masuk Present', () => {
     const src = strip(readFileSync(`${ROOT}src/main.js`, 'utf8'));
     expect(src).toMatch(/case 'm': setMode\(otherMode\(mode\)\)/);
     expect(src).toMatch(/case 'p': presenter\.toggle\(\)/);
-    expect(src).toMatch(/arrowsChangeScene\(mode, inNav\)/);
+    expect(src).toMatch(/arrowsChangeScene\(mode, inNav, openPage\(\) != null\)/);
     expect(GLOBAL_KEYS).toContain('m');
     expect(STR.nav.hintPresent).toBe('M: Explore');
     expect(src).toMatch(/hintEl\.textContent = STR\.nav\.hintPresent/);

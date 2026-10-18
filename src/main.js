@@ -5,7 +5,10 @@
  * mesin · L label · H panel asumsi · ? References · G Regulations · M Explore/Present · P presenter · S snapshot PNG ·
  * Q Quality · B Bloom · K laser pointer · Shift+K spotlight · Shift+D overlay debug.
  * Router (state/route.js): #/scene/N[/tab], #/regulations, #/formation, #/references[/id], #/glossary, #/assumptions;
- * M11: tanpa hash / #/ = landing (Explore; Present → Scene 1), #/about, #/learn[/id], #/learn/charts[/id] (ui/learnHost.js).
+ * M11: tanpa hash / #/ = landing (Explore; Present → Scene 1), #/about, #/learn[/id], #/learn/charts[/id] (ui/learnHost.js);
+ * Learn/Chart guide/About di Present pindah ke Explore. Halaman penuh (References, Glossary, …) dibuka DI ATAS halaman Learn
+ * atau landing; Close/Esc kembali ke halaman di bawahnya (alamat halaman langsung → landing). Pil "← Back to lesson"
+ * (header kiri, di bawah tag scene) muncul setelah Try it dari pelajaran ke sebuah scene.
  * Halaman penuh menghentikan loop render (scene tetap ter-mount) dan melanjutkannya saat ditutup.
  * Animation speed (state.animSpeed, 0,1×–2×) mengalikan dt animasi untuk semua scene; dt mentah ikut sebagai argumen kedua.
  * Persistensi ringan (state/persist.js): batas, satuan, basis, opsi Scene 11, scene awal; kalibrasi tidak disimpan.
@@ -25,7 +28,7 @@ import { createQualityController, effectiveBloom, applyDisplay, displayState, QU
 import { createPerfGuard } from './gfx/perfGuard.js';
 import { createPersistence } from './state/persist.js';
 import { SCENE_LIST, SCENE_NUMBERS } from './state/scenes.js';
-import { parseHash, sceneHash, TABBED_SCENE } from './state/route.js';
+import { parseHash, sceneHash, learnHash, TABBED_SCENE } from './state/route.js';
 import { modeStorage, readMode, saveMode, otherMode, readNavCollapsed, saveNavCollapsed, arrowsChangeScene } from './state/mode.js';
 import { createNav } from './ui/nav.js';
 import { attachFormulaToggles } from './ui/formulaToggle.js';
@@ -33,6 +36,9 @@ import { button } from './ui/controls.js';
 import { createThemeSwitch } from './ui/themeSwitch.js';
 import { createLangSwitch } from './ui/langSwitch.js';
 import { createLearnHost } from './ui/learnHost.js';
+import { createBackLessonPill } from './ui/backLessonPill.js';
+import { langStore } from './state/langStore.js';
+import { backPillVisible, backTarget } from './state/learnView.js';
 import { themeStorage, readTheme, writeTheme, applyTheme } from './state/theme.js';
 import { refreshChartTheme } from './charts/chartBase.js';
 import { viewportTone } from './gfx/viewportTone.js';
@@ -72,7 +78,7 @@ installTooltips();
 const store = createStore({ ...defaultState('diesel'), ...cycleInitialState(), ...flameInitialState(), ...noxInitialState(), ...gtInitialState(), ...basisInitialState(), ...calibInitialState(), ...limitsInitialState(), ...loadInitialState(), ...compInitialState(), ...emisInitialState(), ...policyInitialState(), ...ctrlInitialState(), ...closingInitialState(), ...animInitialState(), ...displayInitialState(), ...regulationsInitialState(), ...fuelInitialState(), ...leverInitialState() });
 const persist = createPersistence(store, { sceneNumbers: SCENES.map((x) => x.number) });
 /** Alamat scene saat ini (dipakai saat halaman penuh ditutup). */
-const homeHash = () => (index >= 0 ? sceneHash(SCENES[index].number, SCENES[index].number === TABBED_SCENE ? store.get().pTab : null) : '#/');
+const homeHash = () => (learnHost.open ? learnHash(learnHost.view, learnHost.viewId) : index >= 0 ? sceneHash(SCENES[index].number, SCENES[index].number === TABBED_SCENE ? store.get().pTab : null) : '#/');
 // Basis card dan References dibuat SEBELUM panel asumsi: pendengar Esc-nya jalan lebih dulu, jadi Esc menutup lapisan paling atas
 const references = createReferencesPage(document.body, { homeHash });
 const regulations = createRegulationsPage(document.body, { homeHash });
@@ -141,16 +147,28 @@ async function snapshot() {
 /** Halaman Assumptions = panel H dalam tata letak halaman (satu komponen); overlay H tidak dihitung sebagai halaman. */
 const assumptionsPage = { get open() { return assumptions.isPage; }, setOpen: (on) => (on ? assumptions.setPage(true) : assumptions.isPage && assumptions.setOpen(false)) };
 // M11: landing / Learn / Chart guide / About mengisi area di bawah header (scene disembunyikan, header tetap)
+// Pil "← Back to lesson": Try it dari pelajaran → scene tujuan; tampil selama scene itu terbuka di Explore (state/learnView.js)
+let backLesson = null, pendingBack = null;
+const backPill = createBackLessonPill(document.querySelector('.topbar__left'), () => langStore.lang);
+function syncBack() {
+  const ok = backPillVisible(backLesson, { mode, learnOpen: learnHost.open, sceneNumber: SCENES[index]?.number ?? null });
+  if (ok) backPill.show(backLesson.lessonId); else { backLesson = null; backPill.hide(); }
+}
 const learnHost = createLearnHost({
   shell: document.querySelector('.shell'), app,
   continueScene: () => (index >= 0 ? SCENES[index].number : persist.savedScene),
   onPresent: () => { setMode('present'); goToScene(1); },
-  onChange: () => presenter.sync(),
+  onChange: () => { presenter.sync(); syncBack(); },
+  onTry: (lessonId, route) => { pendingBack = backTarget(lessonId, parseHash(route)); },
+  onWord: (termId, from) => { closeOverlays('glossary'); glossary.focusTerm(termId, from); },
 });
 const PAGE_API = { regulations, formation: formationPage, references, glossary, assumptions: assumptionsPage, ...learnHost.pages };
+/** Halaman penuh yang melapisi halaman Learn / landing / scene (Close kembali ke bawahnya). */
+const OVERLAYS = ['regulations', 'formation', 'references', 'glossary', 'assumptions'];
 const openPage = () => Object.keys(PAGE_API).find((p) => PAGE_API[p].open) ?? null;
+function closeOverlays(except = null) { for (const p of OVERLAYS) if (p !== except && PAGE_API[p].open) PAGE_API[p].setOpen(false); }
 function showPage(p) {
-  for (const [k, api] of Object.entries(PAGE_API)) if (k !== p && api.open) api.setOpen(false);
+  closeOverlays(p);
   PAGE_API[p]?.setOpen(true);
 }
 function togglePage(p) { if (PAGE_API[p].open) PAGE_API[p].setOpen(false); else showPage(p); }
@@ -181,9 +199,9 @@ const themeSwitch = createThemeSwitch({ value: theme, onChange: (t) => setTheme(
 const langSlot = document.createElement('span');
 langSlot.className = 'lang-slot';
 langSlot.id = 'lang-slot';
-const langSwitch = createLangSwitch({ value: learnHost.lang, onChange: (l) => learnHost.setLang(l) });
+const langSwitch = createLangSwitch({ value: langStore.lang, onChange: (l) => langStore.set(l) });
 langSlot.append(langSwitch.el);
-learnHost.onLangChange((l) => langSwitch.set(l));
+langStore.subscribe((l) => { langSwitch.set(l); backPill.refresh(); });
 document.getElementById('model-badge').before(langSlot, themeSwitch.el);
 /** Ganti tema: atribut data-theme, simpan (etel:theme), grafik canvas membaca ulang token warna. */
 function setTheme(t) {
@@ -201,6 +219,7 @@ function applyMode() {
   document.body.classList.toggle('mode-present', mode === 'present');
   nav.el.hidden = mode === 'present';
   exitPresent.el.hidden = mode !== 'present';
+  syncBack();
   requestAnimationFrame(() => window.dispatchEvent(new Event('resize'))); // kanvas & grafik mengukur ulang lebar
 }
 /** Ganti mode (M); masuk Present → petunjuk kecil "M: Explore" sesaat. */
@@ -227,7 +246,8 @@ applyMode();
 /** @param {number} i @param {boolean} [force] pasang ulang scene yang sama (mis. tone viewport berubah karena ganti tema) */
 async function goTo(i, force = false) {
   if (i < 0 || i >= SCENES.length) { toast(STR.app.toast.noScene); return; }
-  if ((i === index && !force) || loading) return;
+  if (i === index && !force) { syncHash(); return; } // mis. Scene N dipilih dari navigasi saat halaman Learn menutupi scene N
+  if (loading) return;
   loading = true;
   try {
     const mod = await SCENES[i].load();
@@ -249,6 +269,7 @@ async function goTo(i, force = false) {
     nav.setScene(mod.meta.number);
     syncHash();
     presenter.sync();
+    syncBack();
   } finally {
     loading = false;
   }
@@ -267,15 +288,17 @@ function applyRoute(r) {
   if (!r) return;
   if (r.type === 'learn') {
     if (r.view === 'landing' && mode === 'present') { if (index < 0) goTo(0); else syncHash(); return; } // Present: tanpa landing
-    for (const [k, api] of Object.entries(PAGE_API)) if (!(k in learnHost.pages) && api.open) api.setOpen(false);
+    if (mode === 'present') setMode('explore'); // Learn, Chart guide, About = materi Explore
+    closeOverlays();
     learnHost.show(r.view, r.id, { fromHash: true });
     return;
   }
+  if (r.type === 'page') { closeOverlays(r.page); return; } // dibuka di atas halaman Learn / landing / scene, tidak menutupnya
   if (learnHost.open) learnHost.close();
-  if (r.type === 'page') { for (const [k, api] of Object.entries(PAGE_API)) if (k !== r.page && api.open) api.setOpen(false); return; }
+  if (pendingBack) { backLesson = pendingBack.n === r.n ? pendingBack : null; pendingBack = null; } // Try it → pil Back to lesson
   if (r.tab) store.set({ pTab: r.tab });
   const i = SCENES.findIndex((x) => x.number === r.n);
-  if (i !== index) goTo(i); else syncHash();
+  if (i !== index) goTo(i); else { syncHash(); syncBack(); }
 }
 window.addEventListener('hashchange', () => applyRoute(parseHash(location.hash)));
 
@@ -302,7 +325,8 @@ window.__etelDebug = {
   goToScene: (n) => goToScene(n),
   basisCardOpen: () => basisCard.open, referencesOpen: () => references.open, regulationsOpen: () => regulations.open,
   mode: () => mode, page: () => openPage(), paused: () => paused,
-  hero: () => learnHost.heroInfo(), lang: () => learnHost.lang, learnView: () => learnHost.view,
+  hero: () => learnHost.heroInfo(), lang: () => learnHost.lang, learnView: () => learnHost.view, learnViewId: () => learnHost.viewId,
+  backPill: () => (backPill.visible ? backPill.el.getAttribute('href') : null), glossaryOpen: () => glossary.open,
 };
 
 window.addEventListener('keydown', (e) => {
@@ -340,7 +364,7 @@ window.addEventListener('keydown', (e) => {
     case 'ArrowRight': case 'ArrowLeft': {
       // Present: panah selalu ganti scene; Explore: hanya bila fokus di navigasi (fokus lalu ikut ke scene baru)
       const inNav = nav.hasFocus();
-      if (!arrowsChangeScene(mode, inNav)) return;
+      if (!arrowsChangeScene(mode, inNav, openPage() != null)) return; // Explore: tidak saat halaman Learn / halaman penuh terbuka
       const i = index + (key === 'ArrowRight' ? 1 : -1);
       goTo(i).then(() => { if (inNav && SCENES[i]) nav.focusScene(SCENES[i].number); });
       break;
@@ -383,6 +407,11 @@ const presentLanding = route0?.type === 'learn' && route0.view === 'landing' && 
 const startN = presentLanding ? 1 : route0?.type === 'scene' ? route0.n : persist.startScene;
 const startIdx = Math.max(0, SCENES.findIndex((x) => x.number === startN));
 if (route0?.type === 'learn' && !presentLanding) {
+  if (mode === 'present') setMode('explore'); // Learn, Chart guide, About = materi Explore
   learnHost.show(route0.view, route0.id, { fromHash: true });
+  requestAnimationFrame(loop);
+} else if (route0?.type === 'page' && mode === 'explore') {
+  // halaman dibuka langsung lewat alamat: landing di bawahnya, jadi Close / Esc kembali ke landing (tidak buntu)
+  learnHost.show('landing', null, { fromHash: true });
   requestAnimationFrame(loop);
 } else goTo(startIdx).then(() => requestAnimationFrame(loop));

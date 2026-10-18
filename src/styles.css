@@ -1102,3 +1102,88 @@ body.mode-explore.nav-collapsed { --nav-w: 52px; }
 .learn-page__level ul, .learn-page__list { margin: 4px 0 0; padding-left: 18px; display: grid; gap: 3px; font-size: 14px; line-height: 1.45; }
 .learn-page .is-target { font-weight: 700; color: var(--accent-hot); }
 .lang-switch .theme-switch__btn { min-width: 36px; }
+
+/* ── M11 Step 02: daftar level, halaman pelajaran, pil Back to lesson, Glossary dua bahasa (hanya token tema) ── */
+.learn-host { container-type: inline-size; }
+.learn-page__bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 14px 0 4px; }
+.learn-page__continue { min-height: 40px; text-decoration: none; background: var(--tint-cold); border-color: var(--accent-cold); }
+.learn-page__stats { font-size: 13px; color: var(--muted); }
+.learn-page__reset { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.learn-page__reset-yes { border-color: var(--fail); color: var(--fail); }
+.learn-page__status { min-height: 1.2em; margin: 2px 0 6px; }
+.reading.learn-page--list { grid-template-columns: minmax(0, 1100px); }
+.learn-page__levels { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; margin-top: 8px; padding: 0; }
+.lvl { padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg-1); display: grid; gap: 6px; align-content: start; min-width: 0; }
+.reading .lvl h3 { margin: 0; font-size: 17px; line-height: 1.3; color: var(--accent-cold); }
+.lvl__summary { margin: 0; font-size: 14px; line-height: 1.45; color: var(--text); }
+.lvl__meta { margin: 0; font-size: 12.5px; color: var(--muted); }
+.lvl__track { height: 6px; border-radius: 3px; background: var(--bg-2); overflow: hidden; }
+.lvl__fill { height: 100%; background: var(--ok); }
+.lvl__lessons { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 2px; }
+.lvl__link { display: grid; grid-template-columns: 20px minmax(0, 1fr) auto; gap: 8px; align-items: baseline; padding: 5px 6px; border-radius: 8px; color: var(--text); text-decoration: none; font-size: 14px; line-height: 1.35; }
+.lvl__link:hover { background: var(--bg-2); }
+.lvl__link:focus-visible, .lesson-page a:focus-visible, .quiz__opt:focus-visible, .wordbox a:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+.lvl__mark { color: var(--muted); text-align: center; }
+.lvl__lesson.is-done .lvl__mark { color: var(--ok); font-weight: 700; }
+.lvl__min { font-size: 12px; color: var(--muted); }
+.learn-page__charts { margin-top: 20px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg-1); display: grid; gap: 6px; justify-items: start; }
+.reading .learn-page__charts h3 { margin: 0; font-size: 17px; }
+.learn-page__charts a { text-decoration: none; }
+/* halaman pelajaran: isi ±70 karakter, 17 px; kotak kata di samping (layar lebar) atau di bawah (layar sempit) */
+.reading.lesson-page { grid-template-columns: minmax(0, 70ch) minmax(240px, 300px); align-items: start; }
+.lesson__main { grid-column: 1; min-width: 0; }
+.lesson__side { grid-column: 2; position: sticky; top: 0; display: grid; gap: 12px; padding-top: 64px; min-width: 0; }
+@container (max-width: 980px) {
+  .reading.lesson-page { grid-template-columns: minmax(0, 70ch); }
+  .lesson__side { grid-column: 1; grid-row: 2; position: static; padding-top: 0; }
+}
+.lesson__crumbs ol { display: flex; flex-wrap: wrap; gap: 4px 8px; margin: 0; padding: 0; list-style: none; font-size: 13px; color: var(--muted); }
+.lesson__crumbs li + li::before { content: '›'; margin-right: 8px; color: var(--muted); }
+.lesson__crumbs [aria-current] { color: var(--text); }
+.lesson__meta { margin: 0 0 8px; font-size: 13px; color: var(--muted); }
+.lesson__goal { margin: 0 0 12px; padding: 8px 12px; border-left: 3px solid var(--accent-cold); background: var(--tint-cold-faint); font-size: 17px; line-height: 1.55; }
+.reading .lesson__p { margin: 0 0 12px; font-size: 17px; line-height: 1.65; }
+.wordbox, .tryit, .quiz, .srcs { padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg-1); }
+.tryit, .quiz, .srcs { margin: 18px 0; }
+.reading .wordbox h3, .reading .tryit h3, .reading .quiz h3, .reading .srcs h3 { margin: 0 0 6px; font-size: 16px; }
+.wordbox__list { margin: 0; display: grid; gap: 10px; }
+.wordbox__item dt { font-weight: 700; font-size: 15px; }
+.wordbox__item dd { margin: 2px 0 0; font-size: 14px; line-height: 1.5; color: var(--text); }
+.wordbox__link { font-size: 12.5px; }
+.tryit { border-color: var(--accent-cold); background: var(--tint-cold-faint); }
+.tryit p { margin: 0 0 10px; font-size: 16px; line-height: 1.55; }
+.tryit__go { text-decoration: none; border-color: var(--accent-cold); }
+.quiz__q { margin: 12px 0 0; padding: 0; border: 0; min-width: 0; }
+.quiz__q legend { padding: 0; font-size: 16px; line-height: 1.5; }
+.quiz__n { display: block; font-size: 12px; color: var(--muted); }
+.quiz__opts { display: grid; gap: 6px; margin: 8px 0 6px; }
+.quiz__opt { text-align: left; font: inherit; font-size: 15px; line-height: 1.4; padding: 8px 12px; min-height: 40px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg-2); color: var(--text); cursor: pointer; }
+.quiz__opt:hover { border-color: var(--accent-cold); }
+.quiz__opt[aria-checked="true"] { border-width: 2px; }
+.quiz__opt.is-right { border-color: var(--ok); background: var(--ok-bg); }
+.quiz__opt.is-wrong { border-color: var(--fail); background: var(--fail-bg); }
+.quiz__fb { margin: 0; min-height: 1.4em; font-size: 15px; line-height: 1.5; }
+.quiz__fb.is-right b { color: var(--ok); }
+.quiz__fb.is-wrong b { color: var(--fail); }
+.srcs__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.srcs__item { display: grid; gap: 4px; font-size: 14px; line-height: 1.45; }
+.srcs__row { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; font-size: 13px; }
+.srcs__acc { color: var(--muted); }
+.lesson__nav { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 10px; align-items: stretch; margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--line); }
+.reading .lesson__pn { display: grid; gap: 2px; text-decoration: none; padding: 8px 12px; min-height: 52px; align-content: center; }
+.lesson__pn--next { text-align: right; }
+.lesson__pn-label { font-size: 12px; color: var(--muted); }
+.lesson__pn-title { font-size: 14px; line-height: 1.35; white-space: normal; text-align: inherit; }
+.lesson__done.is-on { border-color: var(--ok); background: var(--ok-bg); color: var(--text); }
+/* pil "← Back to lesson": header kiri, tepat di bawah tag scene (peta posisi M11); token tema */
+.back-pill {
+  align-self: flex-start; margin-top: 2px; padding: 1px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; line-height: 1.5;
+  color: var(--accent-cold); background: var(--tint-cold-soft); border: 1px solid var(--tint-cold-border); text-decoration: none; white-space: nowrap;
+}
+.back-pill[hidden] { display: none; }
+.back-pill:hover { background: var(--tint-cold); }
+.back-pill:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+/* Glossary dua bahasa: kelompok kata dasar + sorotan istilah tujuan */
+.gl__group { margin: 14px 0 4px; font-size: 14px; color: var(--accent-cold); }
+.gl__item.is-target { border-color: var(--accent-hot); box-shadow: 0 0 0 2px var(--tint-hot-ring); }
+.refs__head-r { display: flex; gap: 8px; align-items: center; }

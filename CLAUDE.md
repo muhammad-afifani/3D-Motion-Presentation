@@ -62,6 +62,7 @@ Alur data satu arah: `UI control → store.set → derive() → frame → { rig 
   - Gaya: kalimat pendek, angka dan satuan di depan, tanpa kata hiasan, bentuk aktif, jangan menjelaskan yang sudah terlihat. Tanpa nama fungsi/konstanta kode di caption, tooltip, atau HUD.
   - Kalimat kejujuran model tidak boleh berubah makna: korelasi emisi berlabel "indicative"; twin-shaft = jendela operasi bergeser dan menyempit; single-shaft = "cliff" CO setelah IGV habis; basis O₂ dan volume selalu di samping angka ppm / mg/Nm³.
   - Semua teks UI ada di `src/ui/strings.js` (dikelompokkan per scene). `scenes/`, `charts/`, `ui/`, `main.js`, dan `state/derive*.js` tidak menulis teks UI langsung (dijaga `tests/strings.test.js`). `tests/language.test.js` gagal bila kata Indonesia tertinggal di `strings.js`, `content/controls.json`, `closing.json`, `basis.js`, atau `references.json`, atau bila identifier kode muncul di teks layar di luar panel `H`.
+- Label dua bahasa (M11): label Landing, About, Learn, Glossary berupa pasangan `{ en, id }` di `STR.bi.*` (nilai string atau fungsi), dipilih HANYA lewat `tr(pair, lang, ...args)` di `src/state/lang.js` (satu pemilih, nanti dipakai paket D; dilarang `if (lang === …)` di komponen). Bahasa global: `src/state/langStore.js` (`etel:lang`). Sisi `en` tetap diperiksa kata Indonesia; sisi `id` mengikuti `docs/PADANAN_ISTILAH.md` dan nama halaman/produk tetap (Learn, Chart guide, Glossary, References, Try it, to verify). `tests/language.test.js` memeriksa kedua sisi lengkap dan `id = en` hanya untuk nama yang diizinkan.
 - Tombol cepat global (H, ?, G, M, P, S, Q, B, K, F, R, angka) tidak aktif saat fokus di kolom isian (`ui/keys.js` `isTypingTarget`; dijaga `tests/keys.test.js`).
 - Dispose geometri, material, dan listener saat pindah scene. `InstancedMesh` untuk bilah dan partikel.
 - `cylinderSim` berjalan di Web Worker, dengan debounce saat slider digeser.
@@ -101,7 +102,7 @@ Alur data satu arah: `UI control → store.set → derive() → frame → { rig 
 - [x] UI bagian B: tema Dark / Light (sakelar header, `etel:theme`, token CSS kedua tema, kontras WCAG AA, PNG ikut tema)
 - [ ] M11 Landing, Learn, Chart guide (pack `docs/m11_pack/`, satu Step per permintaan)
   - [x] Step 01 Sumber pengantar (tipe `web`, "Start here"), `content/learn.json` + `validateLearn`, router landing/About/Learn, sakelar EN/ID (`etel:lang`), landing dengan hero turbin + legenda K, About, placeholder Learn/Chart guide, keadaan Start di jendela presenter
-  - [ ] Step 02 Halaman Learn (pelajaran, kata, soal, progres) dan Glossary dua bahasa
+  - [x] Step 02 Halaman Learn (daftar level, 21 pelajaran, kata, soal, sumber, progres `etel:learnDone` + Reset di halaman), pil "← Back to lesson", Glossary dua bahasa (Basic words), label Learn/Landing/About/Glossary dua bahasa lewat `tr()`, halaman penuh dibuka di atas halaman Learn (Close kembali; alamat halaman langsung → landing), Learn di Present → Explore, panah tidak memuat scene di belakang halaman
   - [ ] Step 03 Chart guide dan tombol ⓘ di setiap grafik
 
 ## Golden test acuan (ringkas; tabel lengkap di `docs/PROMPT_simulasi_3D.md` bagian 12)

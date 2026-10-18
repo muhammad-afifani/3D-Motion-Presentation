@@ -22,10 +22,18 @@ const ID_RE = new RegExp(`(?<![\\p{L}\\p{N}_])(${ID_WORDS.join('|')})(?![\\p{L}\
 const ALLOW_PATTERNS = [/Permen LHK? [0-9/]+/, /Peraturan Menteri[^.;]*/];
 const clean = (t) => ALLOW_PATTERNS.reduce((s, re) => s.replace(re, ' '), t);
 
-/** Semua teks daun di STR; fungsi dipanggil dengan argumen contoh (hasil template ikut diperiksa). */
+/** Objek pasangan dua bahasa M11: tepat kunci { en, id } (nilai string atau fungsi). */
+export const isPair = (v) => !!v && typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length === 2 && 'en' in v && 'id' in v;
+const sample = (v) => { try { const r = typeof v === 'function' ? v(1, 2, 3, 4, 5, 6) : v; return typeof r === 'string' ? r : null; } catch { return null; } };
+
+/**
+ * Semua teks daun di STR; fungsi dipanggil dengan argumen contoh (hasil template ikut diperiksa). Pasangan { en, id }:
+ * hanya sisi `en` yang diperiksa kata Indonesianya (aturan English tidak dilonggarkan); sisi `id` dicakup tes pasangan.
+ */
 function leaves(o, path = 'STR', out = []) {
   for (const [k, v] of Object.entries(o)) {
     const p = `${path}.${k}`;
+    if (isPair(v)) { const t = sample(v.en); if (t != null) out.push([`${p}.en`, t]); continue; }
     if (typeof v === 'string') out.push([p, v]);
     else if (typeof v === 'function') { try { const r = v(1, 2, 3, 4, 5, 6); if (typeof r === 'string') out.push([p, r]); } catch { /* butuh objek */ } }
     else if (Array.isArray(v)) v.forEach((x, i) => typeof x === 'string' && out.push([`${p}[${i}]`, x]));
@@ -39,6 +47,22 @@ describe('bahasa UI: English, tanpa sisa kata Indonesia', () => {
   it('strings.js: tidak ada kata Indonesia umum yang tertinggal', () => {
     const bad = leaves(STR).filter(([, t]) => ID_RE.test(clean(t))).map(([p, t]) => `${p}: ${t.slice(0, 80)} [${(clean(t).match(ID_RE) ?? [])[0]}]`);
     expect(bad).toEqual([]);
+  });
+  it('pasangan dua bahasa (STR): kedua sisi lengkap; sisi en tetap diperiksa kata Indonesia; id = en hanya untuk nama yang diizinkan', () => {
+    const pairs = [];
+    const walk = (o, path) => { for (const [k, v] of Object.entries(o)) { const p = `${path}.${k}`; if (isPair(v)) pairs.push([p, v]); else if (v && typeof v === 'object' && !Array.isArray(v)) walk(v, p); } };
+    walk(STR, 'STR');
+    expect(pairs.length).toBeGreaterThan(80);
+    const empty = pairs.filter(([, v]) => !sample(v.en)?.trim() || !sample(v.id)?.trim()).map(([p]) => p);
+    expect(empty).toEqual([]);
+    // sisi en English (tidak dilonggarkan)
+    expect(pairs.filter(([, v]) => ID_RE.test(clean(sample(v.en)))).map(([p, v]) => `${p}: ${sample(v.en)}`)).toEqual([]);
+    // sisi id tidak boleh sama persis dengan en kecuali nama halaman/produk atau simbol (daftar eksplisit)
+    const SAME_OK = new Set(['Learn', 'Chart guide', 'About', 'Start', 'References', 'Assumptions', 'Try it', 'to verify', 'EN', 'ID']);
+    const same = pairs.filter(([, v]) => sample(v.en) === sample(v.id) && !SAME_OK.has(sample(v.en)) && !/^(Level|Scene) \d+$/.test(sample(v.en)) && /\p{L}{4,}/u.test(sample(v.en)));
+    expect(same.map(([p, v]) => `${p}: ${sample(v.en)}`)).toEqual([]);
+    // fungsi pasangan: kedua sisi menerima argumen yang sama dan menghasilkan string
+    for (const [p, v] of pairs) expect(typeof v.en, p).toBe(typeof v.id);
   });
   it('basis.js (dasar teori) dan content/references.json (use) berbahasa English', () => {
     const basisTexts = [...Object.values(UTILITY), ...Object.values(BASIS).flatMap((b) => [b.derivation, ...b.assumptions, ...b.toVerify])];

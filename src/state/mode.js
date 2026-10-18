@@ -42,7 +42,8 @@ export function readNavCollapsed(storage, width = Infinity) {
 export const saveNavCollapsed = (storage, collapsed) => write(storage, NAV_KEY, collapsed ? 'collapsed' : 'expanded');
 
 /**
- * Aturan panah ←/→ untuk ganti scene: di Present selalu; di Explore hanya bila fokus ada di navigasi.
- * @param {'explore'|'present'} mode @param {boolean} focusInNav
+ * Aturan panah ←/→ untuk ganti scene: di Present selalu; di Explore hanya bila fokus ada di navigasi DAN tidak ada halaman
+ * (Learn, landing, References, Glossary, …) yang terbuka di atas scene (M11 Step 02: menutup celah scene berganti di belakang halaman).
+ * @param {'explore'|'present'} mode @param {boolean} focusInNav @param {boolean} [pageOpen]
  */
-export const arrowsChangeScene = (mode, focusInNav) => mode === 'present' || focusInNav;
+export const arrowsChangeScene = (mode, focusInNav, pageOpen = false) => (mode === 'present' ? true : focusInNav && !pageOpen);

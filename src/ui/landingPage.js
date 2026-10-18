@@ -18,7 +18,7 @@ import { deriveTurbine } from '../state/deriveTurbine.js';
 import { defaultState, gtInitialState } from '../state/store.js';
 import { GT_STAGES } from '../model/presets.js';
 
-const S = STR.landing;
+const B = STR.bi.landing, SP = STR.landing.species;
 const SPECIES = ['NOx', 'CO', 'CO2', 'CH4', 'PM'];
 /** Ikon kartu: garis sederhana (currentColor), tanpa aset luar. */
 const ICONS = {
@@ -45,15 +45,15 @@ export function createLanding(root, o) {
   const L = o.learn?.landing ?? null;
   const t = (pair) => tr(pair, o.lang);
   const el = h('section', 'landing');
-  el.setAttribute('aria-label', L ? t(L.title) : S.fallback.title);
+  el.setAttribute('aria-label', L ? t(L.title) : STR.landing.fallbackTitle);
 
   // ── hero: teks (kiri) + panggung 3D (kanan) ──
   const hero = h('div', 'landing__hero');
   const intro = h('div', 'landing__intro');
   if (L) intro.append(h('p', 'landing__kicker', t(L.kicker)));
-  intro.append(h('h2', 'landing__title', L ? t(L.title) : S.fallback.title));
+  intro.append(h('h2', 'landing__title', L ? t(L.title) : STR.landing.fallbackTitle));
   if (L) intro.append(h('p', 'landing__tagline', t(L.tagline)));
-  else intro.append(h('p', 'landing__tagline', S.fallback.note));
+  else intro.append(h('p', 'landing__tagline', tr(B.fallbackNote, o.lang)));
   const actions = h('div', 'landing__actions');
   const cont = o.continueScene();
   if (L && cont != null) {
@@ -63,19 +63,19 @@ export function createLanding(root, o) {
   }
   if (actions.childNodes.length) intro.append(actions);
   const species = h('ul', 'landing__species');
-  species.setAttribute('aria-label', S.speciesLabel);
+  species.setAttribute('aria-label', tr(B.speciesLabel, o.lang));
   for (const k of SPECIES) {
     const li = h('li', '');
     const sw = h('span', 'sw');
     sw.style.background = SPECIES_VAR[k];
-    li.append(sw, S.species[k]);
+    li.append(sw, SP[k]);
     species.append(li);
   }
   intro.append(species);
 
   const stage = h('div', 'landing__stage');
   stage.setAttribute('role', 'img');
-  stage.setAttribute('aria-label', S.heroLabel);
+  stage.setAttribute('aria-label', tr(B.heroLabel, o.lang));
   const view = h('div', 'view3d');
   const legendBox = h('div', 'overlay overlay--legend landing__legend');
   legendBox.hidden = true;
@@ -85,7 +85,7 @@ export function createLanding(root, o) {
 
   // ── kartu ──
   const cards = h('div', 'landing__cards');
-  cards.setAttribute('aria-label', S.cardsLabel);
+  cards.setAttribute('aria-label', tr(B.cardsLabel, o.lang));
   const card = (id, title, text, route, meta) => {
     const c = route === 'present' ? h('button', 'lcard') : h('a', 'lcard');
     if (route === 'present') { c.type = 'button'; c.addEventListener('click', () => o.onPresent()); } else c.href = route;
@@ -98,11 +98,11 @@ export function createLanding(root, o) {
   };
   if (L) {
     const tot = learnTotals(o.learn);
-    for (const c of L.cards) card(c.id, t(c.title), t(c.text), c.route, c.id === 'learn' ? S.totals(tot.levels, tot.lessons, tot.minutes) : '');
+    for (const c of L.cards) card(c.id, t(c.title), t(c.text), c.route, c.id === 'learn' ? tr(B.totals, o.lang, tot.levels, tot.lessons, tot.minutes) : '');
   } else {
-    card('explore', S.fallback.explore, '', '#/scene/1');
-    card('present', S.fallback.present, '', 'present');
-    card('about', S.fallback.references, '', '#/references');
+    card('explore', tr(B.fallbackExplore, o.lang), '', '#/scene/1');
+    card('present', tr(B.fallbackPresent, o.lang), '', 'present');
+    card('about', tr(B.fallbackReferences, o.lang), '', '#/references');
   }
   el.append(cards);
 
@@ -110,7 +110,7 @@ export function createLanding(root, o) {
   if (L) {
     const labels = t(L.links).split(' · ');
     const nav = h('nav', 'landing__links');
-    nav.setAttribute('aria-label', S.linksLabel);
+    nav.setAttribute('aria-label', tr(B.linksLabel, o.lang));
     LINK_ROUTES.forEach((r, i) => {
       if (i) nav.append(h('span', 'landing__dot', '·'));
       const a = h('a', '', labels[i] ?? r.slice(2));
@@ -152,9 +152,9 @@ export function createLanding(root, o) {
       gfx.scene.add(rig.group);
       rig.update(0, 0);
       fit();
-      legend = createTempLegend(legendBox, { title: S.legendTitle, tickStep: 1000, marker: false, compact: true });
+      legend = createTempLegend(legendBox, { title: tr(B.legendTitle, o.lang), tickStep: 1000, marker: false, compact: true });
       legend.update({ tempScale: frame.tempScale });
-      (legendBox.querySelector('.temp-legend') ?? legendBox).append(h('div', 'landing__legend-note', S.legendNote));
+      (legendBox.querySelector('.temp-legend') ?? legendBox).append(h('div', 'landing__legend-note', tr(B.legendNote, o.lang)));
       legendBox.hidden = false;
       gfx.render();
       stage.classList.add('is-ready');

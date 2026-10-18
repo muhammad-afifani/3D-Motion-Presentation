@@ -10,6 +10,8 @@
  *      Present (juga lewat alamat #/scene/N); tinggi grafik Scene 6 dilaporkan.
  *   6. Bagian B: tema terang di 1366×768 (semua scene/tab, latar viewport varian A, kotak overlay kaca + blur tanpa
  *      latar opak putih, halaman penuh, PNG ikut tema, sakelar tersimpan setelah muat ulang).
+ *   8. M11 Step 02: daftar level, 21 pelajaran, soal, progres + Reset di halaman, kata/sumber di atas pelajaran, Try it →
+ *      pil "Back to lesson", Glossary dua bahasa, halaman langsung → landing, Learn di Present → Explore, panah.
  *   7. M11 Step 01: landing (tanpa hash), kartu, hero tidak kosong, EN/ID, kualitas Low pada hero, About, Present tanpa
  *      hash → Scene 1, landing minimal bila learn.json gagal; screenshot landing 3 resolusi × 2 tema.
  * Sengaja TIDAK memeriksa isi kartu info kiri Scene 9 (`.pol-card`): isinya akan dirombak.
@@ -111,7 +113,7 @@ async function basisInteraction(page, url, browser) {
   await page.keyboard.press('Escape');
   const p2 = await browser.newPage({ viewport: { width: 1366, height: 768 } });
   await p2.goto(`${url.replace(/#.*$/, '')}#/references`);
-  await p2.waitForFunction(() => window.__etelDebug?.scene() != null, null, { timeout: 30000 });
+  await p2.waitForFunction(() => window.__etelDebug?.referencesOpen?.(), null, { timeout: 30000 }).catch(() => {}); // alamat halaman langsung: landing di bawahnya (M11 Step 02)
   if (!(await p2.evaluate(() => window.__etelDebug.referencesOpen()))) fails.push('References: alamat langsung #/references tidak membuka halaman');
   await p2.close();
   return fails;
@@ -178,7 +180,7 @@ async function regulationInteraction(page, url, browser) {
   }
   const p2 = await browser.newPage({ viewport: { width: 1366, height: 768 } });
   await p2.goto(`${url.replace(/#.*$/, '')}#/regulations`);
-  await p2.waitForFunction(() => window.__etelDebug?.scene() != null, null, { timeout: 30000 });
+  await p2.waitForFunction(() => window.__etelDebug?.regulationsOpen?.(), null, { timeout: 30000 }).catch(() => {}); // landing di bawah halaman (M11 Step 02)
   if (!(await p2.evaluate(() => window.__etelDebug.regulationsOpen()))) fails.push('Regulations: alamat langsung #/regulations tidak membuka halaman');
   await p2.close();
   return fails;
@@ -465,6 +467,182 @@ async function landingInteraction(browser, url) {
   return fails;
 }
 
+/**
+ * M11 Step 02: daftar level, 21 halaman pelajaran, soal, progres (tersimpan, Reset di dalam halaman), kata → Glossary
+ * dan sumber → References di atas pelajaran (Close/Esc kembali), Try it → pil "Back to lesson", Glossary dua bahasa,
+ * alamat halaman langsung → Close ke landing, Learn di Present → Explore, panah di navigasi tidak memuat scene di
+ * belakang halaman Learn, dan tata letak (tanpa scroll horizontal) di 3 resolusi × 2 tema. Satu halaman dipakai ulang
+ * untuk semua alur 2D (tanpa 3D, cepat); hanya Try it memuat satu scene.
+ */
+async function learnInteraction(browser, url) {
+  const fails = [];
+  const base = url.replace(/#.*$/, '');
+  const LEARN = JSON.parse(readFileSync('content/learn.json', 'utf8'));
+  const ids = LEARN.levels.flatMap((l) => l.lessons.map((x) => x.id));
+  const benign = (t) => /Failed to load resource|net::ERR_/.test(t);
+  const open = async (opts = {}, init = null) => {
+    const p = await browser.newPage({ viewport: { width: 1366, height: 768 }, ...opts });
+    const errs = [];
+    p.on('pageerror', (e) => errs.push(`pageerror: ${e.message}`));
+    p.on('console', (m) => { if (m.type() === 'error' && !benign(m.text())) errs.push(`console: ${m.text()}`); });
+    p.on('dialog', (d) => { errs.push(`dialog browser: ${d.message()}`); d.dismiss().catch(() => {}); });
+    if (init) await p.addInitScript(init.fn, init.arg);
+    return { p, errs };
+  };
+  const st = (p) => p.evaluate(() => ({ view: window.__etelDebug.learnView(), id: window.__etelDebug.learnViewId(), scene: window.__etelDebug.scene(), page: window.__etelDebug.page(), hash: location.hash, pill: window.__etelDebug.backPill(), mode: window.__etelDebug.mode(), glossary: window.__etelDebug.glossaryOpen(), lang: window.__etelDebug.lang() }));
+  const go = async (p, hash) => { await p.evaluate((h) => { location.hash = h; }, hash); await p.waitForTimeout(120); };
+
+  // 1) daftar level (kunjungan pertama = bahasa learn.defaultLang)
+  const { p, errs } = await open();
+  await p.goto(`${base}#/learn`);
+  await p.waitForFunction(() => window.__etelDebug?.learnView?.() === 'learn' && document.querySelectorAll('.lvl').length === 6, null, { timeout: 30000 }).catch(() => fails.push('learn: daftar level tidak tampil'));
+  const list = await p.evaluate(() => ({ lang: document.querySelector('.learn-host').lang, lessons: document.querySelectorAll('.lvl__link').length, banner: !!document.querySelector('.learn-page__draft'), cont: document.querySelector('.learn-page__continue')?.getAttribute('href'), resetDisabled: document.querySelector('.learn-page__reset button')?.disabled, cont0: document.querySelector('.learn-page__continue b')?.textContent, hs: document.documentElement.scrollWidth > innerWidth + 1 }));
+  if (list.lang !== LEARN.defaultLang) fails.push(`learn: bahasa kunjungan pertama ${list.lang}`);
+  if (list.lessons !== 21 || !list.banner || list.cont !== '#/learn/l0-1' || !list.resetDisabled || list.hs) fails.push(`learn: daftar ${JSON.stringify(list)}`);
+  await p.click('.lang-switch [data-lang="en"]'); await p.waitForTimeout(200);
+  if ((await p.evaluate(() => document.querySelector('.learn-page__continue b')?.textContent)) === list.cont0) fails.push('learn: sakelar EN tidak mengganti label');
+
+  // 2) 21 pelajaran terbuka lewat alamat langsung, tanpa galat console, tanpa scroll horizontal
+  for (const id of ids) {
+    await go(p, `#/learn/${id}`);
+    const r = await p.evaluate(() => ({ view: window.__etelDebug.learnView(), id: window.__etelDebug.learnViewId(), h: document.querySelector('.lesson-page h2')?.textContent ?? '', quiz: document.querySelectorAll('.quiz__q').length, tryit: !!document.querySelector('.tryit__go'), hs: document.documentElement.scrollWidth > innerWidth + 1, body: document.querySelectorAll('.lesson__p').length }));
+    if (r.view !== 'learn' || r.id !== id || !r.h || !r.quiz || !r.tryit || !r.body || r.hs) fails.push(`pelajaran ${id}: ${JSON.stringify(r)}`);
+  }
+  await go(p, '#/learn/nope');
+  if (!(await p.evaluate(() => !!document.querySelector('.reading__note')))) fails.push('pelajaran tak dikenal: tanpa pesan');
+
+  // 3) soal: langsung benar/salah + alasan, tanpa skor tersimpan; baris isi ≥ 17 px
+  await go(p, '#/learn/l3-4');
+  const keysBefore = await p.evaluate(() => Object.keys(localStorage).sort().join(','));
+  const q0 = LEARN.levels[3].lessons[3].checks[0];
+  await p.locator('.quiz__q').first().locator('.quiz__opt').nth(q0.answer).click();
+  const right = await p.evaluate(() => document.querySelector('.quiz__fb')?.textContent ?? '');
+  const wrongIdx = q0.options.findIndex((_, i) => i !== q0.answer);
+  await p.locator('.quiz__q').first().locator('.quiz__opt').nth(wrongIdx).click();
+  const wrong = await p.evaluate(() => ({ t: document.querySelector('.quiz__fb')?.textContent ?? '', w: !!document.querySelector('.quiz__opt.is-wrong'), fs: parseFloat(getComputedStyle(document.querySelector('.lesson__p')).fontSize), width: Math.round(document.querySelector('.lesson__p').getBoundingClientRect().width) }));
+  if (!/✓/.test(right) || !/✗/.test(wrong.t) || !wrong.w || !/Why|Mengapa/.test(right)) fails.push(`soal: umpan balik ${JSON.stringify({ right, wrong })}`);
+  if (wrong.fs < 17) fails.push(`pelajaran: ukuran huruf isi ${wrong.fs} px < 17`);
+  if ((await p.evaluate(() => Object.keys(localStorage).sort().join(','))) !== keysBefore) fails.push('soal: menyimpan sesuatu di localStorage');
+
+  // 4) progres: tandai → muat ulang → tersimpan; Reset di dalam halaman (konfirmasi, bukan dialog browser)
+  await p.click('.lesson__done');
+  if ((await p.evaluate(() => localStorage.getItem('etel:learnDone'))) !== '["l3-4"]') fails.push('progres: etel:learnDone tidak tersimpan');
+  await p.reload();
+  await p.waitForFunction(() => window.__etelDebug?.learnView?.() === 'learn', null, { timeout: 30000 });
+  await go(p, '#/learn');
+  const prog = await p.evaluate(() => ({ done: document.querySelectorAll('.lvl__lesson.is-done').length, stats: document.querySelector('.learn-page__stats')?.textContent ?? '', cont: document.querySelector('.learn-page__continue')?.getAttribute('href') }));
+  if (prog.done !== 1 || !/1/.test(prog.stats) || prog.cont !== '#/learn/l0-1') fails.push(`progres: setelah muat ulang ${JSON.stringify(prog)}`);
+  await p.click('.learn-page__reset button');
+  const ask = await p.evaluate(() => ({ yes: !!document.querySelector('.learn-page__reset-yes'), group: !!document.querySelector('.learn-page__reset[role="group"]') }));
+  if (!ask.yes || !ask.group) fails.push('reset: tanpa konfirmasi di dalam halaman');
+  await p.locator('.learn-page__reset button').last().click(); // Cancel
+  if ((await p.evaluate(() => localStorage.getItem('etel:learnDone'))) !== '["l3-4"]') fails.push('reset: Cancel menghapus progres');
+  await p.click('.learn-page__reset button'); await p.click('.learn-page__reset-yes'); await p.waitForTimeout(150);
+  const after = await p.evaluate(() => ({ stored: localStorage.getItem('etel:learnDone'), done: document.querySelectorAll('.lvl__lesson.is-done').length, status: document.querySelector('.learn-page__status')?.textContent ?? '' }));
+  if (after.stored !== null || after.done !== 0 || !after.status) fails.push(`reset: ${JSON.stringify(after)}`);
+
+  // 5) kata → Glossary dan sumber → References dibuka DI ATAS pelajaran; Esc kembali ke pelajaran yang sama
+  await go(p, '#/learn/l3-4');
+  await p.locator('.wordbox__link').first().click(); await p.waitForTimeout(300);
+  let s = await st(p);
+  const hl = await p.evaluate(() => ({ target: !!document.querySelector('.gl__item.is-target, .gl__item--basic.is-target'), box: document.querySelector('.refs--glossary .refs__box')?.scrollTop }));
+  if (!s.glossary || s.page !== 'glossary' || !hl.target) fails.push(`kata → Glossary: ${JSON.stringify({ s, hl })}`);
+  await p.keyboard.press('Escape'); await p.waitForTimeout(250);
+  s = await st(p);
+  if (s.page === 'glossary' || s.hash !== '#/learn/l3-4' || s.id !== 'l3-4') fails.push(`Glossary Esc: ${JSON.stringify(s)} (harusnya kembali ke #/learn/l3-4)`);
+  await p.locator('.srcs__refs').first().click(); await p.waitForTimeout(300);
+  s = await st(p);
+  if (s.page !== 'references') fails.push(`sumber → References: ${JSON.stringify(s)}`);
+  await p.keyboard.press('Escape'); await p.waitForTimeout(250);
+  s = await st(p);
+  if (s.page === 'references' || s.hash !== '#/learn/l3-4') fails.push(`References Esc: ${JSON.stringify(s)}`);
+  // tautan sumber luar dibuka di tab baru
+  const ext = await p.evaluate(() => [...document.querySelectorAll('.srcs__url')].map((a) => `${a.target}|${a.rel}`));
+  if (ext.some((x) => x !== '_blank|noopener noreferrer')) fails.push(`sumber: tautan luar tidak aman ${ext}`);
+
+  // 6) panah ←/→ saat fokus di navigasi tidak memuat scene di belakang halaman Learn
+  await p.locator('.nav [data-scene="3"]').focus();
+  await p.keyboard.press('ArrowRight'); await p.waitForTimeout(700);
+  s = await st(p);
+  if (s.scene !== null || s.view !== 'learn') fails.push(`panah di navigasi saat Learn terbuka: ${JSON.stringify(s)}`);
+
+  // 7) Try it → scene → pil "Back to lesson" (header kiri di bawah tag scene) → kembali ke pelajaran yang sama
+  await go(p, '#/learn/l3-4');
+  await p.click('.tryit__go');
+  await p.waitForFunction(() => window.__etelDebug.scene() === 6 && !window.__etelDebug.loading(), null, { timeout: 30000 }).catch(() => fails.push('Try it: Scene 6 tidak terbuka'));
+  await p.waitForTimeout(400);
+  const pill = await p.evaluate(() => {
+    const el = document.querySelector('.back-pill'), tag = document.getElementById('scene-tag'), chip = document.querySelector('.f-toggle');
+    const r = el?.getBoundingClientRect(), t = tag.getBoundingClientRect(), c = chip?.getBoundingClientRect(), x = document.querySelector('.present-exit')?.getBoundingClientRect();
+    const hit = (a, b) => !!a && !!b && a.width > 0 && b.width > 0 && a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+    return { vis: !!el && !el.hidden && r.width > 0, below: r ? r.top >= t.bottom - 1 : false, inLeft: r ? r.left >= document.querySelector('.topbar__left').getBoundingClientRect().left - 1 && r.right <= document.querySelector('.topbar__left').getBoundingClientRect().right + 1 : false, overlapChip: hit(r, c), overlapExit: hit(r, x), href: el?.getAttribute('href'), txt: el?.textContent, topbarH: Math.round(document.querySelector('.topbar').getBoundingClientRect().height) };
+  });
+  if (!pill.vis || pill.href !== '#/learn/l3-4' || !pill.below || !pill.inLeft || pill.overlapChip || pill.overlapExit) fails.push(`Back to lesson: ${JSON.stringify(pill)}`);
+  if (pill.topbarH > MAX_TOPBAR_PX) fails.push(`Back to lesson: bilah atas ${pill.topbarH} px > ${MAX_TOPBAR_PX}`);
+  await p.click('.back-pill'); await p.waitForTimeout(250);
+  s = await st(p);
+  if (s.hash !== '#/learn/l3-4' || s.view !== 'learn' || s.id !== 'l3-4' || s.pill !== null) fails.push(`Back to lesson → ${JSON.stringify(s)}`);
+  // pil hilang di Present dan saat pindah scene
+  await p.click('.tryit__go');
+  await p.waitForFunction(() => window.__etelDebug.scene() === 6 && window.__etelDebug.backPill(), null, { timeout: 15000 }).catch(() => fails.push('Try it (kedua): pil tidak muncul'));
+  await p.evaluate(() => document.activeElement?.blur?.());
+  await p.keyboard.press('m'); await p.waitForTimeout(250);
+  if ((await st(p)).pill !== null) fails.push('Back to lesson masih tampil di Present');
+  await p.keyboard.press('m'); await p.waitForTimeout(250);
+  await p.locator('.nav [data-scene="2"]').click();
+  await p.waitForFunction(() => window.__etelDebug.scene() === 2 && !window.__etelDebug.loading(), null, { timeout: 30000 }).catch(() => {});
+  if ((await st(p)).pill !== null) fails.push('Back to lesson masih tampil setelah pindah scene');
+
+  // 8) Glossary dua bahasa: Basic words + definisi ID dari learn.glossaryId; EN tidak berubah
+  await go(p, '#/glossary'); await p.waitForTimeout(300);
+  const gl = (lang) => p.evaluate(() => ({ basic: document.querySelectorAll('.gl__item--basic').length, from: document.querySelector('.gl__item--basic .bcard__chip')?.textContent ?? '', first: document.querySelector('.gl__item:not(.gl__item--basic) .gl__def')?.textContent ?? '', id: document.querySelector('.gl__item:not(.gl__item--basic)')?.id ?? '', hs: document.documentElement.scrollWidth > innerWidth + 1 }));
+  await p.click('.refs--glossary .lang-switch [data-lang="id"]'); await p.waitForTimeout(300); // header tertutup halaman: sakelar ada di kepala Glossary
+  const gid = await gl('id');
+  const gtermId = gid.id.replace(/^term-/, '');
+  if (gid.basic !== LEARN.terms.length || gid.from !== 'dari Learn' || gid.first !== LEARN.glossaryId[gtermId].definition) fails.push(`Glossary ID: ${JSON.stringify({ ...gid, want: LEARN.glossaryId[gtermId]?.definition?.slice(0, 40) })}`);
+  await p.click('.refs--glossary .lang-switch [data-lang="en"]'); await p.waitForTimeout(300);
+  const gen = await gl('en');
+  if (gen.from !== 'from Learn' || gen.first === gid.first) fails.push(`Glossary EN: ${JSON.stringify(gen)}`);
+  await p.keyboard.press('Escape'); await p.waitForTimeout(200);
+  for (const e of [...new Set(errs)]) fails.push(`learn: ${e}`);
+
+  // 9) tata letak: tanpa scroll horizontal di 3 resolusi × 2 tema; screenshot daftar dan pelajaran
+  for (const [w, h, theme] of [[1366, 768, 'dark'], [1920, 1080, 'dark'], [1280, 720, 'dark'], [1366, 768, 'light'], [1920, 1080, 'light'], [1280, 720, 'light']]) {
+    await p.setViewportSize({ width: w, height: h });
+    await p.evaluate((t) => { document.documentElement.dataset.theme = t; }, theme);
+    for (const [name, hash] of [['learn', '#/learn'], ['lesson', '#/learn/l3-4']]) {
+      await go(p, hash); await p.waitForTimeout(150);
+      const hs = await p.evaluate(() => ({ page: document.documentElement.scrollWidth > innerWidth + 1, host: document.querySelector('.learn-host').scrollWidth > document.querySelector('.learn-host').clientWidth + 1 }));
+      if (hs.page || hs.host) fails.push(`${name} ${w}×${h} ${theme}: scroll horizontal ${JSON.stringify(hs)}`);
+      if (theme === 'dark' || w === 1366) await p.screenshot({ path: `${SHOTS}/${name}-${w}x${h}-${theme}.png` });
+    }
+  }
+  await p.close();
+
+  // 10) alamat halaman langsung → Close / Esc kembali ke landing (tidak buntu); Learn di Present → Explore
+  {
+    const { p: q, errs: e2 } = await open();
+    await q.goto(`${base}#/regulations`);
+    await q.waitForFunction(() => window.__etelDebug?.page?.() === 'regulations', null, { timeout: 30000 }).catch(() => fails.push('alamat halaman langsung: tidak terbuka'));
+    await q.keyboard.press('Escape'); await q.waitForTimeout(300);
+    const a = await st(q);
+    if (a.page !== 'landing' || a.hash !== '#/' || a.view !== 'landing') fails.push(`halaman langsung → Esc: ${JSON.stringify(a)} (harusnya landing)`);
+    for (const e of [...new Set(e2)]) fails.push(`halaman langsung: ${e}`);
+    await q.close();
+  }
+  {
+    const { p: q, errs: e3 } = await open({}, { fn: () => { try { localStorage.setItem('etel:mode', 'present'); } catch {} }, arg: null });
+    await q.goto(`${base}#/learn/l2-1`);
+    await q.waitForFunction(() => window.__etelDebug?.learnView?.() === 'learn', null, { timeout: 30000 }).catch(() => {});
+    const a = await st(q);
+    const navShown = await q.evaluate(() => !document.querySelector('.nav')?.hidden);
+    if (a.mode !== 'explore' || !navShown || a.id !== 'l2-1') fails.push(`Learn di Present: ${JSON.stringify({ ...a, navShown })} (harusnya Explore)`);
+    for (const e of [...new Set(e3)]) fails.push(`Learn di Present: ${e}`);
+    await q.close();
+  }
+  return fails;
+}
+
 /** Deep link (M9 Step 06): alamat → keadaan yang diharapkan. Setiap alamat dibuka di halaman (konteks) baru. */
 const DEEP_LINKS = [
   ['#/scene/1', { scene: 1 }], ['#/scene/6', { scene: 6 }], ['#/scene/9/limits', { scene: 9, tab: 'limits' }], ['#/scene/9/formation', { scene: 9, tab: 'formation' }],
@@ -481,7 +659,7 @@ async function deepLinks(browser, url) {
     p.on('pageerror', (e) => errs.push(e.message));
     p.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
     await p.goto(`${base}${hash}`);
-    await p.waitForFunction(() => window.__etelDebug?.scene() != null && !window.__etelDebug.loading(), null, { timeout: 30000 });
+    await p.waitForFunction(() => (window.__etelDebug?.scene() != null || window.__etelDebug?.page?.() != null) && !window.__etelDebug.loading(), null, { timeout: 30000 });
     await p.waitForTimeout(600);
     const st = await p.evaluate(() => ({ scene: window.__etelDebug.scene(), page: window.__etelDebug.page(), paused: window.__etelDebug.paused(), mode: window.__etelDebug.mode(), hash: location.hash, tab: document.querySelector('.scene--policy')?.dataset.tab ?? null, nav: !document.querySelector('.nav')?.hidden }));
     if (st.mode !== 'explore' || !st.nav) fails.push(`${hash}: bukan mode Explore dengan navigasi (mode ${st.mode})`);
@@ -499,8 +677,9 @@ async function deepLinks(browser, url) {
       if (want.target && (await p.locator('.refs__item.is-target').count()) !== 1) fails.push(`${hash}: sumber tujuan tidak disorot`);
       await p.keyboard.press('Escape'); await p.waitForTimeout(300);
       const after = await p.evaluate(() => ({ page: window.__etelDebug.page(), paused: window.__etelDebug.paused(), hash: location.hash }));
-      if (after.page || after.paused) fails.push(`${hash}: Esc tidak menutup halaman / loop tidak lanjut`);
-      if (!/^#\/scene\/\d+/.test(after.hash)) fails.push(`${hash}: setelah ditutup alamat ${after.hash} (harusnya #/scene/N)`);
+      if (after.page !== 'landing') fails.push(`${hash}: Esc tidak menutup halaman (halaman ${after.page})`);
+      // M11 Step 02: halaman yang dibuka langsung lewat alamat → Close kembali ke landing (tidak buntu)
+      if (after.hash !== '#/') fails.push(`${hash}: setelah ditutup alamat ${after.hash} (harusnya #/ = landing)`);
     }
     for (const e of [...new Set(errs)]) fails.push(`${hash}: galat ${e}`);
     await p.close();
@@ -608,7 +787,13 @@ try {
   browsers = await launchers(pw);
   const chromium = browsers.find((x) => x.name === 'chromium' && x.browser);
   if (!chromium) throw new Error('Chromium tidak tersedia');
-  for (const [w, h] of VIEWPORTS) {
+  // E2E_ONLY=learn,landing,deeplinks: hanya alur halaman tersebut (iterasi cepat); tanpa variabel = smoke penuh
+  const only = process.env.E2E_ONLY ? new Set(process.env.E2E_ONLY.split(',')) : null;
+  if (only) {
+    const flows = { learn: learnInteraction, landing: landingInteraction, deeplinks: deepLinks, theme: themeInteraction };
+    for (const k of only) if (flows[k]) failures.push(...await flows[k](chromium.browser, srv.url));
+  }
+  for (const [w, h] of only ? [] : VIEWPORTS) {
     const page = await chromium.browser.newPage({ viewport: { width: w, height: h } });
     const errs = [];
     page.on('pageerror', (e) => errs.push(`pageerror: ${e.message}`));
@@ -645,6 +830,7 @@ try {
     if (w === 1366) failures.push(...await themeInteraction(chromium.browser, srv.url));
     if (w === 1366) failures.push(...await deepLinks(chromium.browser, srv.url));
     if (w === 1366) failures.push(...await landingInteraction(chromium.browser, srv.url));
+    if (w === 1366) failures.push(...await learnInteraction(chromium.browser, srv.url));
     for (const e of [...new Set(errs)]) failures.push(`${w}×${h}: ${e}`);
     await page.close();
   }
