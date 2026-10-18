@@ -6,6 +6,7 @@
  * ikut, tetap sejajar dengan canvas) dan panel menjadi kolom di sampingnya; tombol Collapse melipatnya jadi strip.
  */
 import { STR } from './strings.js';
+import { createHelpButton } from './helpButton.js';
 import { fmt } from './format.js';
 
 const T = STR.scene4.calib;
@@ -58,6 +59,7 @@ export function createCalibrationPanel(container, cb) {
     <div class="cal-actions cal-actions--end"><button type="button" class="btn btn--sm" data-reset>${T.reset}</button></div>
     </div>`;
   container.appendChild(el);
+  { const b = el.querySelector('.cal-panel__head b'); b.append(' ', createHelpButton('ui.calibration', { describes: b }).el); } // ⓘ di judul panel
 
   const q = (sel) => el.querySelector(sel);
   const V = (k) => q(`[data-v="${k}"]`);

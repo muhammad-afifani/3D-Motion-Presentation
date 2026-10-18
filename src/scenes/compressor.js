@@ -32,12 +32,12 @@ const WHATIF = CV.cold;
 /** Item HUD baris kompresor (diekspor untuk tes). */
 export function compHudItems() {
   return [
-    { id: 'rp', label: H.rp.label, unit: '', model: H.rp.model, value: (f) => fmt(f.comp.rp, 2), tip: H.rp.tip },
-    { id: 'head', label: H.head.label, unit: SU.kJkg, model: H.head.model, value: (f) => fmt(f.comp.head / 1e3, 1), tip: H.head.tip },
-    { id: 'pw', label: H.power.label, unit: U.MW, model: H.power.model, value: (f) => fmt(f.comp.power / 1e6, 2), tip: H.power.tip },
-    { id: 'tdis', label: H.tdis.label, unit: U.K, model: H.tdis.model, value: (f) => fmt(f.comp.Tdis, 0), tip: H.tdis.tip },
-    { id: 'q', label: H.flow.label, unit: SU.m3s, model: H.flow.model, value: (f) => fmt(f.comp.Q, 3), tip: H.flow.tip },
-    { id: 'n', label: H.nreq.label, unit: SU.pct, model: H.nreq.model, value: (f) => fmt(f.Nreq * 100, 1), tip: H.nreq.tip },
+    { id: 'rp', help: 'hud.pressureRatio', label: H.rp.label, unit: '', model: H.rp.model, value: (f) => fmt(f.comp.rp, 2), tip: H.rp.tip },
+    { id: 'head', help: 'hud.head', label: H.head.label, unit: SU.kJkg, model: H.head.model, value: (f) => fmt(f.comp.head / 1e3, 1), tip: H.head.tip },
+    { id: 'pw', help: 'hud.compPower', label: H.power.label, unit: U.MW, model: H.power.model, value: (f) => fmt(f.comp.power / 1e6, 2), tip: H.power.tip },
+    { id: 'tdis', help: 'hud.dischargeT', label: H.tdis.label, unit: U.K, model: H.tdis.model, value: (f) => fmt(f.comp.Tdis, 0), tip: H.tdis.tip },
+    { id: 'q', help: 'hud.suctionFlow', label: H.flow.label, unit: SU.m3s, model: H.flow.model, value: (f) => fmt(f.comp.Q, 3), tip: H.flow.tip },
+    { id: 'n', help: 'hud.speedRequired', label: H.nreq.label, unit: SU.pct, model: H.nreq.model, value: (f) => fmt(f.Nreq * 100, 1), tip: H.nreq.tip },
   ];
 }
 
@@ -46,12 +46,12 @@ export function driveHudItems(f) {
   const b = f.basis;
   const flagB = b.isDefault ? undefined : C.basis.flag;
   return [
-    { id: 'pt', label: H.pt.label, unit: U.MW, model: H.pt.model, value: (x) => fmt(x.train.ptPower / 1e6, 2), tip: H.pt.tip },
-    { id: 'load', label: H.load.label, unit: SU.pct, model: H.load.model, flag: f.train.inRange ? undefined : H.outOfRange, value: (x) => fmt(x.train.loadRaw * 100, 1), tip: H.load.tip },
-    { id: 'ngg', label: H.ngg.label, unit: '', model: H.ngg.model, value: (x) => H.ngg.value(x.train.Ngg), tip: H.ngg.tip },
-    { id: 'tf', label: H.flame.label, unit: U.K, model: H.flame.model, value: (x) => fmt(x.train.Tflame, 0), tip: H.flame.tip },
-    { id: 'nox', label: H.nox.label, unit: H.nox.unit, sub: C.basis.full(b.refO2, b.TrefC), flag: flagB, value: (x) => fmt(x.train.nox, x.train.nox < 10 ? 2 : 1), tip: H.nox.tip },
-    { id: 'co', label: H.co.label, unit: H.co.unit, sub: C.basis.fullCO(b.refO2, b.TrefC), flag: flagB, value: (x) => fmt(x.train.co, 1), tip: H.co.tip },
+    { id: 'pt', help: 'hud.ptAvailable', label: H.pt.label, unit: U.MW, model: H.pt.model, value: (x) => fmt(x.train.ptPower / 1e6, 2), tip: H.pt.tip },
+    { id: 'load', help: 'hud.turbineLoad', label: H.load.label, unit: SU.pct, model: H.load.model, flag: f.train.inRange ? undefined : H.outOfRange, value: (x) => fmt(x.train.loadRaw * 100, 1), tip: H.load.tip },
+    { id: 'ngg', help: 'hud.nGG', label: H.ngg.label, unit: '', model: H.ngg.model, value: (x) => H.ngg.value(x.train.Ngg), tip: H.ngg.tip },
+    { id: 'tf', help: 'hud.flameT', label: H.flame.label, unit: U.K, model: H.flame.model, value: (x) => fmt(x.train.Tflame, 0), tip: H.flame.tip },
+    { id: 'nox', help: 'hud.noxPpm', label: H.nox.label, unit: H.nox.unit, sub: C.basis.full(b.refO2, b.TrefC), flag: flagB, value: (x) => fmt(x.train.nox, x.train.nox < 10 ? 2 : 1), tip: H.nox.tip },
+    { id: 'co', help: 'hud.coPpm', label: H.co.label, unit: H.co.unit, sub: C.basis.fullCO(b.refO2, b.TrefC), flag: flagB, value: (x) => fmt(x.train.co, 1), tip: H.co.tip },
   ];
 }
 
@@ -111,15 +111,15 @@ export function createScene(ctx) {
   function buildControls() {
     const s = store.get();
     const R = GAS_COMPRESSOR.ranges;
-    ctl.Psuc = slider({ label: S.Psuc, ...R.Psuc, value: s.cPsuc, digits: 1, unit: SU.bar, tip: S.tips.Psuc, onInput: (v) => store.set(compPressurePatch(store.get(), { Psuc: v })) });
-    ctl.Pdis = slider({ label: S.Pdis, ...R.Pdis, value: s.cPdis, digits: 0, unit: SU.bar, tip: S.tips.Pdis, onInput: (v) => store.set(compPressurePatch(store.get(), { Pdis: v })) });
-    ctl.MW = slider({ label: S.MW, ...R.MW, value: s.cMW, digits: 1, unit: SU.MW, tip: S.tips.MW, onInput: (v) => store.set({ cMW: v }) });
-    ctl.mdot = slider({ label: S.mdot, ...R.mdot, value: s.cMdot, digits: 1, unit: SU.kgs, tip: S.tips.mdot, onInput: (v) => store.set({ cMdot: v }) });
-    ctl.speed = slider({ label: S.speed, ...R.speed, value: s.cSpeed, digits: 0, unit: SU.pct, tip: S.tips.speed, onInput: (v) => store.set({ cSpeed: v }) });
+    ctl.Psuc = slider({ help: 'ctl.suctionP', label: S.Psuc, ...R.Psuc, value: s.cPsuc, digits: 1, unit: SU.bar, tip: S.tips.Psuc, onInput: (v) => store.set(compPressurePatch(store.get(), { Psuc: v })) });
+    ctl.Pdis = slider({ help: 'ctl.dischargeP', label: S.Pdis, ...R.Pdis, value: s.cPdis, digits: 0, unit: SU.bar, tip: S.tips.Pdis, onInput: (v) => store.set(compPressurePatch(store.get(), { Pdis: v })) });
+    ctl.MW = slider({ help: 'ctl.gasMW', label: S.MW, ...R.MW, value: s.cMW, digits: 1, unit: SU.MW, tip: S.tips.MW, onInput: (v) => store.set({ cMW: v }) });
+    ctl.mdot = slider({ help: 'ctl.massFlow', label: S.mdot, ...R.mdot, value: s.cMdot, digits: 1, unit: SU.kgs, tip: S.tips.mdot, onInput: (v) => store.set({ cMdot: v }) });
+    ctl.speed = slider({ help: 'ctl.speedWhatIf', label: S.speed, ...R.speed, value: s.cSpeed, digits: 0, unit: SU.pct, tip: S.tips.speed, onInput: (v) => store.set({ cSpeed: v }) });
     ctl.rpm = animSpeedSlider(store);
-    ctl.play = button({ label: C.pause, key: C.keySpace, tip: C.tips.play, onClick: () => store.set(togglePlayPatch(store.get())) });
-    ctl.freeze = button({ label: C.freeze, key: 'F', tip: C.tips.freeze, onClick: () => store.set(toggleFreezePatch(store.get())) });
-    ctl.reset = button({ label: C.reset, key: 'R', tip: S.tips.reset, onClick: () => resetParams() });
+    ctl.play = button({ help: 'ctl.play', label: C.pause, key: C.keySpace, tip: C.tips.play, onClick: () => store.set(togglePlayPatch(store.get())) });
+    ctl.freeze = button({ help: 'ctl.freeze', label: C.freeze, key: 'F', tip: C.tips.freeze, onClick: () => store.set(toggleFreezePatch(store.get())) });
+    ctl.reset = button({ help: 'ctl.reset', label: C.reset, key: 'R', tip: S.tips.reset, onClick: () => resetParams() });
     const g1 = html('<div class="ctl-group"></div>');
     g1.append(ctl.Psuc.el, ctl.Pdis.el, ctl.MW.el, ctl.mdot.el, ctl.speed.el);
     const g2 = html('<div class="ctl-group ctl-group--buttons"></div>');

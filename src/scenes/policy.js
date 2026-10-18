@@ -16,6 +16,7 @@ import { decadeTicks, decadeFmt } from '../charts/xyChart.js';
 import { niceCeil } from '../charts/chartBase.js';
 import { slider, segmented, button } from '../ui/controls.js';
 import { createHud } from '../ui/hud.js';
+import { createHelpButton } from '../ui/helpButton.js';
 import { createLimitsInput } from '../ui/limitsInput.js';
 import { createRegHeader } from '../ui/regHeader.js';
 import { createLimitsTab } from '../ui/limitsTab.js';
@@ -58,31 +59,31 @@ export function hudItems(f) {
     const num = (v, d) => (v == null ? HL.pending : fmt(v, d));
     const pt = (x) => (x.levers.ready ? x.levers.point : null);
     return [
-      { id: 'nox', label: HL.nox.label, unit: U.mgNm3, sub: b ? C.basis.fullMg(b.refO2Pct, b.TrefC) : undefined, value: (x) => num(pt(x)?.noxMg, (pt(x)?.noxMg ?? 0) < 100 ? 1 : 0), tip: HL.nox.tip },
-      { id: 'st', label: R.title, unit: '', sub: (x) => statusSub(x.levers), value: (x) => (pt(x) ? R.status[pt(x).status] : HL.pending), tip: HL.status.tip },
-      { id: 'eta', label: HL.eta.label, unit: U.pct, value: (x) => (pt(x) ? pct(pt(x).etaBrake, 1) : HL.pending), tip: HL.eta.tip },
-      { id: 'co2', label: HL.co2.label, unit: U.gkWh, value: (x) => num(pt(x)?.co2_gkWh, 0), tip: HL.co2.tip },
-      { id: 'pmax', label: HL.pmax.label, unit: U.bar, value: (x) => num(pt(x)?.Pmax_bar, 1), tip: HL.pmax.tip },
-      { id: 'o2', label: HL.o2.label, unit: U.pct, sub: HL.dry, value: (x) => fmt(x.fuel.exhaustO2[x.levers.kind], 1), tip: HL.o2.tip },
-      { id: 'lam', label: HL.lambda.label, unit: '', value: (x) => fmt(x.fuel.lambda[x.levers.kind], 2), tip: HL.lambda.tip },
-      { id: 'ms', label: HL.ms.label, unit: U.ms, value: (x) => (x.levers.ms == null ? HL.pending : fmt(x.levers.ms, 0)), tip: HL.ms.tip },
+      { id: 'nox', help: 'hud.noxMg', label: HL.nox.label, unit: U.mgNm3, sub: b ? C.basis.fullMg(b.refO2Pct, b.TrefC) : undefined, value: (x) => num(pt(x)?.noxMg, (pt(x)?.noxMg ?? 0) < 100 ? 1 : 0), tip: HL.nox.tip },
+      { id: 'st', help: 'hud.limitStatus', label: R.title, unit: '', sub: (x) => statusSub(x.levers), value: (x) => (pt(x) ? R.status[pt(x).status] : HL.pending), tip: HL.status.tip },
+      { id: 'eta', help: 'hud.etaBrake', label: HL.eta.label, unit: U.pct, value: (x) => (pt(x) ? pct(pt(x).etaBrake, 1) : HL.pending), tip: HL.eta.tip },
+      { id: 'co2', help: 'hud.co2', label: HL.co2.label, unit: U.gkWh, value: (x) => num(pt(x)?.co2_gkWh, 0), tip: HL.co2.tip },
+      { id: 'pmax', help: 'hud.pmax', label: HL.pmax.label, unit: U.bar, value: (x) => num(pt(x)?.Pmax_bar, 1), tip: HL.pmax.tip },
+      { id: 'o2', help: 'hud.exhaustO2', label: HL.o2.label, unit: U.pct, sub: HL.dry, value: (x) => fmt(x.fuel.exhaustO2[x.levers.kind], 1), tip: HL.o2.tip },
+      { id: 'lam', help: 'hud.lambda', label: HL.lambda.label, unit: '', value: (x) => fmt(x.fuel.lambda[x.levers.kind], 2), tip: HL.lambda.tip },
+      { id: 'ms', help: 'hud.sweepTime', label: HL.ms.label, unit: U.ms, value: (x) => (x.levers.ms == null ? HL.pending : fmt(x.levers.ms, 0)), tip: HL.ms.tip },
     ];
   }
   if (f.tab === 'B') {
     return [
-      { id: 'pen', label: H.penB.label, unit: U.pct, value: (x) => fmt(x.B.value, 1), tip: H.penB.tip },
-      { id: 'slip', label: H.slip.label, unit: U.pct, value: (x) => fmt(x.B.slip, 1), tip: H.slip.tip },
+      { id: 'pen', help: 'hud.fuelPenalty', label: H.penB.label, unit: U.pct, value: (x) => fmt(x.B.value, 1), tip: H.penB.tip },
+      { id: 'slip', help: 'hud.slip', label: H.slip.label, unit: U.pct, value: (x) => fmt(x.B.slip, 1), tip: H.slip.tip },
       ...f.B.machines.map((m, i) => ({ id: `co2${m.id}`, label: H.co2B(STR.scene8.machines[m.id]), unit: U.gkWh, value: (x) => H.before(x.B.machines[i].current.co2_0, x.B.machines[i].current.co2_1), tip: H.co2BTip })),
       ...f.B.machines.flatMap((m, i) => (m.gasFired ? [{ id: `co2e${m.id}`, label: H.co2e(STR.scene8.machines[m.id]), unit: U.gkWh, value: (x) => H.before(x.B.machines[i].current.co2_1, x.B.machines[i].currentE.co2e), tip: H.co2eTip }] : [])),
-      { id: 'share', label: H.share.label, unit: U.pct, value: (x) => pct(x.B.machines.find((m) => m.id === 'gas').currentE.slipShare, 1), tip: H.share.tip },
+      { id: 'share', help: 'hud.slipShare', label: H.share.label, unit: U.pct, value: (x) => pct(x.B.machines.find((m) => m.id === 'gas').currentE.slipShare, 1), tip: H.share.tip },
     ];
   }
   const c = f.C, unitLbl = S.unitLabel[c.unit];
   return [
-    { id: 'ln', label: H.limN.label, unit: c.limits.nox == null ? '' : unitLbl, model: limitSourceText(c.limits.source.nox, c.regulation), sub: basisText('nox', c.unit, c.basis), value: (x) => (x.C.limits.nox == null ? H.empty : fmt(x.C.limits.nox, 1)), tip: H.limN.tip },
-    { id: 'lc', label: H.limC.label, unit: c.limits.co == null ? '' : unitLbl, model: limitSourceText(c.limits.source.co, c.regulation), sub: basisText('co', c.unit, c.basis), value: (x) => (x.C.limits.co == null ? H.empty : fmt(x.C.limits.co, 1)), tip: H.limC.tip },
-    { id: 'ws', label: H.winS.label, unit: '', value: (x) => winText(x.C.single.window), tip: H.winS.tip },
-    { id: 'wt', label: H.winT.label, unit: '', value: (x) => winText(x.C.twin.window), tip: H.winT.tip },
+    { id: 'ln', help: 'hud.limitNox', label: H.limN.label, unit: c.limits.nox == null ? '' : unitLbl, model: limitSourceText(c.limits.source.nox, c.regulation), sub: basisText('nox', c.unit, c.basis), value: (x) => (x.C.limits.nox == null ? H.empty : fmt(x.C.limits.nox, 1)), tip: H.limN.tip },
+    { id: 'lc', help: 'hud.limitCo', label: H.limC.label, unit: c.limits.co == null ? '' : unitLbl, model: limitSourceText(c.limits.source.co, c.regulation), sub: basisText('co', c.unit, c.basis), value: (x) => (x.C.limits.co == null ? H.empty : fmt(x.C.limits.co, 1)), tip: H.limC.tip },
+    { id: 'ws', help: 'hud.loadWindow', label: H.winS.label, unit: '', value: (x) => winText(x.C.single.window), tip: H.winS.tip },
+    { id: 'wt', help: 'hud.loadWindow', label: H.winT.label, unit: '', value: (x) => winText(x.C.twin.window), tip: H.winT.tip },
   ];
 }
 
@@ -163,11 +164,11 @@ export function createScene(ctx) {
 
   function buildControls() {
     const s = store.get();
-    ctl.tab = segmented({ label: S.tab, tip: S.tips.tab, options: POLICY.tabs.map((t, i) => ({ value: t, label: S.tabs[t], key: String(i + 1) })), value: s.pTab, onChange: (v) => store.set({ pTab: v }) });
-    ctl.penalty = slider({ label: S.penalty, ...POLICY.penalty, value: s.pPenalty, digits: 1, unit: U.pct, tip: S.tips.penalty, onInput: (v) => store.set({ pPenalty: v }) });
-    ctl.slip = slider({ label: S.slip, ...EMIS.slip, value: s.eSlip ?? EMIS.slip.default, digits: 1, unit: U.pct, tip: S.tips.slip, onInput: (v) => store.set({ eSlip: v }) });
-    ctl.unit = segmented({ label: S.unit, tip: S.tips.unit, options: POLICY.limUnits.map((u) => ({ value: u, label: S.units[u] })), value: s.limUnit, onChange: (v) => store.set({ limUnit: v }) });
-    ctl.reset = button({ label: C.reset, key: 'R', tip: S.tips.reset, onClick: () => resetParams() });
+    ctl.tab = segmented({ help: 'ui.s9tabs', label: S.tab, tip: S.tips.tab, options: POLICY.tabs.map((t, i) => ({ value: t, label: S.tabs[t], key: String(i + 1) })), value: s.pTab, onChange: (v) => store.set({ pTab: v }) });
+    ctl.penalty = slider({ help: 'ctl.fuelPenalty', label: S.penalty, ...POLICY.penalty, value: s.pPenalty, digits: 1, unit: U.pct, tip: S.tips.penalty, onInput: (v) => store.set({ pPenalty: v }) });
+    ctl.slip = slider({ help: 'ctl.slip', label: S.slip, ...EMIS.slip, value: s.eSlip ?? EMIS.slip.default, digits: 1, unit: U.pct, tip: S.tips.slip, onInput: (v) => store.set({ eSlip: v }) });
+    ctl.unit = segmented({ help: 'ctl.limUnit', label: S.unit, tip: S.tips.unit, options: POLICY.limUnits.map((u) => ({ value: u, label: S.units[u] })), value: s.limUnit, onChange: (v) => store.set({ limUnit: v }) });
+    ctl.reset = button({ help: 'ctl.reset', label: C.reset, key: 'R', tip: S.tips.reset, onClick: () => resetParams() });
     const g1 = html('<div class="ctl-group"></div>');
     g1.append(ctl.tab.el, ctl.penalty.el, ctl.slip.el, ctl.unit.el);
     const g2 = html('<div class="ctl-group"></div>');
@@ -378,6 +379,7 @@ export function createScene(ctx) {
       });
       presetBtn = button({ label: S.resetPreset, tip: S.resetPresetTip, onClick: () => store.set(leversResetPatch()) });
       q('[data-k="preset"]').append(presetBtn.el);
+      q('[data-k="badge"]').after(createHelpButton('ui.presetBadge', { describes: q('[data-k="badge"]') }).el);
       backBtn = button({ label: S.back(6), key: S.backKey, tip: S.backTip, onClick: () => goBack() });
       backBtn.el.hidden = true;
       q('.pol-head__back').append(backBtn.el);

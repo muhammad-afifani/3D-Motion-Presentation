@@ -6,9 +6,13 @@
 import { STR, signedDeg } from './strings.js';
 import { fmt } from './format.js';
 import { slider, segmented } from './controls.js';
+import { createHelpButton } from './helpButton.js';
 import { LEVER_AXES, FUEL_SLIDERS } from '../model/presets.js';
 
 const L = STR.scene9.leversTab, F = STR.scene9.fuelPanel;
+
+/** Id kartu bantuan per sumbu tuas (konsep sama dengan slider scene lain). */
+const LEVER_HELP = { theta0: 'ctl.timing', phi: 'ctl.equivalence', Tivc: 'ctl.intakeT', Pivc: 'ctl.boost', N: 'ctl.engineSpeed' };
 
 /** Format nilai slider (konversi satuan tampilan saja: Pa → bar), dari strings.js. */
 const FORMAT = { ...L.value, theta0: (v) => signedDeg(v) };
@@ -22,7 +26,7 @@ export function createLeversTab(container, cb) {
   const el = document.createElement('div');
   el.className = 'lev-tab';
   container.appendChild(el);
-  const sub = segmented({ label: '', options: ['engine', 'fuel'].map((k) => ({ value: k, label: L.sub[k] })), value: 'engine', onChange: (v) => cb.onSub(v) });
+  const sub = segmented({ help: 'ctl.leverSub', label: '', options: ['engine', 'fuel'].map((k) => ({ value: k, label: L.sub[k] })), value: 'engine', onChange: (v) => cb.onSub(v) });
   sub.el.classList.add('lev-sub');
   el.append(sub.el);
 
@@ -32,13 +36,13 @@ export function createLeversTab(container, cb) {
   const head = document.createElement('div');
   head.className = 'lev-head';
   head.innerHTML = '<span class="lev-engine" data-v="engine"></span><span class="reg__note" data-v="turbine" hidden></span>';
-  const axis = segmented({ label: L.axis, options: LEVER_AXES.map((a) => ({ value: a, label: L.axes[a] })), value: 'theta0', onChange: (v) => cb.onAxis(v) });
+  const axis = segmented({ help: 'ctl.leverAxis', label: L.axis, options: LEVER_AXES.map((a) => ({ value: a, label: L.axes[a] })), value: 'theta0', onChange: (v) => cb.onAxis(v) });
   const sliders = {};
   const grid = document.createElement('div');
   grid.className = 'lev-sliders';
   let kindShown = null;
   for (const a of LEVER_AXES) {
-    sliders[a] = slider({ label: L.labels[a].diesel ?? L.labels[a], min: 0, max: 1, step: 1, value: 0, format: FORMAT[a], onInput: (v) => cb.onLever(a, v) });
+    sliders[a] = slider({ help: LEVER_HELP[a], label: L.labels[a].diesel ?? L.labels[a], min: 0, max: 1, step: 1, value: 0, format: FORMAT[a], onInput: (v) => cb.onLever(a, v) });
     sliders[a].el.dataset.axis = a;
     grid.append(sliders[a].el);
   }
@@ -58,14 +62,16 @@ export function createLeversTab(container, cb) {
     <p class="reg__note num" data-v="sum"></p><p class="reg__note num" data-v="props"></p><p class="reg__note" data-v="invalid" hidden></p>
     <h4 class="lev-h">${F.oilTitle}</h4><div class="lev-sliders lev-sliders--fuel" data-v="oil"></div><p class="reg__note num" data-v="oilProps"></p>`;
   const gasBox = fuel.querySelector('[data-v="gas"]'), oilBox = fuel.querySelector('[data-v="oil"]');
+  const gasHead = fuel.querySelector('.lev-h');
+  gasHead.append(' ', createHelpButton('ctl.fuelComposition', { describes: gasHead }).el); // ⓘ di judul komposisi gas
   const gasSl = {};
   for (const k of FUEL_SLIDERS.species) {
     gasSl[k] = slider({ label: F.species[k], ...FUEL_SLIDERS.pct, value: 0, digits: 1, unit: '%', onInput: (v) => cb.onGas(k, v) });
     gasBox.append(gasSl[k].el);
   }
-  const h2s = slider({ label: F.h2s, ...FUEL_SLIDERS.h2s, value: 0, digits: 0, onInput: (v) => cb.onH2S(v) });
+  const h2s = slider({ help: 'ctl.h2s', label: F.h2s, ...FUEL_SLIDERS.h2s, value: 0, digits: 0, onInput: (v) => cb.onH2S(v) });
   gasBox.append(h2s.el);
-  const sulfur = slider({ label: F.sulfur, ...FUEL_SLIDERS.sulfur, value: 0, digits: 2, onInput: (v) => cb.onSulfur(v) });
+  const sulfur = slider({ help: 'ctl.sulfur', label: F.sulfur, ...FUEL_SLIDERS.sulfur, value: 0, digits: 2, onInput: (v) => cb.onSulfur(v) });
   oilBox.append(sulfur.el);
   el.append(eng, fuel);
 

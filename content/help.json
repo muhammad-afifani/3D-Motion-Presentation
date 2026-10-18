@@ -1,0 +1,1656 @@
+{
+  "version": 1,
+  "reviewed": false,
+  "items": {
+    "hud.pmax": {
+      "what": {
+        "en": "The highest gas pressure reached in the cycle.",
+        "id": "Tekanan gas tertinggi dalam siklus."
+      },
+      "how": {
+        "en": "A higher compression ratio, earlier timing, or a richer mixture raises it. It sets the mechanical load on the engine, not the work.",
+        "id": "Rasio kompresi lebih tinggi, timing lebih awal, atau campuran lebih kaya menaikkannya. Angka ini menunjukkan beban mekanis pada mesin, bukan kerja."
+      },
+      "glossary": [
+        "pmax"
+      ],
+      "lesson": "l2-2"
+    },
+    "hud.thetaPmax": {
+      "what": {
+        "en": "The crank angle where cylinder pressure peaks, in degrees after firing top dead centre.",
+        "id": "Sudut engkol saat tekanan silinder mencapai puncak, dalam derajat setelah titik mati atas pembakaran."
+      },
+      "how": {
+        "en": "Retarding the timing moves the peak later and lowers it.",
+        "id": "Memundurkan timing menggeser puncak ke belakang dan menurunkannya."
+      },
+      "glossary": [
+        "tdc",
+        "timing"
+      ],
+      "lesson": "l2-2"
+    },
+    "hud.imep": {
+      "what": {
+        "en": "Mean effective pressure: the steady pressure that would give the same work per cycle.",
+        "id": "Tekanan efektif rata-rata: tekanan tetap yang menghasilkan kerja per siklus yang sama."
+      },
+      "how": {
+        "en": "Higher means more work from the same cylinder volume. Use it to compare cycles of the same size.",
+        "id": "Lebih tinggi berarti kerja lebih besar dari volume silinder yang sama. Pakai untuk membandingkan siklus berukuran sama."
+      },
+      "lesson": "l3-1"
+    },
+    "hud.etaIndicated": {
+      "what": {
+        "en": "The share of fuel energy turned into work on the piston, before friction.",
+        "id": "Bagian energi bahan bakar yang menjadi kerja pada piston, sebelum gesekan."
+      },
+      "how": {
+        "en": "Brake efficiency is lower by the friction loss. The gap from the ideal value comes from heat loss and finite burn time.",
+        "id": "Efisiensi rem lebih rendah sebesar rugi gesekan. Selisih dari nilai ideal berasal dari rugi panas dan waktu pembakaran yang terbatas."
+      },
+      "glossary": [
+        "brake-efficiency"
+      ],
+      "lesson": "l3-2"
+    },
+    "hud.etaBrake": {
+      "what": {
+        "en": "The share of fuel energy that reaches the shaft.",
+        "id": "Bagian energi bahan bakar yang sampai ke poros."
+      },
+      "how": {
+        "en": "It is indicated efficiency minus friction. Lower efficiency means more fuel and more CO₂ for every kWh.",
+        "id": "Nilainya efisiensi indikatif dikurangi gesekan. Efisiensi lebih rendah berarti bahan bakar dan CO₂ per kWh lebih banyak."
+      },
+      "glossary": [
+        "brake-efficiency"
+      ],
+      "lesson": "l3-2"
+    },
+    "hud.bsfc": {
+      "what": {
+        "en": "Fuel mass burned for each unit of shaft energy.",
+        "id": "Massa bahan bakar yang dibakar untuk setiap satuan energi poros."
+      },
+      "how": {
+        "en": "Lower is better. It moves opposite to brake efficiency.",
+        "id": "Lebih rendah lebih baik. Nilainya bergerak berlawanan dengan efisiensi rem."
+      },
+      "glossary": [
+        "bsfc"
+      ],
+      "lesson": "l1-1"
+    },
+    "hud.etaIdeal": {
+      "what": {
+        "en": "The efficiency of the ideal loop for the selected cycle.",
+        "id": "Efisiensi siklus ideal untuk siklus yang dipilih."
+      },
+      "how": {
+        "en": "It is the ceiling that a real machine cannot reach. It rises with the compression ratio or pressure ratio.",
+        "id": "Ini batas atas yang tidak bisa dicapai mesin nyata. Nilainya naik bersama rasio kompresi atau rasio tekanan."
+      },
+      "glossary": [
+        "otto-diesel-dual",
+        "brayton"
+      ],
+      "lesson": "l3-2"
+    },
+    "hud.sameR": {
+      "what": {
+        "en": "The Otto cycle efficiency at the same compression ratio, shown for comparison.",
+        "id": "Efisiensi siklus Otto pada rasio kompresi yang sama, sebagai pembanding."
+      },
+      "how": {
+        "en": "Compare it with the ideal value beside it to see what the selected cycle gives up or gains.",
+        "id": "Bandingkan dengan nilai ideal di sebelahnya untuk melihat apa yang hilang atau didapat siklus yang dipilih."
+      },
+      "glossary": [
+        "otto-diesel-dual"
+      ],
+      "lesson": "l3-1"
+    },
+    "hud.tmax": {
+      "what": {
+        "en": "The highest gas temperature in the ideal cycle.",
+        "id": "Suhu gas tertinggi dalam siklus ideal."
+      },
+      "how": {
+        "en": "More heat added raises it. A hotter peak gives more work, and in real engines more NOx.",
+        "id": "Panas yang ditambahkan lebih besar menaikkannya. Puncak yang lebih panas memberi kerja lebih besar, dan pada mesin nyata NOx lebih banyak."
+      },
+      "lesson": "l3-1"
+    },
+    "hud.gap": {
+      "what": {
+        "en": "The efficiency lost between the ideal loop and the real result, in percentage points.",
+        "id": "Efisiensi yang hilang antara siklus ideal dan hasil nyata, dalam poin persen."
+      },
+      "how": {
+        "en": "The gap is physics, not error. In engines it comes from variable specific heat, burn time, wall heat loss, and friction. In turbines it comes from component losses.",
+        "id": "Selisih ini fisika, bukan galat. Pada mesin berasal dari kalor jenis yang berubah, waktu pembakaran, rugi panas ke dinding, dan gesekan. Pada turbin berasal dari rugi komponen."
+      },
+      "lesson": "l3-2"
+    },
+    "hud.bwr": {
+      "what": {
+        "en": "Back-work ratio: the share of turbine work used to drive the compressor.",
+        "id": "Rasio kerja balik: bagian kerja turbin yang dipakai menggerakkan kompresor."
+      },
+      "how": {
+        "en": "The rest is useful output. A higher ratio leaves less useful output, and it grows when component efficiency falls.",
+        "id": "Sisanya menjadi keluaran berguna. Rasio lebih tinggi menyisakan keluaran berguna lebih kecil, dan naik saat efisiensi komponen turun."
+      },
+      "glossary": [
+        "brayton"
+      ],
+      "lesson": "l3-3"
+    },
+    "hud.wnet": {
+      "what": {
+        "en": "Net work per kilogram of air: turbine work minus compressor work.",
+        "id": "Kerja bersih per kilogram udara: kerja turbin dikurangi kerja kompresor."
+      },
+      "how": {
+        "en": "Multiply by the air flow to get power. A higher peak temperature raises it.",
+        "id": "Kalikan dengan laju udara untuk mendapat daya. Suhu puncak yang lebih tinggi menaikkannya."
+      },
+      "glossary": [
+        "brayton"
+      ],
+      "lesson": "l3-3"
+    },
+    "hud.compOutT": {
+      "what": {
+        "en": "The air temperature leaving the compressor.",
+        "id": "Suhu udara yang keluar dari kompresor."
+      },
+      "how": {
+        "en": "A higher pressure ratio raises it. This is the air that enters the combustor.",
+        "id": "Rasio tekanan lebih tinggi menaikkannya. Udara ini yang masuk ke combustor."
+      },
+      "glossary": [
+        "pressure-ratio"
+      ],
+      "lesson": "l3-3"
+    },
+    "hud.exhaustT": {
+      "what": {
+        "en": "The temperature of the gas leaving the turbine.",
+        "id": "Suhu gas yang keluar dari turbin."
+      },
+      "how": {
+        "en": "It carries the heat that was not turned into work. That heat is what a stack or heat recovery unit receives.",
+        "id": "Gas ini membawa panas yang tidak menjadi kerja. Panas itu yang diterima cerobong atau unit pemulihan panas."
+      },
+      "glossary": [
+        "brayton"
+      ],
+      "lesson": "l3-3"
+    },
+    "hud.flameT": {
+      "what": {
+        "en": "The adiabatic flame temperature: the hottest the flame can get for this mixture, with no heat loss.",
+        "id": "Suhu nyala adiabatik: suhu tertinggi yang bisa dicapai nyala untuk campuran ini, tanpa rugi panas."
+      },
+      "how": {
+        "en": "It peaks near the stoichiometric mixture and rises with warmer inlet gas. NOx climbs steeply with it. The value is indicative.",
+        "id": "Puncaknya mendekati campuran stoikiometrik dan naik bila gas masuk lebih hangat. NOx naik tajam bersamanya. Nilainya indikatif."
+      },
+      "glossary": [
+        "flame-temperature",
+        "indicative"
+      ],
+      "lesson": "l4-2"
+    },
+    "hud.localDeltaT": {
+      "what": {
+        "en": "How much hotter the fuel-rich local pockets burn than the average mixture.",
+        "id": "Seberapa lebih panas kantong lokal kaya bahan bakar terbakar dibanding campuran rata-rata."
+      },
+      "how": {
+        "en": "A diesel spray forms nearly stoichiometric pockets even when the overall mixture is lean. Hot pockets are where most NOx forms.",
+        "id": "Semprotan diesel membentuk kantong yang hampir stoikiometrik walau campuran keseluruhan miskin. Kantong panas ini tempat sebagian besar NOx terbentuk."
+      },
+      "glossary": [
+        "phi",
+        "thermal-nox"
+      ],
+      "lesson": "l4-2"
+    },
+    "hud.qin": {
+      "what": {
+        "en": "Heat added per kilogram of air in the premix zone.",
+        "id": "Panas yang ditambahkan per kilogram udara di zona premix."
+      },
+      "how": {
+        "en": "It follows the premix mixture strength. The flame size in 3D follows it.",
+        "id": "Nilainya mengikuti kekuatan campuran premix. Ukuran nyala di 3D mengikutinya."
+      },
+      "glossary": [
+        "dln",
+        "lean-premix"
+      ],
+      "lesson": "l2-3"
+    },
+    "hud.heatRelease": {
+      "what": {
+        "en": "How fast heat is released, relative to the preset.",
+        "id": "Seberapa cepat panas dilepas, relatif terhadap preset."
+      },
+      "how": {
+        "en": "Flame size and brightness follow it. It peaks during the main burn.",
+        "id": "Ukuran dan kecerahan nyala mengikutinya. Puncaknya terjadi pada pembakaran utama."
+      },
+      "glossary": [
+        "wiebe"
+      ],
+      "lesson": "l2-1"
+    },
+    "hud.timing": {
+      "what": {
+        "en": "The start of combustion, in crank degrees after top dead centre (negative means before).",
+        "id": "Awal pembakaran, dalam derajat engkol setelah titik mati atas (negatif berarti sebelum)."
+      },
+      "how": {
+        "en": "Later timing lowers peak temperature and NOx, but efficiency falls and CO₂ rises.",
+        "id": "Timing yang lebih lambat menurunkan suhu puncak dan NOx, tetapi efisiensi turun dan CO₂ naik."
+      },
+      "glossary": [
+        "timing",
+        "atdc"
+      ],
+      "lesson": "l4-3"
+    },
+    "hud.burnedT": {
+      "what": {
+        "en": "The peak temperature of the burned gas in the cylinder.",
+        "id": "Suhu puncak gas terbakar di dalam silinder."
+      },
+      "how": {
+        "en": "NOx forms in this hot zone, so a small drop here cuts NOx a lot.",
+        "id": "NOx terbentuk di zona panas ini, sehingga penurunan kecil di sini memangkas NOx banyak."
+      },
+      "glossary": [
+        "thermal-nox"
+      ],
+      "lesson": "l4-2"
+    },
+    "hud.noxG": {
+      "what": {
+        "en": "NOx for each unit of shaft energy, from a thermal-NOx correlation (indicative).",
+        "id": "NOx untuk setiap satuan energi poros, dari korelasi NOx termal (indikatif)."
+      },
+      "how": {
+        "en": "The absolute level is calibrated to typical literature values, not to unit data or a vendor prediction. Read the trend when you change a setting.",
+        "id": "Level absolutnya dikalibrasi ke nilai tipikal literatur, bukan data unit atau prediksi vendor. Baca trennya saat Anda mengubah pengaturan."
+      },
+      "glossary": [
+        "nox",
+        "indicative"
+      ],
+      "lesson": "l4-2"
+    },
+    "hud.noxPpm": {
+      "what": {
+        "en": "NOx as a concentration in dry exhaust, from a correlation (indicative).",
+        "id": "NOx sebagai konsentrasi pada gas buang kering, dari korelasi (indikatif)."
+      },
+      "how": {
+        "en": "Read it with the reference O₂ and volume basis printed under the number. The absolute level is calibrated to typical literature values, not to unit data or a vendor prediction.",
+        "id": "Baca bersama basis O₂ acuan dan basis volume yang tercetak di bawah angka. Level absolutnya dikalibrasi ke nilai tipikal literatur, bukan data unit atau prediksi vendor."
+      },
+      "glossary": [
+        "ppmvd",
+        "o2-correction"
+      ],
+      "lesson": "l5-1"
+    },
+    "hud.noxMg": {
+      "what": {
+        "en": "NOx as NO₂ in milligrams per normal cubic metre (indicative).",
+        "id": "NOx sebagai NO₂ dalam miligram per meter kubik normal (indikatif)."
+      },
+      "how": {
+        "en": "The reference O₂ and the volume basis (temperature) are printed beside the number. The level is calibrated to typical literature values, not to unit data or a vendor prediction.",
+        "id": "Basis O₂ acuan dan basis volume (suhu) tercetak di samping angka. Levelnya dikalibrasi ke nilai tipikal literatur, bukan data unit atau prediksi vendor."
+      },
+      "glossary": [
+        "nm3",
+        "o2-correction"
+      ],
+      "lesson": "l5-1"
+    },
+    "hud.co2": {
+      "what": {
+        "en": "CO₂ for each unit of shaft energy, from the fuel carbon and the efficiency.",
+        "id": "CO₂ untuk setiap satuan energi poros, dari karbon bahan bakar dan efisiensi."
+      },
+      "how": {
+        "en": "Lower efficiency means more CO₂. It does not include methane slip.",
+        "id": "Efisiensi lebih rendah berarti CO₂ lebih banyak. Angka ini belum memuat methane slip."
+      },
+      "glossary": [
+        "co2"
+      ],
+      "lesson": "l4-4"
+    },
+    "hud.noxCalib": {
+      "what": {
+        "en": "The scale factor that pins the NOx correlation to typical literature values.",
+        "id": "Faktor skala yang mengikat korelasi NOx pada nilai tipikal literatur."
+      },
+      "how": {
+        "en": "It is not unit data and not a vendor prediction, so NOx stays indicative. Change it in the Calibration panel.",
+        "id": "Faktor ini bukan data unit dan bukan prediksi vendor, jadi NOx tetap indikatif. Ubah di panel Calibration."
+      },
+      "glossary": [
+        "indicative"
+      ],
+      "lesson": "l5-3"
+    },
+    "hud.etaThermal": {
+      "what": {
+        "en": "The share of fuel energy turned into useful shaft or electric work.",
+        "id": "Bagian energi bahan bakar yang menjadi kerja poros atau listrik yang berguna."
+      },
+      "how": {
+        "en": "It rises with pressure ratio and turbine inlet temperature and falls with component losses. Part load usually lowers it.",
+        "id": "Nilainya naik bersama rasio tekanan dan suhu masuk turbin, dan turun oleh rugi komponen. Beban sebagian biasanya menurunkannya."
+      },
+      "glossary": [
+        "brayton"
+      ],
+      "lesson": "l3-3"
+    },
+    "hud.heatRate": {
+      "what": {
+        "en": "The fuel energy needed for each unit of output energy.",
+        "id": "Energi bahan bakar yang dibutuhkan untuk setiap satuan energi keluaran."
+      },
+      "how": {
+        "en": "Lower is better. It is the inverse of efficiency.",
+        "id": "Lebih rendah lebih baik. Nilainya kebalikan dari efisiensi."
+      },
+      "lesson": "l1-1"
+    },
+    "hud.power": {
+      "what": {
+        "en": "The shaft power of the turbine for the example air flow.",
+        "id": "Daya poros turbin untuk laju udara contoh."
+      },
+      "how": {
+        "en": "It scales with air flow and with net work. The air flow is an example size, not unit data.",
+        "id": "Nilainya sebanding dengan laju udara dan kerja bersih. Laju udara adalah ukuran contoh, bukan data unit."
+      },
+      "lesson": "l1-1"
+    },
+    "hud.derating": {
+      "what": {
+        "en": "How much power drops for each degree of hotter inlet air.",
+        "id": "Seberapa besar daya turun untuk setiap derajat udara masuk yang lebih panas."
+      },
+      "how": {
+        "en": "Hot air is less dense, so less air mass flows through the machine. The value is indicative.",
+        "id": "Udara panas kurang rapat, sehingga massa udara yang mengalir lebih kecil. Nilainya indikatif."
+      },
+      "glossary": [
+        "indicative"
+      ],
+      "lesson": "l2-3"
+    },
+    "hud.powerIso": {
+      "what": {
+        "en": "Power relative to the ISO reference conditions.",
+        "id": "Daya relatif terhadap kondisi acuan ISO."
+      },
+      "how": {
+        "en": "It shows whether the machine makes more or less power than at ISO conditions. Hotter air gives less.",
+        "id": "Angka ini menunjukkan apakah mesin menghasilkan daya lebih besar atau lebih kecil daripada pada kondisi ISO. Udara lebih panas memberi daya lebih kecil."
+      },
+      "lesson": "l2-3"
+    },
+    "hud.speed": {
+      "what": {
+        "en": "The shaft speed of the machine in the model.",
+        "id": "Kecepatan poros mesin dalam model."
+      },
+      "how": {
+        "en": "A generator turbine holds a fixed, grid-synchronous speed. In a compressor drive the gas generator speed follows the load and the power turbine speed follows the process.",
+        "id": "Turbin generator menahan kecepatan tetap yang sinkron dengan jaringan. Pada compressor drive, kecepatan gas generator mengikuti beban dan kecepatan power turbine mengikuti proses."
+      },
+      "glossary": [
+        "single-shaft",
+        "twin-shaft"
+      ],
+      "lesson": "l2-3"
+    },
+    "hud.turbineInletT": {
+      "what": {
+        "en": "The gas temperature entering the turbine (firing temperature).",
+        "id": "Suhu gas yang masuk ke turbin (suhu pembakaran)."
+      },
+      "how": {
+        "en": "In a single-shaft turbine it stays constant while the IGV can still close, then it drops. In a twin-shaft turbine it falls together with the gas generator speed.",
+        "id": "Pada turbin single-shaft suhu ini tetap selama IGV masih bisa menutup, lalu turun. Pada turbin twin-shaft suhu turun bersama kecepatan gas generator."
+      },
+      "glossary": [
+        "igv",
+        "single-shaft",
+        "twin-shaft"
+      ],
+      "lesson": "l3-4"
+    },
+    "hud.coPpm": {
+      "what": {
+        "en": "CO in dry exhaust, from an illustrative CO-versus-flame-temperature shape (indicative).",
+        "id": "CO pada gas buang kering, dari bentuk ilustratif CO terhadap suhu nyala (indikatif)."
+      },
+      "how": {
+        "en": "Read it with the reference O₂ and volume basis printed under the number. A single-shaft turbine shows a CO cliff once the IGV have run out. In a twin-shaft turbine the operating window shifts and narrows.",
+        "id": "Baca bersama basis O₂ acuan dan basis volume yang tercetak di bawah angka. Turbin single-shaft menunjukkan tebing CO setelah IGV habis. Pada turbin twin-shaft jendela operasi bergeser dan menyempit."
+      },
+      "glossary": [
+        "igv",
+        "single-shaft",
+        "twin-shaft"
+      ],
+      "lesson": "l3-4"
+    },
+    "hud.igv": {
+      "what": {
+        "en": "The IGV opening: inlet guide vanes close to cut air flow at part load.",
+        "id": "Bukaan IGV: inlet guide vane menutup untuk mengurangi aliran udara pada beban sebagian."
+      },
+      "how": {
+        "en": "While they can close, the flame temperature holds steady. Once they run out the flame cools. With the fuel-only strategy they stay open.",
+        "id": "Selama masih bisa menutup, suhu nyala bertahan. Setelah habis, nyala mendingin. Pada strategi fuel-only IGV tetap terbuka."
+      },
+      "glossary": [
+        "igv"
+      ],
+      "lesson": "l3-4"
+    },
+    "hud.loadWindow": {
+      "what": {
+        "en": "The load range where NOx and CO both stay at or below the limits you entered (indicative).",
+        "id": "Rentang beban tempat NOx dan CO sama-sama tetap pada atau di bawah limit yang Anda isi (indikatif)."
+      },
+      "how": {
+        "en": "A single-shaft turbine loses the window at the CO cliff after the IGV run out. In a twin-shaft turbine the operating window shifts and narrows. It stays empty until limits are entered.",
+        "id": "Turbin single-shaft kehilangan jendela di tebing CO setelah IGV habis. Pada turbin twin-shaft jendela operasi bergeser dan menyempit. Kolom ini kosong sampai limit diisi."
+      },
+      "glossary": [
+        "load-window",
+        "single-shaft",
+        "twin-shaft"
+      ],
+      "lesson": "l3-4"
+    },
+    "hud.pressureRatio": {
+      "what": {
+        "en": "The ratio of discharge pressure to suction pressure across the compressor.",
+        "id": "Perbandingan tekanan buang terhadap tekanan hisap pada kompresor."
+      },
+      "how": {
+        "en": "A higher ratio needs more head and more power.",
+        "id": "Rasio yang lebih tinggi membutuhkan head dan daya lebih besar."
+      },
+      "glossary": [
+        "pressure-ratio"
+      ],
+      "lesson": "l2-4"
+    },
+    "hud.head": {
+      "what": {
+        "en": "The energy the compressor adds to each kilogram of gas.",
+        "id": "Energi yang ditambahkan kompresor pada setiap kilogram gas."
+      },
+      "how": {
+        "en": "It follows from the pressure ratio and the gas properties. Lighter gas needs more head for the same ratio.",
+        "id": "Nilainya mengikuti rasio tekanan dan sifat gas. Gas lebih ringan membutuhkan head lebih besar untuk rasio yang sama."
+      },
+      "glossary": [
+        "affinity-laws"
+      ],
+      "lesson": "l2-4"
+    },
+    "hud.compPower": {
+      "what": {
+        "en": "The shaft power the compressor absorbs.",
+        "id": "Daya poros yang diserap kompresor."
+      },
+      "how": {
+        "en": "It is head times mass flow, divided by efficiency. It is the load the power turbine must carry.",
+        "id": "Nilainya head dikali laju massa, dibagi efisiensi. Ini beban yang harus dipikul power turbine."
+      },
+      "lesson": "l2-4"
+    },
+    "hud.dischargeT": {
+      "what": {
+        "en": "The gas temperature at the compressor discharge.",
+        "id": "Suhu gas pada sisi buang kompresor."
+      },
+      "how": {
+        "en": "A higher pressure ratio and a lower efficiency both raise it.",
+        "id": "Rasio tekanan lebih tinggi dan efisiensi lebih rendah sama-sama menaikkannya."
+      },
+      "lesson": "l2-4"
+    },
+    "hud.suctionFlow": {
+      "what": {
+        "en": "The volume flow of gas at suction conditions.",
+        "id": "Aliran volume gas pada kondisi hisap."
+      },
+      "how": {
+        "en": "Lower suction pressure means more volume for the same mass flow. The affinity laws scale it with speed.",
+        "id": "Tekanan hisap lebih rendah berarti volume lebih besar untuk laju massa yang sama. Hukum afinitas menskalakannya terhadap kecepatan."
+      },
+      "glossary": [
+        "affinity-laws"
+      ],
+      "lesson": "l2-4"
+    },
+    "hud.speedRequired": {
+      "what": {
+        "en": "The compressor speed needed to deliver the head, as a share of design speed.",
+        "id": "Kecepatan kompresor yang dibutuhkan untuk memberi head, sebagai bagian dari kecepatan desain."
+      },
+      "how": {
+        "en": "It follows from the head alone. The compressor map, the surge line, and speed limits are not modeled.",
+        "id": "Nilainya hanya mengikuti head. Peta kompresor, garis surge, dan batas kecepatan tidak dimodelkan."
+      },
+      "glossary": [
+        "affinity-laws"
+      ],
+      "lesson": "l2-4"
+    },
+    "hud.ptAvailable": {
+      "what": {
+        "en": "The power the power turbine can deliver in the compressor-drive model.",
+        "id": "Daya yang bisa diberikan power turbine pada model compressor drive."
+      },
+      "how": {
+        "en": "Compare it with the compressor power. Their ratio is the turbine load.",
+        "id": "Bandingkan dengan daya kompresor. Perbandingannya adalah beban turbin."
+      },
+      "glossary": [
+        "twin-shaft"
+      ],
+      "lesson": "l2-4"
+    },
+    "hud.turbineLoad": {
+      "what": {
+        "en": "The compressor power as a share of the power the turbine can deliver.",
+        "id": "Daya kompresor sebagai bagian dari daya yang bisa diberikan turbin."
+      },
+      "how": {
+        "en": "It sets the part-load point of the compressor-drive turbine. The display flags it when it leaves the model range.",
+        "id": "Nilainya menentukan titik beban sebagian pada turbin compressor drive. Tampilan memberi tanda bila keluar dari rentang model."
+      },
+      "glossary": [
+        "twin-shaft"
+      ],
+      "lesson": "l3-4"
+    },
+    "hud.nGG": {
+      "what": {
+        "en": "The gas generator speed of the twin-shaft turbine at this load.",
+        "id": "Kecepatan gas generator pada turbin twin-shaft di beban ini."
+      },
+      "how": {
+        "en": "It falls with load. The power turbine speed follows the process and is not modeled.",
+        "id": "Nilainya turun bersama beban. Kecepatan power turbine mengikuti proses dan tidak dimodelkan."
+      },
+      "glossary": [
+        "twin-shaft"
+      ],
+      "lesson": "l3-4"
+    },
+    "hud.co2Diesel": {
+      "what": {
+        "en": "The specific CO₂ of the diesel engine.",
+        "id": "CO₂ spesifik mesin diesel."
+      },
+      "how": {
+        "en": "It follows from the fuel carbon and the brake efficiency. There is no methane slip.",
+        "id": "Nilainya mengikuti karbon bahan bakar dan efisiensi rem. Tidak ada methane slip."
+      },
+      "glossary": [
+        "co2"
+      ],
+      "lesson": "l4-4"
+    },
+    "hud.co2e": {
+      "what": {
+        "en": "CO₂ equivalent for each kWh: CO₂ plus the warming effect of unburned methane.",
+        "id": "CO₂ ekuivalen per kWh: CO₂ ditambah efek pemanasan dari metana yang tidak terbakar."
+      },
+      "how": {
+        "en": "Slip raises it, and the global warming potential sets by how much. Plain CO₂ alone would understate a gas machine.",
+        "id": "Slip menaikkannya, dan potensi pemanasan global menentukan seberapa besar. CO₂ saja akan meremehkan mesin gas."
+      },
+      "glossary": [
+        "co2e",
+        "gwp",
+        "methane-slip"
+      ],
+      "lesson": "l4-4"
+    },
+    "hud.slip": {
+      "what": {
+        "en": "The share of the gas fuel that leaves unburned as methane.",
+        "id": "Bagian bahan bakar gas yang keluar tidak terbakar sebagai metana."
+      },
+      "how": {
+        "en": "Set it with the slip slider. It applies to gas engines and gas turbines, not to diesel.",
+        "id": "Atur dengan slider slip. Berlaku untuk mesin gas dan turbin gas, tidak untuk diesel."
+      },
+      "glossary": [
+        "methane-slip"
+      ],
+      "lesson": "l4-4"
+    },
+    "hud.slipToCo2e": {
+      "what": {
+        "en": "The CO₂e added by methane slip.",
+        "id": "CO₂e yang ditambahkan oleh methane slip."
+      },
+      "how": {
+        "en": "It depends on the slip and the global warming potential, not on efficiency. So it is the same for a gas engine and a gas turbine.",
+        "id": "Nilainya bergantung pada slip dan potensi pemanasan global, bukan efisiensi. Jadi sama untuk mesin gas dan turbin gas."
+      },
+      "glossary": [
+        "methane-slip",
+        "co2e"
+      ],
+      "lesson": "l4-4"
+    },
+    "hud.gwp": {
+      "what": {
+        "en": "The global warming potential of methane compared with CO₂ over a chosen time horizon.",
+        "id": "Potensi pemanasan global metana dibanding CO₂ pada horizon waktu tertentu."
+      },
+      "how": {
+        "en": "A different time horizon gives a different result. The horizon and the source are printed under the number.",
+        "id": "Horizon waktu yang berbeda memberi hasil yang berbeda. Horizon dan sumbernya tercetak di bawah angka."
+      },
+      "glossary": [
+        "gwp"
+      ],
+      "lesson": "l4-4"
+    },
+    "hud.pm": {
+      "what": {
+        "en": "Particulate matter, shown only as a qualitative level.",
+        "id": "Partikulat, ditampilkan hanya sebagai tingkat kualitatif."
+      },
+      "how": {
+        "en": "PM is not modeled. The dark-gray particles show a fixed level for each machine type.",
+        "id": "PM tidak dimodelkan. Partikel abu gelap menunjukkan tingkat tetap untuk tiap jenis mesin."
+      },
+      "glossary": [
+        "pm"
+      ],
+      "lesson": "l4-1"
+    },
+    "hud.limitStatus": {
+      "what": {
+        "en": "Compares the model value with the limit on the regulation basis.",
+        "id": "Membandingkan nilai model dengan limit pada basis regulasi."
+      },
+      "how": {
+        "en": "Within or Above shows which side the model value falls on. It is not a test result and not a statement that a unit complies. A small margin is smaller than the model uncertainty.",
+        "id": "Within atau Above menunjukkan di sisi mana nilai model jatuh. Ini bukan hasil uji dan bukan pernyataan bahwa unit memenuhi syarat. Margin kecil lebih kecil daripada ketidakpastian model."
+      },
+      "glossary": [
+        "indicative"
+      ],
+      "lesson": "l5-2"
+    },
+    "hud.exhaustO2": {
+      "what": {
+        "en": "The oxygen left in dry exhaust.",
+        "id": "Oksigen yang tersisa pada gas buang kering."
+      },
+      "how": {
+        "en": "It follows from the air-fuel balance. A leaner mixture leaves more. It sets the O₂ correction behind the NOx basis.",
+        "id": "Nilainya mengikuti neraca udara-bahan bakar. Campuran lebih miskin menyisakan lebih banyak. Nilai ini menentukan koreksi O₂ pada basis NOx."
+      },
+      "glossary": [
+        "o2-correction",
+        "lambda"
+      ],
+      "lesson": "l5-1"
+    },
+    "hud.lambda": {
+      "what": {
+        "en": "The excess-air ratio: air supplied divided by the air needed for complete burning.",
+        "id": "Rasio udara berlebih: udara yang dipasok dibagi udara yang dibutuhkan untuk pembakaran sempurna."
+      },
+      "how": {
+        "en": "It is the inverse of the fuel-air equivalence φ. Above one the mixture is lean.",
+        "id": "Nilainya kebalikan dari ekuivalensi bahan bakar-udara φ. Di atas satu campuran miskin."
+      },
+      "glossary": [
+        "lambda",
+        "phi"
+      ],
+      "lesson": "l2-1"
+    },
+    "hud.sweepTime": {
+      "what": {
+        "en": "How long the last lever sweep took to compute.",
+        "id": "Berapa lama sapuan tuas terakhir dihitung."
+      },
+      "how": {
+        "en": "It reports computing time only. It is not a model result.",
+        "id": "Angka ini hanya melaporkan waktu hitung. Bukan hasil model."
+      }
+    },
+    "hud.fuelPenalty": {
+      "what": {
+        "en": "The extra fuel burned to make the same power after a NOx reduction measure.",
+        "id": "Tambahan bahan bakar yang dibakar untuk daya yang sama setelah langkah pengurangan NOx."
+      },
+      "how": {
+        "en": "It is an illustrative scenario from the slider, not the effect of a specific device. CO₂ rises in step with fuel.",
+        "id": "Ini skenario ilustrasi dari slider, bukan efek alat tertentu. CO₂ naik seiring bahan bakar."
+      },
+      "glossary": [
+        "co2"
+      ],
+      "lesson": "l4-3"
+    },
+    "hud.slipShare": {
+      "what": {
+        "en": "The part of the gas engine CO₂e that comes from methane slip.",
+        "id": "Bagian CO₂e mesin gas yang berasal dari methane slip."
+      },
+      "how": {
+        "en": "A bigger share means slip, not combustion CO₂, drives the warming effect.",
+        "id": "Bagian yang lebih besar berarti slip, bukan CO₂ pembakaran, yang mendorong efek pemanasan."
+      },
+      "glossary": [
+        "methane-slip",
+        "co2e"
+      ],
+      "lesson": "l4-4"
+    },
+    "hud.limitNox": {
+      "what": {
+        "en": "The NOx limit used for the comparison, taken from the regulation table unless you typed an override.",
+        "id": "Limit NOx yang dipakai untuk perbandingan, diambil dari tabel regulasi kecuali Anda mengisi override."
+      },
+      "how": {
+        "en": "The reference O₂ and the volume basis are printed under the number. An override is marked as a user override.",
+        "id": "Basis O₂ acuan dan basis volume tercetak di bawah angka. Override ditandai sebagai override pengguna."
+      },
+      "glossary": [
+        "o2-correction"
+      ],
+      "lesson": "l5-2"
+    },
+    "hud.limitCo": {
+      "what": {
+        "en": "The CO limit from the permit or OEM value you typed.",
+        "id": "Limit CO dari nilai izin atau OEM yang Anda isi."
+      },
+      "how": {
+        "en": "The turbine regulation table has no CO limit, so this stays empty until you enter one. It is marked as user input.",
+        "id": "Tabel regulasi turbin tidak punya limit CO, jadi kolom ini kosong sampai Anda mengisinya. Ditandai sebagai isian pengguna."
+      },
+      "glossary": [
+        "permit-oem"
+      ],
+      "lesson": "l5-2"
+    },
+    "ctl.engine": {
+      "what": {
+        "en": "Choose the engine preset: diesel or gas.",
+        "id": "Pilih preset mesin: diesel atau gas."
+      },
+      "how": {
+        "en": "Press key 1 for diesel or key 2 for gas. Each preset has its own compression ratio, mixture, and timing ranges.",
+        "id": "Tekan tombol 1 untuk diesel atau tombol 2 untuk gas. Setiap preset punya rentang rasio kompresi, campuran, dan timing sendiri."
+      },
+      "lesson": "l2-2"
+    },
+    "ctl.cycleKind": {
+      "what": {
+        "en": "Pick the ideal cycle: Otto, Diesel, dual, or Brayton.",
+        "id": "Pilih siklus ideal: Otto, Diesel, dual, atau Brayton."
+      },
+      "how": {
+        "en": "Otto adds heat at constant volume, Diesel at constant pressure, and dual does both. Brayton is the gas turbine loop.",
+        "id": "Otto menambah panas pada volume tetap, Diesel pada tekanan tetap, dan dual keduanya. Brayton adalah siklus turbin gas."
+      },
+      "glossary": [
+        "otto-diesel-dual",
+        "brayton"
+      ],
+      "lesson": "l3-1"
+    },
+    "ctl.cycleModel": {
+      "what": {
+        "en": "Switch between the ideal loop and the real model.",
+        "id": "Pindah antara siklus ideal dan model nyata."
+      },
+      "how": {
+        "en": "Ideal is the air-standard loop. Real adds cylinder or component losses and keeps the ideal loop as a reference.",
+        "id": "Ideal adalah siklus udara standar. Nyata menambah rugi silinder atau komponen dan menyimpan siklus ideal sebagai acuan."
+      },
+      "lesson": "l3-2"
+    },
+    "ctl.turbineConfig": {
+      "what": {
+        "en": "Choose the turbine arrangement: generator (single-shaft) or compressor drive (twin-shaft).",
+        "id": "Pilih susunan turbin: generator (single-shaft) atau compressor drive (twin-shaft)."
+      },
+      "how": {
+        "en": "A generator turbine holds a fixed speed. A compressor drive has a gas generator and a free power turbine.",
+        "id": "Turbin generator menahan kecepatan tetap. Compressor drive punya gas generator dan power turbine bebas."
+      },
+      "glossary": [
+        "single-shaft",
+        "twin-shaft"
+      ],
+      "lesson": "l2-3"
+    },
+    "ctl.mixMode": {
+      "what": {
+        "en": "Choose which flame model to show: diesel, gas lean-burn, or turbine premix.",
+        "id": "Pilih model nyala yang ditampilkan: diesel, gas lean-burn, atau premix turbin."
+      },
+      "how": {
+        "en": "Each one uses its own mixture and inlet temperature, so the flame temperature differs.",
+        "id": "Masing-masing memakai campuran dan suhu masuk sendiri, sehingga suhu nyalanya berbeda."
+      },
+      "glossary": [
+        "lean-premix",
+        "flame-temperature"
+      ],
+      "lesson": "l4-2"
+    },
+    "ctl.strategy": {
+      "what": {
+        "en": "Choose how the generator turbine cuts load: close the IGV first, or reduce fuel only.",
+        "id": "Pilih cara turbin generator menurunkan beban: menutup IGV lebih dulu, atau hanya mengurangi bahan bakar."
+      },
+      "how": {
+        "en": "With IGV, air flow falls first and the flame temperature holds until the IGV run out, then CO shows a cliff. Fuel-only cools the flame at once. A twin-shaft turbine has no such choice: its operating window shifts and narrows.",
+        "id": "Dengan IGV, aliran udara turun lebih dulu dan suhu nyala bertahan sampai IGV habis, lalu CO menunjukkan tebing. Fuel-only mendinginkan nyala seketika. Turbin twin-shaft tidak punya pilihan ini: jendela operasinya bergeser dan menyempit."
+      },
+      "glossary": [
+        "igv",
+        "single-shaft",
+        "twin-shaft"
+      ],
+      "lesson": "l3-4"
+    },
+    "ctl.limUnit": {
+      "what": {
+        "en": "Choose the unit of the limit inputs: ppmvd or mg/Nm³.",
+        "id": "Pilih satuan isian limit: ppmvd atau mg/Nm³."
+      },
+      "how": {
+        "en": "Both use the active reference O₂ shown beside them. mg/Nm³ also uses the volume basis. Values are stored as ppmvd.",
+        "id": "Keduanya memakai O₂ acuan aktif yang tampil di sampingnya. mg/Nm³ juga memakai basis volume. Nilai disimpan sebagai ppmvd."
+      },
+      "glossary": [
+        "ppmvd",
+        "nm3"
+      ],
+      "lesson": "l5-1"
+    },
+    "ctl.aux": {
+      "what": {
+        "en": "Choose the second chart: flame temperature or thermal efficiency.",
+        "id": "Pilih grafik kedua: suhu nyala atau efisiensi termal."
+      },
+      "how": {
+        "en": "It only changes which curve is shown below the emissions chart.",
+        "id": "Pilihan ini hanya mengganti kurva yang tampil di bawah grafik emisi."
+      }
+    },
+    "ctl.compressionRatio": {
+      "what": {
+        "en": "The compression ratio: cylinder volume at bottom dead centre divided by the volume at top dead centre.",
+        "id": "Rasio kompresi: volume silinder di titik mati bawah dibagi volume di titik mati atas."
+      },
+      "how": {
+        "en": "A higher ratio raises efficiency and peak pressure. It also changes the chamber height in 3D.",
+        "id": "Rasio lebih tinggi menaikkan efisiensi dan tekanan puncak. Ini juga mengubah tinggi ruang bakar di 3D."
+      },
+      "glossary": [
+        "tdc"
+      ],
+      "lesson": "l2-2"
+    },
+    "ctl.equivalence": {
+      "what": {
+        "en": "The fuel-air equivalence φ: the actual fuel-air ratio divided by the stoichiometric ratio.",
+        "id": "Ekuivalensi bahan bakar-udara φ: rasio bahan bakar-udara aktual dibagi rasio stoikiometrik."
+      },
+      "how": {
+        "en": "Below one is lean, one is exact, above one is rich. The flame temperature peaks near one.",
+        "id": "Di bawah satu miskin, satu tepat, di atas satu kaya. Suhu nyala mencapai puncak di dekat satu."
+      },
+      "glossary": [
+        "phi",
+        "lambda"
+      ],
+      "lesson": "l2-1"
+    },
+    "ctl.timing": {
+      "what": {
+        "en": "The start of combustion in degrees from top dead centre (negative is before).",
+        "id": "Awal pembakaran dalam derajat dari titik mati atas (negatif berarti sebelum)."
+      },
+      "how": {
+        "en": "It is the injection timing in a diesel and the spark timing in a gas engine. Later (retarded) timing lowers peak temperature and NOx, but efficiency falls and CO₂ rises.",
+        "id": "Pada diesel ini timing injeksi, pada mesin gas timing percikan. Timing lebih lambat (mundur) menurunkan suhu puncak dan NOx, tetapi efisiensi turun dan CO₂ naik."
+      },
+      "glossary": [
+        "timing",
+        "atdc"
+      ],
+      "lesson": "l4-3"
+    },
+    "ctl.crankAngle": {
+      "what": {
+        "en": "The crank angle: where the crankshaft is in its cycle.",
+        "id": "Sudut engkol: posisi poros engkol dalam siklusnya."
+      },
+      "how": {
+        "en": "Drag to pause and inspect one angle. Zero is the firing top dead centre. The slider is locked while the state is frozen.",
+        "id": "Geser untuk menjeda dan memeriksa satu sudut. Nol adalah titik mati atas pembakaran. Slider terkunci saat kondisi dibekukan."
+      },
+      "glossary": [
+        "tdc",
+        "atdc"
+      ],
+      "lesson": "l2-2"
+    },
+    "ctl.cutoffRatio": {
+      "what": {
+        "en": "The cut-off ratio: how long fuel burns at constant pressure, as a volume ratio over that stage.",
+        "id": "Rasio cut-off: berapa lama bahan bakar terbakar pada tekanan tetap, sebagai perbandingan volume pada tahap itu."
+      },
+      "how": {
+        "en": "A larger ratio means more heat added at constant pressure, which is more diesel-like.",
+        "id": "Rasio lebih besar berarti lebih banyak panas ditambahkan pada tekanan tetap, lebih mirip diesel."
+      },
+      "glossary": [
+        "otto-diesel-dual"
+      ],
+      "lesson": "l3-1"
+    },
+    "ctl.dualPressureRatio": {
+      "what": {
+        "en": "The pressure ratio during the constant-volume heat step of the dual cycle.",
+        "id": "Rasio tekanan selama tahap penambahan panas volume tetap pada siklus dual."
+      },
+      "how": {
+        "en": "A higher value puts more of the heat at constant volume, which is more Otto-like, and less at constant pressure.",
+        "id": "Nilai lebih tinggi menaruh lebih banyak panas pada volume tetap, lebih mirip Otto, dan lebih sedikit pada tekanan tetap."
+      },
+      "glossary": [
+        "otto-diesel-dual"
+      ],
+      "lesson": "l3-1"
+    },
+    "ctl.localPhi": {
+      "what": {
+        "en": "The local fuel-air equivalence in the diesel spray pockets.",
+        "id": "Ekuivalensi bahan bakar-udara lokal pada kantong semprotan diesel."
+      },
+      "how": {
+        "en": "A diesel spray forms nearly stoichiometric pockets even when the overall mixture is lean. A hotter pocket means more NOx.",
+        "id": "Semprotan diesel membentuk kantong yang hampir stoikiometrik walau campuran keseluruhan miskin. Kantong yang lebih panas berarti NOx lebih banyak."
+      },
+      "glossary": [
+        "phi",
+        "thermal-nox"
+      ],
+      "lesson": "l4-2"
+    },
+    "ctl.intakeT": {
+      "what": {
+        "en": "The temperature of the mixture entering the flame model.",
+        "id": "Suhu campuran yang masuk ke model nyala."
+      },
+      "how": {
+        "en": "Drag for a what-if. The default comes from the model. A hotter inlet raises the flame temperature.",
+        "id": "Geser untuk skenario bagaimana-jika. Nilai awalnya dari model. Masukan yang lebih panas menaikkan suhu nyala."
+      },
+      "glossary": [
+        "flame-temperature"
+      ],
+      "lesson": "l4-2"
+    },
+    "ctl.intakeModel": {
+      "what": {
+        "en": "Reset the inlet temperature to the model value.",
+        "id": "Kembalikan suhu masuk ke nilai model."
+      },
+      "how": {
+        "en": "Use it after a what-if to return to the value the model computes.",
+        "id": "Pakai setelah skenario bagaimana-jika untuk kembali ke nilai hasil hitung model."
+      }
+    },
+    "ctl.pressureRatio": {
+      "what": {
+        "en": "The pressure ratio of the compressor: outlet pressure divided by inlet pressure.",
+        "id": "Rasio tekanan kompresor: tekanan keluar dibagi tekanan masuk."
+      },
+      "how": {
+        "en": "A higher ratio raises efficiency up to a limit and raises the compressor outlet temperature.",
+        "id": "Rasio lebih tinggi menaikkan efisiensi sampai batas tertentu dan menaikkan suhu keluar kompresor."
+      },
+      "glossary": [
+        "pressure-ratio",
+        "brayton"
+      ],
+      "lesson": "l3-3"
+    },
+    "ctl.turbineInletT": {
+      "what": {
+        "en": "The turbine inlet temperature (firing temperature).",
+        "id": "Suhu masuk turbin (suhu pembakaran)."
+      },
+      "how": {
+        "en": "Higher gives more work and efficiency. The blade material limits it.",
+        "id": "Lebih tinggi memberi kerja dan efisiensi lebih besar. Material bilah membatasinya."
+      },
+      "glossary": [
+        "brayton"
+      ],
+      "lesson": "l3-3"
+    },
+    "ctl.etaC": {
+      "what": {
+        "en": "The compressor isentropic efficiency: how close the compressor gets to the ideal.",
+        "id": "Efisiensi isentropik kompresor: seberapa dekat kompresor ke kondisi ideal."
+      },
+      "how": {
+        "en": "Lower means more compressor work and less useful output.",
+        "id": "Lebih rendah berarti kerja kompresor lebih besar dan keluaran berguna lebih kecil."
+      },
+      "lesson": "l3-3"
+    },
+    "ctl.etaT": {
+      "what": {
+        "en": "The turbine isentropic efficiency.",
+        "id": "Efisiensi isentropik turbin."
+      },
+      "how": {
+        "en": "Lower means less work from the same gas.",
+        "id": "Lebih rendah berarti kerja dari gas yang sama lebih kecil."
+      },
+      "lesson": "l3-3"
+    },
+    "ctl.etaGG": {
+      "what": {
+        "en": "The efficiency of the gas generator turbine, which only drives its own compressor.",
+        "id": "Efisiensi turbin gas generator, yang hanya menggerakkan kompresornya sendiri."
+      },
+      "how": {
+        "en": "Lower means the gas generator needs more gas energy for the same job, leaving less for the power turbine.",
+        "id": "Lebih rendah berarti gas generator butuh energi gas lebih besar untuk tugas yang sama, sisanya untuk power turbine lebih kecil."
+      },
+      "glossary": [
+        "twin-shaft"
+      ],
+      "lesson": "l2-3"
+    },
+    "ctl.etaPT": {
+      "what": {
+        "en": "The efficiency of the free power turbine that delivers work to the load.",
+        "id": "Efisiensi power turbine bebas yang menyalurkan kerja ke beban."
+      },
+      "how": {
+        "en": "Lower means less output for the same gas flow.",
+        "id": "Lebih rendah berarti keluaran lebih kecil untuk aliran gas yang sama."
+      },
+      "glossary": [
+        "twin-shaft"
+      ],
+      "lesson": "l2-3"
+    },
+    "ctl.ambientT": {
+      "what": {
+        "en": "The air temperature at the compressor inlet.",
+        "id": "Suhu udara pada saluran masuk kompresor."
+      },
+      "how": {
+        "en": "Hot air is lighter, so air flow and power drop.",
+        "id": "Udara panas lebih ringan, sehingga aliran udara dan daya turun."
+      },
+      "lesson": "l2-3"
+    },
+    "ctl.load": {
+      "what": {
+        "en": "The load on the turbine, as a share of design power.",
+        "id": "Beban pada turbin, sebagai bagian dari daya desain."
+      },
+      "how": {
+        "en": "Both turbine configurations follow it. In Scene 9 load is not a separate lever.",
+        "id": "Kedua konfigurasi turbin mengikutinya. Di Scene 9 beban bukan tuas yang terpisah."
+      },
+      "glossary": [
+        "load-window"
+      ],
+      "lesson": "l3-4"
+    },
+    "ctl.suctionP": {
+      "what": {
+        "en": "The gas pressure at the compressor inlet, for example a well or a separator.",
+        "id": "Tekanan gas pada sisi masuk kompresor, misalnya sumur atau separator."
+      },
+      "how": {
+        "en": "Lower suction pressure raises the pressure ratio, the head, the speed, and the power.",
+        "id": "Tekanan hisap lebih rendah menaikkan rasio tekanan, head, kecepatan, dan daya."
+      },
+      "lesson": "l2-4"
+    },
+    "ctl.dischargeP": {
+      "what": {
+        "en": "The gas pressure at the compressor outlet, for example a pipeline or an injection well.",
+        "id": "Tekanan gas pada sisi keluar kompresor, misalnya pipa atau sumur injeksi."
+      },
+      "how": {
+        "en": "Higher discharge pressure raises the pressure ratio and the power. It must stay above the suction pressure.",
+        "id": "Tekanan buang lebih tinggi menaikkan rasio tekanan dan daya. Nilainya harus tetap di atas tekanan hisap."
+      },
+      "glossary": [
+        "pressure-ratio"
+      ],
+      "lesson": "l2-4"
+    },
+    "ctl.gasMW": {
+      "what": {
+        "en": "The molecular weight of the gas.",
+        "id": "Berat molekul gas."
+      },
+      "how": {
+        "en": "Lighter gas needs more head for the same pressure ratio.",
+        "id": "Gas yang lebih ringan membutuhkan head lebih besar untuk rasio tekanan yang sama."
+      },
+      "lesson": "l2-4"
+    },
+    "ctl.massFlow": {
+      "what": {
+        "en": "The mass flow of gas through the compressor.",
+        "id": "Laju massa gas yang melewati kompresor."
+      },
+      "how": {
+        "en": "Power scales with it, so the turbine load follows.",
+        "id": "Daya sebanding dengannya, sehingga beban turbin ikut berubah."
+      },
+      "lesson": "l2-4"
+    },
+    "ctl.speedWhatIf": {
+      "what": {
+        "en": "A what-if compressor speed.",
+        "id": "Kecepatan kompresor untuk skenario bagaimana-jika."
+      },
+      "how": {
+        "en": "It moves the process point by the affinity laws: flow with speed, head with speed squared, power with speed cubed. The 3D rig keeps spinning at the speed the process needs.",
+        "id": "Titik proses bergeser menurut hukum afinitas: aliran sebanding kecepatan, head sebanding kuadrat kecepatan, daya sebanding pangkat tiga kecepatan. Rig 3D tetap berputar pada kecepatan yang dibutuhkan proses."
+      },
+      "glossary": [
+        "affinity-laws"
+      ],
+      "lesson": "l2-4"
+    },
+    "ctl.slip": {
+      "what": {
+        "en": "The share of the gas fuel that escapes unburned as methane.",
+        "id": "Bagian bahan bakar gas yang lolos tidak terbakar sebagai metana."
+      },
+      "how": {
+        "en": "It applies to the gas engine and the gas turbine, not to diesel. More slip raises CO₂e. The same value is used wherever slip appears.",
+        "id": "Berlaku untuk mesin gas dan turbin gas, tidak untuk diesel. Slip lebih besar menaikkan CO₂e. Nilai yang sama dipakai di mana pun slip muncul."
+      },
+      "glossary": [
+        "methane-slip",
+        "co2e"
+      ],
+      "lesson": "l4-4"
+    },
+    "ctl.fuelPenalty": {
+      "what": {
+        "en": "The extra fuel needed to make the same power after a modification.",
+        "id": "Tambahan bahan bakar untuk daya yang sama setelah sebuah modifikasi."
+      },
+      "how": {
+        "en": "It is an illustrative scenario, not the effect of a specific device. CO₂ rises in step with fuel.",
+        "id": "Ini skenario ilustrasi, bukan efek alat tertentu. CO₂ naik seiring bahan bakar."
+      },
+      "glossary": [
+        "co2"
+      ],
+      "lesson": "l4-3"
+    },
+    "ctl.leverAxis": {
+      "what": {
+        "en": "Choose which lever the charts sweep: timing, mixture, intake temperature, boost, or speed.",
+        "id": "Pilih tuas yang disapu grafik: timing, campuran, suhu masuk, boost, atau kecepatan."
+      },
+      "how": {
+        "en": "The other levers stay at their set values. The dots on the charts mark the current setting.",
+        "id": "Tuas lain tetap pada nilai yang diatur. Titik pada grafik menandai pengaturan saat ini."
+      },
+      "lesson": "l4-3"
+    },
+    "ctl.leverSub": {
+      "what": {
+        "en": "Switch between the engine levers and the fuel properties.",
+        "id": "Pindah antara tuas mesin dan sifat bahan bakar."
+      },
+      "how": {
+        "en": "Fuel properties change heating value, CO₂ per energy, SO₂, and exhaust O₂. They do not change NOx or CO in this model.",
+        "id": "Sifat bahan bakar mengubah nilai kalor, CO₂ per energi, SO₂, dan O₂ gas buang. Di model ini tidak mengubah NOx atau CO."
+      },
+      "glossary": [
+        "lhv"
+      ],
+      "lesson": "l4-3"
+    },
+    "ctl.boost": {
+      "what": {
+        "en": "The boost pressure of the intake air.",
+        "id": "Tekanan boost udara masuk."
+      },
+      "how": {
+        "en": "More boost means more air and more load. For the gas engine it is the load proxy, so load is not a separate lever.",
+        "id": "Boost lebih besar berarti udara dan beban lebih besar. Pada mesin gas ini pengganti beban, jadi beban bukan tuas terpisah."
+      },
+      "lesson": "l4-3"
+    },
+    "ctl.engineSpeed": {
+      "what": {
+        "en": "The engine speed.",
+        "id": "Kecepatan mesin."
+      },
+      "how": {
+        "en": "It changes the time per cycle, so the burn time and the wall heat loss change. Read the charts for the effect.",
+        "id": "Mengubah waktu per siklus, sehingga waktu pembakaran dan rugi panas ke dinding ikut berubah. Baca grafik untuk melihat efeknya."
+      },
+      "lesson": "l4-3"
+    },
+    "ctl.fuelComposition": {
+      "what": {
+        "en": "The mole shares of the species in the fuel gas.",
+        "id": "Porsi mol tiap spesies dalam gas bahan bakar."
+      },
+      "how": {
+        "en": "The shares are normalized. Composition changes heating value, air-fuel ratio, CO₂ per energy, and exhaust O₂. It does not change NOx or CO in this model.",
+        "id": "Porsi dinormalisasi. Komposisi mengubah nilai kalor, rasio udara-bahan bakar, CO₂ per energi, dan O₂ gas buang. Di model ini komposisi tidak mengubah NOx atau CO."
+      },
+      "glossary": [
+        "lhv",
+        "afr"
+      ],
+      "lesson": "l2-1"
+    },
+    "ctl.h2s": {
+      "what": {
+        "en": "The H₂S in the fuel gas, in parts per million by volume.",
+        "id": "H₂S dalam gas bahan bakar, dalam bagian per juta volume."
+      },
+      "how": {
+        "en": "H₂S burns to SO₂, so it raises SO₂. It does not change NOx or CO in this model.",
+        "id": "H₂S terbakar menjadi SO₂, jadi menaikkan SO₂. Di model ini tidak mengubah NOx atau CO."
+      },
+      "glossary": [
+        "so2"
+      ],
+      "lesson": "l4-1"
+    },
+    "ctl.sulfur": {
+      "what": {
+        "en": "The sulfur in diesel oil, in percent by mass.",
+        "id": "Sulfur dalam minyak diesel, dalam persen massa."
+      },
+      "how": {
+        "en": "Sulfur burns to SO₂. In this model it changes only SO₂. NOx and CO stay the same.",
+        "id": "Sulfur terbakar menjadi SO₂. Di model ini hanya SO₂ yang berubah. NOx dan CO tetap sama."
+      },
+      "glossary": [
+        "so2"
+      ],
+      "lesson": "l4-1"
+    },
+    "ctl.calibration": {
+      "what": {
+        "en": "Open the NOx calibration panel.",
+        "id": "Buka panel kalibrasi NOx."
+      },
+      "how": {
+        "en": "Calibration pins the correlation to typical literature values, not to unit data or a vendor prediction, so NOx stays indicative. Shortcut: key C.",
+        "id": "Kalibrasi mengikat korelasi pada nilai tipikal literatur, bukan data unit atau prediksi vendor, jadi NOx tetap indikatif. Pintasan: tombol C."
+      },
+      "glossary": [
+        "indicative"
+      ],
+      "lesson": "l5-3"
+    },
+    "ctl.play": {
+      "what": {
+        "en": "Pause or resume the animation.",
+        "id": "Jeda atau lanjutkan animasi."
+      },
+      "how": {
+        "en": "While paused you can still drag the angle. Shortcut: Space.",
+        "id": "Saat dijeda, Anda masih bisa menggeser sudut. Pintasan: Spasi."
+      }
+    },
+    "ctl.freeze": {
+      "what": {
+        "en": "Freeze the state.",
+        "id": "Bekukan kondisi."
+      },
+      "how": {
+        "en": "Time stops and the angle locks, so you can point at one spot. Press again to release. Shortcut: key F.",
+        "id": "Waktu berhenti dan sudut terkunci, sehingga Anda bisa menunjuk satu titik. Tekan lagi untuk melepas. Pintasan: tombol F."
+      }
+    },
+    "ctl.reset": {
+      "what": {
+        "en": "Return this view to its preset values.",
+        "id": "Kembalikan tampilan ini ke nilai preset."
+      },
+      "how": {
+        "en": "It resets the settings of the current view only. Shortcut: key R.",
+        "id": "Hanya mengatur ulang pengaturan tampilan saat ini. Pintasan: tombol R."
+      }
+    },
+    "ctl.labels": {
+      "what": {
+        "en": "Show or hide the 3D component labels.",
+        "id": "Tampilkan atau sembunyikan label komponen 3D."
+      },
+      "how": {
+        "en": "Hide them when they cover the part you want to see. Shortcut: key L.",
+        "id": "Sembunyikan bila label menutupi bagian yang ingin dilihat. Pintasan: tombol L."
+      }
+    },
+    "ctl.replay": {
+      "what": {
+        "en": "Replay the waterfall bar animation.",
+        "id": "Putar ulang animasi batang waterfall."
+      },
+      "how": {
+        "en": "It shows again how each loss takes efficiency away. Shortcut: key W.",
+        "id": "Menampilkan lagi bagaimana tiap rugi mengurangi efisiensi. Pintasan: tombol W."
+      },
+      "lesson": "l3-2"
+    },
+    "ctl.focus": {
+      "what": {
+        "en": "Keep the animation around the combustion event.",
+        "id": "Pertahankan animasi di sekitar peristiwa pembakaran."
+      },
+      "how": {
+        "en": "When on, the angle loops only from the start of combustion to its end, so the flame stays on screen.",
+        "id": "Bila aktif, sudut hanya berulang dari awal sampai akhir pembakaran, sehingga nyala tetap terlihat."
+      }
+    },
+    "ctl.bloom": {
+      "what": {
+        "en": "The glow around the flame.",
+        "id": "Cahaya berpendar di sekitar nyala."
+      },
+      "how": {
+        "en": "One setting for all scenes: Auto, On, or Off. Turn it off if the animation is slow. Shortcut: key B.",
+        "id": "Satu pengaturan untuk semua scene: Auto, On, atau Off. Matikan bila animasi lambat. Pintasan: tombol B."
+      }
+    },
+    "ctl.animSpeed": {
+      "what": {
+        "en": "The speed of the animation on screen.",
+        "id": "Kecepatan animasi di layar."
+      },
+      "how": {
+        "en": "It slows the display for viewing. The engine speed in the model does not change.",
+        "id": "Memperlambat tampilan agar mudah diamati. Kecepatan mesin dalam model tidak berubah."
+      }
+    },
+    "ui.s9tabs": {
+      "what": {
+        "en": "Five views of the emission argument: Limits, Formation, Levers, Load window, and GHG.",
+        "id": "Lima tampilan untuk argumen emisi: Limits, Formation, Levers, Load window, dan GHG."
+      },
+      "how": {
+        "en": "Limits compares the model with the limit table. Formation shows how each pollutant forms. Levers sweeps engine settings and fuel. Load window shows the part-load curves against your limits. GHG shows the fuel penalty and methane slip. The number keys switch tabs. Load is not a separate lever here.",
+        "id": "Limits membandingkan model dengan tabel limit. Formation menunjukkan bagaimana tiap polutan terbentuk. Levers menyapu pengaturan mesin dan bahan bakar. Load window menunjukkan kurva beban sebagian terhadap limit Anda. GHG menunjukkan penalti bahan bakar dan methane slip. Tombol angka berpindah antar tab. Beban bukan tuas terpisah di sini."
+      },
+      "glossary": [
+        "load-window"
+      ],
+      "lesson": "l5-2"
+    },
+    "ui.regSelectors": {
+      "what": {
+        "en": "Choose the machine type, the capacity class, and the fuel that decide which limit rows apply.",
+        "id": "Pilih jenis mesin, kelas kapasitas, dan bahan bakar yang menentukan baris limit yang berlaku."
+      },
+      "how": {
+        "en": "The limit table and the comparison follow your choice. A choice you cannot click has no row in the table for the current selection.",
+        "id": "Tabel limit dan perbandingan mengikuti pilihan Anda. Pilihan yang tidak bisa diklik tidak punya baris di tabel untuk seleksi saat ini."
+      },
+      "lesson": "l5-2"
+    },
+    "ui.siteData": {
+      "what": {
+        "en": "Type values measured at your own unit, with their O₂ basis.",
+        "id": "Isi nilai yang diukur di unit Anda sendiri, beserta basis O₂-nya."
+      },
+      "how": {
+        "en": "Site data takes priority over the model value and is marked as site data. It is a user input. The turbine table has no CO limit, so a CO value comes only from the permit or OEM value you type.",
+        "id": "Data unit diutamakan atas nilai model dan ditandai sebagai data unit. Ini isian pengguna. Tabel turbin tidak punya limit CO, jadi nilai CO hanya berasal dari nilai izin atau OEM yang Anda isi."
+      },
+      "glossary": [
+        "site-data",
+        "permit-oem"
+      ],
+      "lesson": "l5-3"
+    },
+    "ui.limitOverride": {
+      "what": {
+        "en": "Type a NOx limit that replaces the table value, and a permit or OEM value for CO.",
+        "id": "Isi limit NOx yang menggantikan nilai tabel, dan nilai izin atau OEM untuk CO."
+      },
+      "how": {
+        "en": "An override is marked as a user override. The turbine table has no CO limit, so CO is compared only with the permit or OEM value you type, marked as user input. The basis is shown under the boxes.",
+        "id": "Override ditandai sebagai override pengguna. Tabel turbin tidak punya limit CO, jadi CO hanya dibandingkan dengan nilai izin atau OEM yang Anda isi, ditandai sebagai isian pengguna. Basisnya tampil di bawah kotak."
+      },
+      "glossary": [
+        "permit-oem",
+        "o2-correction"
+      ],
+      "lesson": "l5-2"
+    },
+    "ui.presetBadge": {
+      "what": {
+        "en": "Shows whether the levers are at the engine preset or modified.",
+        "id": "Menunjukkan apakah tuas berada pada preset mesin atau sudah diubah."
+      },
+      "how": {
+        "en": "Modified means you moved a lever or changed the fuel. Reset to preset puts them back. The presenter limits and the fuel sulfur are kept.",
+        "id": "Modified berarti Anda menggeser tuas atau mengubah bahan bakar. Reset to preset mengembalikannya. Limit presenter dan sulfur bahan bakar tetap."
+      },
+      "lesson": "l4-3"
+    },
+    "ui.statusChip": {
+      "what": {
+        "en": "The chip compares the model value with the limit on the regulation basis.",
+        "id": "Chip membandingkan nilai model dengan limit pada basis regulasi."
+      },
+      "how": {
+        "en": "Within or Above shows which side of the limit the model value falls on. Not modeled means the app does not compute that parameter. It is not a test result and not a statement that a unit complies. A margin smaller than the model uncertainty is flagged.",
+        "id": "Within atau Above menunjukkan di sisi mana limit nilai model jatuh. Not modeled berarti aplikasi tidak menghitung parameter itu. Ini bukan hasil uji dan bukan pernyataan bahwa unit memenuhi syarat. Margin yang lebih kecil daripada ketidakpastian model diberi tanda."
+      },
+      "glossary": [
+        "indicative"
+      ],
+      "lesson": "l5-2"
+    },
+    "ui.tempLegend": {
+      "what": {
+        "en": "The colour scale for gas temperature, in kelvin.",
+        "id": "Skala warna untuk suhu gas, dalam kelvin."
+      },
+      "how": {
+        "en": "Warm colours are hotter gas. The same scale is used in every scene and in both colour themes, so colours can be compared between scenes. The marker shows the current temperature.",
+        "id": "Warna hangat berarti gas lebih panas. Skala yang sama dipakai di setiap scene dan di kedua tema, sehingga warna bisa dibandingkan antar scene. Penanda menunjukkan suhu saat ini."
+      },
+      "glossary": [
+        "flame-temperature"
+      ],
+      "lesson": "l1-2"
+    },
+    "ui.speciesLegend": {
+      "what": {
+        "en": "The colours that mark each pollutant in the 3D view and the charts.",
+        "id": "Warna yang menandai tiap polutan di tampilan 3D dan grafik."
+      },
+      "how": {
+        "en": "NOx is orange, CO red-magenta, CO₂ grey-blue, methane green, and particulate matter dark grey. The same colours are used in every scene.",
+        "id": "NOx oranye, CO merah-magenta, CO₂ abu-biru, metana hijau, dan partikulat abu gelap. Warna yang sama dipakai di setiap scene."
+      },
+      "glossary": [
+        "nox",
+        "co",
+        "co2",
+        "pm"
+      ],
+      "lesson": "l4-1"
+    },
+    "ui.calibration": {
+      "what": {
+        "en": "The panel that sets the NOx calibration factors.",
+        "id": "Panel untuk mengatur faktor kalibrasi NOx."
+      },
+      "how": {
+        "en": "A factor pins the correlation to a target. The default targets are typical literature values, not unit data or a vendor prediction, so NOx stays indicative. Replace a target with CEMS or OEM data when you have it.",
+        "id": "Faktor mengikat korelasi pada sebuah target. Target bawaan adalah nilai tipikal literatur, bukan data unit atau prediksi vendor, jadi NOx tetap indikatif. Ganti target dengan data CEMS atau OEM bila sudah ada."
+      },
+      "glossary": [
+        "indicative",
+        "cems"
+      ],
+      "lesson": "l5-3"
+    },
+    "ui.basisCard": {
+      "what": {
+        "en": "The Basis card shows how a number or chart is built, and its model level.",
+        "id": "Kartu Basis menunjukkan bagaimana sebuah angka atau grafik dibuat, dan tingkat modelnya."
+      },
+      "how": {
+        "en": "It lists the level (Ideal, Real, Semi-empirical, or Site data), where the formula comes from, the sources, and the assumptions. Use it to judge how far to trust a result. A source marked to verify is not yet checked.",
+        "id": "Kartu ini memuat tingkat (Ideal, Real, Semi-empirical, atau Site data), asal rumus, sumber, dan asumsi. Pakai untuk menilai seberapa jauh hasil bisa dipercaya. Sumber bertanda to verify belum diperiksa."
+      },
+      "glossary": [
+        "indicative"
+      ],
+      "lesson": "l5-3"
+    },
+    "ui.assumptions": {
+      "what": {
+        "en": "The page that lists the assumptions behind the model.",
+        "id": "Halaman yang memuat asumsi di balik model."
+      },
+      "how": {
+        "en": "It also holds the shared O₂ and volume basis, the display options, and the calibration factors. Open it with key H. Read it before you quote a number.",
+        "id": "Halaman ini juga memuat basis O₂ dan volume bersama, opsi tampilan, dan faktor kalibrasi. Buka dengan tombol H. Baca sebelum mengutip sebuah angka."
+      },
+      "glossary": [
+        "o2-correction"
+      ],
+      "lesson": "l5-3"
+    },
+    "nav.learn": {
+      "what": {
+        "en": "Learn, Chart guide, and About are the self-study pages.",
+        "id": "Learn, Chart guide, dan About adalah halaman belajar mandiri."
+      },
+      "how": {
+        "en": "Learn is a path of short lessons that starts from zero. Chart guide explains how to read each chart. About says what the tool is for and what it cannot do.",
+        "id": "Learn adalah jalur pelajaran singkat yang mulai dari nol. Chart guide menjelaskan cara membaca tiap grafik. About menjelaskan untuk apa alat ini dan apa yang tidak bisa dilakukannya."
+      },
+      "lesson": "l0-1"
+    },
+    "nav.scenes": {
+      "what": {
+        "en": "The scenes, in presentation order.",
+        "id": "Daftar scene, dalam urutan presentasi."
+      },
+      "how": {
+        "en": "Click a scene to open it. In Present mode the arrow keys move between scenes. In Explore they do so only while focus is in this list.",
+        "id": "Klik sebuah scene untuk membukanya. Pada mode Present tombol panah berpindah antar scene. Pada Explore hanya saat fokus berada di daftar ini."
+      },
+      "lesson": "l0-2"
+    },
+    "nav.pages": {
+      "what": {
+        "en": "Reference pages: Regulations, Emission formation, References, Glossary, and Assumptions.",
+        "id": "Halaman rujukan: Regulations, Emission formation, References, Glossary, dan Assumptions."
+      },
+      "how": {
+        "en": "They open on top of the scene you are on. Press Esc or Close to go back to it. The shortcut key is shown beside each name.",
+        "id": "Halaman ini terbuka di atas scene yang sedang Anda lihat. Tekan Esc atau Close untuk kembali. Tombol pintasan tampil di samping nama."
+      }
+    },
+    "nav.tools": {
+      "what": {
+        "en": "Tools for the session: Snapshot, Presenter, and Present mode.",
+        "id": "Alat untuk sesi presentasi: Snapshot, Presenter, dan mode Present."
+      },
+      "how": {
+        "en": "Snapshot saves a PNG of the current view. Presenter opens a second window with notes and a timer. Present hides this navigation for a clean screen.",
+        "id": "Snapshot menyimpan PNG tampilan saat ini. Presenter membuka jendela kedua berisi catatan dan pewaktu. Present menyembunyikan navigasi ini agar layar bersih."
+      }
+    },
+    "nav.keys": {
+      "what": {
+        "en": "The keyboard shortcuts for the whole app.",
+        "id": "Pintasan papan ketik untuk seluruh aplikasi."
+      },
+      "how": {
+        "en": "Space pauses, key F freezes, key R resets, key M switches Explore and Present, key P opens the presenter, key S saves a PNG, key H opens Assumptions, key G opens Regulations, and key ? opens References. Shortcuts do not work while you type in a field. In this list the up and down arrows move focus and the left and right arrows change scene.",
+        "id": "Spasi menjeda, tombol F membekukan, tombol R mengatur ulang, tombol M berpindah Explore dan Present, tombol P membuka presenter, tombol S menyimpan PNG, tombol H membuka Assumptions, tombol G membuka Regulations, dan tombol ? membuka References. Pintasan tidak aktif saat Anda mengetik di kolom isian. Pada daftar ini panah atas dan bawah memindahkan fokus dan panah kiri dan kanan berganti scene."
+      }
+    },
+    "hdr.switches": {
+      "what": {
+        "en": "The mode, the language, and the colour theme.",
+        "id": "Mode, bahasa, dan tema warna."
+      },
+      "how": {
+        "en": "Explore shows the navigation and every page. Present hides the navigation for an audience. EN and ID change the language of the translated pages and help cards; the rest of the app stays in English for now. Dark and Light change the colours. Your choices are remembered.",
+        "id": "Explore menampilkan navigasi dan semua halaman. Present menyembunyikan navigasi untuk audiens. EN dan ID mengubah bahasa halaman terjemahan dan kartu bantuan; bagian lain aplikasi sementara tetap berbahasa Inggris. Dark dan Light mengubah warna. Pilihan Anda diingat."
+      },
+      "lesson": "l0-1"
+    },
+    "hdr.status": {
+      "what": {
+        "en": "The Model OK badge and the Quality chip show the state of the app, not of your unit.",
+        "id": "Lencana Model OK dan chip Quality menunjukkan keadaan aplikasi, bukan keadaan unit Anda."
+      },
+      "how": {
+        "en": "Model OK means the built-in model passed its reference checks at start. It does not mean any number matches unit data. The Quality chip appears when the app lowered the 3D quality to keep the frame rate. HUD numbers and charts do not change. Key Q changes quality.",
+        "id": "Model OK berarti model bawaan berhasil melewati pemeriksaan acuan saat mulai. Ini tidak berarti ada angka yang cocok dengan data unit. Chip Quality muncul saat aplikasi menurunkan kualitas 3D agar kecepatan bingkai terjaga. Angka HUD dan grafik tidak berubah. Tombol Q mengubah kualitas."
+      },
+      "glossary": [
+        "indicative"
+      ],
+      "lesson": "l5-3"
+    }
+  }
+}

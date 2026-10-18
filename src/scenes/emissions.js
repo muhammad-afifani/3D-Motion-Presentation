@@ -17,6 +17,7 @@ import { animSpeedSlider } from '../ui/animSpeed.js';
 import { createHud } from '../ui/hud.js';
 import { fmt } from '../ui/format.js';
 import { STR } from '../ui/strings.js';
+import { createHelpButton } from '../ui/helpButton.js';
 
 const S = STR.scene8, C = STR.common, U = STR.common.units, H = STR.scene8.hud;
 
@@ -25,14 +26,14 @@ export const meta = { id: 'emissions', number: 8, title: S.title, message: S.mes
 /** Item HUD (diekspor untuk tes). */
 export function hudItems() {
   return [
-    { id: 'co2d', label: H.co2Diesel.label, unit: U.gkWh, value: (f) => fmt(f.rows.diesel.co2, 0), tip: H.co2Diesel.tip },
-    { id: 'co2eg', label: H.co2eGas.label, unit: U.gkWh, value: (f) => fmt(f.rows.gas.co2e, 0), tip: H.co2eGas.tip },
-    { id: 'co2et', label: H.co2eGt.label, unit: U.gkWh, value: (f) => fmt(f.rows.turbine.co2e, 0), tip: H.co2eGt.tip },
-    { id: 'slip', label: H.slip.label, unit: '', value: (f) => H.slip.value(f.slip, f.rows.gas.ch4), tip: H.slip.tip },
-    { id: 'inc', label: H.inc.label, unit: U.pct, value: (f) => H.inc.value(f.slipIncrease), tip: H.inc.tip },
-    { id: 'gwp', label: H.gwp.label, unit: '', sub: H.gwp.sub, value: (f) => fmt(f.gwp, 1), tip: H.gwp.tip },
-    { id: 'cal', label: H.calib.label, unit: '', sub: H.calib.sub, value: (f) => H.calib.value(f.calib.engine.diesel, f.calib.dln), tip: H.calib.tip },
-    { id: 'pm', label: S.pm.label, unit: '', sub: S.pm.sub, value: () => S.pm.value, tip: S.pm.tip },
+    { id: 'co2d', help: 'hud.co2Diesel', label: H.co2Diesel.label, unit: U.gkWh, value: (f) => fmt(f.rows.diesel.co2, 0), tip: H.co2Diesel.tip },
+    { id: 'co2eg', help: 'hud.co2e', label: H.co2eGas.label, unit: U.gkWh, value: (f) => fmt(f.rows.gas.co2e, 0), tip: H.co2eGas.tip },
+    { id: 'co2et', help: 'hud.co2e', label: H.co2eGt.label, unit: U.gkWh, value: (f) => fmt(f.rows.turbine.co2e, 0), tip: H.co2eGt.tip },
+    { id: 'slip', help: 'hud.slip', label: H.slip.label, unit: '', value: (f) => H.slip.value(f.slip, f.rows.gas.ch4), tip: H.slip.tip },
+    { id: 'inc', help: 'hud.slipToCo2e', label: H.inc.label, unit: U.pct, value: (f) => H.inc.value(f.slipIncrease), tip: H.inc.tip },
+    { id: 'gwp', help: 'hud.gwp', label: H.gwp.label, unit: '', sub: H.gwp.sub, value: (f) => fmt(f.gwp, 1), tip: H.gwp.tip },
+    { id: 'cal', help: 'hud.noxCalib', label: H.calib.label, unit: '', sub: H.calib.sub, value: (f) => H.calib.value(f.calib.engine.diesel, f.calib.dln), tip: H.calib.tip },
+    { id: 'pm', help: 'hud.pm', label: S.pm.label, unit: '', sub: S.pm.sub, value: () => S.pm.value, tip: S.pm.tip },
   ];
 }
 
@@ -96,11 +97,11 @@ export function createScene(ctx) {
 
   function buildControls() {
     const s = store.get();
-    ctl.slip = slider({ label: S.slip, ...EMIS.slip, value: s.eSlip, digits: 1, unit: U.pct, tip: S.tips.slip, onInput: (v) => store.set({ eSlip: v }) });
+    ctl.slip = slider({ help: 'ctl.slip', label: S.slip, ...EMIS.slip, value: s.eSlip, digits: 1, unit: U.pct, tip: S.tips.slip, onInput: (v) => store.set({ eSlip: v }) });
     ctl.speed = animSpeedSlider(store);
-    ctl.play = button({ label: C.pause, key: C.keySpace, tip: C.tips.play, onClick: () => store.set(togglePlayPatch(store.get())) });
-    ctl.freeze = button({ label: C.freeze, key: 'F', tip: C.tips.freeze, onClick: () => store.set(toggleFreezePatch(store.get())) });
-    ctl.reset = button({ label: C.reset, key: 'R', tip: S.tips.reset, onClick: () => resetParams() });
+    ctl.play = button({ help: 'ctl.play', label: C.pause, key: C.keySpace, tip: C.tips.play, onClick: () => store.set(togglePlayPatch(store.get())) });
+    ctl.freeze = button({ help: 'ctl.freeze', label: C.freeze, key: 'F', tip: C.tips.freeze, onClick: () => store.set(toggleFreezePatch(store.get())) });
+    ctl.reset = button({ help: 'ctl.reset', label: C.reset, key: 'R', tip: S.tips.reset, onClick: () => resetParams() });
     const g1 = html('<div class="ctl-group"></div>');
     g1.append(ctl.slip.el, ctl.speed.el);
     const g2 = html('<div class="ctl-group ctl-group--buttons"></div>');
@@ -138,6 +139,7 @@ export function createScene(ctx) {
     meta,
     mount() {
       buildDom();
+      q('.nox-species').append(' ', createHelpButton('ui.speciesLegend', { describes: q('.nox-species') }).el);
       buildControls();
       co2Chart = createBarChart(q('.pl-emis'), { basis: 'emissions', title: S.charts.co2.title, xLabel: S.charts.co2.xLabel, unit: U.gkWh, digits: 0, labelWidth: 230, indicative: true, padTop: 64 });
       noxChart = createBarChart(q('.emis-aux__chart'), { basis: 'emissions', title: S.charts.nox.title, xLabel: S.charts.nox.xLabel, unit: U.gkWh, digits: 2, labelWidth: 230, indicative: true });

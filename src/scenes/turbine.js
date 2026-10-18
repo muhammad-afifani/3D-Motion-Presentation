@@ -28,14 +28,14 @@ const CAM = { generator: { pos: [-0.2, 1.7, 5.6], target: [-0.9, 0.05, 0] }, com
 function hudItems(cfg, perDegRef) {
   const twin = cfg !== 'generator';
   return [
-    { id: 'eta', label: H.eta.label, unit: U.pct, value: (f) => pct(f.eta, 1), tip: H.eta.tip },
-    { id: 'hr', label: H.heatRate.label, unit: U.kJkWh, value: (f) => fmt(f.heatRate, 0), tip: H.heatRate.tip },
-    { id: 'pw', label: H.power.label(GAS_TURBINES[cfg].mdot), unit: U.MW, value: (f) => fmt(f.power / 1e6, 2), tip: H.power.tip },
-    { id: 'bwr', label: H.bwr.label, unit: U.pct, value: (f) => pct(f.bwr, 0), tip: H.bwr.tip },
-    { id: 'tex', label: H.texh.label(twin), unit: U.K, value: (f) => fmt(f.Texh, 0), tip: H.texh.tip },
-    { id: 'der', label: `${H.derate.label}${perDegRef ? H.refSuffix : ''}`, unit: H.perDegUnit, model: H.derateModel[cfg], value: (f) => fmt(f.perDegC * 100, 2), tip: H.derate.tip(perDegRef) },
-    { id: 'iso', label: H.powerIso.label, unit: U.pct, model: H.derateModel[cfg], value: (f) => `${f.derate >= 1 ? '+' : '−'}${fmt(Math.abs(f.derate - 1) * 100, 1)}`, tip: H.powerIso.tip },
-    { id: 'n', label: H.speed.label, unit: '', value: (f) => (f.twin ? S.speedTwin(f.N.gg, f.N.pt) : S.speedGen(f.N.rpm)), tip: twin ? H.speed.tipTwin : H.speed.tipGen },
+    { id: 'eta', help: 'hud.etaThermal', label: H.eta.label, unit: U.pct, value: (f) => pct(f.eta, 1), tip: H.eta.tip },
+    { id: 'hr', help: 'hud.heatRate', label: H.heatRate.label, unit: U.kJkWh, value: (f) => fmt(f.heatRate, 0), tip: H.heatRate.tip },
+    { id: 'pw', help: 'hud.power', label: H.power.label(GAS_TURBINES[cfg].mdot), unit: U.MW, value: (f) => fmt(f.power / 1e6, 2), tip: H.power.tip },
+    { id: 'bwr', help: 'hud.bwr', label: H.bwr.label, unit: U.pct, value: (f) => pct(f.bwr, 0), tip: H.bwr.tip },
+    { id: 'tex', help: 'hud.exhaustT', label: H.texh.label(twin), unit: U.K, value: (f) => fmt(f.Texh, 0), tip: H.texh.tip },
+    { id: 'der', help: 'hud.derating', label: `${H.derate.label}${perDegRef ? H.refSuffix : ''}`, unit: H.perDegUnit, model: H.derateModel[cfg], value: (f) => fmt(f.perDegC * 100, 2), tip: H.derate.tip(perDegRef) },
+    { id: 'iso', help: 'hud.powerIso', label: H.powerIso.label, unit: U.pct, model: H.derateModel[cfg], value: (f) => `${f.derate >= 1 ? '+' : '−'}${fmt(Math.abs(f.derate - 1) * 100, 1)}`, tip: H.powerIso.tip },
+    { id: 'n', help: 'hud.speed', label: H.speed.label, unit: '', value: (f) => (f.twin ? S.speedTwin(f.N.gg, f.N.pt) : S.speedGen(f.N.rpm)), tip: twin ? H.speed.tipTwin : H.speed.tipGen },
   ];
 }
 
@@ -79,18 +79,18 @@ export function createScene(ctx) {
 
   function buildControls() {
     const s = store.get();
-    ctl.cfg = segmented({ label: S.config, tip: S.tips.config, options: [{ value: 'generator', label: S.configs.generator, key: '1' }, { value: 'compressorDrive', label: S.configs.compressorDrive, key: '2' }], value: s.gCfg, onChange: (v) => setCfg(v) });
-    ctl.rp = slider({ label: S.rp, ...GT_RANGES.rp, value: s.gRp, digits: 1, tip: S.tips.rp, onInput: (v) => store.set({ gRp: v }) });
-    ctl.T3 = slider({ label: S.T3, ...GT_RANGES.T3, value: s.gT3, digits: 0, unit: U.K, tip: S.tips.T3, onInput: (v) => store.set({ gT3: v }) });
-    ctl.etaC = slider({ label: S.etaC, ...GT_RANGES.etaC, value: s.gEtaC, digits: 3, tip: S.tips.etaC, onInput: (v) => store.set({ gEtaC: v }) });
-    ctl.etaT = slider({ label: S.etaT, ...GT_RANGES.etaT, value: s.gEtaT, digits: 3, tip: S.tips.etaT, onInput: (v) => store.set({ gEtaT: v }) });
-    ctl.etaGG = slider({ label: S.etaGG, ...GT_RANGES.etaT, value: s.gEtaGG, digits: 3, tip: S.tips.etaGG, onInput: (v) => store.set({ gEtaGG: v }) });
-    ctl.etaPT = slider({ label: S.etaPT, ...GT_RANGES.etaT, value: s.gEtaPT, digits: 3, tip: S.tips.etaPT, onInput: (v) => store.set({ gEtaPT: v }) });
-    ctl.Tamb = slider({ label: S.Tamb, ...GT_RANGES.Tamb, value: s.gTamb, digits: 0, unit: U.degC, tip: S.tips.Tamb, onInput: (v) => store.set({ gTamb: v }) });
+    ctl.cfg = segmented({ help: 'ctl.turbineConfig', label: S.config, tip: S.tips.config, options: [{ value: 'generator', label: S.configs.generator, key: '1' }, { value: 'compressorDrive', label: S.configs.compressorDrive, key: '2' }], value: s.gCfg, onChange: (v) => setCfg(v) });
+    ctl.rp = slider({ help: 'ctl.pressureRatio', label: S.rp, ...GT_RANGES.rp, value: s.gRp, digits: 1, tip: S.tips.rp, onInput: (v) => store.set({ gRp: v }) });
+    ctl.T3 = slider({ help: 'ctl.turbineInletT', label: S.T3, ...GT_RANGES.T3, value: s.gT3, digits: 0, unit: U.K, tip: S.tips.T3, onInput: (v) => store.set({ gT3: v }) });
+    ctl.etaC = slider({ help: 'ctl.etaC', label: S.etaC, ...GT_RANGES.etaC, value: s.gEtaC, digits: 3, tip: S.tips.etaC, onInput: (v) => store.set({ gEtaC: v }) });
+    ctl.etaT = slider({ help: 'ctl.etaT', label: S.etaT, ...GT_RANGES.etaT, value: s.gEtaT, digits: 3, tip: S.tips.etaT, onInput: (v) => store.set({ gEtaT: v }) });
+    ctl.etaGG = slider({ help: 'ctl.etaGG', label: S.etaGG, ...GT_RANGES.etaT, value: s.gEtaGG, digits: 3, tip: S.tips.etaGG, onInput: (v) => store.set({ gEtaGG: v }) });
+    ctl.etaPT = slider({ help: 'ctl.etaPT', label: S.etaPT, ...GT_RANGES.etaT, value: s.gEtaPT, digits: 3, tip: S.tips.etaPT, onInput: (v) => store.set({ gEtaPT: v }) });
+    ctl.Tamb = slider({ help: 'ctl.ambientT', label: S.Tamb, ...GT_RANGES.Tamb, value: s.gTamb, digits: 0, unit: U.degC, tip: S.tips.Tamb, onInput: (v) => store.set({ gTamb: v }) });
     ctl.rpm = animSpeedSlider(store);
-    ctl.play = button({ label: C.pause, key: C.keySpace, tip: C.tips.play, onClick: () => store.set(togglePlayPatch(store.get())) });
-    ctl.freeze = button({ label: C.freeze, key: 'F', tip: C.tips.freeze, onClick: () => store.set(toggleFreezePatch(store.get())) });
-    ctl.reset = button({ label: C.reset, key: 'R', tip: S.tips.reset, onClick: () => setCfg(store.get().gCfg, true) });
+    ctl.play = button({ help: 'ctl.play', label: C.pause, key: C.keySpace, tip: C.tips.play, onClick: () => store.set(togglePlayPatch(store.get())) });
+    ctl.freeze = button({ help: 'ctl.freeze', label: C.freeze, key: 'F', tip: C.tips.freeze, onClick: () => store.set(toggleFreezePatch(store.get())) });
+    ctl.reset = button({ help: 'ctl.reset', label: C.reset, key: 'R', tip: S.tips.reset, onClick: () => setCfg(store.get().gCfg, true) });
     const g1 = html('<div class="ctl-group"></div>');
     g1.append(ctl.cfg.el, ctl.rp.el, ctl.T3.el, ctl.etaC.el, ctl.etaT.el, ctl.etaGG.el, ctl.etaPT.el, ctl.Tamb.el);
     const g2 = html('<div class="ctl-group ctl-group--buttons"></div>');

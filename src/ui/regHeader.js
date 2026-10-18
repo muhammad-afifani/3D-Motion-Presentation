@@ -15,7 +15,7 @@ export function createRegHeader(container, cb) {
   el.innerHTML = `<div class="reg__pick"></div><div class="reg-head__info"><span class="reg__basis num" data-v="basis"></span><span class="reg__banner reg__banner--sm" data-v="banner" hidden></span></div>`;
   container.appendChild(el);
   const pick = el.querySelector('.reg__pick');
-  const equip = segmented({ label: R.equipment, options: EQUIPMENT_ORDER.map((k) => ({ value: k, label: R.equipments[k] })), value: EQUIPMENT_ORDER[0], onChange: (v) => cb.onSelect({ equip: v }) });
+  const equip = segmented({ help: 'ui.regSelectors', label: R.equipment, options: EQUIPMENT_ORDER.map((k) => ({ value: k, label: R.equipments[k] })), value: EQUIPMENT_ORDER[0], onChange: (v) => cb.onSelect({ equip: v }) });
   const fuel = segmented({ label: R.fuel, options: ['oil', 'gas'].map((k) => ({ value: k, label: R.fuels[k] })), value: 'oil', onChange: (v) => cb.onSelect({ fuel: v }) });
   const clsWrap = document.createElement('label');
   clsWrap.className = 'ctl reg__cls';

@@ -7,6 +7,7 @@
  */
 import { STR } from './strings.js';
 import { PAGES } from '../state/route.js';
+import { createHelpButton } from './helpButton.js';
 
 const N = STR.nav;
 
@@ -45,31 +46,39 @@ export function createNav(parent, cb) {
   head.append(brand, toggle);
 
   const body = h('div', 'nav__body');
-  const sec = (title) => { const s = h('div', 'nav__sec'); s.append(h('div', 'nav__title', title)); body.append(s); return s; };
+  /** Judul kelompok; help = id kartu bantuan ⓘ (tampil saat rail terbuka). */
+  const sec = (title, help) => {
+    const s = h('div', 'nav__sec'), t = h('div', 'nav__title');
+    t.append(h('span', 'nav__title-text', title));
+    if (help) t.append(createHelpButton(help, { describes: s }).el);
+    s.append(t);
+    body.append(s);
+    return s;
+  };
   const start = h('div', 'nav__sec nav__sec--start');
   body.append(start);
   const startBtn = item({ short: N.startShort, label: N.start, tip: N.startTip, data: { page: 'landing' } });
   startBtn.addEventListener('click', () => cb.onPage('landing'));
   start.append(startBtn);
-  const learn = sec(N.learnTitle);
+  const learn = sec(N.learnTitle, 'nav.learn');
   for (const p of ['learn', 'charts', 'about']) {
     const b = item({ short: N.learnShort[p], label: N.learn[p], tip: N.learn[p], data: { page: p } });
     b.addEventListener('click', () => cb.onPage(p));
     learn.append(b);
   }
-  const scenes = sec(N.scenesTitle);
+  const scenes = sec(N.scenesTitle, 'nav.scenes');
   for (const n of cb.sceneNumbers) {
     const b = item({ short: String(n), label: N.scenes[n], tip: N.sceneTip(n, N.scenes[n]), data: { scene: n } });
     b.addEventListener('click', () => cb.onScene(n));
     scenes.append(b);
   }
-  const pages = sec(N.pagesTitle);
+  const pages = sec(N.pagesTitle, 'nav.pages');
   for (const p of PAGES) {
     const b = item({ short: N.pagesShort[p], label: N.pages[p], key: N.pageKeys[p], tip: N.pages[p], data: { page: p } });
     b.addEventListener('click', () => cb.onPage(p));
     pages.append(b);
   }
-  const tools = sec(N.toolsTitle);
+  const tools = sec(N.toolsTitle, 'nav.tools');
   const toolDefs = [
     { id: 'snapshot', short: N.toolsShort.snapshot, label: STR.snapshot.button, key: STR.snapshot.key, tip: STR.snapshot.buttonTip },
     { id: 'presenter', short: N.toolsShort.presenter, label: STR.presenter.button, key: STR.presenter.key, tip: STR.presenter.buttonTip },
@@ -80,7 +89,9 @@ export function createNav(parent, cb) {
     b.addEventListener('click', () => cb.onTool(t.id));
     tools.append(b);
   }
-  body.append(h('p', 'nav__hint', N.keysHint));
+  const hint = h('p', 'nav__hint', N.keysHint);
+  hint.append(' ', createHelpButton('nav.keys', { describes: hint }).el);
+  body.append(hint);
   el.append(head, body);
   parent.prepend(el);
 

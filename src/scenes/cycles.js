@@ -39,39 +39,39 @@ function hudItems(kind, mode) {
   const F = S.formula[kind];
   if (piston && mode === 'ideal') {
     return [
-      { id: 'eta', label: H.etaIdeal, unit: U.pct, value: (f) => pct(f.eta.ideal, 1), tip: HT.etaIdeal(F, kind) },
-      ...(kind !== 'otto' ? [{ id: 'otto', label: H.ottoSameR, unit: U.pct, value: (f) => pct(f.eta.ottoSameR, 1), tip: HT.ottoSameR }] : []),
-      { id: 'mep', label: H.mep, unit: U.bar, value: (f) => fmt(f.eta.mep / 1e5, 1), tip: HT.mep },
-      { id: 'tmax', label: H.tmax, unit: U.K, value: (f) => fmt(f.eta.Tmax, 0), tip: HT.tmax },
-      { id: 'pmax', label: H.pmax, unit: U.bar, value: (f) => fmt(f.eta.Pmax / 1e5, 1), tip: HT.pmax },
+      { id: 'eta', help: 'hud.etaIdeal', label: H.etaIdeal, unit: U.pct, value: (f) => pct(f.eta.ideal, 1), tip: HT.etaIdeal(F, kind) },
+      ...(kind !== 'otto' ? [{ id: 'otto', help: 'hud.sameR', label: H.ottoSameR, unit: U.pct, value: (f) => pct(f.eta.ottoSameR, 1), tip: HT.ottoSameR }] : []),
+      { id: 'mep', help: 'hud.imep', label: H.mep, unit: U.bar, value: (f) => fmt(f.eta.mep / 1e5, 1), tip: HT.mep },
+      { id: 'tmax', help: 'hud.tmax', label: H.tmax, unit: U.K, value: (f) => fmt(f.eta.Tmax, 0), tip: HT.tmax },
+      { id: 'pmax', help: 'hud.pmax', label: H.pmax, unit: U.bar, value: (f) => fmt(f.eta.Pmax / 1e5, 1), tip: HT.pmax },
     ];
   }
   if (piston) {
     return [
       kind === 'dual'
-        ? { id: 'eta', label: H.etaIdealDual, unit: U.pct, value: (f) => pct(f.eta.ideal, 1), tip: HT.etaIdealDual(F) }
-        : { id: 'eta', label: H.etaIdealQin, unit: U.pct, value: (f) => pct(f.eta.ideal, 1), tip: HT.etaIdealQin(F) },
-      { id: 'ind', label: H.etaInd, unit: U.pct, value: (f) => pct(f.eta.ind, 1), tip: HT.etaInd },
-      { id: 'brake', label: H.etaBrake, unit: U.pct, value: (f) => pct(f.eta.brake, 1), tip: HT.etaBrake },
-      { id: 'gap', label: H.gapBrake, unit: U.pp, value: (f) => pp(f.eta.gap), tip: HT.gapBrake },
-      { id: 'pmax', label: H.pmaxReal, unit: U.bar, value: (f) => fmt(f.eta.Pmax / 1e5, 1), tip: HT.pmaxReal },
+        ? { id: 'eta', help: 'hud.etaIdeal', label: H.etaIdealDual, unit: U.pct, value: (f) => pct(f.eta.ideal, 1), tip: HT.etaIdealDual(F) }
+        : { id: 'eta', help: 'hud.etaIdeal', label: H.etaIdealQin, unit: U.pct, value: (f) => pct(f.eta.ideal, 1), tip: HT.etaIdealQin(F) },
+      { id: 'ind', help: 'hud.etaIndicated', label: H.etaInd, unit: U.pct, value: (f) => pct(f.eta.ind, 1), tip: HT.etaInd },
+      { id: 'brake', help: 'hud.etaBrake', label: H.etaBrake, unit: U.pct, value: (f) => pct(f.eta.brake, 1), tip: HT.etaBrake },
+      { id: 'gap', help: 'hud.gap', label: H.gapBrake, unit: U.pp, value: (f) => pp(f.eta.gap), tip: HT.gapBrake },
+      { id: 'pmax', help: 'hud.pmax', label: H.pmaxReal, unit: U.bar, value: (f) => fmt(f.eta.Pmax / 1e5, 1), tip: HT.pmaxReal },
     ];
   }
   if (mode === 'ideal') {
     return [
-      { id: 'eta', label: H.etaIdeal, unit: U.pct, value: (f) => pct(f.eta.ideal, 1), tip: HT.etaIdealBrayton(F) },
-      { id: 'bwr', label: H.bwr, unit: U.pct, value: (f) => pct(f.eta.bwr, 0), tip: HT.bwrIdeal },
-      { id: 'w', label: H.wnet, unit: U.kJkg, value: (f) => fmt(f.eta.wnet / 1e3, 0), tip: HT.wnet },
-      { id: 't2', label: H.t2, unit: U.K, value: (f) => fmt(f.eta.T2, 0), tip: HT.t2 },
-      { id: 't4', label: H.t4, unit: U.K, value: (f) => fmt(f.eta.T4, 0), tip: HT.t4 },
+      { id: 'eta', help: 'hud.etaIdeal', label: H.etaIdeal, unit: U.pct, value: (f) => pct(f.eta.ideal, 1), tip: HT.etaIdealBrayton(F) },
+      { id: 'bwr', help: 'hud.bwr', label: H.bwr, unit: U.pct, value: (f) => pct(f.eta.bwr, 0), tip: HT.bwrIdeal },
+      { id: 'w', help: 'hud.wnet', label: H.wnet, unit: U.kJkg, value: (f) => fmt(f.eta.wnet / 1e3, 0), tip: HT.wnet },
+      { id: 't2', help: 'hud.compOutT', label: H.t2, unit: U.K, value: (f) => fmt(f.eta.T2, 0), tip: HT.t2 },
+      { id: 't4', help: 'hud.exhaustT', label: H.t4, unit: U.K, value: (f) => fmt(f.eta.T4, 0), tip: HT.t4 },
     ];
   }
   return [
-    { id: 'eta', label: H.etaIdeal, unit: U.pct, value: (f) => pct(f.eta.ideal, 1), tip: HT.etaIdealBrayton(F) },
-    { id: 'real', label: H.etaReal, unit: U.pct, value: (f) => pct(f.eta.real, 1), tip: HT.etaReal },
-    { id: 'gap', label: H.gapReal, unit: U.pp, value: (f) => pp(f.eta.gap), tip: HT.gapReal },
-    { id: 'bwr', label: H.bwr, unit: U.pct, value: (f) => pct(f.eta.bwr, 0), tip: HT.bwrReal },
-    { id: 't4', label: H.t4, unit: U.K, value: (f) => fmt(f.eta.T4, 0), tip: HT.t4 },
+    { id: 'eta', help: 'hud.etaIdeal', label: H.etaIdeal, unit: U.pct, value: (f) => pct(f.eta.ideal, 1), tip: HT.etaIdealBrayton(F) },
+    { id: 'real', help: 'hud.etaThermal', label: H.etaReal, unit: U.pct, value: (f) => pct(f.eta.real, 1), tip: HT.etaReal },
+    { id: 'gap', help: 'hud.gap', label: H.gapReal, unit: U.pp, value: (f) => pp(f.eta.gap), tip: HT.gapReal },
+    { id: 'bwr', help: 'hud.bwr', label: H.bwr, unit: U.pct, value: (f) => pct(f.eta.bwr, 0), tip: HT.bwrReal },
+    { id: 't4', help: 'hud.exhaustT', label: H.t4, unit: U.K, value: (f) => fmt(f.eta.T4, 0), tip: HT.t4 },
   ];
 }
 
@@ -126,27 +126,27 @@ export function createScene(ctx) {
 
   function buildControls() {
     const s = store.get();
-    ctl.kind = segmented({
+    ctl.kind = segmented({ help: 'ctl.cycleKind',
       label: S.cycle,
       options: Object.keys(CYCLES).map((value, i) => ({ value, label: S.kinds[value], key: String(i + 1) })),
       value: s.cKind, onChange: (v) => setKind(v),
     });
-    ctl.mode = segmented({
+    ctl.mode = segmented({ help: 'ctl.cycleModel',
       label: S.model, tip: S.tips.mode, options: [{ value: 'ideal', label: S.ideal }, { value: 'real', label: S.real, key: 'I' }],
       value: s.cMode, onChange: (v) => setMode(v),
     });
     const rr = cycleRRange(s.cKind, s.cMode) ?? CYCLES.otto.ranges.r;
-    ctl.r = slider({ label: S.r, ...rr, value: s.cR, digits: 1, onInput: (v) => store.set({ cR: v }) });
-    ctl.rc = slider({ label: S.rc, ...CYCLES.diesel.ranges.rc, value: s.cRc, digits: 2, tip: S.tips.rc, onInput: (v) => store.set({ cRc: v }) });
-    ctl.rp = slider({ label: S.rp, ...CYCLES.dual.ranges.rp, value: s.cRp, digits: 2, onInput: (v) => store.set({ cRp: v }) });
-    ctl.rpB = slider({ label: S.rpB, ...CYCLES.brayton.ranges.rpB, value: s.cRpB, digits: 1, onInput: (v) => store.set({ cRpB: v }) });
-    ctl.T3 = slider({ label: S.T3, ...CYCLES.brayton.ranges.T3, value: s.cT3, digits: 0, unit: U.K, onInput: (v) => store.set({ cT3: v }) });
-    ctl.theta = slider({ label: S.theta, min: -360, max: 360, step: 0.5, value: s.theta, format: signedDeg, tip: S.tips.theta, onInput: (v) => store.set(scrubPatch(store.get(), v)) });
+    ctl.r = slider({ help: 'ctl.compressionRatio', label: S.r, ...rr, value: s.cR, digits: 1, onInput: (v) => store.set({ cR: v }) });
+    ctl.rc = slider({ help: 'ctl.cutoffRatio', label: S.rc, ...CYCLES.diesel.ranges.rc, value: s.cRc, digits: 2, tip: S.tips.rc, onInput: (v) => store.set({ cRc: v }) });
+    ctl.rp = slider({ help: 'ctl.dualPressureRatio', label: S.rp, ...CYCLES.dual.ranges.rp, value: s.cRp, digits: 2, onInput: (v) => store.set({ cRp: v }) });
+    ctl.rpB = slider({ help: 'ctl.pressureRatio', label: S.rpB, ...CYCLES.brayton.ranges.rpB, value: s.cRpB, digits: 1, onInput: (v) => store.set({ cRpB: v }) });
+    ctl.T3 = slider({ help: 'ctl.turbineInletT', label: S.T3, ...CYCLES.brayton.ranges.T3, value: s.cT3, digits: 0, unit: U.K, onInput: (v) => store.set({ cT3: v }) });
+    ctl.theta = slider({ help: 'ctl.crankAngle', label: S.theta, min: -360, max: 360, step: 0.5, value: s.theta, format: signedDeg, tip: S.tips.theta, onInput: (v) => store.set(scrubPatch(store.get(), v)) });
     ctl.rpm = animSpeedSlider(store);
-    ctl.play = button({ label: C.pause, key: C.keySpace, tip: C.tips.play, onClick: () => store.set(togglePlayPatch(store.get())) });
-    ctl.freeze = button({ label: C.freeze, key: 'F', tip: C.tips.freeze, onClick: () => store.set(toggleFreezePatch(store.get())) });
-    ctl.reset = button({ label: C.reset, key: 'R', tip: S.tips.reset, onClick: resetCycle });
-    ctl.replay = button({ label: S.replay, key: 'W', tip: S.tips.replay, onClick: () => wf.replay() });
+    ctl.play = button({ help: 'ctl.play', label: C.pause, key: C.keySpace, tip: C.tips.play, onClick: () => store.set(togglePlayPatch(store.get())) });
+    ctl.freeze = button({ help: 'ctl.freeze', label: C.freeze, key: 'F', tip: C.tips.freeze, onClick: () => store.set(toggleFreezePatch(store.get())) });
+    ctl.reset = button({ help: 'ctl.reset', label: C.reset, key: 'R', tip: S.tips.reset, onClick: resetCycle });
+    ctl.replay = button({ help: 'ctl.replay', label: S.replay, key: 'W', tip: S.tips.replay, onClick: () => wf.replay() });
 
     const g1 = html('<div class="ctl-group"></div>');
     g1.append(ctl.kind.el, ctl.mode.el, ctl.r.el, ctl.rc.el, ctl.rp.el, ctl.rpB.el, ctl.T3.el);

@@ -4,12 +4,14 @@
  */
 import { fmt } from './format.js';
 import { STR } from './strings.js';
+import { createHelpButton } from './helpButton.js';
 
 let uid = 0;
 
 /**
  * @param {{label:string, unit?:string, min:number, max:number, step:number, value:number,
- *   digits?:number, tip?:string, format?:(v:number)=>string, onInput:(v:number)=>void}} o
+ *   digits?:number, tip?:string, help?:string, format?:(v:number)=>string, onInput:(v:number)=>void}} o
+ *   help = id kartu bantuan ⓘ (content/help.json): tombol di samping label
  */
 export function slider(o) {
   const id = `ctl-${++uid}`;
@@ -21,6 +23,7 @@ export function slider(o) {
     <input id="${id}" type="range" />`;
   const labelEl = el.querySelector('label');
   if (o.tip) labelEl.dataset.tip = o.tip;
+  if (o.help) { labelEl.after(createHelpButton(o.help, { describes: el }).el); el.classList.add('has-help'); }
   labelEl.dataset.locked = STR.common.locked; // ditampilkan CSS saat slider terkunci
   const input = el.querySelector('input');
   const out = el.querySelector('output');
@@ -44,7 +47,7 @@ export function slider(o) {
 }
 
 /**
- * @param {{label:string, tip?:string, options:{value:string, label:string, key?:string}[], value:string, onChange:(v:string)=>void}} o
+ * @param {{label:string, tip?:string, help?:string, options:{value:string, label:string, key?:string}[], value:string, onChange:(v:string)=>void}} o
  */
 export function segmented(o) {
   const el = document.createElement('div');
@@ -53,6 +56,12 @@ export function segmented(o) {
   el.setAttribute('aria-label', o.label);
   el.innerHTML = `<span class="ctl__label">${o.label}</span><div class="seg"></div>`;
   if (o.tip) el.querySelector('.ctl__label').dataset.tip = o.tip;
+  if (o.help) {
+    const lab = el.querySelector('.ctl__label'), head = document.createElement('div');
+    head.className = 'ctl__head';
+    lab.replaceWith(head);
+    head.append(lab, createHelpButton(o.help, { describes: el }).el);
+  }
   const wrap = el.querySelector('.seg');
   const btns = o.options.map((op) => {
     const b = document.createElement('button');
@@ -69,7 +78,7 @@ export function segmented(o) {
   return { el, set };
 }
 
-/** @param {{label:string, key?:string, tip?:string, onClick:()=>void}} o */
+/** @param {{label:string, key?:string, tip?:string, help?:string, onClick:()=>void}} o help = id kartu bantuan ⓘ (di pojok kanan atas tombol; el = pembungkus) */
 export function button(o) {
   const b = document.createElement('button');
   b.type = 'button';
@@ -78,8 +87,14 @@ export function button(o) {
   const setLabel = (label) => { b.innerHTML = `${label}${o.key ? ` <kbd>${o.key}</kbd>` : ''}`; };
   setLabel(o.label);
   b.addEventListener('click', o.onClick);
+  let el = b;
+  if (o.help) {
+    el = document.createElement('span');
+    el.className = 'btn-wrap';
+    el.append(b, createHelpButton(o.help, { describes: b }).el);
+  }
   return {
-    el: b, setLabel,
+    el, setLabel,
     setOn(on) { b.classList.toggle('is-on', !!on); b.setAttribute('aria-pressed', String(!!on)); },
     setDisabled(on) { b.disabled = !!on; },
   };

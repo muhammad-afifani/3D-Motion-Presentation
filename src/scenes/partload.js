@@ -21,6 +21,7 @@ import { slider, segmented, button } from '../ui/controls.js';
 import { animSpeedSlider } from '../ui/animSpeed.js';
 import { createHud } from '../ui/hud.js';
 import { createLimitsInput } from '../ui/limitsInput.js';
+import { createHelpButton } from '../ui/helpButton.js';
 import { createCalibrationPanel } from '../ui/calibrationPanel.js';
 import { fmt, pct } from '../ui/format.js';
 import { STR } from '../ui/strings.js';
@@ -43,19 +44,19 @@ export function hudItems(f, cfg) {
   const twin = cfg === 'twin';
   const P = (x) => x[cfg];
   const items = [
-    { id: 'eta', label: H.eta.label, unit: U.pct, value: (x) => pct(P(x).point.eta, 1), tip: H.eta.tip },
-    { id: 't3', label: H.T3.label, unit: U.K, value: (x) => fmt(P(x).point.T3, 0), tip: H.T3.tip },
-    { id: 'tf', label: H.flame.label, unit: U.K, value: (x) => fmt(P(x).point.Tflame, 0), tip: H.flame.tip },
-    { id: 'nox', label: H.nox.label, unit: H.nox.unit, sub: C.basis.full(b.refO2, b.TrefC), flag, value: (x) => fmt(P(x).point.nox, P(x).point.nox < 10 ? 2 : 1), tip: H.nox.tip },
-    { id: 'co', label: H.co.label, unit: H.co.unit, sub: C.basis.fullCO(b.refO2, b.TrefC), flag, value: (x) => fmt(P(x).point.co, 1), tip: H.co.tip },
+    { id: 'eta', help: 'hud.etaThermal', label: H.eta.label, unit: U.pct, value: (x) => pct(P(x).point.eta, 1), tip: H.eta.tip },
+    { id: 't3', help: 'hud.turbineInletT', label: H.T3.label, unit: U.K, value: (x) => fmt(P(x).point.T3, 0), tip: H.T3.tip },
+    { id: 'tf', help: 'hud.flameT', label: H.flame.label, unit: U.K, value: (x) => fmt(P(x).point.Tflame, 0), tip: H.flame.tip },
+    { id: 'nox', help: 'hud.noxPpm', label: H.nox.label, unit: H.nox.unit, sub: C.basis.full(b.refO2, b.TrefC), flag, value: (x) => fmt(P(x).point.nox, P(x).point.nox < 10 ? 2 : 1), tip: H.nox.tip },
+    { id: 'co', help: 'hud.coPpm', label: H.co.label, unit: H.co.unit, sub: C.basis.fullCO(b.refO2, b.TrefC), flag, value: (x) => fmt(P(x).point.co, 1), tip: H.co.tip },
     twin
-      ? { id: 'n', label: H.speed.label, unit: '', value: (x) => H.speed.twin(x.twin.N.gg), tip: H.speed.tipTwin }
-      : { id: 'n', label: H.speed.label, unit: '', value: (x) => H.speed.single(x.single.N.rpm), tip: H.speed.tipSingle },
+      ? { id: 'n', help: 'hud.speed', label: H.speed.label, unit: '', value: (x) => H.speed.twin(x.twin.N.gg), tip: H.speed.tipTwin }
+      : { id: 'n', help: 'hud.speed', label: H.speed.label, unit: '', value: (x) => H.speed.single(x.single.N.rpm), tip: H.speed.tipSingle },
   ];
-  if (!twin) items.push({ id: 'igv', label: H.igv.label, unit: '', sub: f.single.strategy === 'fuelOnly' ? H.igv.fixed : undefined, value: (x) => H.igv.value(x.single.igv.open), tip: H.igv.tip });
-  items.push({ id: 'win', label: H.window.label, unit: '', value: (x) => (P(x).window ? S.windowText(P(x).window.ranges) : H.window.none), tip: H.window.tip });
+  if (!twin) items.push({ id: 'igv', help: 'hud.igv', label: H.igv.label, unit: '', sub: f.single.strategy === 'fuelOnly' ? H.igv.fixed : undefined, value: (x) => H.igv.value(x.single.igv.open), tip: H.igv.tip });
+  items.push({ id: 'win', help: 'hud.loadWindow', label: H.window.label, unit: '', value: (x) => (P(x).window ? S.windowText(P(x).window.ranges) : H.window.none), tip: H.window.tip });
   // faktor kalibrasi tampil di HUD bila ≠ 1
-  if (f[cfg].calib !== 1) items.push({ id: 'cal', label: H.calib.label, unit: '', sub: H.calib.sub(f[cfg].calib === f[cfg].calibDefault), value: (x) => H.calib.value(P(x).calib), tip: H.calib.tip });
+  if (f[cfg].calib !== 1) items.push({ id: 'cal', help: 'hud.noxCalib', label: H.calib.label, unit: '', sub: H.calib.sub(f[cfg].calib === f[cfg].calibDefault), value: (x) => H.calib.value(P(x).calib), tip: H.calib.tip });
   return items;
 }
 
@@ -120,7 +121,7 @@ export function createScene(ctx) {
           <div class="pl-hud__row"><div class="pl-hud__title">${S.configs.single}</div><div class="pl-hud__body" data-hud="single"></div></div>
           <div class="pl-hud__row"><div class="pl-hud__title">${S.configs.twin}</div><div class="pl-hud__body" data-hud="twin"></div></div>
           <div class="hud__note"><span class="level" role="button" tabindex="0" data-basis="partLoad" data-tip="${STR.basis.tagTip}">${STR.basis.tag} · ${C.level.semiEmpirical}</span>${S.hudNote}</div>
-          <button type="button" class="pl-reg" data-tip="${STR.regulation.scene6Tip}"><span data-k="regline"></span><span class="pl-reg__go">${STR.regulation.scene6Link}</span></button>
+          <div class="pl-reg-wrap"><button type="button" class="pl-reg" data-tip="${STR.regulation.scene6Tip}"><span data-k="regline"></span><span class="pl-reg__go">${STR.regulation.scene6Link}</span></button></div>
         </div>
       </section>`);
     q('.overlay--note').textContent = S.note;
@@ -129,14 +130,14 @@ export function createScene(ctx) {
 
   function buildControls() {
     const s = store.get();
-    ctl.load = slider({ label: S.load, ...LOAD_RANGE, value: s.lLoad, digits: 0, unit: U.pct, tip: S.tips.load, onInput: (v) => store.set({ lLoad: v }) });
-    ctl.strategy = segmented({ label: S.strategy, tip: S.tips.strategy, options: [{ value: 'igv', label: S.strategies.igv, key: '1' }, { value: 'fuelOnly', label: S.strategies.fuelOnly, key: '2' }], value: s.lStrategy, onChange: (v) => store.set({ lStrategy: v }) });
-    ctl.aux = segmented({ label: S.aux, tip: S.tips.aux, options: [{ value: 'flame', label: S.auxes.flame }, { value: 'eta', label: S.auxes.eta }], value: s.lAux, onChange: (v) => store.set({ lAux: v }) });
+    ctl.load = slider({ help: 'ctl.load', label: S.load, ...LOAD_RANGE, value: s.lLoad, digits: 0, unit: U.pct, tip: S.tips.load, onInput: (v) => store.set({ lLoad: v }) });
+    ctl.strategy = segmented({ help: 'ctl.strategy', label: S.strategy, tip: S.tips.strategy, options: [{ value: 'igv', label: S.strategies.igv, key: '1' }, { value: 'fuelOnly', label: S.strategies.fuelOnly, key: '2' }], value: s.lStrategy, onChange: (v) => store.set({ lStrategy: v }) });
+    ctl.aux = segmented({ help: 'ctl.aux', label: S.aux, tip: S.tips.aux, options: [{ value: 'flame', label: S.auxes.flame }, { value: 'eta', label: S.auxes.eta }], value: s.lAux, onChange: (v) => store.set({ lAux: v }) });
     ctl.rpm = animSpeedSlider(store);
-    ctl.calib = button({ label: S.calibButton, key: S.calibKey, tip: S.tips.calib, onClick: () => toggleCalib() });
-    ctl.play = button({ label: C.pause, key: C.keySpace, tip: C.tips.play, onClick: () => store.set(togglePlayPatch(store.get())) });
-    ctl.freeze = button({ label: C.freeze, key: 'F', tip: C.tips.freeze, onClick: () => store.set(toggleFreezePatch(store.get())) });
-    ctl.reset = button({ label: C.reset, key: 'R', tip: S.tips.reset, onClick: () => resetParams() });
+    ctl.calib = button({ help: 'ctl.calibration', label: S.calibButton, key: S.calibKey, tip: S.tips.calib, onClick: () => toggleCalib() });
+    ctl.play = button({ help: 'ctl.play', label: C.pause, key: C.keySpace, tip: C.tips.play, onClick: () => store.set(togglePlayPatch(store.get())) });
+    ctl.freeze = button({ help: 'ctl.freeze', label: C.freeze, key: 'F', tip: C.tips.freeze, onClick: () => store.set(toggleFreezePatch(store.get())) });
+    ctl.reset = button({ help: 'ctl.reset', label: C.reset, key: 'R', tip: S.tips.reset, onClick: () => resetParams() });
     const g1 = html('<div class="ctl-group"></div>');
     g1.append(ctl.load.el, ctl.strategy.el, ctl.aux.el, ctl.rpm.el);
     const g2 = html('<div class="ctl-group"></div>');
@@ -193,6 +194,7 @@ export function createScene(ctx) {
   function updateReg(f) {
     const n = q('.pl-reg');
     const b = f.regulation.basis;
+    n.parentElement.hidden = !b; // pembungkus (tombol + ⓘ)
     n.hidden = !b;
     if (!b) return;
     setText(n.querySelector('[data-k="regline"]'), regLine(f));
@@ -289,6 +291,7 @@ export function createScene(ctx) {
       buildDom();
       buildControls();
       // tautan ke Scene 9 tab Limits (turbin gas, bahan bakar gas); Scene 9 menyediakan jalan kembali (Esc / ←)
+      q('.pl-reg-wrap').append(createHelpButton('ui.statusChip', { describes: q('.pl-reg') }).el);
       q('.pl-reg').addEventListener('click', () => {
         store.set({ regEquip: 'gasTurbine', regFuel: 'gas', regClass: null, pTab: 'limits', p9Return: meta.number });
         ctx.goToScene?.(9);
@@ -297,6 +300,7 @@ export function createScene(ctx) {
       aux = createMultiLineChart(q('.pl-aux'), { title: S.charts.flame.title, modelLevel: 'semiEmpirical', basis: 'partLoad', xLabel: S.charts.xLabel, yLabel: S.charts.flame.yLabel });
       legend = createTempLegend(q('.overlay--legend'));
       q('.overlay--legend').append(q('.nox-species'));
+      q('.nox-species').append(' ', createHelpButton('ui.speciesLegend', { describes: q('.nox-species') }).el);
       buildCalibration();
       try {
         gfx = createRenderer(q('.view3d'), { camPos: [0.2, 0.6, 8.4], target: [0, -0.15, 0] });

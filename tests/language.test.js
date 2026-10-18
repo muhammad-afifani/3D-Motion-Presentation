@@ -58,7 +58,7 @@ describe('bahasa UI: English, tanpa sisa kata Indonesia', () => {
     // sisi en English (tidak dilonggarkan)
     expect(pairs.filter(([, v]) => ID_RE.test(clean(sample(v.en)))).map(([p, v]) => `${p}: ${sample(v.en)}`)).toEqual([]);
     // sisi id tidak boleh sama persis dengan en kecuali nama halaman/produk atau simbol (daftar eksplisit)
-    const SAME_OK = new Set(['Learn', 'Chart guide', 'About', 'Start', 'References', 'Assumptions', 'Try it', 'to verify', 'EN', 'ID']);
+    const SAME_OK = new Set(['Learn', 'Chart guide', 'Glossary', 'About', 'Start', 'References', 'Assumptions', 'Try it', 'to verify', 'EN', 'ID']);
     const same = pairs.filter(([, v]) => sample(v.en) === sample(v.id) && !SAME_OK.has(sample(v.en)) && !/^(Level|Scene) \d+$/.test(sample(v.en)) && /\p{L}{4,}/u.test(sample(v.en)));
     expect(same.map(([p, v]) => `${p}: ${sample(v.en)}`)).toEqual([]);
     // fungsi pasangan: kedua sisi menerima argumen yang sama dan menghasilkan string

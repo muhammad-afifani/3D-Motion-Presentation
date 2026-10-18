@@ -5,6 +5,7 @@
  * Input basis O₂ / volume hanya di sini; perubahan lewat store.set(basisPatch(...)).
  */
 import { STR } from './strings.js';
+import { createHelpButton } from './helpButton.js';
 import { fmt, sci } from './format.js';
 import { deriveAssumptions } from '../state/deriveAssumptions.js';
 import { basisPatch, basisResetPatch, displayPatch, QUALITY_ORDER, BLOOM_ORDER } from '../state/store.js';
@@ -102,6 +103,7 @@ export function createAssumptionsPanel(store, parent = document.body, saved = nu
       </div>
     </div>`;
   parent.appendChild(el);
+  { const h2 = el.querySelector('.asm__head h2'); h2.append(' ', createHelpButton('ui.assumptions', { describes: h2 }).el); } // ⓘ di judul panel
 
   const q = (sel) => el.querySelector(sel);
   const V = (k) => q(`[data-v="${k}"]`);

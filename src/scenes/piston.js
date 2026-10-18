@@ -95,21 +95,21 @@ export function createScene(ctx) {
     const box = q('.scene__controls');
     const s = store.get();
     const R = ENGINES[s.engine].ranges;
-    ctl.engine = segmented({
+    ctl.engine = segmented({ help: 'ctl.engine',
       label: S.engine,
       options: [{ value: 'diesel', label: S.engines.diesel, key: '1' }, { value: 'gas', label: S.engines.gas, key: '2' }],
       value: s.engine,
       onChange: (v) => switchEngine(v),
     });
-    ctl.r = slider({ label: S.r, ...R.r, value: s.r, digits: 1, tip: S.tips.r, onInput: (v) => store.set({ r: v }) });
-    ctl.phi = slider({ label: S.phi, ...R.phi, value: s.phi, digits: 2, tip: S.tips.phi, onInput: (v) => store.set({ phi: v }) });
-    ctl.theta0 = slider({ label: S.theta0, ...R.theta0, value: s.theta0, format: signedDeg, tip: S.tips.theta0, onInput: (v) => store.set({ theta0: v }) });
+    ctl.r = slider({ help: 'ctl.compressionRatio', label: S.r, ...R.r, value: s.r, digits: 1, tip: S.tips.r, onInput: (v) => store.set({ r: v }) });
+    ctl.phi = slider({ help: 'ctl.equivalence', label: S.phi, ...R.phi, value: s.phi, digits: 2, tip: S.tips.phi, onInput: (v) => store.set({ phi: v }) });
+    ctl.theta0 = slider({ help: 'ctl.timing', label: S.theta0, ...R.theta0, value: s.theta0, format: signedDeg, tip: S.tips.theta0, onInput: (v) => store.set({ theta0: v }) });
     ctl.rpm = animSpeedSlider(store);
-    ctl.theta = slider({ label: C.crankAngle, min: -360, max: 360, step: 0.5, value: s.theta, format: signedDeg, tip: C.tips.crankAngle, onInput: (v) => store.set(scrubPatch(store.get(), v)) });
-    ctl.play = button({ label: C.pause, key: C.keySpace, tip: C.tips.play, onClick: () => store.set(togglePlayPatch(store.get())) });
-    ctl.freeze = button({ label: C.freeze, key: 'F', tip: C.tips.freeze, onClick: () => store.set(toggleFreezePatch(store.get())) });
-    ctl.reset = button({ label: C.reset, key: 'R', tip: S.tips.reset, onClick: resetParams });
-    ctl.labels = button({ label: C.labels, key: 'L', tip: S.tips.labels, onClick: toggleLabels });
+    ctl.theta = slider({ help: 'ctl.crankAngle', label: C.crankAngle, min: -360, max: 360, step: 0.5, value: s.theta, format: signedDeg, tip: C.tips.crankAngle, onInput: (v) => store.set(scrubPatch(store.get(), v)) });
+    ctl.play = button({ help: 'ctl.play', label: C.pause, key: C.keySpace, tip: C.tips.play, onClick: () => store.set(togglePlayPatch(store.get())) });
+    ctl.freeze = button({ help: 'ctl.freeze', label: C.freeze, key: 'F', tip: C.tips.freeze, onClick: () => store.set(toggleFreezePatch(store.get())) });
+    ctl.reset = button({ help: 'ctl.reset', label: C.reset, key: 'R', tip: S.tips.reset, onClick: resetParams });
+    ctl.labels = button({ help: 'ctl.labels', label: C.labels, key: 'L', tip: S.tips.labels, onClick: toggleLabels });
     ctl.labels.setOn(true);
 
     const g1 = html('<div class="ctl-group"></div>');
@@ -153,12 +153,12 @@ export function createScene(ctx) {
   function buildHud() {
     const H = S.hud;
     hud = createHud(q('.scene__hud'), [
-      { id: 'pmax', label: H.pmax.label, unit: U.bar, value: (f) => fmt(toBar(f.summary.Pmax), 1), tip: H.pmax.tip },
-      { id: 'thpmax', label: H.thpmax.label, unit: U.atdc, value: (f) => plusDeg(f.summary.thetaPmax), tip: H.thpmax.tip },
-      { id: 'imep', label: H.imep.label, unit: U.bar, value: (f) => fmt(toBar(f.summary.imepG), 1), tip: H.imep.tip },
-      { id: 'etai', label: H.etai.label, unit: U.pct, value: (f) => pct(f.eta.ind, 1), tip: H.etai.tip },
-      { id: 'etab', label: H.etab.label, unit: U.pct, value: (f) => pct(f.eta.brake, 1), tip: H.etab.tip },
-      { id: 'bsfc', label: H.bsfc.label, unit: U.gkWh, value: (f) => fmt(f.summary.bsfc, 0), tip: H.bsfc.tip },
+      { id: 'pmax', help: 'hud.pmax', label: H.pmax.label, unit: U.bar, value: (f) => fmt(toBar(f.summary.Pmax), 1), tip: H.pmax.tip },
+      { id: 'thpmax', help: 'hud.thetaPmax', label: H.thpmax.label, unit: U.atdc, value: (f) => plusDeg(f.summary.thetaPmax), tip: H.thpmax.tip },
+      { id: 'imep', help: 'hud.imep', label: H.imep.label, unit: U.bar, value: (f) => fmt(toBar(f.summary.imepG), 1), tip: H.imep.tip },
+      { id: 'etai', help: 'hud.etaIndicated', label: H.etai.label, unit: U.pct, value: (f) => pct(f.eta.ind, 1), tip: H.etai.tip },
+      { id: 'etab', help: 'hud.etaBrake', label: H.etab.label, unit: U.pct, value: (f) => pct(f.eta.brake, 1), tip: H.etab.tip },
+      { id: 'bsfc', help: 'hud.bsfc', label: H.bsfc.label, unit: U.gkWh, value: (f) => fmt(f.summary.bsfc, 0), tip: H.bsfc.tip },
     ], { level: C.level.semiEmpirical, basis: 'engineCycle', note: H.note });
   }
 
