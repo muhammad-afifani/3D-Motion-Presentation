@@ -6,6 +6,7 @@
  */
 import { STR } from './strings.js';
 import { tr } from '../state/lang.js';
+import { markNote } from '../state/notes.js';
 import { levelStats, learnStats, firstUndone } from '../state/learnView.js';
 
 const L = STR.bi.learn;
@@ -40,7 +41,7 @@ export function createLearnList(root, o) {
       main.append(a);
       return;
     }
-    if (!j.reviewed && j.landing?.draftBanner) main.append(h('div', 'reg__banner learn-page__draft', tr(j.landing.draftBanner, o.lang)));
+    if (!j.reviewed && j.landing?.draftBanner) main.append(markNote(h('div', 'reg__banner learn-page__draft', tr(j.landing.draftBanner, o.lang))));
     main.append(h('p', 'reading__lead', tr(j.landing.learnIntro, o.lang)));
 
     const isDone = (id) => o.progress.has(id);

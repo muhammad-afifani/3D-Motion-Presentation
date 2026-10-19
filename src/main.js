@@ -38,6 +38,8 @@ import { createLangSwitch } from './ui/langSwitch.js';
 import { createLearnHost } from './ui/learnHost.js';
 import { closeHelp, setHelpHandlers, openFor as helpOpenFor } from './ui/helpPopover.js';
 import { createHelpButton } from './ui/helpButton.js';
+import { createSettingsPanel } from './ui/settingsPanel.js';
+import { notesStore } from './state/notes.js';
 import { createBackLessonPill } from './ui/backLessonPill.js';
 import { langStore } from './state/langStore.js';
 import { learnReady } from './state/learnStore.js';
@@ -207,7 +209,8 @@ langSlot.id = 'lang-slot';
 const langSwitch = createLangSwitch({ value: langStore.lang, onChange: (l) => langStore.set(l) });
 langSlot.append(langSwitch.el);
 langStore.subscribe((l) => { langSwitch.set(l); backPill.refresh(); });
-document.getElementById('model-badge').before(langSlot, themeSwitch.el, createHelpButton('hdr.switches', { describes: themeSwitch.el }).el); // ⓘ kelompok sakelar
+const settings = createSettingsPanel({ getMode: () => mode }); // ⚙ Settings (popover; Hide working notes)
+document.getElementById('model-badge').before(langSlot, themeSwitch.el, createHelpButton('hdr.switches', { describes: themeSwitch.el }).el, settings.el); // ⓘ kelompok sakelar, lalu ⚙
 document.getElementById('model-badge').after(createHelpButton('hdr.status', { describes: document.getElementById('model-badge') }).el); // ⓘ lencana Model OK dan chip Quality
 /** Ganti tema: atribut data-theme, simpan (etel:theme), grafik canvas membaca ulang token warna. */
 function setTheme(t) {
@@ -220,7 +223,11 @@ function setTheme(t) {
   // nyala, bloom, dan partikel 3D dipilih saat rig dibuat: tone viewport berubah → pasang ulang scene (state di store tetap)
   if (viewportTone() !== toneBefore) { if (index >= 0) goTo(index, true); learnHost.retheme(); }
 }
+/** Catatan kerja tersembunyi? Pilihan tersimpan (Settings) atau, tanpa pilihan, hanya di Present (state/notes.js). */
+const syncNotes = () => document.body.classList.toggle('hide-notes', notesStore.hide(mode));
+notesStore.subscribe(syncNotes);
 function applyMode() {
+  syncNotes();
   document.body.classList.toggle('mode-explore', mode === 'explore');
   document.body.classList.toggle('mode-present', mode === 'present');
   nav.el.hidden = mode === 'present';
@@ -234,6 +241,7 @@ function setMode(m) {
   mode = m;
   saveMode(storage, mode);
   closeHelp(false); // ⓘ tersembunyi di Present; kartu yang terbuka ikut tertutup
+  settings.close(); // ⚙ juga tersembunyi di Present
   applyMode();
   // landing tidak tampil di Present: tutup, dan pastikan ada scene (Scene 1 bila belum ada)
   if (mode === 'present' && learnHost.open) { learnHost.close(); if (index < 0) goTo(0); else syncHash(); }
@@ -335,7 +343,7 @@ window.__etelDebug = {
   basisCardOpen: () => basisCard.open, referencesOpen: () => references.open, regulationsOpen: () => regulations.open,
   mode: () => mode, page: () => openPage(), paused: () => paused,
   hero: () => learnHost.heroInfo(), lang: () => learnHost.lang, learnView: () => learnHost.view, learnViewId: () => learnHost.viewId,
-  backPill: () => (backPill.visible ? backPill.el.getAttribute('href') : null), glossaryOpen: () => glossary.open, helpOpen: () => helpOpenFor(),
+  backPill: () => (backPill.visible ? backPill.el.getAttribute('href') : null), glossaryOpen: () => glossary.open, helpOpen: () => helpOpenFor(), settingsOpen: () => settings.open, notes: () => ({ choice: notesStore.choice, hide: notesStore.hide(mode) }),
   guideFor: async (title) => guideIdForTitle(title, (await learnReady())?.data?.charts ?? []),
 };
 

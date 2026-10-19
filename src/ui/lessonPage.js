@@ -7,6 +7,7 @@
  */
 import { STR } from './strings.js';
 import { tr } from '../state/lang.js';
+import { markNote } from '../state/notes.js';
 import { findLesson, lessonWords } from '../state/learnView.js';
 import { createWordBox, createSourceList } from './readingParts.js';
 
@@ -46,7 +47,7 @@ export function createLesson(root, o) {
   el.append(main, side);
 
   // banner draf (learn.reviewed === false) di paling atas, lalu 1) remah roti, menit, tujuan
-  if (!o.learn.reviewed && o.learn.landing?.draftBanner) main.append(h('div', 'reg__banner learn-page__draft', tr(o.learn.landing.draftBanner, o.lang)));
+  if (!o.learn.reviewed && o.learn.landing?.draftBanner) main.append(markNote(h('div', 'reg__banner learn-page__draft', tr(o.learn.landing.draftBanner, o.lang))));
   if (o.backHash) {
     const back = h('a', 'btn btn--sm lesson__back', t(HL.backToScene));
     back.href = o.backHash;
