@@ -151,25 +151,28 @@ describe('pil "← Back to lesson"', () => {
 });
 
 describe('state bahasa global (etel:lang)', () => {
-  it('kunjungan pertama = learn.defaultLang; pilihan pengguna diingat dan menang atas default', () => {
+  it('kunjungan pertama (D1): English, kecuali bahasa browser diawali "id"; pilihan pengguna diingat dan diutamakan', () => {
     const st = mem();
-    const a = createLangStore(st);
+    const a = createLangStore(st, 'en-US');
     expect(a.lang).toBe('en'); expect(a.stored).toBe(false);
-    a.applyDefault(learn.defaultLang);
-    expect(a.lang).toBe('id'); expect(st.getItem(LANG_KEY)).toBeNull(); // default tidak disimpan
+    expect(createLangStore(mem(), 'id-ID').lang).toBe('id');
+    expect(createLangStore(mem(), 'id').lang).toBe('id');
+    expect(createLangStore(mem(), 'in').lang).toBe('id'); // kode lama
+    expect(createLangStore(mem(), 'fr-FR').lang).toBe('en');
+    expect(createLangStore(mem(), undefined).lang).toBe('en');
     const seen = []; a.subscribe((l) => seen.push(l));
-    expect(a.set('en')).toBe(true);
-    expect(seen).toEqual(['en']); expect(st.getItem(LANG_KEY)).toBe('en');
-    a.applyDefault('id'); expect(a.lang).toBe('en'); // pilihan pengguna tidak ditimpa
-    const b = createLangStore(st); // muat ulang
-    expect(b.lang).toBe('en'); b.applyDefault('id'); expect(b.lang).toBe('en');
-    expect(b.set('fr')).toBe(false);
+    expect(a.set('id')).toBe(true);
+    expect(seen).toEqual(['id']); expect(st.getItem(LANG_KEY)).toBe('id');
+    expect(createLangStore(st, 'en-US').lang).toBe('id'); // muat ulang: pilihan tersimpan menang atas bahasa browser
+    st.setItem(LANG_KEY, 'en');
+    expect(createLangStore(st, 'id-ID').lang).toBe('en');
+    expect(a.set('fr')).toBe(false);
   });
-  it('storage melempar: tetap bekerja di sesi; tanpa pilihan → English bila learn.json gagal', () => {
-    const t = createLangStore(throwing);
+  it('storage melempar: tetap bekerja di sesi; tanpa pilihan → bahasa browser / English', () => {
+    const t = createLangStore(throwing, 'en-GB');
     expect(t.lang).toBe('en');
-    t.applyDefault(undefined); expect(t.lang).toBe('en');
     expect(() => t.set('id')).not.toThrow(); expect(t.lang).toBe('id');
+    expect(createLangStore(throwing, 'id-ID').lang).toBe('id');
   });
   it('pemilih tr(): string, fungsi dengan argumen, sisi id kosong → English', () => {
     expect(tr(STR.bi.lesson.markDone, 'en')).toBe('Mark as done');
