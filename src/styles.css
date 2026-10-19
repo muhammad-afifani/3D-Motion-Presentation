@@ -1239,6 +1239,8 @@ body.mode-explore.nav-collapsed { --nav-w: 52px; }
   position: relative; flex: none; display: inline-flex; align-items: center; justify-content: center;
   width: 24px; height: 24px; margin: -5px; padding: 0; border: 0; background: none; cursor: pointer;
   font: inherit; font-size: 11px; line-height: 1; color: var(--muted);
+  /* kotak overlay di atas viewport 3D memakai pointer-events:none (orbit kamera di area kosong); hanya ⓘ-nya yang menerima klik */
+  pointer-events: auto;
 }
 .help-btn__dot {
   display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 999px;
