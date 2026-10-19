@@ -8,6 +8,7 @@
 import { STR } from './strings.js';
 import { createHelpButton } from './helpButton.js';
 import { fmt } from './format.js';
+import { createNumberField } from './numberInput.js';
 
 const T = STR.scene4.calib;
 
@@ -31,7 +32,7 @@ export function createCalibrationPanel(container, cb) {
       <div class="cal-row__head"><b>${T.engines[k]}</b><span class="cal-factor num" data-v="f-${k}"></span></div>
       <div class="cal-row__dim" data-v="d-${k}"></div>
       <label class="cal-input"><span>${T.targetEngine}</span>
-        <input type="number" min="0.01" step="0.1" inputmode="decimal" data-in="${k}" /></label>
+        <input data-in="${k}" /></label>
       <div class="cal-row__dim" data-v="lit-${k}"></div>
       <div class="cal-actions"><button type="button" class="btn btn--sm" data-apply="${k}">${T.apply}</button><span class="cal-status" data-v="s-${k}"></span></div>
     </div>`;
@@ -40,7 +41,7 @@ export function createCalibrationPanel(container, cb) {
       <div class="cal-row__head"><b>${T.dlnRows[k]}</b><span class="cal-factor num" data-v="f-dln-${k}"></span></div>
       <div class="cal-row__dim" data-v="d-dln-${k}"></div>
       <label class="cal-input"><span>${T.targetDln}</span>
-        <input type="number" min="0.1" step="0.5" inputmode="decimal" data-in="dln-${k}" /></label>
+        <input data-in="dln-${k}" /></label>
       <div class="cal-actions"><button type="button" class="btn btn--sm" data-apply="dln-${k}">${T.apply}</button><span class="cal-status" data-v="s-dln-${k}"></span></div>
     </div>`;
   el.innerHTML = `
@@ -63,14 +64,16 @@ export function createCalibrationPanel(container, cb) {
 
   const q = (sel) => el.querySelector(sel);
   const V = (k) => q(`[data-v="${k}"]`);
-  const input = (k) => /** @type {HTMLInputElement} */ (q(`[data-in="${k}"]`));
+  // target kalibrasi: wajib diisi, > 0 (koma / titik desimal); galat tampil di gelembung kotak isian
+  const fields = Object.fromEntries(['diesel', 'gas', 'dln-single', 'dln-twin'].map((k) => [k,
+    createNumberField(/** @type {HTMLInputElement} */ (q(`[data-in="${k}"]`)), { min: 0, minExclusive: true, allowEmpty: false })]));
   const setText = (n, t) => { if (n.textContent !== t) n.textContent = t; };
   let prefilled = false;
 
   function readTarget(k) {
-    const v = Number(String(input(k).value).replace(',', '.'));
-    if (!(v > 0)) { setText(V(`s-${k}`), T.invalid); return null; }
-    return v;
+    const r = fields[k].read();
+    if (!r.ok) { setText(V(`s-${k}`), ''); return null; }
+    return r.value;
   }
   for (const k of ['diesel', 'gas']) q(`[data-apply="${k}"]`).addEventListener('click', () => { const v = readTarget(k); if (v != null) cb.onApplyEngine(k, v); });
   for (const k of ['single', 'twin']) q(`[data-apply="dln-${k}"]`).addEventListener('click', () => { const v = readTarget(`dln-${k}`); if (v != null) cb.onApplyDln(k, v); });
@@ -107,10 +110,10 @@ export function createCalibrationPanel(container, cb) {
       setText(V('basis'), v.basisText);
       if (!prefilled) {
         prefilled = true;
-        input('diesel').value = String(v.literature.engine.diesel);
-        input('gas').value = String(v.literature.engine.gas);
-        input('dln-single').value = String(v.literature.dlnPpm);
-        input('dln-twin').value = String(v.literature.dlnPpm);
+        fields.diesel.set(v.literature.engine.diesel);
+        fields.gas.set(v.literature.engine.gas);
+        fields['dln-single'].set(v.literature.dlnPpm);
+        fields['dln-twin'].set(v.literature.dlnPpm);
       }
     },
     setStatus(k, text) { setText(V(`s-${k}`), text); },

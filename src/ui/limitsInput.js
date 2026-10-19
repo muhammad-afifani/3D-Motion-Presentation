@@ -4,12 +4,13 @@
  */
 import { STR } from './strings.js';
 import { createHelpButton } from './helpButton.js';
+import { createNumberField } from './numberInput.js';
 
 const T = STR.scene6.limits;
 
 /**
  * @param {HTMLElement} container
- * @param {{onChange:(p:{nox?:string, co?:string})=>void, onClear:()=>void}} cb
+ * @param {{onChange:(p:{nox?:number|'', co?:number|''})=>void, onClear:()=>void}} cb  nilai sudah dibaca (koma / titik); '' = kosong
  */
 export function createLimitsInput(container, cb) {
   const el = document.createElement('div');
@@ -17,8 +18,8 @@ export function createLimitsInput(container, cb) {
   el.innerHTML = `
     <span class="ctl__label">${T.title}</span>
     <div class="lim__row">
-      <label class="lim__in"><span data-lbl="nox">${T.nox}</span><input type="number" min="0" step="0.5" inputmode="decimal" placeholder="${T.placeholder}" data-lim="nox" /></label>
-      <label class="lim__in"><span data-lbl="co">${T.co}</span><input type="number" min="0" step="1" inputmode="decimal" placeholder="${T.placeholderCo}" data-lim="co" /></label>
+      <label class="lim__in"><span data-lbl="nox">${T.nox}</span><input placeholder="${T.placeholder}" data-lim="nox" /></label>
+      <label class="lim__in"><span data-lbl="co">${T.co}</span><input placeholder="${T.placeholderCo}" data-lim="co" /></label>
       <button type="button" class="btn btn--sm" data-clear>${T.clear}</button>
     </div>
     <div class="lim__basis" data-v="basis"></div>`;
@@ -30,11 +31,12 @@ export function createLimitsInput(container, cb) {
     head.append(lab, createHelpButton('ui.limitOverride', { describes: el }).el);
   }
   container.appendChild(el);
-  const inp = (k) => /** @type {HTMLInputElement} */ (el.querySelector(`[data-lim="${k}"]`));
-  for (const k of ['nox', 'co']) {
-    inp(k).addEventListener('change', () => cb.onChange({ [k]: inp(k).value }));
-    inp(k).addEventListener('keydown', (e) => { if (e.key !== 'Escape') e.stopPropagation(); });
-  }
+  // koma / titik desimal; kosong = tanpa limit; batas bawah 0 (≤ 0 dibaca kosong oleh limitsPatch)
+  const fields = Object.fromEntries(['nox', 'co'].map((k) => {
+    const input = /** @type {HTMLInputElement} */ (el.querySelector(`[data-lim="${k}"]`));
+    input.addEventListener('keydown', (e) => { if (e.key !== 'Escape') e.stopPropagation(); });
+    return [k, createNumberField(input, { min: 0, onCommit: (v) => cb.onChange({ [k]: v ?? '' }) })];
+  }));
   el.querySelector('[data-clear]').addEventListener('click', () => cb.onClear());
   const basisEl = el.querySelector('[data-v="basis"]');
   return {
@@ -42,11 +44,7 @@ export function createLimitsInput(container, cb) {
     /** @param {{nox:number|null, co:number|null, basisText:string, labels?:{nox:string, co:string}}} v */
     update(v) {
       if (v.labels) for (const k of ['nox', 'co']) { const l = el.querySelector(`[data-lbl="${k}"]`); if (l.textContent !== v.labels[k]) l.textContent = v.labels[k]; }
-      for (const k of ['nox', 'co']) {
-        if (document.activeElement === inp(k)) continue;
-        const s = v[k] == null ? '' : String(Math.round(v[k] * 100) / 100);
-        if (inp(k).value !== s) inp(k).value = s;
-      }
+      for (const k of ['nox', 'co']) fields[k].set(v[k] == null ? null : Math.round(v[k] * 100) / 100);
       if (basisEl.textContent !== v.basisText) basisEl.textContent = v.basisText;
     },
     dispose() { el.remove(); },

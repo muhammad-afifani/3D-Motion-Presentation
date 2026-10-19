@@ -79,20 +79,21 @@ describe('router kelompok Learn (alamat lama tidak berubah)', () => {
   });
 });
 
-describe('bahasa: etel:lang, kunjungan pertama = learn.defaultLang', () => {
+describe('bahasa: etel:lang, kunjungan pertama = bahasa browser bila diawali id, selain itu English (D1)', () => {
   const mem = () => { const m = new Map(); return { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)) }; };
   const throwing = { getItem: () => { throw new Error('blocked'); }, setItem: () => { throw new Error('blocked'); } };
-  it('baca/tulis aman; default kunjungan pertama dari learn.json', () => {
+  it('baca/tulis aman; kunjungan pertama dari bahasa browser', () => {
     expect(LANG_KEY).toBe('etel:lang');
     const st = mem();
     expect(readLangChoice(st)).toEqual({ lang: null, stored: false });
-    expect(resolveLang(readLangChoice(st), learn.defaultLang)).toBe('id');
+    expect(resolveLang(readLangChoice(st), 'id-ID')).toBe('id');
+    expect(resolveLang(readLangChoice(st), 'en-US')).toBe('en');
     expect(writeLang(st, 'en')).toBe(true);
-    expect(resolveLang(readLangChoice(st), learn.defaultLang)).toBe('en');
+    expect(resolveLang(readLangChoice(st), 'id-ID')).toBe('en');
     expect(writeLang(st, 'fr')).toBe(false);
     expect(readLangChoice(throwing)).toEqual({ lang: null, stored: false });
     expect(writeLang(throwing, 'id')).toBe(false);
-    expect(resolveLang(readLangChoice(throwing), undefined)).toBe('en'); // learn.json gagal dimuat → English
+    expect(resolveLang(readLangChoice(throwing), undefined)).toBe('en'); // bahasa browser tidak diketahui → English
     expect(tr({ en: 'A', id: 'B' }, 'id')).toBe('B');
     expect(tr({ en: 'A', id: '' }, 'id')).toBe('A');
   });

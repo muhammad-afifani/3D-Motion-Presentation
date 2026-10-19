@@ -9,6 +9,16 @@ Tabel ini memetakan istilah Indonesia yang dipakai di catatan presenter (`conten
 
 Jumlah: 75 istilah, 6 tanpa padanan di UI.
 
+## Tetap Inggris (Paket D)
+
+Sejak Paket D, UI punya sisi Indonesia (sakelar EN/ID; `src/state/i18n.js`). Istilah di bawah ini **sengaja sama** di kedua bahasa. Sisi `id` lain yang sama persis dengan sisi `en` dianggap terjemahan yang tertinggal: `tests/i18n.test.js` gagal kecuali istilahnya ada di `SAME_OK` (`src/state/i18n.js`), dan setiap isi `SAME_OK` harus tercantum di daftar ini. Daftar ini dikunci sebelum D2 selesai; menambah istilah berarti mengubah daftar ini dan `SAME_OK` bersama-sama.
+
+- Singkatan dan simbol: `TDC`, `BDC`, `IVC`, `IGV`, `DLN`, `CEMS`, `EGR`, `SCR`, `LHV`, `GWP`, `AR6`, `PM`, `NOx`, `NO`, `NO₂`, `CO`, `CO₂`, `CO₂e`, `CH₄`, `SO₂`, `UHC`, `η`, `φ`, `λ`, `θ`, `P-V`, `T-s`, `ƒ`
+- Satuan: `ppm`, `ppmvd`, `mg/Nm³`, `g/kWh`, `K`, `°C`, `bar`, `kW`, `MW`, `rpm`, `%`
+- Nama halaman dan produk: `Learn`, `Chart guide`, `Glossary`, `References`, `About`, `Start`, `Assumptions`, `Try it`, `to verify`, `Basis`, `Explore`, `Present`, `Scene`, `Model OK`
+- Token status chip (keputusan D-a; tooltip chip diterjemahkan): `Within`, `Above`, `Not modeled`, `Site data`
+- Jargon lapangan tanpa padanan umum: `head`, `derating`, `part-load`, `methane slip`, `fuel-only`, `single-shaft`, `twin-shaft`, `lean-burn`, `lean premix`, `premix`, `fuel split`, `suction`, `discharge`, `surge`
+
 | No | Istilah Indonesia | Dipakai di | Label English di UI | Sumber | Catatan |
 |---|---|---|---|---|---|
 | 1 | putaran engkol / sudut engkol | presenter S1; ALUR S1 | `Crank angle θ` | `STR.common.crankAngle` |  |

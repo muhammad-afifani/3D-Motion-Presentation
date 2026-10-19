@@ -7,6 +7,7 @@
  */
 import { fuelGasProps, exhaustO2FromLambda, so2FromFuelSulfur, mgNm3ToPpmReg, OIL_DEFAULT, MW } from '../model/thermo.js';
 import { leverValues } from './deriveLevers.js';
+import { parseNumber } from '../ui/format.js';
 
 /** fuelGas: % mol per komponen (slider Scene 9, dinormalkan di fuelGasProps); default CH₄ murni. */
 export const fuelInitialState = () => ({ fuelGas: { CH4: 100 }, fuelS: null, fuelH2S: null });
@@ -15,8 +16,8 @@ export const fuelGasPatch = (s, key, v) => ({ fuelGas: { ...(s.fuelGas ?? {}), [
 
 /** Patch input sulfur presenter: kosong / tidak valid / negatif → null. */
 export function fuelSulfurPatch(key, value) {
-  const n = Number(String(value ?? '').replace(',', '.'));
-  const ok = String(value ?? '').trim() !== '' && Number.isFinite(n) && n >= 0;
+  const n = parseNumber(value);
+  const ok = n != null && Number.isFinite(n) && n >= 0;
   return { [key]: ok ? n : null };
 }
 

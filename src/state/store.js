@@ -3,6 +3,7 @@
  * Alur: UI control → store.set → derive() → frame → { rig 3D, chart, HUD }.
  */
 import { leversInitialState } from './deriveLevers.js';
+import { parseNumber } from '../ui/format.js';
 import { ENGINES, RPM_VISUAL, ANIM_SPEED, CYCLES, FLAME_MODES, GAS_TURBINES, EMISSION_BASIS, NOX_CALIB_DEFAULTS, LOAD_RANGE, GAS_COMPRESSOR } from '../model/presets.js';
 
 /**
@@ -232,7 +233,7 @@ export const isDefaultCalib = (s) => ['diesel', 'gas'].every((k) => s.calEngine?
 export const limitsInitialState = () => ({ limNOx: null, limCO: null });
 /** Patch batas: kosong / tidak valid / ≤ 0 → null. */
 export function limitsPatch({ nox, co } = {}) {
-  const v = (x) => { if (x == null || String(x).trim() === '') return null; const n = Number(String(x).replace(',', '.')); return Number.isFinite(n) && n > 0 ? n : null; };
+  const v = (x) => { const n = parseNumber(x); return n != null && Number.isFinite(n) && n > 0 ? n : null; }; // koma / titik desimal
   const out = {};
   if (nox !== undefined) out.limNOx = v(nox);
   if (co !== undefined) out.limCO = v(co);

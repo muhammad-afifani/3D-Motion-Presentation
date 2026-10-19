@@ -5,6 +5,7 @@
  * volume pada basis grup) lalu complianceCheck (status + margin %). Jalur tampilan (20,9) tidak pernah dipakai di sini.
  */
 import { toRegulationBasis, correctToRefO2Reg, ppmToMgNm3Reg, mgNm3ToPpmReg, complianceCheck, MW } from '../model/thermo.js';
+import { parseNumber } from '../ui/format.js';
 
 /**
  * Equipment → grup regulasi (id di regulations.json) dan bahan bakar yang mungkin.
@@ -73,7 +74,7 @@ export const regLimitMg = (rows, param) => rows.find((r) => r.param === param &&
  */
 export function siteToRegMg(v, param, basis) {
   if (!v) return null;
-  const num = (x) => { const n = Number(String(x ?? '').replace(',', '.')); return String(x ?? '').trim() !== '' && Number.isFinite(n) ? n : null; };
+  const num = (x) => { const n = parseNumber(x); return n != null && Number.isFinite(n) ? n : null; };
   const value = num(v.value), o2 = num(v.o2) ?? basis.refO2Pct;
   if (value == null || value < 0 || o2 < 0 || o2 >= 21) return null;
   const atRef = correctToRefO2Reg(value, o2, basis.refO2Pct);

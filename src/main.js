@@ -55,7 +55,8 @@ import { fadeSwap } from './ui/transition.js';
 import { createPointerTools } from './ui/pointer.js';
 import { createFpsMeter } from './state/fpsMeter.js';
 import { rendererStats, disposeLog } from './gfx/renderer.js';
-import { STR } from './ui/strings.js';
+import { STR, applyStringLang } from './ui/strings.js';
+import { setNumberLang } from './ui/format.js';
 import { regulationsInitialState } from './state/regulations.js';
 import { fuelInitialState } from './state/deriveFuel.js';
 import { leverInitialState } from './state/levers.js';
@@ -76,6 +77,12 @@ const LOADERS = {
   closing: () => import('./scenes/closing.js'),
 };
 const SCENES = SCENE_LIST.map((x) => ({ ...x, load: LOADERS[x.id] }));
+
+// Paket D1: bahasa UI → teks kelompok dua bahasa (state/i18n.js) dan format angka (ui/format.js). Pelanggan pertama
+// langStore: berjalan sebelum komponen lain menggambar ulang dengan bahasa baru.
+const applyUiLang = (l) => { setNumberLang(l); applyStringLang(l); };
+applyUiLang(langStore.lang);
+langStore.subscribe(applyUiLang);
 
 document.querySelector('.topbar .brand').textContent = STR.app.brand;
 mountModelBadge(document.getElementById('model-badge'));
@@ -208,10 +215,20 @@ langSlot.className = 'lang-slot';
 langSlot.id = 'lang-slot';
 const langSwitch = createLangSwitch({ value: langStore.lang, onChange: (l) => langStore.set(l) });
 langSlot.append(langSwitch.el);
-langStore.subscribe((l) => { langSwitch.set(l); backPill.refresh(); });
+langStore.subscribe((l) => { langSwitch.set(l); themeSwitch.relabel(); backPill.refresh(); relangView(); });
 const settings = createSettingsPanel({ getMode: () => mode }); // ⚙ Settings (popover; Hide working notes)
 document.getElementById('model-badge').before(langSlot, themeSwitch.el, createHelpButton('hdr.switches', { describes: themeSwitch.el }).el, settings.el); // ⓘ kelompok sakelar, lalu ⚙
 document.getElementById('model-badge').after(createHelpButton('hdr.status', { describes: document.getElementById('model-badge') }).el); // ⓘ lencana Model OK dan chip Quality
+/**
+ * Bahasa berubah (D1): teks statis scene, grafik canvas, dan chip "ƒ Formula" diambil saat scene dipasang → pasang ulang
+ * scene yang sama (state di store tetap, seperti ganti tone viewport); halaman penuh / panel H yang terbuka dirender ulang.
+ */
+let relangPending = false;
+function relangView() {
+  if (index >= 0) { if (loading) relangPending = true; else goTo(index, true); }
+  for (const api of Object.values(PAGE_API)) if (api.open) api.refresh?.();
+  if (assumptions.open) assumptions.render();
+}
 /** Ganti tema: atribut data-theme, simpan (etel:theme), grafik canvas membaca ulang token warna. */
 function setTheme(t) {
   if (t === theme) return;
@@ -289,6 +306,7 @@ async function goTo(i, force = false) {
   } finally {
     loading = false;
   }
+  if (relangPending) { relangPending = false; goTo(index, true); } // bahasa berganti saat scene sedang dimuat
 }
 
 /** Alamat mengikuti scene (dan tab Scene 9) selama tidak ada halaman penuh terbuka; replaceState tidak memicu hashchange. */
@@ -342,7 +360,7 @@ window.__etelDebug = {
   goToScene: (n) => goToScene(n),
   basisCardOpen: () => basisCard.open, referencesOpen: () => references.open, regulationsOpen: () => regulations.open,
   mode: () => mode, page: () => openPage(), paused: () => paused,
-  hero: () => learnHost.heroInfo(), lang: () => learnHost.lang, learnView: () => learnHost.view, learnViewId: () => learnHost.viewId,
+  hero: () => learnHost.heroInfo(), lang: () => learnHost.lang, uiLang: () => langStore.lang, setLang: (l) => langStore.set(l), limits: () => ({ nox: store.get().limNOx, co: store.get().limCO, refO2: store.get().emRefO2 }), learnView: () => learnHost.view, learnViewId: () => learnHost.viewId,
   backPill: () => (backPill.visible ? backPill.el.getAttribute('href') : null), glossaryOpen: () => glossary.open, helpOpen: () => helpOpenFor(), settingsOpen: () => settings.open, notes: () => ({ choice: notesStore.choice, hide: notesStore.hide(mode) }),
   guideFor: async (title) => guideIdForTitle(title, (await learnReady())?.data?.charts ?? []),
 };

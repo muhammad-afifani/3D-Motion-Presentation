@@ -15,6 +15,7 @@
  *   9. M11 Step 03: tombol ⓘ di setiap grafik (juga skematik Brayton dan panel Limits) tanpa tumpang tindih di 1366/1920/1280,
  *      ⓘ → panduan → Back to the chart, Present tanpa ⓘ, PNG tanpa ⓘ, indeks 15 panduan, alamat langsung, G/? + Esc.
  *  12. Klik setiap ⓘ di dalam layar (semua scene, Dark/Light, 3 viewport; legenda viewport 3D tidak tertutup overlay) + drag area kosong viewport 3D memutar kamera.
+ *  13. Bahasa ID (Paket D1): semua scene + tab di 3 viewport × 2 tema tanpa luapan (1280: chip, tab Scene 9, header), angka HUD format ID, ganti EN ↔ ID tanpa muat ulang (HUD, Limits, Regulations), isian koma / titik dan pesan galat ID.
  *  11. Settings ⚙ + Hide working notes: panel, penyimpanan, Explore / Present, catatan kerja hilang dan label kejujuran tetap, header 3 viewport tanpa tumpang tindih.
  *  10. Bagian C: bantuan ⓘ (kartu di HUD, slider, navigasi; Glossary / Lesson; Present; PNG; ID) di 3 viewport × 2 tema; tumpang tindih ⓘ semua scene.
  *   7. M11 Step 01: landing (tanpa hash), kartu, hero tidak kosong, EN/ID, kualitas Low pada hero, About, Present tanpa
@@ -897,6 +898,172 @@ async function helpClickInteraction(browser, url) {
 }
 
 /**
+ * Paket D1: bahasa ID. Di 1280 / 1366 / 1920 × Dark / Light dengan etel:lang = id: semua scene dan tab Scene 9 tanpa teks
+ * meluber, grafik kosong, ⓘ bertumpuk, atau scroll horizontal (pemeriksaan sama dengan smoke utama). Di 1280 juga chip
+ * status, tombol tab Scene 9, chip Formula, sakelar header, dan header kanan (tidak tumpang tindih) di setiap keadaan.
+ * Angka HUD tidak lagi berformat en-US (titik desimal). Di 1366 Dark: ganti EN → ID tanpa muat ulang (label sakelar tema,
+ * chip Formula, angka HUD, tabel Limits, halaman Regulations berganti; tiap angka = versi EN dengan koma/titik ditukar);
+ * isian limit menerima "150,5" maupun "150.5"; isian salah → pesan galat berbahasa ID di dalam layar.
+ */
+async function langIdInteraction(browser, url) {
+  const fails = [];
+  const base = url.replace(/#.*$/, '');
+  const tabsOf = (n) => (n === 9 ? ['1', '2', '3', '4', '5'] : n === 2 ? [null, '4'] : [null]);
+  const swap = (t) => t.replace(/[.,]/g, (c) => (c === '.' ? ',' : '.'));
+  /** Kotak kecil yang teksnya membesar di ID: teks tidak boleh keluar kotak / terpotong. */
+  const tightOverflow = () => {
+    const out = [];
+    for (const el of document.querySelectorAll('.reg-chip, .seg__btn, .f-toggle, .theme-switch__btn, .lang-switch button, .reg__margin, .scene__controls .ctl__label')) {
+      if (el.checkVisibility?.() === false) continue;
+      const r = el.getBoundingClientRect();
+      if (!r.width || !el.textContent.trim()) continue;
+      const rg = document.createRange(); rg.selectNodeContents(el);
+      const q = [...rg.getClientRects()].filter((x) => x.width > 0);
+      const nm = `${el.className.split(/\s+/)[0]} "${el.textContent.trim().slice(0, 24)}"`;
+      if (el.scrollWidth > el.clientWidth + 1 && el.clientWidth > 0) out.push(`${nm}: scrollWidth ${el.scrollWidth} > ${el.clientWidth}`);
+      else if (q.some((x) => x.right > r.right + 1.5 || x.left < r.left - 1.5)) out.push(`${nm}: teks keluar kotak`);
+      if (r.right > innerWidth + 0.5 || r.left < -0.5) out.push(`${nm}: keluar layar`);
+    }
+    return out;
+  };
+  const hudTexts = () => [...document.querySelectorAll('.hud__value .v')].filter((e) => e.checkVisibility?.() !== false).map((e) => e.textContent.trim());
+  let states = 0, commaSeen = 0;
+  for (const [w, h] of VIEWPORTS) {
+    for (const theme of ['dark', 'light']) {
+      const tag = `${w}×${h} ${theme} ID`;
+      const p = await browser.newPage({ viewport: { width: w, height: h } });
+      const errs = [];
+      p.on('pageerror', (e) => errs.push(`pageerror: ${e.message}`));
+      await p.addInitScript(([t]) => { try { localStorage.setItem('etel:lang', 'id'); localStorage.setItem('etel:theme', t); } catch { /* storage diblokir */ } }, [theme]);
+      await p.goto(`${base}#/scene/1`);
+      await p.waitForFunction(() => window.__etelDebug?.scene() === 1 && !window.__etelDebug.loading(), null, { timeout: 30000 });
+      const sw = await p.evaluate(() => ({ lang: window.__etelDebug.uiLang(), btn: [...document.querySelectorAll('.theme-switch__btn[data-theme]')].map((b) => b.textContent).join('/') }));
+      if (sw.lang !== 'id' || sw.btn !== 'Gelap/Terang') fails.push(`${tag}: bahasa ${sw.lang}, sakelar tema "${sw.btn}" (harusnya Gelap/Terang)`);
+      for (let n = 1; n <= 11; n++) {
+        await goScene(p, n, 400);
+        for (const tab of tabsOf(n)) {
+          if (tab) { await p.keyboard.press(tab); await p.waitForTimeout(300); }
+          const where = `${tag} Scene ${n}${tab ? ` tab ${tab}` : ''}`;
+          let res = null;
+          for (let t = 0; t <= TIMEOUT_MS; t += POLL_MS) {
+            res = await p.evaluate(inspect, { minFill: MIN_FILL_PCT });
+            if (res.charts.every((c) => c.ok)) break;
+            await p.waitForTimeout(POLL_MS);
+          }
+          states++;
+          if (res.hscroll) fails.push(`${where}: scroll horizontal`);
+          for (const c of res.charts) if (!c.ok) fails.push(`${where}: grafik #${c.i} "${c.title}" kosong / tanpa tag / ⓘ (terisi ${c.pct} %${c.overlap?.length ? `, bertumpuk: ${c.overlap.join('; ')}` : ''})`);
+          for (const o of res.overflow) fails.push(`${where}: teks meluber di ${o.el}: ${o.reasons[0]}`);
+          for (const o of [...new Set(res.helpOverlap)]) fails.push(`${where}: bantuan ⓘ bertumpuk: ${o}`);
+          if (res.topbarH > MAX_TOPBAR_PX) fails.push(`${where}: bilah atas ${res.topbarH} px`);
+          if (w === 1280 || n === 1) {
+            for (const o of await p.evaluate(headerOverlap)) fails.push(`${where}: header tumpang tindih: ${o}`);
+            for (const o of await p.evaluate(tightOverflow)) fails.push(`${where}: luapan (1280, ID): ${o}`);
+          }
+          const nums = await p.evaluate(hudTexts);
+          for (const t of nums) if (/\d\.\d{1,2}(?!\d)/.test(t)) fails.push(`${where}: angka HUD masih format en-US "${t}"`);
+          commaSeen += nums.filter((t) => /\d,\d/.test(t)).length;
+        }
+      }
+      for (const e of [...new Set(errs)]) fails.push(`${tag}: ${e}`);
+      await p.close();
+    }
+  }
+  if (commaSeen < 20) fails.push(`bahasa ID: hanya ${commaSeen} angka HUD berkoma desimal (format ID tidak aktif?)`);
+
+  // ganti bahasa tanpa muat ulang (1366 Dark), isian koma / titik, pesan galat
+  const p = await browser.newPage({ viewport: { width: 1366, height: 768 } });
+  try {
+    const errs = [];
+    p.on('pageerror', (e) => errs.push(`pageerror: ${e.message}`));
+    await p.addInitScript(() => { try { localStorage.setItem('etel:lang', 'en'); localStorage.setItem('etel:theme', 'dark'); } catch { /* */ } });
+    await p.goto(`${base}#/scene/1`);
+    await p.waitForFunction(() => window.__etelDebug?.scene() === 1 && !window.__etelDebug.loading(), null, { timeout: 30000 });
+    await p.evaluate(() => { window.__noReload = 1; });
+    // sakelar header; halaman penuh menutupi header → lewat hook debug (jalur langStore yang sama)
+    const toLang = async (l) => {
+      if (await p.evaluate(() => window.__etelDebug.page() != null)) await p.evaluate((x) => window.__etelDebug.setLang(x), l);
+      else await p.click(`.topbar .lang-switch [data-lang="${l}"]`);
+      await p.waitForFunction((x) => window.__etelDebug.uiLang() === x && !window.__etelDebug.loading(), l, { timeout: 15000 });
+      await p.waitForTimeout(900); // fade-through pasang ulang scene
+    };
+    const stable = async (read) => { const a = await p.evaluate(read); await p.waitForTimeout(400); const b = await p.evaluate(read); return a.map((x, i) => (x === b[i] ? x : null)); };
+    for (const n of [4, 5, 7]) {
+      await goScene(p, n, 900);
+      const en = await stable(hudTexts);
+      const lab = await p.evaluate(() => ({ theme: document.querySelector('.theme-switch__btn[data-theme]')?.textContent, formula: document.querySelector('.f-toggle__label')?.textContent ?? null }));
+      await toLang('id');
+      const id = await stable(hudTexts);
+      const lab2 = await p.evaluate(() => ({ theme: document.querySelector('.theme-switch__btn[data-theme]')?.textContent, formula: document.querySelector('.f-toggle__label')?.textContent ?? null, scene: window.__etelDebug.scene(), marker: window.__noReload }));
+      if (lab2.marker !== 1) fails.push(`ganti bahasa Scene ${n}: halaman dimuat ulang`);
+      if (lab2.scene !== n) fails.push(`ganti bahasa Scene ${n}: scene berubah ke ${lab2.scene}`);
+      if (lab.theme !== 'Dark' || lab2.theme !== 'Gelap') fails.push(`ganti bahasa Scene ${n}: sakelar tema "${lab.theme}" → "${lab2.theme}"`);
+      if (lab.formula != null && (lab.formula !== 'Formula' || lab2.formula !== 'Rumus')) fails.push(`ganti bahasa Scene ${n}: chip Formula "${lab.formula}" → "${lab2.formula}"`);
+      if (en.length !== id.length) fails.push(`ganti bahasa Scene ${n}: jumlah angka HUD ${en.length} → ${id.length}`);
+      let checked = 0;
+      en.forEach((t, i) => { if (t == null || id[i] == null || !/\d[.,]\d/.test(t)) return; checked++; if (id[i] !== swap(t)) fails.push(`ganti bahasa Scene ${n}: HUD "${t}" → "${id[i]}" (harusnya "${swap(t)}")`); });
+      if (!checked) fails.push(`ganti bahasa Scene ${n}: tidak ada angka desimal HUD untuk dibandingkan`);
+      await toLang('en');
+    }
+    // tabel Limits (Scene 9 tab 1) dan halaman Regulations: angka ikut bahasa tanpa muat ulang
+    await goScene(p, 9, 600);
+    await p.keyboard.press('1'); await p.waitForTimeout(600);
+    const limCells = () => [...document.querySelectorAll('.lim-tab__main [data-c="lv"], .lim-tab__main [data-c="model"]')].map((e) => e.textContent.trim());
+    const l1 = await p.evaluate(limCells); await toLang('id'); const l2 = await p.evaluate(limCells);
+    if (!l1.some((t) => /\d/.test(t))) fails.push('tabel Limits: tanpa angka');
+    l1.forEach((t, i) => { if (/\d/.test(t) && l2[i] !== swap(t)) fails.push(`tabel Limits: "${t}" → "${l2[i]}" (harusnya "${swap(t)}")`); });
+    await p.keyboard.press('g');
+    await p.waitForFunction(() => window.__etelDebug.regulationsOpen(), null, { timeout: 5000 }).catch(() => fails.push('Regulations: tidak terbuka (G)'));
+    const regCells = () => [...document.querySelectorAll('.regs__group .reg__table td:nth-child(2)')].map((e) => e.textContent.trim());
+    const r1 = await p.evaluate(regCells); await toLang('en'); const r2 = await p.evaluate(regCells);
+    if (!r1.length) fails.push('Regulations: tabel kosong');
+    r1.forEach((t, i) => { if (r2[i] !== swap(t)) fails.push(`Regulations: "${t}" (ID) → "${r2[i]}" (EN)`); });
+    if (!r1.some((t) => /\d\.\d{3}/.test(t))) fails.push(`Regulations (ID): tidak ada pemisah ribuan titik (${r1.slice(0, 4).join(', ')})`);
+    await p.keyboard.press('Escape');
+    // isian: koma dan titik desimal; galat berbahasa ID di dalam layar
+    await toLang('id');
+    await goScene(p, 6, 600);
+    const nox = '.scene--partload [data-lim="nox"], [data-lim="nox"]';
+    const typeIn = async (sel, text) => { await p.click(sel, { clickCount: 3 }); await p.keyboard.press('Control+A'); await p.keyboard.press('Backspace'); if (text) await p.keyboard.type(text); await p.keyboard.press('Tab'); await p.waitForTimeout(250); };
+    for (const t of ['150,5', '150.5']) {
+      await typeIn(nox, t);
+      const st = await p.evaluate(() => ({ lim: window.__etelDebug.limits().nox, val: document.querySelector('[data-lim="nox"]').value }));
+      if (Math.abs((st.lim ?? 0) - 150.5) > 1e-9 || st.val !== '150,5') fails.push(`isian limit "${t}": tersimpan ${st.lim}, tampil "${st.val}" (harusnya 150.5 / "150,5")`);
+    }
+    for (const [t, re] of [['abc', /^Bukan angka/], ['-5', /^Minimal 0\./]]) {
+      await typeIn(nox, t);
+      const e = await p.evaluate(() => {
+        const b = document.querySelector('[data-lim="nox"]').closest('.num-field').querySelector('.num-field__err');
+        const r = b.getBoundingClientRect();
+        b.style.pointerEvents = 'auto'; // gelembung pointer-events:none; sementara ikut hit-test untuk memastikan tidak tertutup
+        const top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+        b.style.pointerEvents = '';
+        return { text: b.hidden ? null : b.textContent, inside: r.left >= 0 && r.top >= 0 && r.right <= innerWidth && r.bottom <= innerHeight, onTop: !!top && (top === b || b.contains(top)), lim: window.__etelDebug.limits().nox, inv: document.querySelector('[data-lim="nox"]').getAttribute('aria-invalid') };
+      });
+      if (!e.text || !re.test(e.text)) fails.push(`isian limit "${t}": pesan galat "${e.text}"`);
+      if (e.text && (!e.inside || !e.onTop)) fails.push(`isian limit "${t}": pesan galat ${!e.inside ? 'keluar layar' : 'tertutup elemen lain'}`);
+      if (e.lim !== 150.5 || e.inv !== 'true') fails.push(`isian limit "${t}": nilai berubah ke ${e.lim} / aria-invalid ${e.inv}`);
+    }
+    await typeIn(nox, '');
+    if ((await p.evaluate(() => window.__etelDebug.limits().nox)) !== null) fails.push('isian limit kosong: limit tidak dihapus');
+    // O₂ acuan (panel H): di luar rentang → pesan "Maksimal …"
+    await p.evaluate(() => document.activeElement?.blur?.());
+    await p.keyboard.press('h');
+    await p.waitForSelector('[data-o2]', { state: 'visible', timeout: 5000 }).catch(() => {});
+    const o2before = await p.evaluate(() => window.__etelDebug.limits().refO2);
+    await typeIn('[data-o2]', '99');
+    const o2e = await p.evaluate(() => { const b = document.querySelector('[data-o2]').closest('.num-field').querySelector('.num-field__err'); return { text: b.hidden ? null : b.textContent, refO2: window.__etelDebug.limits().refO2 }; });
+    if (!o2e.text || !/^Maksimal /.test(o2e.text) || o2e.refO2 !== o2before) fails.push(`O₂ acuan "99": pesan "${o2e.text}", O₂ ${o2before} → ${o2e.refO2}`);
+    await typeIn('[data-o2]', '15');
+    await p.keyboard.press('Escape');
+    for (const e of [...new Set(errs)]) fails.push(`ganti bahasa: ${e}`);
+  } catch (e) { fails.push(`ganti bahasa / isian: ${e.message.split('\n')[0]}`); }
+  await p.close();
+  console.log(`\nBahasa ID (D1): ${states} keadaan (scene + tab, 3 viewport × 2 tema), ${commaSeen} angka HUD berkoma desimal`);
+  return fails;
+}
+
+/**
  * Bagian B: tema terang. Sakelar di header (urutan, aria), tersimpan di etel:theme dan bertahan setelah muat ulang;
  * semua scene + tab Scene 9 tanpa grafik kosong / teks meluber di tema terang; latar viewport varian A; kotak overlay
  * kaca tembus pandang + blur; token grafik
@@ -1017,13 +1184,22 @@ async function landingInteraction(browser, url) {
     return 100 * n / (120 * 80);
   });
 
-  // 1) alamat tanpa hash → landing; kunjungan pertama = bahasa default learn.json (id); empat kartu; hero tidak kosong
+  // 0) kunjungan pertama (D1): browser berbahasa English → English (learn.defaultLang tidak dipakai lagi)
   {
-    const { p, errs } = await open();
+    const { p } = await open();
+    await p.goto(base);
+    await p.waitForFunction(() => window.__etelDebug?.learnView?.() === 'landing', null, { timeout: 30000 });
+    const l0 = await p.evaluate(() => ({ lang: window.__etelDebug.uiLang(), host: document.querySelector('.learn-host')?.lang, stored: localStorage.getItem('etel:lang') }));
+    if (l0.lang !== 'en' || l0.host !== 'en' || l0.stored !== null) fails.push(`landing: kunjungan pertama browser en-US → ${JSON.stringify(l0)} (harusnya en, tidak disimpan)`);
+    await p.close();
+  }
+  // 1) alamat tanpa hash → landing; kunjungan pertama browser id-ID = id (navigator.language); empat kartu; hero tidak kosong
+  {
+    const { p, errs } = await open({ locale: 'id-ID' });
     await p.goto(base);
     await p.waitForFunction(() => window.__etelDebug?.learnView?.() === 'landing' && document.querySelectorAll('.lcard').length === 4, null, { timeout: 30000 });
     const st = await p.evaluate(() => ({ lang: window.__etelDebug.lang(), hostLang: document.querySelector('.learn-host')?.lang, scene: window.__etelDebug.scene(), cards: [...document.querySelectorAll('.lcard')].filter((c) => c.checkVisibility() && c.getBoundingClientRect().right <= innerWidth + 1).length, hscroll: document.documentElement.scrollWidth > innerWidth + 1, tag: document.getElementById('scene-tag').textContent, card0: document.querySelector('.lcard__title')?.textContent }));
-    if (st.lang !== 'id' || st.hostLang !== 'id') fails.push(`landing: bahasa kunjungan pertama ${st.lang}/${st.hostLang} (harusnya id dari learn.defaultLang)`);
+    if (st.lang !== 'id' || st.hostLang !== 'id') fails.push(`landing: bahasa kunjungan pertama ${st.lang}/${st.hostLang} (harusnya id dari bahasa browser id-ID)`);
     if (st.cards !== 4) fails.push(`landing: ${st.cards} kartu terlihat (harusnya 4)`);
     if (st.scene !== null) fails.push(`landing: scene ${st.scene} sudah dipasang di belakang landing`);
     if (st.hscroll) fails.push('landing: scroll horizontal');
@@ -1126,12 +1302,12 @@ async function learnInteraction(browser, url) {
   const st = (p) => p.evaluate(() => ({ view: window.__etelDebug.learnView(), id: window.__etelDebug.learnViewId(), scene: window.__etelDebug.scene(), page: window.__etelDebug.page(), hash: location.hash, pill: window.__etelDebug.backPill(), mode: window.__etelDebug.mode(), glossary: window.__etelDebug.glossaryOpen(), lang: window.__etelDebug.lang() }));
   const go = async (p, hash) => { await p.evaluate((h) => { location.hash = h; }, hash); await p.waitForTimeout(120); };
 
-  // 1) daftar level (kunjungan pertama = bahasa learn.defaultLang)
-  const { p, errs } = await open();
+  // 1) daftar level (kunjungan pertama, browser id-ID = id; D1)
+  const { p, errs } = await open({ locale: 'id-ID' });
   await p.goto(`${base}#/learn`);
   await p.waitForFunction(() => window.__etelDebug?.learnView?.() === 'learn' && document.querySelectorAll('.lvl').length === 6, null, { timeout: 30000 }).catch(() => fails.push('learn: daftar level tidak tampil'));
   const list = await p.evaluate(() => ({ lang: document.querySelector('.learn-host').lang, lessons: document.querySelectorAll('.lvl__link').length, banner: !!document.querySelector('.learn-page__draft'), cont: document.querySelector('.learn-page__continue')?.getAttribute('href'), resetDisabled: document.querySelector('.learn-page__reset button')?.disabled, cont0: document.querySelector('.learn-page__continue b')?.textContent, hs: document.documentElement.scrollWidth > innerWidth + 1 }));
-  if (list.lang !== LEARN.defaultLang) fails.push(`learn: bahasa kunjungan pertama ${list.lang}`);
+  if (list.lang !== 'id') fails.push(`learn: bahasa kunjungan pertama ${list.lang} (browser id-ID)`);
   if (list.lessons !== 21 || !list.banner || list.cont !== '#/learn/l0-1' || !list.resetDisabled || list.hs) fails.push(`learn: daftar ${JSON.stringify(list)}`);
   await p.click('.lang-switch [data-lang="en"]'); await p.waitForTimeout(200);
   if ((await p.evaluate(() => document.querySelector('.learn-page__continue b')?.textContent)) === list.cont0) fails.push('learn: sakelar EN tidak mengganti label');
@@ -1424,7 +1600,7 @@ try {
   // E2E_ONLY=learn,landing,deeplinks: hanya alur halaman tersebut (iterasi cepat); tanpa variabel = smoke penuh
   const only = process.env.E2E_ONLY ? new Set(process.env.E2E_ONLY.split(',')) : null;
   if (only) {
-    const flows = { learn: learnInteraction, chartguide: chartGuideInteraction, help: helpInteraction, helpclick: helpClickInteraction, settings: settingsInteraction, landing: landingInteraction, deeplinks: deepLinks, theme: themeInteraction };
+    const flows = { langid: langIdInteraction, learn: learnInteraction, chartguide: chartGuideInteraction, help: helpInteraction, helpclick: helpClickInteraction, settings: settingsInteraction, landing: landingInteraction, deeplinks: deepLinks, theme: themeInteraction };
     for (const k of only) if (flows[k]) failures.push(...await flows[k](chromium.browser, srv.url));
   }
   for (const [w, h] of only ? [] : VIEWPORTS) {
@@ -1478,6 +1654,7 @@ try {
     if (w === 1366) failures.push(...await helpInteraction(chromium.browser, srv.url));
     if (w === 1366) failures.push(...await settingsInteraction(chromium.browser, srv.url));
     if (w === 1366) failures.push(...await helpClickInteraction(chromium.browser, srv.url));
+    if (w === 1366) failures.push(...await langIdInteraction(chromium.browser, srv.url));
     for (const e of [...new Set(errs)]) failures.push(`${w}×${h}: ${e}`);
     await page.close();
   }

@@ -96,7 +96,7 @@ describe('sakelar Dark/Light di header kanan', () => {
     expect(sw).toMatch(/setAttribute\('aria-checked', String\(on\)\)/);
     expect(sw).toMatch(/el\.dataset\.snapSkip = ''/);
     expect(STR.theme).toMatchObject({ dark: 'Dark', light: 'Light' });
-    expect(STR.theme.tip).toMatch(/charcoal/);
+    expect(STR.theme.tip).toMatch(/3D view/); // varian A: viewport ikut terang di Light
     expect(css).toMatch(/\.theme-switch__btn:focus-visible \{ outline: 2px solid var\(--focus-ring\)/);
   });
 });

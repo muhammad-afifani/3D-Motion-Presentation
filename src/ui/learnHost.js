@@ -3,7 +3,7 @@
  * Mengisi area di bawah header (header dengan sakelar bahasa dan tema tetap terlihat, navigasi kiri tetap ada); area scene
  * (#app) disembunyikan selama terbuka dan loop render scene berhenti (main.js). Halaman penuh lain (References,
  * Glossary, …) dibuka DI ATAS halaman ini tanpa menutupnya. Bahasa: state/langStore.js (etel:lang; kunjungan pertama =
- * learn.defaultLang). Konten: state/learnStore.js (fetch → fallback dynamic import → minimal English). Progres: etel:learnDone.
+ * bahasa browser bila diawali "id", selain itu English; Paket D1). Konten: state/learnStore.js (fetch → fallback dynamic import → minimal English). Progres: etel:learnDone.
  */
 import { STR } from './strings.js';
 import { learnHash } from '../state/route.js';
@@ -39,8 +39,7 @@ export function createLearnHost(o) {
   onLearn((r) => {
     learn = r.data;
     loaded = true;
-    // kunjungan pertama: bahasa default learn.json (bila berubah, langganan di bawah yang merender)
-    if (!langStore.applyDefault(learn?.defaultLang)) render();
+    render(); // bahasa kunjungan pertama sudah ditentukan langStore (bahasa browser / English)
   });
   langStore.subscribe(() => { setTag(); render(); });
   // References / Glossary berubah isi (fetch selesai): pelajaran memakai sumber dan kata dari keduanya
