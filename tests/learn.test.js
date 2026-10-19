@@ -103,7 +103,7 @@ describe('references.json: 12 sumber pengantar (M11)', () => {
   it('tipe web, level intro, accessed; validator lama tetap lolos; tipe web dikelompokkan setelah report', () => {
     expect(validateReferences(refs)).toEqual([]);
     const seed = readJson('docs/m11_pack/seeds/references.add.seed.json').references;
-    for (const r of seed) expect(refs.references.find((x) => x.id === r.id)).toEqual(r);
+    for (const r of seed) { const got = refs.references.find((x) => x.id === r.id); expect({ ...got, use: got.use.en }).toEqual(r); } // D2: use = { en, id }
     expect(REFERENCE_TYPES.at(-1)).toBe('web');
     expect(REFERENCE_TYPES.indexOf('web')).toBe(REFERENCE_TYPES.indexOf('report') + 1);
     expect(groupReferences(refs).map((g) => g.type)).toContain('web');

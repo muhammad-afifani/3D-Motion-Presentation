@@ -68,7 +68,7 @@ describe('bahasa UI: English, tanpa sisa kata Indonesia', () => {
     const basisTexts = [...Object.values(UTILITY), ...Object.values(BASIS).flatMap((b) => [b.derivation, ...b.assumptions, ...b.toVerify])];
     expect(basisTexts.filter((t) => ID_RE.test(clean(t)))).toEqual([]);
     // kolom cite memuat nama resmi regulasi Indonesia dan nama penulis (mis. "Yang"), jadi hanya kolom use yang diperiksa
-    const uses = JSON.parse(read('content/references.json')).references.map((r) => r.use);
+    const uses = JSON.parse(read('content/references.json')).references.map((r) => r.use.en); // D2: use = { en, id }; sisi id Indonesia
     expect(uses.filter((t) => ID_RE.test(clean(t)))).toEqual([]);
   });
   it('content/controls.json, closing.json, glossary.json (kartu, penutup, glossary) berbahasa English', () => {
@@ -77,7 +77,7 @@ describe('bahasa UI: English, tanpa sisa kata Indonesia', () => {
       expect(bad, f).toEqual([]);
     }
     // glossary: hanya teks tampil (id sumber seperti "lieuwen-yang" bukan teks)
-    const gl = JSON.parse(read('content/glossary.json')).terms.flatMap((t) => [t.term, t.expansion ?? '', t.definition]);
+    const gl = JSON.parse(read('content/glossary.json')).terms.flatMap((t) => [t.term.en, t.expansion?.en ?? '', t.definition.en]); // D2: pasangan { en, id }; sisi en diperiksa
     expect(gl.filter((t) => ID_RE.test(clean(t)))).toEqual([]);
   });
   it('content/learn.json (M11): semua field en lolos pemindai yang sama; field id (dan glossaryId) dikecualikan', () => {

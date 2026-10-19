@@ -10,17 +10,19 @@ import * as thermo from '../src/model/thermo.js';
 const ROOT = new URL('..', import.meta.url).pathname;
 const G = JSON.parse(readFileSync(`${ROOT}content/glossary.json`, 'utf8'));
 const REFS = JSON.parse(readFileSync(`${ROOT}content/references.json`, 'utf8'));
-const textOf = (t) => [t.term, t.expansion ?? '', t.definition].join(' ');
+// D2: term / expansion / definition = { en, id }
+const textOf = (t, lang) => [t.term[lang], t.expansion?.[lang] ?? '', t.definition[lang]].join(' ');
+const P = (en, id = en) => ({ en, id });
 
 describe('glossary.json', () => {
   it('skema valid; istilah wajib dari pack ada', () => {
     expect(CONTENT_FILES.glossary).toBe('glossary.json');
     expect(validateGlossary(G, [...SCENE_NUMBERS])).toEqual([]);
-    const terms = G.terms.map((t) => t.term);
+    const terms = G.terms.map((t) => t.term.en);
     for (const t of ['NOx', 'CO', 'UHC', 'PM', 'CEMS', 'IGV', 'DLN', 'λ (lambda)', 'TDC']) expect(terms, t).toContain(t);
   });
   it('definisi saja: tanpa angka (limit, faktor, nilai model tidak ditulis di glossary)', () => {
-    for (const t of G.terms) expect(textOf(t), t.id).not.toMatch(/[0-9]/);
+    for (const t of G.terms) for (const lang of ['en', 'id']) expect(textOf(t, lang), `${t.id} ${lang}`).not.toMatch(/[0-9]/);
   });
   it('sumber hanya id dari references.json; scene yang ditautkan ada', () => {
     const ids = new Set(REFS.references.map((r) => r.id));
@@ -30,14 +32,17 @@ describe('glossary.json', () => {
   it('tanpa nama fungsi / konstanta kode dan tanpa vendor', () => {
     const names = Object.keys(thermo).filter((n) => /[a-z][A-Z0-9]|_/.test(n)); // identifier kode (camelCase / KONSTANTA_); kata biasa seperti diesel tidak dihitung
     const re = new RegExp(`(?<![\\p{L}\\p{N}_])(${names.join('|')})(?![\\p{L}\\p{N}_])`, 'u');
-    for (const t of G.terms) expect(re.test(textOf(t)), t.id).toBe(false);
+    for (const t of G.terms) for (const lang of ['en', 'id']) expect(re.test(textOf(t, lang)), `${t.id} ${lang}`).toBe(false);
     expect(JSON.stringify(G)).not.toMatch(/\b(GE|Siemens|Solar Turbines|Caterpillar|Wärtsilä|Wartsila|Cummins|MAN|Rolls-Royce|Baker Hughes|Mitsubishi)\b/);
   });
   it('validator menolak angka, id ganda, sumber bukan id, scene tak dikenal', () => {
-    const base = { version: 1, terms: [{ id: 'a', term: 'A', definition: 'Text.' }] };
+    const base = { version: 1, terms: [{ id: 'a', term: P('A'), definition: P('Text.', 'Teks.') }] };
     expect(validateGlossary(base)).toEqual([]);
     const codes = (j) => validateGlossary(j).map((e) => e.code);
-    expect(codes({ ...base, terms: [{ id: 'a', term: 'A', definition: 'Limit 320 mg.' }] })).toContain('noNumbers');
+    expect(codes({ ...base, terms: [{ id: 'a', term: P('A'), definition: P('Limit 320 mg.', 'Batas 320 mg.') }] })).toContain('noNumbers');
+    expect(codes({ ...base, terms: [{ id: 'a', term: P('A'), definition: P('Text.', 'Batas 320 mg.') }] })).toContain('noNumbers'); // sisi id juga diperiksa
+    expect(codes({ ...base, terms: [{ id: 'a', term: 'A', definition: P('Text.') }] })).toContain('pair'); // teks polos ditolak
+    expect(codes({ ...base, terms: [{ id: 'a', term: P('A', ''), definition: P('Text.') }] })).toContain('pair'); // sisi id kosong
     expect(codes({ ...base, terms: [base.terms[0], base.terms[0]] })).toContain('duplicate');
     expect(codes({ ...base, terms: [{ ...base.terms[0], refs: ['Not An Id'] }] })).toContain('refId');
     expect(codes({ ...base, terms: [{ ...base.terms[0], scenes: [42] }] })).toContain('scenes');
@@ -46,7 +51,7 @@ describe('glossary.json', () => {
   it('loader: file tidak ada → fallback bawaan tanpa galat; JSON rusak → fallback + galat', async () => {
     const r404 = await loadContent('glossary', { fetchFn: async () => ({ ok: false }) });
     expect(r404.source).toBe('fallback'); expect(r404.errors).toEqual([]); expect(r404.data).toBe(fallbackContent('glossary'));
-    const bad = await loadContent('glossary', { fetchFn: async () => ({ ok: true, headers: { get: () => 'application/json' }, text: async () => '{"version":1,"terms":[{"id":"x","term":"X","definition":"Has 15 %"}]}' }) });
+    const bad = await loadContent('glossary', { fetchFn: async () => ({ ok: true, headers: { get: () => 'application/json' }, text: async () => '{"version":1,"terms":[{"id":"x","term":{"en":"X","id":"X"},"definition":{"en":"Has 15 %","id":"Ada 15 %"}}]}' }) });
     expect(bad.source).toBe('fallback'); expect(bad.errors.map((e) => e.code)).toContain('noNumbers');
   });
 });
@@ -59,7 +64,7 @@ describe('data halaman Glossary', () => {
     expect(all.map((t) => t.term)).toEqual(sorted);
     expect(glossaryTerms(G, REFS, 'inlet guide').map((t) => t.id)).toEqual(['igv']);
     expect(glossaryTerms(G, REFS, 'zzzz')).toEqual([]);
-    const g2 = { terms: [{ id: 'x', term: 'X', definition: 'D.', refs: ['heywood', 'nope-1999'] }] };
+    const g2 = { terms: [{ id: 'x', term: P('X'), definition: P('D.', 'D.'), refs: ['heywood', 'nope-1999'] }] };
     expect(glossaryTerms(g2, REFS)[0].refs.map((r) => r.known)).toEqual([true, false]);
   });
 });

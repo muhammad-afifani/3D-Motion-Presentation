@@ -15,6 +15,7 @@
  *   9. M11 Step 03: tombol ⓘ di setiap grafik (juga skematik Brayton dan panel Limits) tanpa tumpang tindih di 1366/1920/1280,
  *      ⓘ → panduan → Back to the chart, Present tanpa ⓘ, PNG tanpa ⓘ, indeks 15 panduan, alamat langsung, G/? + Esc.
  *  12. Klik setiap ⓘ di dalam layar (semua scene, Dark/Light, 3 viewport; legenda viewport 3D tidak tertutup overlay) + drag area kosong viewport 3D memutar kamera.
+ *  14. D2: galat isian angka di slot tetap (tanpa pergeseran tata letak), jendela presenter + panel presenter ikut EN ↔ ID, kerangka ID (navigasi, Settings, halaman penuh) di 3 viewport × 2 tema.
  *  13. Bahasa ID (Paket D1): semua scene + tab di 3 viewport × 2 tema tanpa luapan (1280: chip, tab Scene 9, header), angka HUD format ID, ganti EN ↔ ID tanpa muat ulang (HUD, Limits, Regulations), isian koma / titik dan pesan galat ID.
  *  11. Settings ⚙ + Hide working notes: panel, penyimpanan, Explore / Present, catatan kerja hilang dan label kejujuran tetap, header 3 viewport tanpa tumpang tindih.
  *  10. Bagian C: bantuan ⓘ (kartu di HUD, slider, navigasi; Glossary / Lesson; Present; PNG; ID) di 3 viewport × 2 tema; tumpang tindih ⓘ semua scene.
@@ -1036,36 +1037,266 @@ async function langIdInteraction(browser, url) {
       const st = await p.evaluate(() => ({ lim: window.__etelDebug.limits().nox, val: document.querySelector('[data-lim="nox"]').value }));
       if (Math.abs((st.lim ?? 0) - want) > 1e-9 || st.val !== shown) fails.push(`isian limit ID "${t}": tersimpan ${st.lim}, tampil "${st.val}" (harusnya ${want} / "${shown}")`);
     }
-    for (const [t, re] of [['abc', /^Bukan angka/], ['-5', /^Minimal 0\./]]) {
-      await typeIn(nox, t);
-      const e = await p.evaluate(() => {
-        const b = document.querySelector('[data-lim="nox"]').closest('.num-field').querySelector('.num-field__err');
-        const r = b.getBoundingClientRect();
-        b.style.pointerEvents = 'auto'; // gelembung pointer-events:none; sementara ikut hit-test untuk memastikan tidak tertutup
-        const top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
-        b.style.pointerEvents = '';
-        return { text: b.hidden ? null : b.textContent, inside: r.left >= 0 && r.top >= 0 && r.right <= innerWidth && r.bottom <= innerHeight, onTop: !!top && (top === b || b.contains(top)), lim: window.__etelDebug.limits().nox, inv: document.querySelector('[data-lim="nox"]').getAttribute('aria-invalid') };
-      });
-      if (!e.text || !re.test(e.text)) fails.push(`isian limit "${t}": pesan galat "${e.text}"`);
-      if (e.text && (!e.inside || !e.onTop)) fails.push(`isian limit "${t}": pesan galat ${!e.inside ? 'keluar layar' : 'tertutup elemen lain'}`);
-      if (e.lim !== 0.5 || e.inv !== 'true') fails.push(`isian limit "${t}": nilai berubah ke ${e.lim} / aria-invalid ${e.inv}`);
-    }
+    await typeIn(nox, '150,5'); // nilai sah terakhir sebelum dikosongkan
     await typeIn(nox, '');
     if ((await p.evaluate(() => window.__etelDebug.limits().nox)) !== null) fails.push('isian limit kosong: limit tidak dihapus');
-    // O₂ acuan (panel H): di luar rentang → pesan "Maksimal …"
-    await p.evaluate(() => document.activeElement?.blur?.());
-    await p.keyboard.press('h');
-    await p.waitForSelector('[data-o2]', { state: 'visible', timeout: 5000 }).catch(() => {});
-    const o2before = await p.evaluate(() => window.__etelDebug.limits().refO2);
-    await typeIn('[data-o2]', '99');
-    const o2e = await p.evaluate(() => { const b = document.querySelector('[data-o2]').closest('.num-field').querySelector('.num-field__err'); return { text: b.hidden ? null : b.textContent, refO2: window.__etelDebug.limits().refO2 }; });
-    if (!o2e.text || !/^Maksimal /.test(o2e.text) || o2e.refO2 !== o2before) fails.push(`O₂ acuan "99": pesan "${o2e.text}", O₂ ${o2before} → ${o2e.refO2}`);
-    await typeIn('[data-o2]', '15');
-    await p.keyboard.press('Escape');
     for (const e of [...new Set(errs)]) fails.push(`ganti bahasa: ${e}`);
   } catch (e) { fails.push(`ganti bahasa / isian: ${e.message.split('\n')[0]}`); }
   await p.close();
   console.log(`\nBahasa ID (D1): ${states} keadaan (scene + tab, 3 viewport × 2 tema), ${commaSeen} angka HUD berkoma desimal`);
+  return fails;
+}
+
+
+/**
+ * D2: galat isian angka di slot tetap di bawah kotak (ui/numberInput.js). Di 1280 × {EN, ID} × {Dark, Light}, lima tempat isian
+ * (limit NOx / CO Scene 6, site data nilai / O₂ dan sulfur di Scene 9 Limits, target Calibration Scene 4, O₂ acuan panel H):
+ * ketik nilai salah → pesan muncul dalam bahasa aktif, tidak terpotong (tanpa elipsis), tidak keluar layar, tidak tertutup
+ * elemen lain, dan TATA LETAK TIDAK BERGESER (kotak grup, grafik, tabel, panel memiliki ukuran dan posisi yang sama
+ * sebelum dan sesudah galat). Nilai yang salah tidak disimpan (aria-invalid).
+ */
+async function numberErrorsInteraction(browser, url) {
+  const fails = [];
+  const base = url.replace(/#.*$/, '');
+  const MSG = { en: /Not a number|Minimum|Maximum|Must be above/, id: /Bukan angka|Minimal|Maksimal|Harus lebih dari/ };
+  const layout = () => [...document.querySelectorAll('.scene__controls, .chart, .lim-tab__main, .lim-tab__cov, .cal-panel, .asm__grid, .reg__table, .ctl--lim, .reg__site')]
+    .filter((e) => e.checkVisibility?.() !== false)
+    .map((e) => { const r = e.getBoundingClientRect(); return `${e.className.split(' ')[0]}@${Math.round(r.left * 10)},${Math.round(r.top * 10)},${Math.round(r.width * 10)},${Math.round(r.height * 10)}`; }).join('|');
+  const slotInfo = (sel) => {
+    const input = document.querySelector(sel);
+    const id = input.getAttribute('aria-describedby');
+    const slot = id ? document.getElementById(id) : input.closest('.num-field')?.querySelector('.num-err');
+    if (!slot) return { text: null };
+    const r = slot.getBoundingClientRect();
+    const was = slot.style.pointerEvents; slot.style.pointerEvents = 'auto';
+    const pts = [[r.left + 3, r.top + r.height / 2], [r.left + Math.min(r.width, slot.scrollWidth) - 3, r.top + r.height / 2]];
+    const covered = pts.some(([x, y]) => { const t = document.elementFromPoint(x, y); return !(t && (t === slot || slot.contains(t))); });
+    slot.style.pointerEvents = was;
+    return {
+      text: slot.textContent.trim() || null, clipped: slot.scrollWidth > slot.clientWidth + 1, covered,
+      inside: r.left >= 0 && r.top >= 0 && r.right <= innerWidth + 0.5 && r.bottom <= innerHeight + 0.5, h: Math.round(r.height), invalid: input.getAttribute('aria-invalid'),
+    };
+  };
+  for (const lang of ['en', 'id']) {
+    for (const theme of ['dark', 'light']) {
+      const tag = `1280×720 ${lang.toUpperCase()} ${theme}`;
+      const p = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+      const errs = [];
+      p.on('pageerror', (e) => errs.push(`pageerror: ${e.message}`));
+      await p.addInitScript(([l, t]) => { try { localStorage.setItem('etel:lang', l); localStorage.setItem('etel:theme', t); } catch { /* storage diblokir */ } }, [lang, theme]);
+      await p.goto(`${base}#/scene/6`);
+      await p.waitForFunction(() => window.__etelDebug?.scene() === 6 && !window.__etelDebug.loading(), null, { timeout: 30000 });
+      await p.waitForTimeout(500);
+      const probe = async (what, sel, text, pre) => {
+        try {
+          if (pre) await pre();
+          await p.waitForSelector(sel, { state: 'visible', timeout: 5000 });
+          const before = await p.evaluate(layout);
+          await p.click(sel, { clickCount: 3 }); await p.keyboard.press('Control+A'); await p.keyboard.press('Backspace'); await p.keyboard.type(text);
+          await p.waitForTimeout(100);
+          await p.keyboard.press('Tab'); await p.waitForTimeout(250);
+          const info = await p.evaluate(slotInfo, sel), after = await p.evaluate(layout);
+          if (!info.text || !MSG[lang].test(info.text)) fails.push(`${tag} ${what} "${text}": pesan galat ${lang.toUpperCase()} tidak ada / salah bahasa ("${info.text}")`);
+          else {
+            if (info.clipped) fails.push(`${tag} ${what}: pesan galat terpotong ("${info.text}")`);
+            if (!info.inside) fails.push(`${tag} ${what}: pesan galat keluar layar`);
+            if (info.covered) fails.push(`${tag} ${what}: pesan galat tertutup elemen lain`);
+            if (info.h > 16) fails.push(`${tag} ${what}: slot galat ${info.h} px (harusnya satu baris tetap 14 px)`);
+          }
+          if (info.invalid !== 'true') fails.push(`${tag} ${what}: aria-invalid ${info.invalid}`);
+          if (before !== after) fails.push(`${tag} ${what}: tata letak bergeser saat galat muncul`);
+          // koreksi: nilai sah menghapus galat
+          await p.click(sel, { clickCount: 3 }); await p.keyboard.press('Control+A'); await p.keyboard.type(what.includes('O₂') ? '15' : '1'); await p.keyboard.press('Tab'); await p.waitForTimeout(200);
+        } catch (e) { fails.push(`${tag} ${what}: ${e.message.split('\n')[0]}`); }
+      };
+      await probe('limit NOx', '[data-lim="nox"]', 'abc');
+      await probe('limit CO', '[data-lim="co"]', '-5');
+      await p.evaluate(() => window.__etelDebug.goToScene(9));
+      await p.waitForFunction(() => window.__etelDebug.scene() === 9 && !window.__etelDebug.loading());
+      await p.keyboard.press('1'); await p.waitForTimeout(700);
+      await probe('site data nilai', '.pol-limits [data-f="value"]', 'abc');
+      await probe('site data O₂', '.pol-limits [data-f="o2"]', '99');
+      await probe('sulfur bahan bakar', '[data-v="sulfur"]', 'x');
+      await p.evaluate(() => window.__etelDebug.goToScene(4));
+      await p.waitForFunction(() => window.__etelDebug.scene() === 4 && !window.__etelDebug.loading());
+      await p.waitForTimeout(500);
+      await probe('target Calibration', '[data-in="diesel"]', '0', async () => { await p.evaluate(() => document.activeElement?.blur?.()); await p.keyboard.press('c'); await p.waitForTimeout(400); });
+      await p.click('[data-apply="diesel"]').catch(() => {});
+      await p.keyboard.press('c'); await p.waitForTimeout(200);
+      await probe('O₂ acuan (panel H)', '[data-o2]', '99', async () => { await p.evaluate(() => document.activeElement?.blur?.()); await p.keyboard.press('h'); await p.waitForTimeout(400); });
+      await p.keyboard.press('Escape');
+      for (const e of [...new Set(errs)]) fails.push(`${tag}: ${e}`);
+      await p.close();
+    }
+  }
+  return fails;
+}
+
+/**
+ * D2: jendela presenter ikut sakelar EN ↔ ID tanpa muat ulang. Jendela presenter (popup) dan panel presenter di halaman
+ * (popup diblokir): judul, tombol, label, dan format angka berganti; catatan presenter tetap Indonesia (lang="id", teks
+ * tidak berubah); timer tetap jalan. Format angka dicek lewat hook window.__etelPresenter di jendela presenter.
+ */
+async function presenterLangInteraction(browser, url) {
+  const fails = [];
+  const base = url.replace(/#.*$/, '');
+  const ctx = await browser.newContext({ viewport: { width: 1366, height: 768 }, locale: 'en-US' });
+  const pageErrs = [];
+  try {
+    const page = await ctx.newPage();
+    page.on('pageerror', (e) => pageErrs.push(`utama: ${e.message}`));
+    await page.addInitScript(() => { try { localStorage.setItem('etel:lang', 'en'); } catch { /* */ } });
+    await page.goto(`${base}#/scene/3`);
+    await page.waitForFunction(() => window.__etelDebug?.scene() === 3 && !window.__etelDebug.loading(), null, { timeout: 30000 });
+    const [popup] = await Promise.all([page.waitForEvent('popup', { timeout: 15000 }), page.keyboard.press('p')]);
+    popup.on('pageerror', (e) => pageErrs.push(`presenter: ${e.message}`));
+    await popup.waitForLoadState();
+    await popup.waitForFunction(() => /Scene 3\b/.test(document.querySelector('[data-v="current"]')?.textContent ?? ''), null, { timeout: 15000 });
+    const popState = () => popup.evaluate(() => ({
+      eyebrow: document.querySelector('.pres__eyebrow')?.textContent, next: document.querySelector('[data-k="next"]')?.textContent, toggle: document.querySelector('[data-toggle]')?.textContent,
+      reset: document.querySelector('[data-reset]')?.textContent, keys: document.querySelector('[data-k="keysHint"]')?.textContent, status: document.querySelector('[data-v="status"]')?.textContent,
+      title: document.title, notes: document.querySelector('[data-v="notes"]')?.textContent, keyMsg: document.querySelector('[data-v="key"]')?.textContent,
+      notesLang: document.querySelector('[data-v="notes"]')?.lang, mark: window.__presMark, num: window.__etelPresenter?.sample(), numLang: window.__etelPresenter?.numLang(), hscroll: document.documentElement.scrollWidth > innerWidth + 1,
+      timer: document.querySelector('[data-v="total"]')?.textContent,
+    }));
+    await popup.evaluate(() => { window.__presMark = 1; });
+    const en = await popState();
+    if (en.eyebrow !== 'Presenter' || en.toggle !== 'Start' || en.reset !== 'Reset' || en.next !== 'Next scene') fails.push(`presenter EN: label awal ${JSON.stringify({ e: en.eyebrow, t: en.toggle, r: en.reset, n: en.next })}`);
+    if (en.numLang !== 'en' || en.num !== '1,500.5') fails.push(`presenter EN: format angka ${en.numLang} / ${en.num}`);
+    if (en.notesLang !== 'id' || !/\b(yang|dan|dengan|untuk|tidak|adalah)\b/.test(en.notes + ' ' + en.keyMsg)) fails.push('presenter EN: catatan presenter tidak berbahasa Indonesia');
+    // ganti ke ID di jendela utama (sakelar header)
+    await page.bringToFront();
+    await page.click('.topbar .lang-switch [data-lang="id"]');
+    await page.waitForFunction(() => window.__etelDebug.uiLang() === 'id', null, { timeout: 15000 });
+    await popup.waitForFunction(() => document.querySelector('.pres__eyebrow')?.textContent === 'Presenter' && document.querySelector('[data-toggle]')?.textContent === 'Mulai', null, { timeout: 8000 })
+      .catch(() => fails.push('presenter: jendela presenter tidak berganti ke ID setelah sakelar (event storage)'));
+    const id = await popState();
+    if (id.mark !== 1) fails.push('presenter: jendela presenter dimuat ulang saat bahasa berganti');
+    if (id.toggle !== 'Mulai' || id.reset !== 'Atur ulang' || id.next !== 'Scene berikutnya' || !/Spasi/.test(id.keys ?? '')) fails.push(`presenter ID: label ${JSON.stringify({ t: id.toggle, r: id.reset, n: id.next, k: id.keys })}`);
+    if (id.status !== 'BERJALAN' && id.status !== 'DIJEDA') fails.push(`presenter ID: status "${id.status}"`);
+    if (id.numLang !== 'id' || id.num !== '1.500,5') fails.push(`presenter ID: format angka ${id.numLang} / ${id.num} (harusnya id / 1.500,5)`);
+    if (!/Presenter/.test(id.title)) fails.push(`presenter ID: judul dokumen "${id.title}"`);
+    if (id.notes !== en.notes || id.keyMsg !== en.keyMsg || id.notesLang !== 'id') fails.push('presenter ID: catatan presenter berubah (harusnya tetap Indonesia dan sama)');
+    if (id.hscroll) fails.push('presenter ID: scroll horizontal');
+    // timer tetap jalan setelah ganti bahasa; kembali ke EN
+    await popup.bringToFront();
+    await popup.click('[data-toggle]');
+    await popup.waitForTimeout(2600);
+    const t1 = await popup.evaluate(() => document.querySelector('[data-v="total"]').textContent);
+    if (t1 === '00:00') fails.push('presenter ID: timer tidak berjalan setelah ganti bahasa');
+    await popup.evaluate(() => document.querySelector('[data-toggle]').click());
+    await page.click('.topbar .lang-switch [data-lang="en"]');
+    await popup.waitForFunction(() => document.querySelector('[data-reset]')?.textContent === 'Reset' && window.__etelPresenter.numLang() === 'en', null, { timeout: 8000 })
+      .catch(() => fails.push('presenter: jendela presenter tidak kembali ke EN'));
+    await popup.close().catch(() => {});
+    await page.close();
+
+    // panel presenter di halaman (popup diblokir)
+    const page2 = await ctx.newPage();
+    page2.on('pageerror', (e) => pageErrs.push(`panel: ${e.message}`));
+    await page2.addInitScript(() => { try { localStorage.setItem('etel:lang', 'en'); } catch { /* */ } window.open = () => null; });
+    await page2.goto(`${base}#/scene/3`);
+    await page2.waitForFunction(() => window.__etelDebug?.scene() === 3 && !window.__etelDebug.loading(), null, { timeout: 30000 });
+    await page2.keyboard.press('p');
+    await page2.waitForSelector('.pres-host .pres', { timeout: 8000 });
+    await page2.evaluate(() => { window.__panelMark = 1; });
+    const panel = () => page2.evaluate(() => ({
+      eyebrow: document.querySelector('.pres-host .pres__eyebrow')?.textContent, close: document.querySelector('.pres-host [data-close]')?.textContent.replace(/\s+/g, ' ').trim(),
+      note: document.querySelector('.pres-host [data-k="inPageNote"]')?.textContent, toggle: document.querySelector('.pres-host [data-toggle]')?.textContent, notes: document.querySelector('.pres-host [data-v="notes"]')?.textContent,
+      notesLang: document.querySelector('.pres-host [data-v="notes"]')?.lang, mark: window.__panelMark, label: document.querySelector('.pres-host .pres')?.getAttribute('aria-label'),
+      box: (() => { const r = document.querySelector('.pres-host')?.getBoundingClientRect(); return r ? r.left >= 0 && r.top >= 0 && r.right <= innerWidth + 1 && r.bottom <= innerHeight + 1 : false; })(), // kotak panel (isi boleh digulir)
+    }));
+    const pe = await panel();
+    await page2.click('.topbar .lang-switch [data-lang="id"]');
+    await page2.waitForFunction(() => document.querySelector('.pres-host [data-toggle]')?.textContent === 'Mulai', null, { timeout: 8000 }).catch(() => fails.push('panel presenter: tidak berganti ke ID'));
+    const pi = await panel();
+    if (pe.toggle !== 'Start' || !/Close/.test(pe.close ?? '')) fails.push(`panel presenter EN: ${JSON.stringify({ t: pe.toggle, c: pe.close })}`);
+    if (pi.mark !== 1) fails.push('panel presenter: halaman dimuat ulang');
+    if (!/Tutup/.test(pi.close ?? '') || !/menggantikan jendela kedua/.test(pi.note ?? '') || pi.label !== 'Presenter') fails.push(`panel presenter ID: ${JSON.stringify({ c: pi.close, n: pi.note, l: pi.label })}`);
+    if (pi.notes !== pe.notes || pi.notesLang !== 'id') fails.push('panel presenter: catatan berubah (harusnya tetap Indonesia)');
+    if (!pi.box) fails.push('panel presenter ID: keluar layar');
+    await page2.close();
+  } catch (e) { fails.push(`presenter bahasa: ${e.message.split('\n')[0]}`); }
+  await ctx.close();
+  for (const e of [...new Set(pageErrs)]) fails.push(`presenter bahasa: ${e}`);
+  return fails;
+}
+
+/**
+ * D2: kerangka dalam bahasa ID di 1280 / 1366 / 1920 × Dark / Light: navigasi kiri (terbuka dan dilipat), Settings,
+ * dan halaman penuh (Regulations, References, Glossary, Emission formation, Assumptions) tanpa label terpotong, teks keluar
+ * kotak, scroll horizontal, atau elemen di luar layar. Teks ID lebih panjang 20–30 %: navigasi dan Settings diperiksa khusus.
+ */
+async function idChromeInteraction(browser, url) {
+  const fails = [];
+  const base = url.replace(/#.*$/, '');
+  /** Teks terpotong (ellipsis / overflow tersembunyi), teks keluar kotak induk, dan elemen di luar layar di dalam `root`. */
+  const clipped = (rootSel) => {
+    const root = document.querySelector(rootSel);
+    if (!root) return [`${rootSel} tidak ada`];
+    const out = [];
+    const nm = (e) => `${e.tagName.toLowerCase()}.${String(e.className).split(' ')[0]} "${(e.textContent || '').trim().slice(0, 22)}"`;
+    for (const el of root.querySelectorAll('*')) {
+      if (el.closest('svg, canvas') || el.checkVisibility?.() === false) continue;
+      const cs = getComputedStyle(el);
+      const r = el.getBoundingClientRect();
+      if (!r.width || !r.height) continue;
+      if (el.children.length === 0 && el.textContent.trim() && (cs.overflow !== 'visible' || cs.textOverflow === 'ellipsis') && el.scrollWidth > el.clientWidth + 1) out.push(`${nm(el)}: terpotong (${el.scrollWidth} > ${el.clientWidth})`);
+      if (r.right > innerWidth + 1 || r.left < -1) out.push(`${nm(el)}: di luar layar (${Math.round(r.left)}–${Math.round(r.right)})`);
+      const pr = el.parentElement?.getBoundingClientRect();
+      if (el.children.length === 0 && el.textContent.trim() && pr && cs.position !== 'fixed' && cs.position !== 'absolute' && pr.width > 0 && (r.right > pr.right + 2 || r.left < pr.left - 2) && getComputedStyle(el.parentElement).overflow === 'visible' && !el.closest('.nav__body, .refs__box, .asm__box, .settings-card__body')) out.push(`${nm(el)}: keluar kotak induk`);
+    }
+    return out.slice(0, 6);
+  };
+  for (const [w, h] of VIEWPORTS) {
+    for (const theme of ['dark', 'light']) {
+      const tag = `${w}×${h} ID ${theme}`;
+      const p = await browser.newPage({ viewport: { width: w, height: h } });
+      const errs = [];
+      p.on('pageerror', (e) => errs.push(`pageerror: ${e.message}`));
+      await p.addInitScript(([t]) => { try { localStorage.setItem('etel:lang', 'id'); localStorage.setItem('etel:theme', t); } catch { /* */ } }, [theme]);
+      await p.goto(`${base}#/scene/1`);
+      await p.waitForFunction(() => window.__etelDebug?.scene() === 1 && !window.__etelDebug.loading(), null, { timeout: 30000 });
+      await p.waitForTimeout(400);
+      // navigasi: dilipat (rail) lalu dibentangkan
+      for (const mode of ['collapsed', 'expanded']) {
+        const isCol = await p.evaluate(() => document.querySelector('.nav')?.classList.contains('is-collapsed'));
+        if ((mode === 'collapsed') !== isCol) { await p.click('.nav__toggle'); await p.waitForTimeout(250); }
+        for (const o of await p.evaluate(clipped, '.nav')) fails.push(`${tag} navigasi ${mode}: ${o}`);
+        const nv = await p.evaluate(() => { const r = document.querySelector('.nav').getBoundingClientRect(); const items = [...document.querySelectorAll('.nav__item')].map((b) => { const q = b.getBoundingClientRect(); return { b: Math.round(q.bottom), h: Math.round(q.height) }; }); return { w: Math.round(r.width), bottom: Math.round(r.bottom), last: items.at(-1)?.b, vh: innerHeight, n: items.length, hs: document.documentElement.scrollWidth > innerWidth + 1 }; });
+        if (nv.hs) fails.push(`${tag} navigasi ${mode}: scroll horizontal halaman`);
+        if (mode === 'expanded' && nv.w > 260) fails.push(`${tag} navigasi terbuka ${nv.w} px (terlalu lebar untuk teks ID)`);
+        // semua item tombol terjangkau (gulir di dalam navigasi diperbolehkan)
+        if (nv.n < 20) fails.push(`${tag} navigasi ${mode}: hanya ${nv.n} item`);
+        if (mode === 'expanded') { // label scene tidak terpotong
+          const cut = await p.evaluate(() => [...document.querySelectorAll('.nav__label')].filter((e) => e.scrollWidth > e.clientWidth + 1).map((e) => e.textContent.trim()));
+          if (cut.length) fails.push(`${tag} navigasi terbuka: label terpotong: ${cut.join(' | ')}`);
+        }
+      }
+      await p.click('.nav__toggle'); await p.waitForTimeout(200); // kembali dilipat (bawaan layar kecil)
+      // Settings
+      await p.click('.settings-btn'); await p.waitForTimeout(300);
+      for (const o of await p.evaluate(clipped, '.settings-card')) fails.push(`${tag} Settings: ${o}`);
+      const sc = await p.evaluate(() => { const r = document.querySelector('.settings-card').getBoundingClientRect(); return r.left >= 0 && r.top >= 0 && r.right <= innerWidth && r.bottom <= innerHeight; });
+      if (!sc) fails.push(`${tag} Settings: panel keluar layar`);
+      await p.keyboard.press('Escape'); await p.waitForTimeout(150);
+      // halaman penuh
+      for (const [hash, sel, name] of [['#/regulations', '.refs--regs', 'Baku mutu'], ['#/references', '.refs:not(.refs--regs):not(.refs--formation):not(.refs--glossary)', 'References'], ['#/glossary', '.refs--glossary', 'Glossary'], ['#/formation', '.refs--formation', 'Emission formation']]) {
+        await p.evaluate((x) => { location.hash = x; }, hash);
+        await p.waitForSelector(`${sel}:not([hidden])`, { timeout: 8000 }).catch(() => fails.push(`${tag} ${name}: halaman tidak terbuka`));
+        await p.waitForTimeout(350);
+        const pg = await p.evaluate((s) => { const el = document.querySelector(s); const box = el?.querySelector('.refs__box'); return el && box ? { hs: box.scrollWidth > box.clientWidth + 1, title: el.querySelector('h2')?.textContent, close: el.querySelector('.refs__head .btn:last-child')?.textContent } : null; }, sel);
+        if (!pg) { fails.push(`${tag} ${name}: kotak halaman tidak ada`); continue; }
+        if (pg.hs) fails.push(`${tag} ${name}: scroll horizontal di dalam halaman`);
+        if (pg.close !== 'Tutup') fails.push(`${tag} ${name}: tombol tutup "${pg.close}" (harusnya Tutup)`);
+        if (name === 'Baku mutu' && pg.title !== 'Baku mutu') fails.push(`${tag} ${name}: judul "${pg.title}"`);
+        for (const o of await p.evaluate(clipped, `${sel} .refs__head`)) fails.push(`${tag} ${name} kepala: ${o}`);
+        await p.keyboard.press('Escape'); await p.waitForTimeout(200);
+      }
+      for (const e of [...new Set(errs)]) fails.push(`${tag}: ${e}`);
+      await p.close();
+    }
+  }
   return fails;
 }
 
@@ -1606,7 +1837,7 @@ try {
   // E2E_ONLY=learn,landing,deeplinks: hanya alur halaman tersebut (iterasi cepat); tanpa variabel = smoke penuh
   const only = process.env.E2E_ONLY ? new Set(process.env.E2E_ONLY.split(',')) : null;
   if (only) {
-    const flows = { langid: langIdInteraction, learn: learnInteraction, chartguide: chartGuideInteraction, help: helpInteraction, helpclick: helpClickInteraction, settings: settingsInteraction, landing: landingInteraction, deeplinks: deepLinks, theme: themeInteraction };
+    const flows = { numerr: numberErrorsInteraction, presenterlang: presenterLangInteraction, idchrome: idChromeInteraction, langid: langIdInteraction, learn: learnInteraction, chartguide: chartGuideInteraction, help: helpInteraction, helpclick: helpClickInteraction, settings: settingsInteraction, landing: landingInteraction, deeplinks: deepLinks, theme: themeInteraction };
     for (const k of only) if (flows[k]) failures.push(...await flows[k](chromium.browser, srv.url));
   }
   for (const [w, h] of only ? [] : VIEWPORTS) {
@@ -1661,6 +1892,9 @@ try {
     if (w === 1366) failures.push(...await settingsInteraction(chromium.browser, srv.url));
     if (w === 1366) failures.push(...await helpClickInteraction(chromium.browser, srv.url));
     if (w === 1366) failures.push(...await langIdInteraction(chromium.browser, srv.url));
+    if (w === 1366) failures.push(...await presenterLangInteraction(chromium.browser, srv.url));
+    if (w === 1366) failures.push(...await idChromeInteraction(chromium.browser, srv.url));
+    if (w === 1280) failures.push(...await numberErrorsInteraction(chromium.browser, srv.url));
     for (const e of [...new Set(errs)]) failures.push(`${w}×${h}: ${e}`);
     await page.close();
   }

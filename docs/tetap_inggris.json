@@ -1,0 +1,228 @@
+{
+  "version": 1,
+  "note": "Daftar putih 'Tetap Inggris' (Paket D). Dipakai tests/i18n.test.js: pasangan { en, id } yang sisi id-nya sama persis dengan en hanya boleh bila teksnya ada di 'texts' atau jalurnya ada di 'paths'. 'inline' = istilah yang dipakai di dalam kalimat; hanya didokumentasikan. 'padanan' membandingkan dengan docs/PADANAN_ISTILAH.md: sesuai | menyimpang | tidak-diatur. Ubah di sini lalu jalankan: node scripts/gen-tetap-inggris.mjs",
+  "groups": [
+    {
+      "id": "satuan",
+      "title": "Satuan dan simbol satuan",
+      "reason": "Satuan SI dan simbol teknis ditulis sama di semua bahasa. Angka di sampingnya yang mengikuti bahasa (1.500,5 / 1,500.5).",
+      "padanan": "tidak-diatur",
+      "texts": [
+        "bar",
+        "K",
+        "%",
+        "mm",
+        "L",
+        "g/kWh",
+        "kJ/kg",
+        "kJ/kWh",
+        "MW",
+        "°C",
+        "mg/Nm³",
+        "ms",
+        "ATDC",
+        "rpm visual",
+        "ppm",
+        "% O₂",
+        "–",
+        "ppmvd",
+        "100-500 kW",
+        "500-1000 kW"
+      ],
+      "inline": [
+        "kW",
+        "rpm"
+      ]
+    },
+    {
+      "id": "singkatan_simbol",
+      "title": "Singkatan, rumus kimia, dan simbol",
+      "reason": "Singkatan baku industri dan rumus kimia dipakai sama di naskah dan di layar; definisinya ada di Glossary. Simbol Yunani dan ƒ tidak diterjemahkan.",
+      "padanan": "sesuai",
+      "padananNote": "Baris tabel: singkatan English (TDC, IGV, DLN, CEMS, PM, …) dipakai sama di naskah dan di layar.",
+      "texts": [
+        "NOx",
+        "CO",
+        "CO₂",
+        "CH₄",
+        "PM",
+        "ƒ",
+        "CO₂e",
+        "SO₂",
+        "CEMS",
+        "DLN",
+        "IGV",
+        "GWP",
+        "UHC",
+        "LHV",
+        "TDC",
+        "ATDC / BTDC",
+        "EGR",
+        "BSFC",
+        "Pmax",
+        "AFR",
+        "λ (lambda)",
+        "φ (phi)"
+      ],
+      "inline": [
+        "BDC",
+        "IVC",
+        "SCR",
+        "AR6",
+        "NO",
+        "NO₂",
+        "η",
+        "φ",
+        "λ",
+        "θ",
+        "P-V",
+        "T-s"
+      ]
+    },
+    {
+      "id": "tombol",
+      "title": "Nama tombol keyboard",
+      "reason": "Huruf pada tombol keyboard sama di semua bahasa. Tombol Space ditulis Spasi di ID (bukan entri daftar ini).",
+      "padanan": "tidak-diatur",
+      "texts": [
+        "S",
+        "P",
+        "G",
+        "?",
+        "H",
+        "M",
+        "M: Explore"
+      ]
+    },
+    {
+      "id": "halaman_produk",
+      "title": "Nama halaman, mode, dan produk",
+      "reason": "Nama halaman dan mode sudah menjadi nama produk (Learn, Chart guide, Glossary, References, About, Start, Explore, Presenter, Basis, Assumptions) dan dipakai sama di ID, supaya tombol, tautan, dan naskah presenter menyebut hal yang sama. Nama aplikasi tidak diterjemahkan.",
+      "padanan": "sesuai",
+      "padananNote": "Baris 67 (Explore), 69 (Presenter), 70 (References), 72 (Basis). Present menjadi 'Mode Present' (baris 68); Regulations dan Emission formation DITERJEMAHKAN (Baku mutu, Pembentukan emisi), jadi tidak ada di daftar ini.",
+      "texts": [
+        "Start",
+        "Learn",
+        "Chart guide",
+        "About",
+        "References",
+        "Glossary",
+        "Assumptions",
+        "Explore",
+        "Presenter",
+        "Basis",
+        "Start here",
+        "Engine & Turbine Emission Lab",
+        "Presenter · Engine & Turbine Emission Lab"
+      ]
+    },
+    {
+      "id": "kode_nav",
+      "title": "Kode singkat navigasi yang dilipat",
+      "reason": "Dua huruf di rail navigasi untuk halaman dan alat yang namanya tetap Inggris (Start, Learn, Chart guide, About, References, Glossary, Assumptions, Present, Presenter). Kode untuk halaman yang diterjemahkan berbeda (Bm, Pe, Tl).",
+      "padanan": "sesuai",
+      "padananNote": "Mengikuti kelompok halaman_produk.",
+      "texts": [
+        "St",
+        "Ln",
+        "Cg",
+        "Ab",
+        "Rf",
+        "Gl",
+        "As",
+        "Pr",
+        "Pw"
+      ]
+    },
+    {
+      "id": "status_chip",
+      "title": "Token status chip dan Site data",
+      "reason": "Keputusan D (a): chip Within / Above / Not modeled dan label Site data tetap Inggris di kedua bahasa, seperti tag Basis. Tooltip, alasan, dan kalimat di sekitarnya diterjemahkan. Chip tidak pernah berarti 'lulus' atau 'compliant'.",
+      "padanan": "menyimpang",
+      "padananNote": "Baris 56 memetakan 'tidak dimodelkan' ke chip Not modeled dan baris 58 'data lapangan / data unit' ke Site data. Di ID, chip dan label kolom tetap 'Not modeled' dan 'Site data'; kalimat biasa memakai 'tidak dimodelkan' dan 'data lapangan'. Within dan Above tidak punya baris di tabel.",
+      "texts": [
+        "Within",
+        "Above",
+        "Not modeled",
+        "Site data"
+      ]
+    },
+    {
+      "id": "istilah_lapangan",
+      "title": "Istilah lapangan dan teknis tanpa padanan umum",
+      "reason": "Istilah yang di lapangan dan di perangkat lunak dipakai dalam bentuk Inggris. Menerjemahkannya membuat peserta mencari kata yang tidak mereka temui di dokumen vendor atau panel kontrol.",
+      "padanan": "sesuai",
+      "padananNote": "Baris 26 (part-load dipakai apa adanya), 39 (head), 41 (methane slip), 33 (derating).",
+      "texts": [
+        "Part-load",
+        "Renderer",
+        "Bloom",
+        "FPS",
+        "Frame [ms]",
+        "Thermal NOx",
+        "Methane slip",
+        "Lean premix"
+      ],
+      "inline": [
+        "head",
+        "derating",
+        "part-load",
+        "methane slip",
+        "fuel-only",
+        "single-shaft",
+        "twin-shaft",
+        "lean-burn",
+        "lean premix",
+        "premix",
+        "fuel split",
+        "suction",
+        "discharge",
+        "surge"
+      ]
+    },
+    {
+      "id": "kata_sama",
+      "title": "Kata yang kebetulan sama di kedua bahasa",
+      "reason": "Kata serapan yang ejaannya sama di Inggris dan Indonesia. Bukan terjemahan yang tertinggal.",
+      "padanan": "tidak-diatur",
+      "texts": [
+        "Ideal",
+        "Parameter",
+        "Model",
+        "Status",
+        "Timer",
+        "Total",
+        "Scene",
+        "Gas"
+      ]
+    },
+    {
+      "id": "fungsi",
+      "title": "Fungsi pembentuk teks dengan sisi id identik",
+      "reason": "Teks yang hanya terdiri atas nama tetap, angka, dan satuan (mis. 'Scene 3 · Judul', 'Model OK · 19/19', 'margin +4,2 %'). Tidak ada kata yang bisa diterjemahkan; angkanya sudah mengikuti bahasa lewat format angka.",
+      "padanan": "sesuai",
+      "padananNote": "Mengikuti kelompok halaman_produk dan status_chip.",
+      "paths": [
+        "common.animSpeedValue",
+        "app.sceneTag",
+        "app.docTitle",
+        "app.toast.bloom",
+        "app.badge.ok",
+        "app.badge.fail",
+        "nav.sceneTip",
+        "content.item",
+        "debug.gpu",
+        "presenter.current",
+        "presenter.target",
+        "presenter.nextLine",
+        "regulation.margin",
+        "regulation.mg",
+        "regulation.pct",
+        "regulation.scene6Row",
+        "regulation.scene6Item",
+        "regulation.scene6Margin",
+        "regulation.page.group"
+      ]
+    }
+  ]
+}
