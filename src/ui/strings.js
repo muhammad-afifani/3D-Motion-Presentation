@@ -23,7 +23,7 @@ const SRC = {
   // ─────────────────────────── common (used by all scenes) ───────────────────────────
   common: {
     play: { en: 'Play', id: 'Putar' }, pause: { en: 'Pause', id: 'Jeda' }, freeze: { en: 'Freeze', id: 'Bekukan' }, unfreeze: { en: 'Unfreeze', id: 'Lepas' }, reset: { en: 'Reset', id: 'Atur ulang' }, labels: { en: 'Labels', id: 'Label' },
-    animSpeed: { en: 'Animation speed', id: 'Kecepatan animasi' }, crankAngle: { en: 'Crank angle θ', id: 'Sudut engkol θ' },
+    animSpeed: { en: 'Animation speed', id: 'Laju animasi' }, crankAngle: { en: 'Crank angle θ', id: 'Sudut engkol θ' },
     /** Animation speed value: ×0.5 (same label in every scene). */
     animSpeedValue: { en: (k) => `×${fmt(k, 1)}`, id: (k) => `×${fmt(k, 1)}` },
     keySpace: { en: 'Space', id: 'Spasi' },
