@@ -4,7 +4,7 @@
  * suhu, ekspor PNG, jendela presenter) memformat lewat fungsi di sini, jadi angka ikut bahasa tanpa logika per komponen.
  * Konversi satuan hanya terjadi di lapisan ini. Opsi `qty` (jenis besaran SI) sudah ada di tanda tangan agar pengaturan
  * satuan bisa ditambahkan nanti; saat ini `qty` belum mengubah angka.
- * Isian angka pengguna: parseNumber / checkNumber (koma maupun titik desimal; lihat aturan di parseNumber).
+ * Isian angka pengguna: parseNumber / checkNumber (koma maupun titik desimal; satu kasus ambigu mengikuti bahasa, lihat parseNumber).
  */
 import { LANGS } from '../state/lang.js';
 
@@ -74,19 +74,23 @@ export function formatInput(x, { maxDigits = 6, lang = numLang } = {}) {
 }
 
 /**
- * Baca isian angka pengguna. Koma dan titik sama-sama diterima, tanpa melihat bahasa UI:
+ * Baca isian angka pengguna. Koma dan titik sama-sama diterima; bahasa UI hanya menentukan satu kasus ambigu
+ * (satu pemisah diikuti tepat tiga digit). Aturan:
  *   - tanpa pemisah: "1500" → 1500;
  *   - dua jenis pemisah: yang terakhir = desimal, yang lain = ribuan ("1.500,5" → 1500.5; "1,500.5" → 1500.5);
  *   - satu jenis pemisah yang muncul lebih dari sekali = ribuan, tiap kelompok tepat 3 digit ("1.500.000" → 1500000);
- *   - satu jenis pemisah yang muncul sekali = DESIMAL, juga bila diikuti tepat 3 digit: "1.500" → 1.5 dan
- *     "1,500" → 1.5 (bukan 1500). Untuk ribuan ketik tanpa pemisah (1500) atau dengan desimal (1.500,0).
+ *   - satu pemisah yang muncul sekali = DESIMAL ("0,5" dan "0.5" → 0.5; "1.5" dan "1,5" → 1.5), KECUALI pemisah ribuan
+ *     bahasa itu (ID: titik; EN: koma) dengan tepat tiga digit di belakangnya dan bagian depan 1–3 digit yang bukan
+ *     0 ("1.500" → 1500 di ID; "1,500" → 1500 di EN; "12.345" → 12345). Bagian depan 0 tetap desimal ("0.500" → 0.5
+ *     di ID). Pemisah lawannya selalu desimal: di ID "1,500" → 1.5, di EN "1.500" → 1.5.
  * Spasi (termasuk spasi tipis / tak terputus) di dalam angka dibuang; tanda minus "-" atau "−" diterima.
  * @param {string|number|null|undefined} text
+ * @param {NumLang} [lang] bahasa UI (bawaan: bahasa format angka aktif)
  * @returns {number|null} null bila kosong; NaN bila bukan angka
  */
-export function parseNumber(text) {
+export function parseNumber(text, lang = numLang) {
   if (typeof text === 'number') return Number.isFinite(text) ? text : NaN;
-  let s = String(text ?? '').replace(/[\s   ]/g, '').replace(/^−/, '-');
+  let s = String(text ?? '').replace(/[\s\u00a0\u202f\u2009]/g, '').replace(/^\u2212/, '-');
   if (s === '') return null;
   if (!/^[+-]?[\d.,]+$/.test(s) || !/\d/.test(s)) return NaN;
   const sign = s[0] === '-' ? -1 : 1;
@@ -94,6 +98,7 @@ export function parseNumber(text) {
   const dots = (s.match(/\./g) ?? []).length, commas = (s.match(/,/g) ?? []).length;
   /** "1.500.000" / "1.500" (dengan desimal terpisah): kelompok ribuan harus 1–3 digit lalu tepat 3 digit */
   const groupsOk = (int, sep) => new RegExp(`^\\d{1,3}(\\${sep}\\d{3})+$`).test(int);
+  const thousandsSep = lang === 'id' ? '.' : ',';
   let int = s, frac = '';
   if (dots && commas) {
     const dec = s.lastIndexOf('.') > s.lastIndexOf(',') ? '.' : ',', grp = dec === '.' ? ',' : '.';
@@ -106,7 +111,10 @@ export function parseNumber(text) {
     if (!groupsOk(s, grp)) return NaN;
     int = s.split(grp).join('');
   } else if (dots + commas === 1) {
-    [int, frac] = s.split(dots ? '.' : ',');
+    const sep = dots ? '.' : ',';
+    [int, frac] = s.split(sep);
+    // pemisah ribuan bahasa ini + tepat 3 digit di belakang + bagian depan 1–3 digit bukan 0 → ribuan
+    if (sep === thousandsSep && /^[1-9]\d{0,2}$/.test(int) && /^\d{3}$/.test(frac)) { int += frac; frac = ''; }
   }
   if (!/^\d*$/.test(int) || !/^\d*$/.test(frac) || (int === '' && frac === '')) return NaN;
   return sign * Number(`${int || '0'}.${frac || '0'}`);
@@ -115,11 +123,11 @@ export function parseNumber(text) {
 /**
  * Validasi isian angka (pengganti min/max milik type="number"). Pesan galat dibentuk pemanggil dari `error` (STR.input).
  * @param {string|number|null|undefined} text
- * @param {{min?:number, max?:number, minExclusive?:boolean, allowEmpty?:boolean}} [o]
+ * @param {{min?:number, max?:number, minExclusive?:boolean, allowEmpty?:boolean, lang?:NumLang}} [o]
  * @returns {{value:number|null, error:null|'empty'|'nan'|'min'|'max'}}
  */
-export function checkNumber(text, { min = -Infinity, max = Infinity, minExclusive = false, allowEmpty = true } = {}) {
-  const v = parseNumber(text);
+export function checkNumber(text, { min = -Infinity, max = Infinity, minExclusive = false, allowEmpty = true, lang = numLang } = {}) {
+  const v = parseNumber(text, lang);
   if (v == null) return allowEmpty ? { value: null, error: null } : { value: null, error: 'empty' };
   if (Number.isNaN(v)) return { value: null, error: 'nan' };
   if (minExclusive ? !(v > min) : v < min) return { value: null, error: 'min' };

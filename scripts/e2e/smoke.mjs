@@ -1030,6 +1030,12 @@ async function langIdInteraction(browser, url) {
       const st = await p.evaluate(() => ({ lim: window.__etelDebug.limits().nox, val: document.querySelector('[data-lim="nox"]').value }));
       if (Math.abs((st.lim ?? 0) - 150.5) > 1e-9 || st.val !== '150,5') fails.push(`isian limit "${t}": tersimpan ${st.lim}, tampil "${st.val}" (harusnya 150.5 / "150,5")`);
     }
+    // kasus ambigu mengikuti bahasa: ID "1.500" = 1500 (titik ribuan), "1,500" = 1,5; "0.500" = 0,5
+    for (const [t, want, shown] of [['1.500', 1500, '1500'], ['1,500', 1.5, '1,5'], ['0.500', 0.5, '0,5']]) {
+      await typeIn(nox, t);
+      const st = await p.evaluate(() => ({ lim: window.__etelDebug.limits().nox, val: document.querySelector('[data-lim="nox"]').value }));
+      if (Math.abs((st.lim ?? 0) - want) > 1e-9 || st.val !== shown) fails.push(`isian limit ID "${t}": tersimpan ${st.lim}, tampil "${st.val}" (harusnya ${want} / "${shown}")`);
+    }
     for (const [t, re] of [['abc', /^Bukan angka/], ['-5', /^Minimal 0\./]]) {
       await typeIn(nox, t);
       const e = await p.evaluate(() => {
@@ -1042,7 +1048,7 @@ async function langIdInteraction(browser, url) {
       });
       if (!e.text || !re.test(e.text)) fails.push(`isian limit "${t}": pesan galat "${e.text}"`);
       if (e.text && (!e.inside || !e.onTop)) fails.push(`isian limit "${t}": pesan galat ${!e.inside ? 'keluar layar' : 'tertutup elemen lain'}`);
-      if (e.lim !== 150.5 || e.inv !== 'true') fails.push(`isian limit "${t}": nilai berubah ke ${e.lim} / aria-invalid ${e.inv}`);
+      if (e.lim !== 0.5 || e.inv !== 'true') fails.push(`isian limit "${t}": nilai berubah ke ${e.lim} / aria-invalid ${e.inv}`);
     }
     await typeIn(nox, '');
     if ((await p.evaluate(() => window.__etelDebug.limits().nox)) !== null) fails.push('isian limit kosong: limit tidak dihapus');
