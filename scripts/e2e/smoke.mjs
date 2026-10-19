@@ -14,6 +14,7 @@
  *      pil "Back to lesson", Glossary dua bahasa, halaman langsung → landing, Learn di Present → Explore, panah.
  *   9. M11 Step 03: tombol ⓘ di setiap grafik (juga skematik Brayton dan panel Limits) tanpa tumpang tindih di 1366/1920/1280,
  *      ⓘ → panduan → Back to the chart, Present tanpa ⓘ, PNG tanpa ⓘ, indeks 15 panduan, alamat langsung, G/? + Esc.
+ *  12. Klik setiap ⓘ di dalam layar (semua scene, Dark/Light, 3 viewport; legenda viewport 3D tidak tertutup overlay) + drag area kosong viewport 3D memutar kamera.
  *  11. Settings ⚙ + Hide working notes: panel, penyimpanan, Explore / Present, catatan kerja hilang dan label kejujuran tetap, header 3 viewport tanpa tumpang tindih.
  *  10. Bagian C: bantuan ⓘ (kartu di HUD, slider, navigasi; Glossary / Lesson; Present; PNG; ID) di 3 viewport × 2 tema; tumpang tindih ⓘ semua scene.
  *   7. M11 Step 01: landing (tanpa hash), kartu, hero tidak kosong, EN/ID, kualitas Low pada hero, About, Present tanpa
@@ -795,6 +796,107 @@ async function settingsInteraction(browser, url) {
 }
 
 /**
+ * Klik setiap ⓘ yang berada di dalam layar (daftar diambil dari DOM): semua scene, semua tab Scene 9, Dark dan Light,
+ * 1280 / 1366 / 1920. ⓘ bantuan (HUD, kontrol, legenda di viewport 3D, panel, header, navigasi) → kartu terbuka dan Esc menutup;
+ * ⓘ grafik (dan panel Limits) → membuka #/learn/charts/<id>. Titik tengah ⓘ harus benar-benar mengenai tombol (tidak tertutup
+ * overlay atau elemen lain; pointer-events). Drag di area kosong viewport 3D tetap memutar kamera (kotak overlay pointer-events:none).
+ * Bukti sebelum / sesudah: hasil dicetak per kelompok (legenda viewport, HUD, kontrol, header, grafik, panel).
+ */
+async function helpClickInteraction(browser, url) {
+  const fails = [];
+  const base = url.replace(/#.*$/, '');
+  const summary = new Map();
+  const bump = (k, ok) => { const e = summary.get(k) ?? { ok: 0, bad: 0 }; e[ok ? 'ok' : 'bad']++; summary.set(k, e); };
+  const kindOf = (id) => (id === 'ui.tempLegend' || id === 'ui.speciesLegend' ? 'legenda viewport 3D' : /^hud\./.test(id) ? 'HUD' : /^ctl\./.test(id) ? 'kontrol' : /^hdr\./.test(id) ? 'header' : /^nav\./.test(id) ? 'navigasi' : id === 'chart' ? 'grafik' : id === 'limits-panel' ? 'panel Limits' : 'panel / lainnya');
+  const list = () => document.querySelectorAll('.help-btn, .chart__guide');
+  for (const [w, h] of VIEWPORTS) {
+    for (const theme of ['dark', 'light']) {
+      const tag = `${w}×${h} ${theme}`;
+      const p = await browser.newPage({ viewport: { width: w, height: h } });
+      const errs = [];
+      p.on('pageerror', (e) => errs.push(`pageerror: ${e.message}`));
+      await p.addInitScript(([t]) => { try { localStorage.setItem('etel:lang', 'en'); localStorage.setItem('etel:theme', t); } catch { /* storage diblokir */ } }, [theme]);
+      await p.goto(`${base}#/scene/1`);
+      await p.waitForFunction(() => window.__etelDebug?.scene() === 1 && !window.__etelDebug.loading(), null, { timeout: 30000 });
+      for (let n = 1; n <= 11; n++) {
+        await goScene(p, n, 500);
+        for (const tab of n === 9 ? ['1', '2', '3', '4', '5'] : [null]) {
+          if (tab) { await p.keyboard.press(tab); await p.waitForTimeout(350); }
+          const where = `${tag} Scene ${n}${tab ? ` tab ${tab}` : ''}`;
+          const hash0 = await p.evaluate(() => location.hash);
+          const items = await p.evaluate(() => [...document.querySelectorAll('.help-btn, .chart__guide')].filter((e) => e.checkVisibility?.() !== false).map((e, i) => {
+            const r = e.getBoundingClientRect();
+            return { i, id: e.dataset.help ?? (e.closest('.lim-tab__head') ? 'limits-panel' : 'chart'), cx: r.left + r.width / 2, cy: r.top + r.height / 2, w: r.width, h: r.height, inside: r.left >= 0 && r.top >= 0 && r.right <= window.innerWidth && r.bottom <= window.innerHeight };
+          }));
+          for (const it of items) {
+            if (!it.inside || it.w < 1) continue;
+            const kind = kindOf(it.id);
+            // titik tengah harus mengenai tombol itu sendiri
+            const hit = await p.evaluate(({ i, cx, cy }) => { const e = [...document.querySelectorAll('.help-btn, .chart__guide')].filter((x) => x.checkVisibility?.() !== false)[i]; const t = document.elementFromPoint(cx, cy); return { ok: !!e && (t === e || e.contains(t)), top: t ? `${t.tagName.toLowerCase()}.${String(t.className).split(' ')[0]}` : 'null' }; }, it);
+            if (!hit.ok) { fails.push(`${where}: ⓘ ${it.id} tidak bisa diklik (titik tengah mengenai ${hit.top})`); bump(kind, false); continue; }
+            await p.mouse.click(it.cx, it.cy);
+            if (it.id === 'chart' || it.id === 'limits-panel') {
+              const okNav = await p.waitForFunction(() => /^#\/learn\/charts\//.test(location.hash), null, { timeout: 5000 }).then(() => true, () => false);
+              if (!okNav) { fails.push(`${where}: ⓘ ${it.id} tidak membuka panduan grafik`); bump(kind, false); continue; }
+              bump(kind, true);
+              await p.evaluate((hh) => { location.hash = hh; }, hash0);
+              await p.waitForFunction((x) => window.__etelDebug.scene() === x && window.__etelDebug.learnView() == null, n, { timeout: 8000 }).catch(() => {});
+              await p.waitForTimeout(150);
+              continue;
+            }
+            const opened = await p.evaluate(() => new Promise((res) => requestAnimationFrame(() => res(window.__etelDebug.helpOpen()))));
+            if (opened !== it.id) { fails.push(`${where}: ⓘ ${it.id} diklik tetapi kartu tidak terbuka (terbuka: ${opened})`); bump(kind, false); await p.keyboard.press('Escape'); continue; }
+            const card = await p.evaluate(() => { const c = document.querySelector('.help-card:not([hidden])'); const r = c?.getBoundingClientRect(); return !!r && r.left >= 0 && r.top >= 0 && r.right <= window.innerWidth && r.bottom <= window.innerHeight; });
+            await p.keyboard.press('Escape');
+            const closed = (await p.evaluate(() => window.__etelDebug.helpOpen())) === null;
+            if (!card || !closed) { fails.push(`${where}: ⓘ ${it.id}: ${!card ? 'kartu keluar layar' : 'Esc tidak menutup'}`); bump(kind, false); continue; }
+            bump(kind, true);
+          }
+        }
+      }
+      // drag di area kosong viewport 3D memutar kamera (dibekukan agar hanya kamera yang mengubah gambar)
+      if (w === 1366 && theme === 'dark') {
+        await p.evaluate(() => document.activeElement?.blur?.());
+        await p.keyboard.press('f'); // beku (F) tersimpan di store dan berlaku lintas scene; dibatalkan lagi setelah loop
+        for (const n of [1, 2, 3, 4, 5, 6, 7, 8]) {
+          await goScene(p, n, 700);
+          const spot = await p.evaluate(() => {
+            const c = document.querySelector('.view3d canvas');
+            if (!c || c.checkVisibility?.() === false) return null;
+            const r = c.getBoundingClientRect();
+            for (const [fx, fy] of [[0.5, 0.5], [0.4, 0.5], [0.6, 0.5], [0.5, 0.35], [0.5, 0.65], [0.3, 0.5], [0.7, 0.5], [0.45, 0.7]]) {
+              const x = r.left + r.width * fx, y = r.top + r.height * fy;
+              if (document.elementFromPoint(x, y) === c) return { x, y, rect: { x: r.left, y: r.top, width: r.width, height: r.height } };
+            }
+            return null;
+          });
+          if (!spot) { fails.push(`${tag} Scene ${n}: tidak ada titik kosong di viewport 3D untuk drag (semua tertutup elemen interaktif)`); bump('drag viewport 3D', false); continue; }
+          const shot = () => p.screenshot({ clip: spot.rect });
+          const a1 = await shot(); await p.waitForTimeout(250); const a2 = await shot();
+          if (Buffer.compare(a1, a2) !== 0) { console.log(`  (drag Scene ${n}: gambar masih bergerak walau dibekukan; dilewati)`); continue; }
+          await p.mouse.move(spot.x, spot.y);
+          await p.mouse.down();
+          for (let k = 1; k <= 8; k++) await p.mouse.move(spot.x + k * 14, spot.y + k * 4);
+          await p.mouse.up();
+          await p.waitForTimeout(500);
+          const b = await shot();
+          const moved = Buffer.compare(a2, b) !== 0;
+          bump('drag viewport 3D', moved);
+          if (!moved) fails.push(`${tag} Scene ${n}: drag di area kosong viewport 3D tidak memutar kamera`);
+        }
+        await p.evaluate(() => document.activeElement?.blur?.());
+        await p.keyboard.press('f');
+      }
+      for (const e of [...new Set(errs)]) fails.push(`${tag}: ${e}`);
+      await p.close();
+    }
+  }
+  console.log('\nKlik ⓘ (daftar dari DOM, semua scene, Dark dan Light, 1280/1366/1920): berhasil / gagal per kelompok');
+  for (const [k, v] of [...summary.entries()].sort()) console.log(`  ${k.padEnd(22)} ${String(v.ok).padStart(5)} / ${v.bad}`);
+  return fails;
+}
+
+/**
  * Bagian B: tema terang. Sakelar di header (urutan, aria), tersimpan di etel:theme dan bertahan setelah muat ulang;
  * semua scene + tab Scene 9 tanpa grafik kosong / teks meluber di tema terang; latar viewport varian A; kotak overlay
  * kaca tembus pandang + blur; token grafik
@@ -1322,7 +1424,7 @@ try {
   // E2E_ONLY=learn,landing,deeplinks: hanya alur halaman tersebut (iterasi cepat); tanpa variabel = smoke penuh
   const only = process.env.E2E_ONLY ? new Set(process.env.E2E_ONLY.split(',')) : null;
   if (only) {
-    const flows = { learn: learnInteraction, chartguide: chartGuideInteraction, help: helpInteraction, settings: settingsInteraction, landing: landingInteraction, deeplinks: deepLinks, theme: themeInteraction };
+    const flows = { learn: learnInteraction, chartguide: chartGuideInteraction, help: helpInteraction, helpclick: helpClickInteraction, settings: settingsInteraction, landing: landingInteraction, deeplinks: deepLinks, theme: themeInteraction };
     for (const k of only) if (flows[k]) failures.push(...await flows[k](chromium.browser, srv.url));
   }
   for (const [w, h] of only ? [] : VIEWPORTS) {
@@ -1375,6 +1477,7 @@ try {
     if (w === 1366) failures.push(...await chartGuideInteraction(chromium.browser, srv.url));
     if (w === 1366) failures.push(...await helpInteraction(chromium.browser, srv.url));
     if (w === 1366) failures.push(...await settingsInteraction(chromium.browser, srv.url));
+    if (w === 1366) failures.push(...await helpClickInteraction(chromium.browser, srv.url));
     for (const e of [...new Set(errs)]) failures.push(`${w}×${h}: ${e}`);
     await page.close();
   }
