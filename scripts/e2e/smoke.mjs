@@ -14,6 +14,7 @@
  *      pil "Back to lesson", Glossary dua bahasa, halaman langsung → landing, Learn di Present → Explore, panah.
  *   9. M11 Step 03: tombol ⓘ di setiap grafik (juga skematik Brayton dan panel Limits) tanpa tumpang tindih di 1366/1920/1280,
  *      ⓘ → panduan → Back to the chart, Present tanpa ⓘ, PNG tanpa ⓘ, indeks 15 panduan, alamat langsung, G/? + Esc.
+ *  11. Settings ⚙ + Hide working notes: panel, penyimpanan, Explore / Present, catatan kerja hilang dan label kejujuran tetap, header 3 viewport tanpa tumpang tindih.
  *  10. Bagian C: bantuan ⓘ (kartu di HUD, slider, navigasi; Glossary / Lesson; Present; PNG; ID) di 3 viewport × 2 tema; tumpang tindih ⓘ semua scene.
  *   7. M11 Step 01: landing (tanpa hash), kartu, hero tidak kosong, EN/ID, kualitas Low pada hero, About, Present tanpa
  *      hash → Scene 1, landing minimal bila learn.json gagal; screenshot landing 3 resolusi × 2 tema.
@@ -617,6 +618,182 @@ async function helpInteraction(browser, url) {
   return fails;
 }
 
+/** Header kanan: tidak ada kotak yang bertumpuk dan semuanya di dalam layar (dijalankan di halaman). */
+function headerOverlap() {
+  const kids = [...document.querySelectorAll('.topbar__right > *')].filter((e) => e.checkVisibility?.() !== false && e.getBoundingClientRect().width > 0);
+  const out = [], nm = (e) => (e.className && typeof e.className === 'string' ? e.className.split(/\s+/)[0] : e.id) || e.tagName.toLowerCase();
+  const rs = kids.map((e) => ({ n: nm(e), r: e.getBoundingClientRect() }));
+  for (let a = 0; a < rs.length; a++) {
+    const A = rs[a].r;
+    if (A.right > window.innerWidth + 0.5 || A.left < -0.5) out.push(`${rs[a].n}: keluar layar`);
+    for (let b = a + 1; b < rs.length; b++) { const B = rs[b].r; if (A.left < B.right - 0.5 && B.left < A.right - 0.5 && A.top < B.bottom - 0.5 && B.top < A.bottom - 0.5) out.push(`${rs[a].n} × ${rs[b].n}`); }
+  }
+  const key = document.querySelector('.key-message')?.getBoundingClientRect(), right = document.querySelector('.topbar__right')?.getBoundingClientRect();
+  if (key && right && key.width > 0 && key.right > right.left + 0.5) out.push('pesan kunci × header kanan');
+  return out;
+}
+
+/**
+ * Settings ⚙ + "Hide working notes". Di 1280 / 1366 / 1920 × Dark / Light: panel terbuka tanpa menumpuk header, Esc dan klik luar,
+ * sakelar menyimpan etel:hideNotes dan bertahan setelah muat ulang, Explore tampil / Present sembunyi secara default, ⚙ hilang di Present.
+ * Di 1366: catatan kerja hilang (banner draf, Draft, "to verify", "locator not verified", "from Learn", catatan Formation) sedangkan label
+ * kejujuran model tetap terlihat (indicative, tag Basis, basis O₂ dan volume, banner "Transcribed…").
+ */
+async function settingsInteraction(browser, url) {
+  const fails = [];
+  const base = url.replace(/#.*$/, '');
+  for (const [w, h] of VIEWPORTS) {
+    for (const theme of ['dark', 'light']) {
+      const tag = `${w}×${h} ${theme}`;
+      const p = await browser.newPage({ viewport: { width: w, height: h } });
+      const errs = [];
+      p.on('pageerror', (e) => errs.push(`pageerror: ${e.message}`));
+      await p.addInitScript(([t]) => { try { localStorage.setItem('etel:lang', 'en'); localStorage.setItem('etel:theme', t); } catch { /* storage diblokir */ } }, [theme]);
+      const vis = (sel) => p.evaluate((q) => { const e = document.querySelector(q); return !!e && e.checkVisibility?.() !== false && e.getBoundingClientRect().width > 0; }, sel);
+      const stored = () => p.evaluate(() => { try { return localStorage.getItem('etel:hideNotes'); } catch { return 'ERR'; } });
+      await p.goto(`${base}#/learn`);
+      await p.waitForSelector('.learn-page__draft', { timeout: 30000 }).catch(() => fails.push(`${tag}: banner draf Learn tidak tampil di Explore (default)`));
+      if (!(await vis('.learn-page__draft'))) fails.push(`${tag}: Explore default: banner draf tersembunyi`);
+      const hov = await p.evaluate(headerOverlap);
+      for (const o of hov) fails.push(`${tag}: header (Explore): ${o}`);
+      // panel
+      await p.locator('.settings-btn').click();
+      const card = await p.evaluate(() => { const c = document.querySelector('.settings-card'); const r = c.getBoundingClientRect(); return { open: !c.hidden, inside: r.left >= 0 && r.top >= 0 && r.right <= window.innerWidth && r.bottom <= window.innerHeight, exp: document.querySelector('.settings-btn').getAttribute('aria-expanded'), role: c.getAttribute('role'), label: document.getElementById(c.getAttribute('aria-labelledby'))?.textContent, sw: document.querySelector('.set-switch').getAttribute('aria-checked'), hint: c.textContent.includes('press key M') }; });
+      if (!card.open || card.exp !== 'true' || card.role !== 'dialog' || card.label !== 'Settings') fails.push(`${tag}: panel Settings tidak terbuka dengan benar (${JSON.stringify(card)})`);
+      if (!card.inside) fails.push(`${tag}: panel keluar layar`);
+      if (card.sw !== 'false') fails.push(`${tag}: sakelar bawaan Explore harus mati (dapat ${card.sw})`);
+      if (!card.hint) fails.push(`${tag}: teks panel tidak menyebut tombol M untuk kembali ke Explore`);
+      await p.keyboard.press('Escape');
+      if ((await p.evaluate(() => window.__etelDebug.settingsOpen())) || !(await p.evaluate(() => document.activeElement?.classList.contains('settings-btn')))) fails.push(`${tag}: Esc tidak menutup panel / fokus tidak kembali ke ⚙`);
+      await p.locator('.settings-btn').click();
+      await p.mouse.click(Math.round(w * 0.4), Math.round(h * 0.6));
+      if (await p.evaluate(() => window.__etelDebug.settingsOpen())) fails.push(`${tag}: klik di luar tidak menutup panel`);
+      // sakelar → tersimpan, banner hilang, bertahan setelah muat ulang
+      await p.locator('.settings-btn').click();
+      await p.locator('.set-switch').click();
+      if ((await stored()) !== 'hide') fails.push(`${tag}: etel:hideNotes tidak tersimpan 'hide' (dapat ${await stored()})`);
+      if (await vis('.learn-page__draft')) fails.push(`${tag}: banner draf masih tampil setelah Hide working notes`);
+      if (!(await p.evaluate(() => document.body.classList.contains('hide-notes')))) fails.push(`${tag}: body tanpa class hide-notes`);
+      await p.reload();
+      await p.waitForFunction(() => window.__etelDebug?.learnView?.() === 'learn', null, { timeout: 30000 }).catch(() => {});
+      await p.waitForTimeout(500);
+      if (await vis('.learn-page__draft')) fails.push(`${tag}: pilihan tidak bertahan setelah muat ulang`);
+      // Use the default → tampil lagi di Explore
+      await p.locator('.settings-btn').click();
+      await p.locator('.set-row__reset').click();
+      if ((await stored()) !== null) fails.push(`${tag}: Use the default tidak menghapus kunci`);
+      if (!(await vis('.learn-page__draft'))) fails.push(`${tag}: banner draf tidak kembali setelah Use the default`);
+      await p.keyboard.press('Escape');
+      // Present: ⚙ hilang, header tanpa tumpang tindih (termasuk tombol Explore (M)), catatan tersembunyi secara default
+      await p.keyboard.press('m');
+      await p.waitForTimeout(500);
+      if (await vis('.settings-btn')) fails.push(`${tag}: ⚙ masih tampil di Present`);
+      if (!(await vis('.present-exit'))) fails.push(`${tag}: tombol Explore (M) tidak tampil di Present`);
+      for (const o of await p.evaluate(headerOverlap)) fails.push(`${tag}: header (Present): ${o}`);
+      const nt = await p.evaluate(() => window.__etelDebug.notes());
+      if (nt.choice !== null || nt.hide !== true) fails.push(`${tag}: Present default: catatan harus tersembunyi (${JSON.stringify(nt)})`);
+      await p.keyboard.press('m');
+      await p.waitForTimeout(400);
+      if ((await p.evaluate(() => window.__etelDebug.notes())).hide !== false) fails.push(`${tag}: kembali ke Explore: catatan harus tampil lagi`);
+      // pilihan eksplisit "show" di Explore berlaku juga di Present
+      await p.locator('.settings-btn').click();
+      await p.locator('.set-switch').click(); // hide
+      await p.locator('.set-switch').click(); // show
+      if ((await stored()) !== 'show') fails.push(`${tag}: pilihan 'show' tidak tersimpan`);
+      await p.keyboard.press('Escape');
+      await p.keyboard.press('m');
+      await p.waitForTimeout(300);
+      if ((await p.evaluate(() => window.__etelDebug.notes())).hide !== false) fails.push(`${tag}: pilihan 'show' eksplisit tidak berlaku di Present`);
+      await p.keyboard.press('m');
+      await p.locator('.settings-btn').click();
+      await p.locator('.set-row__reset').click();
+      await p.keyboard.press('Escape');
+
+      if (w === 1366) {
+        // catatan kerja hilang ketika opsi aktif; label kejujuran tetap
+        await p.evaluate(() => { try { localStorage.setItem('etel:hideNotes', 'hide'); } catch { /* storage diblokir */ } });
+        await p.reload(); // store catatan membaca kunci saat boot
+        await p.waitForTimeout(500);
+        await p.goto(`${base}#/references`);
+        await p.waitForFunction(() => window.__etelDebug?.referencesOpen?.(), null, { timeout: 30000 }).catch(() => {});
+        await p.waitForTimeout(300);
+        if (await vis('.refs__banner')) fails.push(`${tag}: References: banner "locator not verified" tampil padahal catatan disembunyikan`);
+        if (await p.evaluate(() => [...document.querySelectorAll('.bcard__chip--warn')].some((e) => e.checkVisibility() && /not verified/.test(e.textContent)))) fails.push(`${tag}: References: chip "locator not verified" masih tampil`);
+        if (await p.evaluate(() => [...document.querySelectorAll('.refs__loc .bcard__chip--ok')].some((e) => !e.checkVisibility()))) fails.push(`${tag}: References: chip "locator checked" tersembunyi (harus tetap tampil)`);
+        await p.goto(`${base}#/glossary`);
+        await p.waitForFunction(() => window.__etelDebug?.glossaryOpen?.(), null, { timeout: 30000 }).catch(() => {});
+        await p.waitForTimeout(500);
+        if (await p.evaluate(() => [...document.querySelectorAll('.gl__item--basic .bcard__chip')].some((e) => e.checkVisibility()))) fails.push(`${tag}: Glossary: chip "from Learn" masih tampil`);
+        // Regulations: banner "Transcribed…" tetap tampil
+        await p.goto(`${base}#/regulations`);
+        await p.waitForFunction(() => window.__etelDebug?.regulationsOpen?.(), null, { timeout: 30000 }).catch(() => {});
+        await p.waitForTimeout(400);
+        if (!(await p.evaluate(() => [...document.querySelectorAll('.refs__banner')].some((e) => e.checkVisibility() && /Transcribed from the published tables/.test(e.textContent))))) fails.push(`${tag}: Regulations: banner "Transcribed…" tersembunyi (label kejujuran harus tetap tampil)`);
+        // Scene 4: tag Basis, basis O₂ dan volume, indicative
+        await p.goto(`${base}#/scene/4`);
+        await p.waitForFunction(() => window.__etelDebug?.scene() === 4 && !window.__etelDebug.loading(), null, { timeout: 30000 });
+        await p.waitForTimeout(1200);
+        const hon = await p.evaluate(() => {
+          const shown = (e) => e.checkVisibility?.() !== false && e.getBoundingClientRect().width > 0;
+          const lv = [...document.querySelectorAll('.chart__level')].filter(shown);
+          return {
+            levels: lv.length, levelOk: lv.every((e) => /^Basis/.test(e.textContent)),
+            basis: [...document.querySelectorAll('.hud__sub')].filter(shown).some((e) => /O₂/.test(e.textContent) && /°C/.test(e.textContent)),
+            indicative: [...document.querySelectorAll('.hud__label')].filter(shown).some((e) => /indicative/.test(e.textContent)),
+            hudBasis: [...document.querySelectorAll('.hud__note .level')].filter(shown).length,
+            noteHides: [...document.querySelectorAll('[data-note]')].filter((e) => /indicative|Transcribed from the published tables|O₂|mg\/Nm/.test(e.textContent)).map((e) => e.className),
+          };
+        });
+        if (hon.levels < 1 || !hon.levelOk) fails.push(`${tag}: Scene 4: tag Basis grafik tersembunyi (${hon.levels})`);
+        if (!hon.basis) fails.push(`${tag}: Scene 4: basis O₂ / volume di samping angka tersembunyi`);
+        if (!hon.indicative) fails.push(`${tag}: Scene 4: label "indicative" tersembunyi`);
+        if (hon.hudBasis < 1) fails.push(`${tag}: Scene 4: tag Basis HUD tersembunyi`);
+        if (hon.noteHides.length) fails.push(`${tag}: elemen bertanda catatan memuat label kejujuran: ${hon.noteHides.join(', ')}`);
+        // Scene 9 Limits: banner Transcribed di header regulasi
+        await p.evaluate(() => window.__etelDebug.goToScene(9));
+        await p.waitForFunction(() => window.__etelDebug.scene() === 9 && !window.__etelDebug.loading(), null, { timeout: 30000 });
+        await p.waitForTimeout(600);
+        await p.keyboard.press('1');
+        await p.waitForTimeout(500);
+        if (!(await p.evaluate(() => [...document.querySelectorAll('.reg__banner')].some((e) => e.checkVisibility?.() !== false && /Transcribed from the published tables/.test(e.textContent))))) fails.push(`${tag}: Scene 9: banner "Transcribed…" tersembunyi`);
+        // Scene 6: kartu bantuan tanpa tanda Draft
+        await p.evaluate(() => window.__etelDebug.goToScene(6));
+        await p.waitForFunction(() => window.__etelDebug.scene() === 6 && !window.__etelDebug.loading(), null, { timeout: 30000 });
+        await p.waitForTimeout(800);
+        await p.locator('.pl-hud__body .hud__item .help-btn').first().click();
+        await p.waitForFunction(() => window.__etelDebug.helpOpen() != null, null, { timeout: 8000 }).catch(() => {});
+        if (await vis('.help-card__draft')) fails.push(`${tag}: kartu bantuan: tanda Draft masih tampil`);
+        if (!(await p.evaluate(() => { const e = document.querySelector('.pl-reg [data-k="regline"]'); return !!e && e.checkVisibility?.() !== false && /indicative/.test(e.textContent); }))) fails.push(`${tag}: Scene 6: baris regulasi (indicative) tersembunyi`);
+        // PNG: panel Settings dan ⚙ tidak ikut
+        await p.keyboard.press('Escape');
+        await p.locator('.settings-btn').click();
+        const gear = await p.evaluate(() => { const r = (e) => { const b = e.getBoundingClientRect(); return { left: b.left, right: b.right, top: b.top, bottom: b.bottom }; }; return { btn: r(document.querySelector('.settings-btn')), card: r(document.querySelector('.settings-card')) }; });
+        try {
+          await p.evaluate(() => document.activeElement?.blur?.());
+          const [dl] = await Promise.all([p.waitForEvent('download', { timeout: 30000 }), p.keyboard.press('s')]);
+          const png = decodePng(readFileSync(await dl.path()));
+          // ⚙ dan panel diberi data-snap-skip: bagian dalam tombol ⚙ (di atas latar header) tidak dilukis, jadi rata
+          const inner = { left: gear.btn.left + 5, right: gear.btn.right - 5, top: gear.btn.top + 5, bottom: gear.btn.bottom - 5 };
+          const gearSpread = regionSpread(png, inner, 2, 0);
+          if (gearSpread > 10) fails.push(`${tag}: PNG memuat ikon ⚙ (selisih warna ${gearSpread})`);
+        } catch (err) { fails.push(`${tag}: PNG Settings: ${String(err.message ?? err).split('\n')[0]}`); }
+      }
+      for (const e of [...new Set(errs)]) fails.push(`${tag}: ${e}`);
+      await p.close();
+    }
+  }
+  // kartu panel berbahasa ID
+  const q = await browser.newPage({ viewport: { width: 1366, height: 768 } });
+  await q.addInitScript(() => { try { localStorage.setItem('etel:lang', 'id'); } catch { /* storage diblokir */ } });
+  await q.goto(`${base}#/scene/6`);
+  await q.waitForFunction(() => window.__etelDebug?.scene() === 6 && !window.__etelDebug.loading(), null, { timeout: 30000 });
+  await q.locator('.settings-btn').click();
+  const idTxt = await q.locator('.settings-card').innerText();
+  if (!/Pengaturan/.test(idTxt) || !/Sembunyikan catatan kerja/.test(idTxt) || !/tombol M/.test(idTxt)) fails.push(`panel Settings ID: teks Indonesia tidak tampil ("${idTxt.slice(0, 60)}")`);
+  await q.close();
+  return fails;
+}
+
 /**
  * Bagian B: tema terang. Sakelar di header (urutan, aria), tersimpan di etel:theme dan bertahan setelah muat ulang;
  * semua scene + tab Scene 9 tanpa grafik kosong / teks meluber di tema terang; latar viewport varian A; kotak overlay
@@ -642,7 +819,7 @@ async function themeInteraction(browser, url) {
   };
   const st0 = await p.evaluate(() => ({
     theme: document.documentElement.dataset.theme,
-    order: [...document.querySelector('.topbar__right').children].filter((el) => !el.matches('.calib-flag, .quality-flag, .help-btn')).map((el) => el.className.split(' ').find((c) => /present-exit|lang-slot|theme-switch/.test(c)) ?? el.id),
+    order: [...document.querySelector('.topbar__right').children].filter((el) => !el.matches('.calib-flag, .quality-flag, .help-btn, .settings-btn')).map((el) => el.className.split(' ').find((c) => /present-exit|lang-slot|theme-switch/.test(c)) ?? el.id),
     pressed: [...document.querySelectorAll('.theme-switch:not(.lang-switch) .theme-switch__btn')].map((b) => `${b.dataset.theme}:${b.getAttribute('aria-checked')}`).join(','),
   }));
   if (st0.theme !== 'dark') fails.push(`tema: tanpa pilihan tersimpan harus Dark (dapat ${st0.theme})`);
@@ -1145,7 +1322,7 @@ try {
   // E2E_ONLY=learn,landing,deeplinks: hanya alur halaman tersebut (iterasi cepat); tanpa variabel = smoke penuh
   const only = process.env.E2E_ONLY ? new Set(process.env.E2E_ONLY.split(',')) : null;
   if (only) {
-    const flows = { learn: learnInteraction, chartguide: chartGuideInteraction, help: helpInteraction, landing: landingInteraction, deeplinks: deepLinks, theme: themeInteraction };
+    const flows = { learn: learnInteraction, chartguide: chartGuideInteraction, help: helpInteraction, settings: settingsInteraction, landing: landingInteraction, deeplinks: deepLinks, theme: themeInteraction };
     for (const k of only) if (flows[k]) failures.push(...await flows[k](chromium.browser, srv.url));
   }
   for (const [w, h] of only ? [] : VIEWPORTS) {
@@ -1173,6 +1350,7 @@ try {
         for (const c of res.charts) if (!c.ok) failures.push(`${label}: grafik #${c.i} "${c.title}" kosong/0/tanpa tag Basis (canvas ${c.w}×${c.h}, css ${c.cssW}×${c.cssH}, terisi ${c.pct} %, minimum ${MIN_FILL_PCT} %, tag Basis ${c.basis ? 'ada' : 'HILANG'}, ⓘ ${c.guide ? 'ada' : 'HILANG'}${c.overlap?.length ? `, bertumpuk: ${c.overlap.join('; ')}` : ''})`);
         for (const o of res.overflow) failures.push(`${label}: teks meluber di ${o.el}: ${o.reasons[0]}`);
         for (const o of [...new Set(res.helpOverlap)]) failures.push(`${label}: bantuan ⓘ bertumpuk: ${o}`);
+        if (n === 1 && !tab) for (const o of await page.evaluate(headerOverlap)) failures.push(`${label}: header tumpang tindih: ${o}`);
         if (n <= 9 && res.helpCount < 5) failures.push(`${label}: hanya ${res.helpCount} tombol bantuan ⓘ`);
         if (res.topbarH > MAX_TOPBAR_PX) failures.push(`${label}: bilah atas ${res.topbarH} px > ${MAX_TOPBAR_PX} px (pesan kunci terlalu banyak baris)`);
         // M11 Step 03: setiap judul grafik yang tampil punya panduan
@@ -1196,6 +1374,7 @@ try {
     if (w === 1366) failures.push(...await learnInteraction(chromium.browser, srv.url));
     if (w === 1366) failures.push(...await chartGuideInteraction(chromium.browser, srv.url));
     if (w === 1366) failures.push(...await helpInteraction(chromium.browser, srv.url));
+    if (w === 1366) failures.push(...await settingsInteraction(chromium.browser, srv.url));
     for (const e of [...new Set(errs)]) failures.push(`${w}×${h}: ${e}`);
     await page.close();
   }
