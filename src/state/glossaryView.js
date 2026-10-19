@@ -4,6 +4,7 @@
  * M11 Step 02: bahasa ID memakai learn.glossaryId (nama bila ada, definisi); tanpa itu → English asli.
  */
 import { glossaryText } from './learnView.js';
+import { tr } from './lang.js';
 
 /**
  * @param {any} glossary isi content/glossary.json @param {any} references isi content/references.json @param {string} [query]
@@ -15,7 +16,7 @@ export function glossaryTerms(glossary, references, query = '', { learn = null, 
   const q = String(query ?? '').trim().toLowerCase();
   return (glossary?.terms ?? [])
     .map((t) => ({
-      id: t.id, ...glossaryText(learn, t, lang), expansion: t.expansion ?? null,
+      id: t.id, ...glossaryText(learn, t, lang), expansion: t.expansion ? tr(t.expansion, lang) : null,
       refs: (t.refs ?? []).map((id) => ({ id, known: byId.has(id), cite: byId.get(id)?.cite ?? '' })),
       scenes: [...(t.scenes ?? [])],
     }))

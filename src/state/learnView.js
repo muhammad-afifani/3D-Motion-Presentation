@@ -39,8 +39,8 @@ export function firstUndone(learn, isDone) {
 }
 
 /**
- * Kata di satu pelajaran. Id di learn.terms: pasangan dua bahasa. Id di glossary.json: English dari glossary.json;
- * bahasa ID dari learn.glossaryId (nama istilah bila ada, definisi). `known:false` bila id tak ditemukan di mana pun.
+ * Kata di satu pelajaran. Id di learn.terms dan di glossary.json: pasangan dua bahasa (D2: glossary.json berisi pasangan;
+ * learn.glossaryId tidak dibaca lagi). `known:false` bila id tak ditemukan di mana pun.
  * @returns {{id:string, term:string, definition:string, from:'learn'|'glossary', known:boolean}[]}
  */
 export function lessonWords(learn, glossary, lesson, lang) {
@@ -53,10 +53,9 @@ export function lessonWords(learn, glossary, lesson, lang) {
   });
 }
 
-/** Nama dan definisi satu istilah glossary.json menurut bahasa (ID: learn.glossaryId, cadangan: English asli). */
+/** Nama dan definisi satu istilah glossary.json menurut bahasa (pasangan { en, id }; `learn` tidak dipakai lagi). */
 export function glossaryText(learn, g, lang) {
-  const idv = lang === 'id' ? learn?.glossaryId?.[g.id] : null;
-  return { term: idv?.term || g.term, definition: idv?.definition || g.definition };
+  return { term: tr(g.term, lang), definition: tr(g.definition, lang) };
 }
 
 /** Kata dasar (learn.terms) untuk halaman Glossary, terurut abjad menurut bahasa; `query` menyaring nama + definisi. */

@@ -41,6 +41,10 @@ export function contentUrl(file, base = import.meta.env?.BASE_URL ?? '/') {
 }
 
 const isText = (x) => typeof x === 'string' && x.trim().length > 0;
+/** Teks dua bahasa (Paket D): tepat { en, id }, keduanya teks tidak kosong. */
+const isPairText = (x) => !!x && typeof x === 'object' && !Array.isArray(x) && Object.keys(x).length === 2 && isText(x.en) && isText(x.id);
+/** Isi teks pasangan (untuk pemeriksaan "tanpa angka"). */
+const pairTexts = (x) => (isPairText(x) ? [x.en, x.id] : []);
 const isTextList = (x) => Array.isArray(x) && x.length > 0 && x.every(isText);
 
 /**
@@ -129,7 +133,7 @@ export function validateReferences(j) {
     else ids.add(r.id);
     if (!REFERENCE_TYPES.includes(r.type)) e.push({ field: f('type'), code: 'refType' });
     if (!isText(r.cite)) e.push({ field: f('cite'), code: 'text' });
-    if (!isText(r.use)) e.push({ field: f('use'), code: 'text' });
+    if (!isPairText(r.use)) e.push({ field: f('use'), code: 'pair' });
     if (typeof r.locator !== 'string') e.push({ field: f('locator'), code: 'string' });
     if (typeof r.locatorVerified !== 'boolean') e.push({ field: f('locatorVerified'), code: 'boolean' });
     if (r.level !== undefined && !REFERENCE_LEVELS.includes(r.level)) e.push({ field: f('level'), code: 'refLevel' });
@@ -159,7 +163,11 @@ export function validateRegulations(j) {
     if (!isText(s.id)) e.push({ field: f('id'), code: 'text' });
     else if (srcIds.has(s.id)) e.push({ field: f('id'), code: 'duplicate' });
     else srcIds.add(s.id);
-    for (const k of ['title', 'short', 'url']) if (!isText(s[k])) e.push({ field: f(k), code: 'text' });
+    // nama resmi regulasi (title, short) = satu string Indonesia apa adanya; bukan pasangan { en, id }
+    for (const k of ['title', 'short']) { if (isPairText(s[k])) e.push({ field: f(k), code: 'officialName' }); else if (!isText(s[k])) e.push({ field: f(k), code: 'text' }); }
+    if (!isText(s.url)) e.push({ field: f('url'), code: 'text' });
+    // penjelasan English singkat yang menyertainya: pasangan { en, id } (boleh tidak ada)
+    if (s.scope != null && !isPairText(s.scope)) e.push({ field: f('scope'), code: 'pair' });
   });
   if (!Array.isArray(j.groups) || !j.groups.length) return [...e, { field: 'groups', code: 'array' }];
   const gIds = new Set();
@@ -169,7 +177,8 @@ export function validateRegulations(j) {
     if (!isText(g.id)) e.push({ field: f('id'), code: 'text' });
     else if (gIds.has(g.id)) e.push({ field: f('id'), code: 'duplicate' });
     else gIds.add(g.id);
-    if (!isText(g.equipment)) e.push({ field: f('equipment'), code: 'text' });
+    if (!isPairText(g.equipment)) e.push({ field: f('equipment'), code: 'pair' });
+    if (g.basisNote != null && !isPairText(g.basisNote)) e.push({ field: f('basisNote'), code: 'pair' });
     if (!srcIds.has(g.source)) e.push({ field: f('source'), code: 'regSource' });
     if (typeof g.verified !== 'boolean') e.push({ field: f('verified'), code: 'boolean' });
     const b = g.basis;
@@ -188,7 +197,7 @@ export function validateRegulations(j) {
       if (!c || !isText(c.id)) { e.push({ field: fc('id'), code: 'text' }); return; }
       if (cls.has(c.id)) e.push({ field: fc('id'), code: 'duplicate' });
       cls.add(c.id);
-      if (!isText(c.label)) e.push({ field: fc('label'), code: 'text' });
+      if (!isPairText(c.label)) e.push({ field: fc('label'), code: 'pair' });
       if (!numOrNull(c.minKW) || !numOrNull(c.maxKW)) e.push({ field: fc('minKW'), code: 'numberOrNull' });
     });
     if (!Array.isArray(g.rows) || !g.rows.length) e.push({ field: f('rows'), code: 'array' });
@@ -202,7 +211,7 @@ export function validateRegulations(j) {
       if (!REG_UNITS.includes(r.unit)) e.push({ field: fr('unit'), code: 'regUnit' });
       if (!isText(r.method)) e.push({ field: fr('method'), code: 'text' });
     });
-    if (g.notes != null && !(Array.isArray(g.notes) && g.notes.every(isText))) e.push({ field: f('notes'), code: 'textList' });
+    if (g.notes != null && !(Array.isArray(g.notes) && g.notes.every(isPairText))) e.push({ field: f('notes'), code: 'pair' });
   });
   return e;
 }
@@ -271,9 +280,9 @@ export function validateGlossary(j, sceneNumbers = DEFAULT_SCENES) {
     if (!isText(t.id) || !/^[a-z0-9-]+$/.test(t.id)) e.push({ field: f('id'), code: 'refId' });
     else if (ids.has(t.id)) e.push({ field: f('id'), code: 'duplicate' });
     else ids.add(t.id);
-    for (const k of ['term', 'definition']) if (!isText(t[k])) e.push({ field: f(k), code: 'text' });
-    if (t.expansion != null && !isText(t.expansion)) e.push({ field: f('expansion'), code: 'text' });
-    for (const k of ['term', 'expansion', 'definition']) if (typeof t[k] === 'string' && /[0-9]/.test(t[k])) e.push({ field: f(k), code: 'noNumbers' });
+    for (const k of ['term', 'definition']) if (!isPairText(t[k])) e.push({ field: f(k), code: 'pair' });
+    if (t.expansion != null && !isPairText(t.expansion)) e.push({ field: f('expansion'), code: 'pair' });
+    for (const k of ['term', 'expansion', 'definition']) if (pairTexts(t[k]).some((x) => /[0-9]/.test(x))) e.push({ field: f(k), code: 'noNumbers' });
     if (t.refs != null && !(Array.isArray(t.refs) && t.refs.every((x) => isText(x) && /^[a-z0-9-]+$/.test(x)))) e.push({ field: f('refs'), code: 'refId' });
     if (t.scenes != null && !(Array.isArray(t.scenes) && t.scenes.every((n) => sceneNumbers.includes(n)))) e.push({ field: f('scenes'), code: 'scenes' });
   });
