@@ -1,8 +1,9 @@
 /**
- * lang.js — bahasa teks kelompok Learn (M11 Step 01): satu state global 'en' | 'id', disimpan di localStorage kunci
- * 'etel:lang' (try/catch). Kunjungan pertama (belum ada pilihan tersimpan) memakai learn.defaultLang; pilihan
- * berikutnya diingat. Untuk sementara hanya Landing, About, dan Learn yang berganti bahasa; bagian lain tetap English
- * sampai paket bahasa D (keputusan default global ditinjau lagi saat itu). Tidak masuk store, tidak menyentuh model.
+ * lang.js — bahasa UI: satu state global 'en' | 'id', disimpan di localStorage kunci 'etel:lang' (try/catch).
+ * Paket D1: English default; kunjungan pertama (belum ada pilihan tersimpan) memakai bahasa browser bila diawali "id"
+ * (navigator.language, mis. id-ID); pilihan tersimpan selalu diutamakan. learn.defaultLang tidak dipakai lagi.
+ * Kelompok teks yang sudah dua bahasa ikut sakelar EN/ID (state/i18n.js); angka ikut bahasa (ui/format.js).
+ * Tidak masuk store, tidak menyentuh model.
  */
 export const LANG_KEY = 'etel:lang';
 export const LANGS = Object.freeze(['en', 'id']);
@@ -22,15 +23,17 @@ export function readLangChoice(storage) {
   return { lang: null, stored: false };
 }
 
+/** Bahasa browser Indonesia? "id", "id-ID", juga kode lama "in". @param {string|undefined|null} tag */
+export const isIndonesianLocale = (tag) => /^(id|in)(-|_|$)/i.test(String(tag ?? ''));
+
 /**
- * Bahasa efektif: pilihan tersimpan → learn.defaultLang (kunjungan pertama) → 'en'.
- * @param {{lang:string|null}} choice @param {string|undefined|null} learnDefault
+ * Bahasa efektif: pilihan tersimpan → bahasa browser bila diawali "id" (kunjungan pertama) → 'en'.
+ * @param {{lang:string|null}} choice @param {string|undefined|null} browserLang navigator.language
  * @returns {'en'|'id'}
  */
-export function resolveLang(choice, learnDefault) {
+export function resolveLang(choice, browserLang) {
   if (LANGS.includes(choice?.lang)) return /** @type {'en'|'id'} */ (choice.lang);
-  if (LANGS.includes(learnDefault)) return /** @type {'en'|'id'} */ (learnDefault);
-  return FALLBACK_LANG;
+  return isIndonesianLocale(browserLang) ? 'id' : FALLBACK_LANG;
 }
 
 /** @param {Storage|null} storage @param {string} lang @returns {boolean} tersimpan */
@@ -41,8 +44,8 @@ export function writeLang(storage, lang) {
 
 /**
  * Pemilih bahasa tunggal untuk teks dua bahasa: pasangan { en, id } (nilai string atau fungsi yang membentuk string).
- * Satu-satunya tempat pilihan bahasa ditentukan; dipakai Landing, About, Learn, Glossary (Step 01–02) dan nanti paket D
- * untuk seluruh aplikasi, sehingga tidak ada `if (lang === …)` tersebar. Pasangan tidak lengkap (sisi id kosong) → English.
+ * Satu-satunya tempat pilihan bahasa ditentukan; dipakai Landing, About, Learn, Glossary (Step 01–02) dan paket D
+ * (state/i18n.js) untuk seluruh aplikasi, sehingga tidak ada `if (lang === …)` tersebar. Pasangan tidak lengkap (sisi id kosong) → English.
  * @param {{en:any, id?:any}|string|null|undefined} pair
  * @param {'en'|'id'} lang
  * @param {...any} args argumen untuk pasangan berupa fungsi

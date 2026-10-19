@@ -4,7 +4,9 @@
  * content/presenter.json (loader yang sama dengan konten lain; fallback bawaan, banner hanya bila JSON rusak).
  */
 import './styles.css';
-import { STR } from './ui/strings.js';
+import { STR, applyStringLang } from './ui/strings.js';
+import { setNumberLang } from './ui/format.js';
+import { LANG_KEY, langStorage, readLangChoice, resolveLang } from './state/lang.js';
 import { createPresenterView } from './ui/presenterView.js';
 import { isTypingTarget } from './ui/keys.js';
 import { loadContent, fallbackContent } from './state/content.js';
@@ -12,6 +14,11 @@ import { openChannel, createPresenterLink } from './state/presenterSync.js';
 import { SCENE_NUMBERS } from './state/scenes.js';
 import { THEME_KEY, themeStorage, readThemeChoice, applyTheme } from './state/theme.js';
 
+// bahasa angka dan teks dua bahasa ikut jendela utama (etel:lang; tanpa pilihan: bahasa browser / English). Paket D1:
+// angka di jendela ini hanya jam timer (sama di kedua bahasa); teks kerangka menyusul di D2.
+const syncLang = () => { const l = resolveLang(readLangChoice(langStorage()), navigator.language); setNumberLang(l); applyStringLang(l); };
+syncLang();
+window.addEventListener('storage', (e) => { if (e.key === LANG_KEY || e.key === null) syncLang(); });
 document.title = STR.presenter.docTitle;
 // tema ikut jendela utama hanya bila storage terbaca (pilihan tersimpan); selain itu tetap Dark
 const syncTheme = () => { const c = readThemeChoice(themeStorage()); applyTheme(c.stored ? c.theme : 'dark'); };

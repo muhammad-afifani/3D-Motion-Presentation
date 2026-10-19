@@ -2,21 +2,24 @@
  * strings.js — the ONLY place for UI text. Edit here to change what the screen says.
  *
  * Language rules (CLAUDE.md → Conventions):
- *   - All on-screen text is English: labels, buttons, legends, tooltips, notes, toasts, errors, HUD.
+ *   - On-screen text: English by default; Indonesian is optional via the EN/ID switch. Groups listed in
+ *     state/i18n.js MIGRATED_GROUPS are { en, id } pairs (both sides required, checked by tests/i18n.test.js);
+ *     the other groups are still English only until their D stage.
  *   - Presenter notes (content/presenter.json) stay Indonesian: they are the spoken script.
  *   - Official regulation names stay in Indonesian, with a short English gloss.
- *   - Numbers come from the model/frame; decimal point and thousands comma (en-US).
+ *   - Numbers come from the model/frame; format follows the language (ui/format.js: EN 1,500.5 · ID 1.500,5).
  * Parameterised text is a small function. `\n` in a tooltip = line break.
  * Style: short sentences, number and unit first, no filler, no code identifiers in captions/tooltips.
  */
 import { fmt } from './format.js';
+import { createStrings } from '../state/i18n.js';
 
 /** Signed angle: −4.0° */
 export const signedDeg = (v) => `${v < 0 ? '−' : ''}${fmt(Math.abs(v), 1)}°`;
 /** Angle with + / − sign: +3.5° */
 export const plusDeg = (v) => `${v < 0 ? '−' : '+'}${fmt(Math.abs(v), 1)}°`;
 
-export const STR = {
+const SRC = {
   // ─────────────────────────── common (used by all scenes) ───────────────────────────
   common: {
     play: 'Play', pause: 'Pause', freeze: 'Freeze', unfreeze: 'Unfreeze', reset: 'Reset', labels: 'Labels',
@@ -285,19 +288,36 @@ export const STR = {
   landing: { species: { NOx: 'NOx', CO: 'CO', CO2: 'CO₂', CH4: 'CH₄', PM: 'PM' }, fallbackTitle: 'Engine & Turbine Emission Lab' },
 
   // ─────────────────────────── color theme switch (header) ───────────────────────────
+  // Paket D1: kelompok dua bahasa (pasangan { en, id }; state/i18n.js MIGRATED_GROUPS). Sisi id: docs/PADANAN_ISTILAH.md.
   theme: {
-    label: 'Color theme',
-    dark: 'Dark',
-    light: 'Light',
-    tip: 'Dark or light panels and charts. The 3D view keeps its charcoal background in both themes. The choice is saved.',
+    label: { en: 'Color theme', id: 'Tema warna' },
+    dark: { en: 'Dark', id: 'Gelap' },
+    light: { en: 'Light', id: 'Terang' },
+    tip: {
+      en: 'Dark or light panels, charts, and 3D view. In Light the 3D view has a light grey background. The choice is saved.',
+      id: 'Panel, grafik, dan tampilan 3D gelap atau terang. Di Terang, tampilan 3D berlatar abu-abu muda. Pilihan disimpan.',
+    },
   },
 
   // ─────────────────────────── formula panel over the 3D view ───────────────────────────
   formula: {
-    icon: 'ƒ',
-    label: 'Formula',
-    show: 'Show the formula panel over the 3D view. The choice applies to every scene.',
-    hide: 'Hide the formula panel so the 3D view is clear.',
+    icon: { en: 'ƒ', id: 'ƒ' },
+    label: { en: 'Formula', id: 'Rumus' },
+    show: {
+      en: 'Show the formula panel over the 3D view. The choice applies to every scene.',
+      id: 'Tampilkan panel rumus di atas tampilan 3D. Pilihan berlaku di semua scene.',
+    },
+    hide: { en: 'Hide the formula panel so the 3D view is clear.', id: 'Sembunyikan panel rumus agar tampilan 3D terlihat jelas.' },
+  },
+
+  // ─────────────────────────── number inputs (limits, site data, calibration, O₂) ───────────────────────────
+  // Pesan galat isian angka (ui/numberInput.js). Batas sudah diformat sesuai bahasa oleh pemanggil.
+  input: {
+    nan: { en: 'Not a number. Use a point or a comma for decimals.', id: 'Bukan angka. Pakai titik atau koma untuk desimal.' },
+    empty: { en: 'Enter a value.', id: 'Isi nilainya.' },
+    min: { en: (min) => `Minimum ${min}.`, id: (min) => `Minimal ${min}.` },
+    above: { en: (min) => `Must be above ${min}.`, id: (min) => `Harus lebih dari ${min}.` },
+    max: { en: (max) => `Maximum ${max}.`, id: (max) => `Maksimal ${max}.` },
   },
 
   // ─────────────────────────── full pages (M9 Step 06) ───────────────────────────
@@ -635,7 +655,6 @@ export const STR = {
       doneEngine: (got, it) => `Done: ${fmt(got, 2)} g/kWh at preset timing (${it} iterations)`,
       notConverged: 'Did not converge. Check the target.',
       doneDln: (ppm, Tf) => `Done: ${fmt(ppm, 1)} ppmvd at design flame T ${fmt(Tf, 0)} K`,
-      invalid: 'Enter a number > 0',
       resetDone: 'Calibration reset to default',
     },
   },
@@ -1315,3 +1334,11 @@ export const STR = {
     },
   },
 };
+
+const strings = createStrings(SRC);
+/** Teks tampilan (bahasa aktif). Kelompok dua bahasa diisi ulang di tempat oleh applyStringLang. */
+export const STR = strings.view;
+/** Pohon sumber (pasangan { en, id } untuk kelompok yang sudah dimigrasi); dipakai tes kelengkapan. */
+export const STR_SOURCE = SRC;
+/** Ganti bahasa teks kelompok dua bahasa (main.js / presenter.js saat bahasa berubah). */
+export const applyStringLang = strings.apply;

@@ -120,6 +120,8 @@ export function createRegulationsPage(parent = document.body, { win = window, ho
     get open() { return !el.hidden; },
     setOpen,
     toggle() { setOpen(el.hidden); },
+    /** Render ulang bila terbuka (mis. bahasa berubah: format angka tabel). */
+    refresh() { if (!el.hidden) render(); },
     dispose() { unsub(); win.removeEventListener('hashchange', onHash); win.removeEventListener('keydown', onKey, true); el.remove(); },
   };
 }
