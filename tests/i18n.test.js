@@ -130,21 +130,44 @@ describe('format angka ikut bahasa (satu modul)', () => {
   });
 });
 
-describe('parseNumber: koma maupun titik (aturan terdokumentasi)', () => {
+describe('parseNumber: koma maupun titik, satu kasus ambigu mengikuti bahasa (aturan terdokumentasi)', () => {
+  // [teks, EN, ID]; EN = koma ribuan / titik desimal, ID = titik ribuan / koma desimal
   const cases = [
-    ['1500', 1500], ['0,5', 0.5], ['0.5', 0.5], ['-1,5', -1.5], ['−2', -2], [' 2 ', 2], ['.5', 0.5], [',5', 0.5], ['5.', 5],
+    ['1500', 1500, 1500], ['0,5', 0.5, 0.5], ['0.5', 0.5, 0.5], ['-1,5', -1.5, -1.5], ['−2', -2, -2], [' 2 ', 2, 2], ['.5', 0.5, 0.5], [',5', 0.5, 0.5], ['5.', 5, 5],
+    ['1.5', 1.5, 1.5], ['1,5', 1.5, 1.5], ['150,25', 150.25, 150.25], ['20.9', 20.9, 20.9],
     // dua jenis pemisah: yang terakhir desimal
-    ['1.500,5', 1500.5], ['1,500.5', 1500.5], ['1.500.000,25', 1500000.25],
+    ['1.500,5', 1500.5, 1500.5], ['1,500.5', 1500.5, 1500.5], ['1.500.000,25', 1500000.25, 1500000.25],
     // satu jenis pemisah lebih dari sekali = ribuan (kelompok 3 digit)
-    ['1.500.000', 1500000], ['1,500,000', 1500000], ['12.345.678', 12345678],
-    // satu pemisah sekali = DESIMAL, juga bila diikuti tepat 3 digit
-    ['1.500', 1.5], ['1,500', 1.5], ['0,125', 0.125], ['20.900', 20.9],
+    ['1.500.000', 1500000, 1500000], ['1,500,000', 1500000, 1500000], ['12.345.678', 12345678, 12345678],
+    // satu pemisah + tepat tiga digit + bagian depan bukan 0: pemisah ribuan bahasa itu = ribuan, lawannya = desimal
+    ['1.500', 1.5, 1500], ['1,500', 1500, 1.5], ['12.345', 12.345, 12345], ['12,345', 12345, 12.345], ['100.000', 100, 100000], ['100,000', 100000, 100],
+    // bagian depan 0 atau lebih dari 3 digit tetap desimal
+    ['0.500', 0.5, 0.5], ['0,500', 0.5, 0.5], ['0,125', 0.125, 0.125], ['0.125', 0.125, 0.125], ['20.900', 20.9, 20900], ['1234.567', 1234.567, 1234.567], ['1234,567', 1234.567, 1234.567],
+    // bukan tiga digit → desimal di kedua bahasa
+    ['1.50', 1.5, 1.5], ['1,50', 1.5, 1.5], ['1.5000', 1.5, 1.5], ['1,5000', 1.5, 1.5],
   ];
-  for (const [t, v] of cases) it(`"${t}" → ${v}`, () => expect(parseNumber(t)).toBeCloseTo(v, 9));
+  for (const [t, en, id] of cases) {
+    it(`"${t}" → EN ${en} · ID ${id}`, () => { expect(parseNumber(t, 'en')).toBeCloseTo(en, 9); expect(parseNumber(t, 'id')).toBeCloseTo(id, 9); });
+  }
+  it('tanpa argumen bahasa memakai bahasa format angka aktif', () => {
+    expect(parseNumber('1,500')).toBe(1500); // en
+    setNumberLang('id');
+    expect(parseNumber('1,500')).toBe(1.5);
+    expect(parseNumber('1.500')).toBe(1500);
+    expect(checkNumber('1.500', { max: 2000 })).toEqual({ value: 1500, error: null });
+    expect(checkNumber('1.500', { max: 2000, lang: 'en' })).toEqual({ value: 1.5, error: null });
+  });
+  it('bolak-balik: formatInput lalu parseNumber memberi nilai yang sama di kedua bahasa', () => {
+    for (const lang of ['en', 'id']) for (const v of [0.5, 1.5, 1.234, 12.345, 150.25, 1500, 1500.5, 20.9, 0.125, 100000, 1234.567]) {
+      expect(parseNumber(formatInput(v, { lang }), lang), `${lang} ${v}`).toBeCloseTo(v, 9);
+    }
+  });
   it('kosong → null; bukan angka → NaN', () => {
     expect(parseNumber('')).toBeNull();
     expect(parseNumber('   ')).toBeNull();
     expect(parseNumber(null)).toBeNull();
+    expect(parseNumber('-1.500', 'id')).toBe(-1500);
+    expect(parseNumber('-1,500', 'en')).toBe(-1500);
     for (const t of ['abc', '1.5.6', '1,50,000', '1..5', '1,5.5,5', '1.500,5.5', '1e3', '-', '.', '12a']) expect(parseNumber(t), t).toBeNaN();
     expect(parseNumber(2.5)).toBe(2.5);
   });
