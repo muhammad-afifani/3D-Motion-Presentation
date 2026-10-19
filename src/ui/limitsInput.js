@@ -22,7 +22,8 @@ export function createLimitsInput(container, cb) {
       <label class="lim__in"><span data-lbl="co">${T.co}</span><input placeholder="${T.placeholderCo}" data-lim="co" /></label>
       <button type="button" class="btn btn--sm" data-clear>${T.clear}</button>
     </div>
-    <div class="lim__basis" data-v="basis"></div>`;
+    <div class="lim__basis" data-v="basis"></div>
+    <div class="num-err" data-v="err"></div>`;
   el.querySelector('.ctl__label').dataset.tip = T.tip;
   { // ⓘ di baris label (pembungkus agar tidak menambah baris grid)
     const lab = el.querySelector('.ctl__label'), head = document.createElement('div');
@@ -35,7 +36,8 @@ export function createLimitsInput(container, cb) {
   const fields = Object.fromEntries(['nox', 'co'].map((k) => {
     const input = /** @type {HTMLInputElement} */ (el.querySelector(`[data-lim="${k}"]`));
     input.addEventListener('keydown', (e) => { if (e.key !== 'Escape') e.stopPropagation(); });
-    return [k, createNumberField(input, { min: 0, onCommit: (v) => cb.onChange({ [k]: v ?? '' }) })];
+    // galat tampil di slot bersama di bawah baris basis (tinggi dicadangkan; tidak menutupi label)
+    return [k, createNumberField(input, { min: 0, errorHost: /** @type {HTMLElement} */ (el.querySelector('[data-v="err"]')), name: k === 'nox' ? 'NOx' : 'CO', onCommit: (v) => cb.onChange({ [k]: v ?? '' }) })];
   }));
   el.querySelector('[data-clear]').addEventListener('click', () => cb.onClear());
   const basisEl = el.querySelector('[data-v="basis"]');

@@ -38,6 +38,7 @@ export function createLimitsTab(container, cb) {
       </div>
       <div class="lim-tab__fuel">
         <label class="ctl reg__sulfur"><span class="ctl__label" data-v="sulfurLabel"></span><input data-v="sulfur" /></label>
+        <span class="num-err" data-v="sulfurErr"></span>
         <span class="reg__note num" data-v="o2" hidden></span>
       </div>
     </section>
@@ -65,7 +66,7 @@ export function createLimitsTab(container, cb) {
   sulfur.placeholder = R.fuelSulfur.placeholder;
   el.querySelector('.reg__sulfur').dataset.tip = R.fuelSulfurTip;
   let sulfurKind = 'oil';
-  const sulfurField = createNumberField(sulfur, { min: 0, onCommit: (v) => cb.onSulfur(sulfurKind, v ?? '') });
+  const sulfurField = createNumberField(sulfur, { min: 0, errorHost: /** @type {HTMLElement} */ (V('sulfurErr')), onCommit: (v) => cb.onSulfur(sulfurKind, v ?? '') });
   sulfur.addEventListener('keydown', (e) => { if (e.key !== 'Escape') e.stopPropagation(); });
 
   const tbody = el.querySelector('.lim-tab__main tbody');
@@ -86,7 +87,7 @@ export function createLimitsTab(container, cb) {
       c.chip.dataset.tip = R.statusTip;
       const site = tr.querySelector('[data-c="site"]');
       if (SITE_PARAMS.includes(r.param)) {
-        site.innerHTML = `<div class="reg__site"><input data-f="value" /><select data-f="unit"></select><input data-f="o2" /></div>`;
+        site.innerHTML = `<div class="reg__site"><input data-f="value" /><select data-f="unit"></select><input data-f="o2" /></div><div class="num-err"></div>`;
         site.dataset.tip = R.siteTip;
         const inputs = {}, fields = {};
         for (const n of site.querySelectorAll('[data-f]')) {
@@ -95,7 +96,7 @@ export function createLimitsTab(container, cb) {
           n.addEventListener('keydown', (e) => { if (e.key !== 'Escape') e.stopPropagation(); });
           if (key === 'unit') n.addEventListener('change', () => cb.onSite(r.param, key, /** @type {HTMLSelectElement} */ (n).value));
           // nilai ≥ 0; O₂ terukur 0 … 20.9 % (koma / titik desimal)
-          else fields[key] = createNumberField(/** @type {HTMLInputElement} */ (n), { min: 0, max: key === 'o2' ? 20.9 : Infinity, onCommit: (v) => cb.onSite(r.param, key, v ?? '') });
+          else fields[key] = createNumberField(/** @type {HTMLInputElement} */ (n), { min: 0, max: key === 'o2' ? 20.9 : Infinity, errorHost: /** @type {HTMLElement} */ (site.querySelector('.num-err')), name: key === 'o2' ? 'O₂' : undefined, onCommit: (v) => cb.onSite(r.param, key, v ?? '') });
         }
         inputs.value.placeholder = R.siteValue;
         inputs.o2.placeholder = R.siteO2;

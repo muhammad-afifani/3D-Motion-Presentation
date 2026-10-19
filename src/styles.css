@@ -1321,13 +1321,14 @@ body.mode-present .settings-btn, body.mode-present .settings-card { display: non
 .set-switch.is-on .set-switch__knob { transform: translateX(16px); background: var(--accent-cold); }
 .set-switch:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
 
-/* ── Paket D1: kotak isian angka (ui/numberInput.js) — koma / titik desimal, galat di gelembung di atas kotak ── */
-.num-field { position: relative; display: inline-block; }
+/* ── Paket D1/D2: kotak isian angka (ui/numberInput.js) — koma / titik desimal; galat di slot tetap di bawah kotak ── */
+.num-field { display: inline-block; max-width: 100%; }
 .lim__in .num-field, .cal-input .num-field, .asm-input .num-field { display: block; }
 .num-field > input[aria-invalid='true'] { border-color: var(--accent-hot); }
-.num-field__err {
-  position: absolute; left: 0; bottom: calc(100% + 4px); z-index: 30; max-width: 240px; width: max-content; white-space: normal;
-  font-size: 12px; line-height: 1.35; padding: 4px 8px; border-radius: 6px; background: var(--tip-bg); color: var(--accent-hot);
-  border: 1px solid var(--accent-hot); box-shadow: 0 4px 12px var(--shadow); pointer-events: none;
+/* satu baris, tinggi dicadangkan sejak awal (tata letak tidak bergeser saat galat muncul); teks panjang dipotong, lengkapnya di tooltip */
+.num-err {
+  display: block; box-sizing: border-box; min-height: 14px; height: 14px; max-width: 100%; margin-top: 1px; overflow: hidden;
+  font-size: 11px; line-height: 14px; font-weight: 600; color: var(--accent-hot); white-space: nowrap; text-overflow: ellipsis;
 }
-.num-field__err[hidden] { display: none; }
+.lim-tab__fuel .num-err { flex-basis: 100%; }
+.reg__site + .num-err { max-width: 190px; }

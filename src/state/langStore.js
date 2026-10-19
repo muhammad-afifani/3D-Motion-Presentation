@@ -5,7 +5,7 @@
  * (Paket D1); pilihan tersimpan diutamakan. Tanpa DOM; storage dan bahasa browser diinjeksi (uji); akses storage
  * dibungkus try/catch (lang.js).
  */
-import { langStorage, readLangChoice, resolveLang, writeLang, LANGS } from './lang.js';
+import { langStorage, readLangChoice, resolveLang, writeLang, tr, LANGS } from './lang.js';
 
 /** @param {Storage|null} [storage] @param {string|undefined|null} [browserLang] navigator.language */
 export function createLangStore(storage = langStorage(), browserLang = globalThis.navigator?.language) {
@@ -34,3 +34,5 @@ export function createLangStore(storage = langStorage(), browserLang = globalThi
 /** Salinan global yang dipakai aplikasi. */
 export const langStore = createLangStore();
 export const getLang = () => langStore.lang;
+/** Pasangan { en, id } (atau string) → teks bahasa aktif; untuk data content/ yang dibaca saat menggambar. */
+export const tl = (pair, ...args) => tr(pair, langStore.lang, ...args);

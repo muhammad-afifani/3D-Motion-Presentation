@@ -14,7 +14,7 @@
  * Persistensi ringan (state/persist.js): batas, satuan, basis, opsi Scene 11, scene awal; kalibrasi tidak disimpan.
  */
 import './styles.css';
-import { mountModelBadge } from './ui/modelBadge.js';
+import { mountModelBadge, relabelModelBadge } from './ui/modelBadge.js';
 import { installTooltips } from './ui/tooltip.js';
 import { createAssumptionsPanel } from './ui/assumptions.js';
 import { createBasisCard } from './ui/basisCard.js';
@@ -102,8 +102,8 @@ const assumptions = createAssumptionsPanel(store, document.body, {
   available: persist.available,
   onReset: () => { persist.clear(); toast(STR.app.toast.savedReset); },
 }, { homeHash });
-createCalibFlag(document.querySelector('.topbar__right'), store);
-createQualityFlag(document.querySelector('.topbar__right'), store, () => assumptions.openSection('display'));
+const calibFlag = createCalibFlag(document.querySelector('.topbar__right'), store);
+const qualityFlag = createQualityFlag(document.querySelector('.topbar__right'), store, () => assumptions.openSection('display'));
 
 // kualitas adaptif + bloom global (hanya visual; derive* tidak membaca quality / bloomMode / qTier)
 const qc = createQualityController();
@@ -215,7 +215,7 @@ langSlot.className = 'lang-slot';
 langSlot.id = 'lang-slot';
 const langSwitch = createLangSwitch({ value: langStore.lang, onChange: (l) => langStore.set(l) });
 langSlot.append(langSwitch.el);
-langStore.subscribe((l) => { langSwitch.set(l); themeSwitch.relabel(); backPill.refresh(); relangView(); });
+langStore.subscribe((l) => { langSwitch.set(l); themeSwitch.relabel(); backPill.refresh(); relabelChrome(); relangView(); });
 const settings = createSettingsPanel({ getMode: () => mode }); // ⚙ Settings (popover; Hide working notes)
 document.getElementById('model-badge').before(langSlot, themeSwitch.el, createHelpButton('hdr.switches', { describes: themeSwitch.el }).el, settings.el); // ⓘ kelompok sakelar, lalu ⚙
 document.getElementById('model-badge').after(createHelpButton('hdr.status', { describes: document.getElementById('model-badge') }).el); // ⓘ lencana Model OK dan chip Quality
@@ -226,8 +226,19 @@ document.getElementById('model-badge').after(createHelpButton('hdr.status', { de
 let relangPending = false;
 function relangView() {
   if (index >= 0) { if (loading) relangPending = true; else goTo(index, true); }
-  for (const api of Object.values(PAGE_API)) if (api.open) api.refresh?.();
+  // halaman penuh: judul dan isi dirender ulang; halaman Learn / About / Chart guide memakai langganan learnHost sendiri
+  for (const p of OVERLAYS) { const api = PAGE_API[p]; if (api.refresh) api.refresh(); }
   if (assumptions.open) assumptions.render();
+}
+/** Komponen header dan navigasi yang dibuat sekali: ambil teks ulang dari STR (sudah berbahasa baru). */
+function relabelChrome() {
+  document.querySelector('.topbar .brand').textContent = STR.app.brand;
+  nav.relabel();
+  exitPresent.setLabel(STR.nav.exitPresent); exitPresent.setTip(STR.nav.exitPresentTip);
+  hintEl.textContent = hintEl.classList.contains('is-on') ? STR.nav.hintPresent : hintEl.textContent;
+  relabelModelBadge(document.getElementById('model-badge'));
+  calibFlag.relabel(); qualityFlag.relabel();
+  presenter.relabel();
 }
 /** Ganti tema: atribut data-theme, simpan (etel:theme), grafik canvas membaca ulang token warna. */
 function setTheme(t) {

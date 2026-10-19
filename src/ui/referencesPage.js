@@ -9,6 +9,7 @@ import { groupReferences, REFERENCES_HASH, isReferencesHash, referenceIdFromHash
 import { loadContent, fallbackContent } from '../state/content.js';
 import { BASIS_GROUPS } from '../model/basis.js';
 import { markNote } from '../state/notes.js';
+import { tl } from '../state/langStore.js';
 
 const R = STR.basis.refs;
 
@@ -40,6 +41,7 @@ export function createReferencesPage(parent = document.body, { win = window, hom
   let data = fallbackContent('references'), alive = true, opener = null, onlyIntro = false;
 
   function render() {
+    el.setAttribute('aria-label', R.title);
     box.replaceChildren();
     const head = h('div', 'refs__head');
     head.appendChild(h('h2', '', R.title));
@@ -85,7 +87,7 @@ export function createReferencesPage(parent = document.body, { win = window, hom
           if (r.accessed) row.append(h('span', 'refs__id', ` · ${R.accessed(r.accessed)}`));
           li.appendChild(row);
         }
-        li.appendChild(h('div', 'refs__use', `${R.use}: ${r.use}`));
+        li.appendChild(h('div', 'refs__use', `${R.use}: ${tl(r.use)}`));
         const loc = h('div', 'refs__loc');
         loc.append(document.createTextNode(r.locator ? R.locator(r.locator) : R.noLocator), ' ',
           r.locatorVerified ? h('span', 'bcard__chip bcard__chip--ok', R.checked) : markNote(h('span', 'bcard__chip bcard__chip--warn', R.unchecked)),
@@ -120,6 +122,8 @@ export function createReferencesPage(parent = document.body, { win = window, hom
     get open() { return !el.hidden; },
     setOpen,
     toggle() { setOpen(el.hidden); },
+    /** Bahasa berubah: judul dan teks dirender ulang bila terbuka. */
+    refresh() { el.setAttribute('aria-label', R.title); if (!el.hidden) { render(); focusRef(); } },
     dispose() { alive = false; win.removeEventListener('hashchange', onHash); win.removeEventListener('keydown', onKey, true); el.remove(); },
   };
   /** #/references/<id>: buka halaman, gulir ke sumber itu dan sorot (tautan dari kartu Formation). */

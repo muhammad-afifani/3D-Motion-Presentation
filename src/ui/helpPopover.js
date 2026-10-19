@@ -8,7 +8,7 @@
  */
 import { STR } from './strings.js';
 import { tr } from '../state/lang.js';
-import { langStore } from '../state/langStore.js';
+import { langStore, tl } from '../state/langStore.js';
 import { helpReady } from '../state/helpStore.js';
 import { contentOf } from '../state/contentStore.js';
 import { setSceneOrigin } from '../state/backToScene.js';
@@ -57,7 +57,7 @@ function place() {
 
 function termName(id) {
   const t = contentOf('glossary').data?.terms?.find((x) => x.id === id);
-  return t?.term ?? id;
+  return t ? tl(t.term) : id;
 }
 
 function render(item, reviewed) {

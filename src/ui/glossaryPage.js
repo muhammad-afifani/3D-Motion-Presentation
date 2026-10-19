@@ -109,7 +109,7 @@ export function createGlossaryPage({ homeHash, win } = {}) {
   }
   // halaman penuh menutupi header, jadi sakelar EN/ID (state global yang sama) juga ada di kepala halaman Glossary
   const langSwitch = createLangSwitch({ value: lang(), onChange: (l) => langStore.set(l) });
-  const shell = createPageShell({ className: 'refs--glossary', title: STR.pages.glossary.title, hash: '#/glossary', render, homeHash, win, headExtra: langSwitch.el });
+  const shell = createPageShell({ className: 'refs--glossary', title: () => STR.pages.glossary.title, hash: '#/glossary', render, homeHash, win, headExtra: langSwitch.el });
   const unsub = [
     onContent('glossary', () => shell.refresh()), onContent('references', () => shell.refresh()),
     onLearn((r) => { learn = r.data; shell.refresh(); }),

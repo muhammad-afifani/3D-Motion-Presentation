@@ -7,7 +7,7 @@
 import { STR } from './strings.js';
 
 /**
- * @param {{className:string, title:string, hash:string, render:(body:HTMLElement)=>void, parent?:HTMLElement, win?:Window,
+ * @param {{className:string, title:string|(() => string), hash:string, render:(body:HTMLElement)=>void, parent?:HTMLElement, win?:Window,
  *   homeHash?:() => string, headExtra?:HTMLElement}} o  headExtra = kontrol tambahan di kepala halaman (mis. sakelar EN/ID Glossary,
  *   karena halaman penuh menutupi header)
  */
@@ -19,17 +19,18 @@ export function createPageShell(o) {
   el.hidden = true;
   el.setAttribute('role', 'dialog');
   el.setAttribute('aria-modal', 'true');
-  el.setAttribute('aria-label', o.title);
+  const title = () => (typeof o.title === 'function' ? o.title() : o.title);
   const box = document.createElement('div');
   box.className = 'refs__box';
   const head = document.createElement('div');
   head.className = 'refs__head';
   const h2 = document.createElement('h2');
-  h2.textContent = o.title;
   const close = document.createElement('button');
   close.type = 'button';
   close.className = 'btn btn--sm';
-  close.textContent = STR.pages.close;
+  /** Judul, aria-label, dan tombol Close mengikuti bahasa aktif (dipanggil saat dibuka dan saat bahasa berubah). */
+  const paintChrome = () => { const t = title(); if (h2.textContent !== t) h2.textContent = t; el.setAttribute('aria-label', t); close.textContent = STR.pages.close; };
+  paintChrome();
   close.addEventListener('click', () => setOpen(false));
   if (o.headExtra) { const r = document.createElement('div'); r.className = 'refs__head-r'; r.append(o.headExtra, close); head.append(h2, r); } else head.append(h2, close);
   const body = document.createElement('div');
@@ -44,6 +45,7 @@ export function createPageShell(o) {
     el.hidden = !on;
     if (on) {
       opener = document.activeElement;
+      paintChrome();
       o.render(body);
       box.scrollTop = 0;
       close.focus();
@@ -66,7 +68,7 @@ export function createPageShell(o) {
     setOpen,
     toggle() { setOpen(el.hidden); },
     /** Render ulang isi bila sedang terbuka (mis. konten selesai dimuat, store berubah). */
-    refresh() { if (!el.hidden) o.render(body); },
+    refresh() { paintChrome(); if (!el.hidden) o.render(body); },
     dispose() { win.removeEventListener('hashchange', onHash); win.removeEventListener('keydown', onKey, true); el.remove(); },
   };
 }

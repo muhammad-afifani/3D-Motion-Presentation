@@ -5,7 +5,7 @@
  */
 import './styles.css';
 import { STR, applyStringLang } from './ui/strings.js';
-import { setNumberLang } from './ui/format.js';
+import { setNumberLang, numberLang, fmt } from './ui/format.js';
 import { LANG_KEY, langStorage, readLangChoice, resolveLang } from './state/lang.js';
 import { createPresenterView } from './ui/presenterView.js';
 import { isTypingTarget } from './ui/keys.js';
@@ -14,25 +14,34 @@ import { openChannel, createPresenterLink } from './state/presenterSync.js';
 import { SCENE_NUMBERS } from './state/scenes.js';
 import { THEME_KEY, themeStorage, readThemeChoice, applyTheme } from './state/theme.js';
 
-// bahasa angka dan teks dua bahasa ikut jendela utama (etel:lang; tanpa pilihan: bahasa browser / English). Paket D1:
-// angka di jendela ini hanya jam timer (sama di kedua bahasa); teks kerangka menyusul di D2.
-const syncLang = () => { const l = resolveLang(readLangChoice(langStorage()), navigator.language); setNumberLang(l); applyStringLang(l); };
-syncLang();
+// bahasa teks dan format angka ikut jendela utama (etel:lang; tanpa pilihan: bahasa browser / English). Berganti lewat event
+// storage tanpa memuat ulang: teks kerangka (judul, tombol, label) dan format angka berubah, catatan presenter tetap Indonesia.
+let view = null;
+const syncLang = () => {
+  const l = resolveLang(readLangChoice(langStorage()), navigator.language);
+  if (l === numberLang()) return;
+  setNumberLang(l); applyStringLang(l);
+  document.title = STR.presenter.docTitle;
+  view?.relabel();
+};
+{ const l = resolveLang(readLangChoice(langStorage()), navigator.language); setNumberLang(l); applyStringLang(l); }
 window.addEventListener('storage', (e) => { if (e.key === LANG_KEY || e.key === null) syncLang(); });
 document.title = STR.presenter.docTitle;
+// hook uji (smoke): bahasa angka aktif dan contoh format di jendela ini
+window.__etelPresenter = { numLang: () => numberLang(), sample: () => fmt(1500.5, 1) };
 // tema ikut jendela utama hanya bila storage terbaca (pilihan tersimpan); selain itu tetap Dark
 const syncTheme = () => { const c = readThemeChoice(themeStorage()); applyTheme(c.stored ? c.theme : 'dark'); };
 syncTheme();
 window.addEventListener('storage', (e) => { if (e.key === THEME_KEY || e.key === null) syncTheme(); });
 const channel = openChannel();
 let link = null;
-const view = createPresenterView(document.getElementById('presenter'), {
+view = createPresenterView(document.getElementById('presenter'), {
   content: fallbackContent('presenter'),
   onNav: (dir) => link?.nav(dir),
   onReconnect: () => link?.hello(),
 });
 if (channel) link = createPresenterLink(channel, { onState: (m) => view.setScene(m.scene, m) });
-else view.setStatusText(STR.presenter.noChannel);
+else view.setStatusText(() => STR.presenter.noChannel);
 
 loadContent('presenter', { sceneNumbers: [...SCENE_NUMBERS] }).then((r) => view.setContent(r));
 
