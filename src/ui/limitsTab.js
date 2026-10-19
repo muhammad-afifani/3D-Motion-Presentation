@@ -6,6 +6,7 @@
  */
 import { STR } from './strings.js';
 import { fmt } from './format.js';
+import { createNumberField } from './numberInput.js';
 import { SITE_PARAMS } from '../state/regulations.js';
 import { COVERAGE_PARAMS, COVERAGE_EQUIP, MODEL_COVERAGE } from '../state/coverage.js';
 import { REG_UNITS } from '../state/content.js';
@@ -36,7 +37,7 @@ export function createLimitsTab(container, cb) {
         <div class="reg__note" data-v="comp" hidden></div>
       </div>
       <div class="lim-tab__fuel">
-        <label class="ctl reg__sulfur"><span class="ctl__label" data-v="sulfurLabel"></span><input type="number" min="0" step="any" inputmode="decimal" data-v="sulfur" /></label>
+        <label class="ctl reg__sulfur"><span class="ctl__label" data-v="sulfurLabel"></span><input data-v="sulfur" /></label>
         <span class="reg__note num" data-v="o2" hidden></span>
       </div>
     </section>
@@ -64,7 +65,7 @@ export function createLimitsTab(container, cb) {
   sulfur.placeholder = R.fuelSulfur.placeholder;
   el.querySelector('.reg__sulfur').dataset.tip = R.fuelSulfurTip;
   let sulfurKind = 'oil';
-  sulfur.addEventListener('change', () => cb.onSulfur(sulfurKind, sulfur.value));
+  const sulfurField = createNumberField(sulfur, { min: 0, onCommit: (v) => cb.onSulfur(sulfurKind, v ?? '') });
   sulfur.addEventListener('keydown', (e) => { if (e.key !== 'Escape') e.stopPropagation(); });
 
   const tbody = el.querySelector('.lim-tab__main tbody');
@@ -85,14 +86,16 @@ export function createLimitsTab(container, cb) {
       c.chip.dataset.tip = R.statusTip;
       const site = tr.querySelector('[data-c="site"]');
       if (SITE_PARAMS.includes(r.param)) {
-        site.innerHTML = `<div class="reg__site"><input type="number" min="0" step="any" inputmode="decimal" data-f="value" /><select data-f="unit"></select><input type="number" min="0" max="20.9" step="0.1" inputmode="decimal" data-f="o2" /></div>`;
+        site.innerHTML = `<div class="reg__site"><input data-f="value" /><select data-f="unit"></select><input data-f="o2" /></div>`;
         site.dataset.tip = R.siteTip;
-        const inputs = {};
+        const inputs = {}, fields = {};
         for (const n of site.querySelectorAll('[data-f]')) {
           const key = /** @type {HTMLInputElement} */ (n).dataset.f;
           inputs[key] = n;
-          n.addEventListener('change', () => cb.onSite(r.param, key, /** @type {HTMLInputElement} */ (n).value));
           n.addEventListener('keydown', (e) => { if (e.key !== 'Escape') e.stopPropagation(); });
+          if (key === 'unit') n.addEventListener('change', () => cb.onSite(r.param, key, /** @type {HTMLSelectElement} */ (n).value));
+          // nilai ≥ 0; O₂ terukur 0 … 20.9 % (koma / titik desimal)
+          else fields[key] = createNumberField(/** @type {HTMLInputElement} */ (n), { min: 0, max: key === 'o2' ? 20.9 : Infinity, onCommit: (v) => cb.onSite(r.param, key, v ?? '') });
         }
         inputs.value.placeholder = R.siteValue;
         inputs.o2.placeholder = R.siteO2;
@@ -100,6 +103,7 @@ export function createLimitsTab(container, cb) {
         inputs.value.setAttribute('aria-label', `${r.param} ${R.siteTag}`);
         inputs.unit.innerHTML = Object.entries(R.siteUnits).map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
         c.inputs = inputs;
+        c.fields = fields;
       } else site.textContent = R.siteNA;
       tbody.appendChild(tr);
       cells.set(r.param, c);
@@ -121,8 +125,7 @@ export function createLimitsTab(container, cb) {
       if (f.fuel) {
         sulfurKind = f.fuel.kind;
         set(V('sulfurLabel'), R.fuelSulfur[f.fuel.kind]);
-        const sv = f.fuel.sulfur == null ? '' : String(f.fuel.sulfur);
-        if (document.activeElement !== sulfur && sulfur.value !== sv) sulfur.value = sv;
+        sulfurField.set(f.fuel.sulfur);
         show(V('o2'), f.fuel.exhaustO2 != null, f.fuel.exhaustO2 != null ? R.exhaustO2(f.fuel.exhaustO2, f.fuel.lambda) : '');
       }
       if (eqShown !== f.sel.equip) {
@@ -149,7 +152,8 @@ export function createLimitsTab(container, cb) {
         set(c.why, r.status === 'notModeled' ? R.reason[r.reason ?? 'noValue'] : r.marginSmall ? R.marginSmall : '');
         if (c.inputs) {
           const v = siteData[r.param] ?? { value: '', unit: 'mg', o2: '' };
-          for (const k of ['value', 'unit', 'o2']) if (document.activeElement !== c.inputs[k] && c.inputs[k].value !== String(v[k] ?? '')) c.inputs[k].value = String(v[k] ?? '');
+          for (const k of ['value', 'o2']) c.fields[k].set(v[k]);
+          if (document.activeElement !== c.inputs.unit && c.inputs.unit.value !== String(v.unit ?? 'mg')) c.inputs.unit.value = String(v.unit ?? 'mg');
         }
       }
     },

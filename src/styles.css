@@ -1320,3 +1320,14 @@ body.mode-present .settings-btn, body.mode-present .settings-card { display: non
 .set-switch.is-on { background: var(--tint-cold); border-color: var(--accent-cold); }
 .set-switch.is-on .set-switch__knob { transform: translateX(16px); background: var(--accent-cold); }
 .set-switch:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+
+/* ── Paket D1: kotak isian angka (ui/numberInput.js) — koma / titik desimal, galat di gelembung di atas kotak ── */
+.num-field { position: relative; display: inline-block; }
+.lim__in .num-field, .cal-input .num-field, .asm-input .num-field { display: block; }
+.num-field > input[aria-invalid='true'] { border-color: var(--accent-hot); }
+.num-field__err {
+  position: absolute; left: 0; bottom: calc(100% + 4px); z-index: 30; max-width: 240px; width: max-content; white-space: normal;
+  font-size: 12px; line-height: 1.35; padding: 4px 8px; border-radius: 6px; background: var(--tip-bg); color: var(--accent-hot);
+  border: 1px solid var(--accent-hot); box-shadow: 0 4px 12px var(--shadow); pointer-events: none;
+}
+.num-field__err[hidden] { display: none; }

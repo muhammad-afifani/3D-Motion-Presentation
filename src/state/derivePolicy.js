@@ -14,6 +14,7 @@ import { limitsPatch } from './store.js';
 import { deriveLevers } from './deriveLevers.js';
 import { deriveFuel } from './deriveFuel.js';
 import { fallbackContent } from './content.js';
+import { parseNumber } from '../ui/format.js';
 
 /**
  * Panel B (tab GHG): CO₂ spesifik vs penalti untuk diesel, gas engine, gas turbine (ghgPenalty), dan CO₂e dengan
@@ -51,8 +52,8 @@ export function limitsInputPatch(s, input) {
   const unit = s.limUnit ?? 'ppm', TrefK = 273.15 + (s.emTrefC ?? 0);
   const conv = (x, MWs) => {
     if (x == null || String(x).trim() === '') return x;
-    const n = Number(String(x).replace(',', '.'));
-    if (!Number.isFinite(n)) return x;
+    const n = parseNumber(x);
+    if (n == null || !Number.isFinite(n)) return x;
     return unit === 'mg' ? mgNm3ToPpm(n, MWs, TrefK) : n;
   };
   const out = {};

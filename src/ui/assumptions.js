@@ -7,6 +7,7 @@
 import { STR } from './strings.js';
 import { createHelpButton } from './helpButton.js';
 import { fmt, sci } from './format.js';
+import { createNumberField } from './numberInput.js';
 import { deriveAssumptions } from '../state/deriveAssumptions.js';
 import { basisPatch, basisResetPatch, displayPatch, QUALITY_ORDER, BLOOM_ORDER } from '../state/store.js';
 import { QUALITY_TUNING, TIER_MAX, displayState } from '../gfx/quality.js';
@@ -73,7 +74,7 @@ export function createAssumptionsPanel(store, parent = document.body, saved = nu
         <section>
           <h3>${A.basis.title}</h3>
           <div class="asm-basis">
-            <label class="asm-input"><span>${A.basis.o2}</span><input type="number" data-o2 /></label>
+            <label class="asm-input"><span>${A.basis.o2}</span><input data-o2 /></label>
             <div class="ctl ctl--seg"><span class="ctl__label">${A.basis.vol}</span><div class="seg" data-vol></div></div>
             <button type="button" class="btn btn--sm" data-reset>${A.basis.reset}</button>
           </div>
@@ -109,7 +110,6 @@ export function createAssumptionsPanel(store, parent = document.body, saved = nu
   const V = (k) => q(`[data-v="${k}"]`);
   const o2 = /** @type {HTMLInputElement} */ (q('[data-o2]'));
   const d0 = deriveAssumptions(store.get());
-  o2.min = String(d0.basis.range.min); o2.max = String(d0.basis.range.max); o2.step = String(d0.basis.range.step);
   o2.title = A.basis.o2Tip(d0.basis.range.min, d0.basis.range.max);
   const volBtns = d0.basis.options.map((T) => {
     const b = document.createElement('button');
@@ -131,10 +131,10 @@ export function createAssumptionsPanel(store, parent = document.body, saved = nu
   });
   const qBtns = segBtns('[data-quality]', QUALITY_ORDER, D.qualityOpts, 'quality');
   const bBtns = segBtns('[data-bloom]', BLOOM_ORDER, D.bloomOpts, 'bloomMode');
-  o2.addEventListener('change', () => {
-    const patch = basisPatch({ refO2: String(o2.value).replace(',', '.') });
-    if (Object.keys(patch).length) store.set(patch);
-    render(); // nilai di-clamp → tampilkan nilai yang berlaku
+  // O₂ acuan: wajib, di dalam rentang basis (koma / titik desimal); di luar rentang → pesan galat, nilai tidak berubah
+  const o2Field = createNumberField(o2, {
+    min: d0.basis.range.min, max: d0.basis.range.max, allowEmpty: false,
+    onCommit: (v) => { const patch = basisPatch({ refO2: v }); if (Object.keys(patch).length) store.set(patch); render(); },
   });
   o2.addEventListener('keydown', (e) => { if (e.key !== 'Escape') e.stopPropagation(); });
   q('[data-reset]').addEventListener('click', () => store.set(basisResetPatch()));
@@ -150,7 +150,7 @@ export function createAssumptionsPanel(store, parent = document.body, saved = nu
     V('display').textContent = D.status(ds.tier, TIER_MAX, rendererStats().pixelRatio, ds.bloom, ds.particles);
     const d = deriveAssumptions(st);
     const b = d.basis, basisTxt = C.basis.full(b.refO2, b.TrefC);
-    if (document.activeElement !== o2) o2.value = String(b.refO2);
+    o2Field.set(b.refO2);
     for (const [T, btn] of volBtns) { btn.classList.toggle('is-on', T === b.TrefC); btn.setAttribute('aria-pressed', String(T === b.TrefC)); }
     const act = V('active');
     act.textContent = `${A.basis.active(basisTxt)}${b.isDefault ? '' : ` · ${C.basis.flag}`}`;
