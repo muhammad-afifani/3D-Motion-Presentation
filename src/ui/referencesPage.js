@@ -8,6 +8,7 @@ import { STR } from './strings.js';
 import { groupReferences, REFERENCES_HASH, isReferencesHash, referenceIdFromHash } from '../state/basisView.js';
 import { loadContent, fallbackContent } from '../state/content.js';
 import { BASIS_GROUPS } from '../model/basis.js';
+import { markNote } from '../state/notes.js';
 
 const R = STR.basis.refs;
 
@@ -65,7 +66,7 @@ export function createReferencesPage(parent = document.body, { win = window, hom
     const groups = groupReferences(data).map((g) => ({ ...g, items: onlyIntro ? g.items.filter((r) => r.level === 'intro') : g.items })).filter((g) => g.items.length);
     const all = groups.flatMap((g) => g.items);
     const unchecked = all.filter((r) => !r.locatorVerified).length;
-    if (unchecked) box.appendChild(h('div', 'refs__banner', R.banner(unchecked, all.length)));
+    if (unchecked) box.appendChild(markNote(h('div', 'refs__banner', R.banner(unchecked, all.length))));
     for (const g of groups) {
       const sec = h('section', 'refs__group');
       sec.appendChild(h('h3', '', `${R.types[g.type]} (${g.items.length})`));
@@ -87,7 +88,7 @@ export function createReferencesPage(parent = document.body, { win = window, hom
         li.appendChild(h('div', 'refs__use', `${R.use}: ${r.use}`));
         const loc = h('div', 'refs__loc');
         loc.append(document.createTextNode(r.locator ? R.locator(r.locator) : R.noLocator), ' ',
-          h('span', r.locatorVerified ? 'bcard__chip bcard__chip--ok' : 'bcard__chip bcard__chip--warn', r.locatorVerified ? R.checked : R.unchecked),
+          r.locatorVerified ? h('span', 'bcard__chip bcard__chip--ok', R.checked) : markNote(h('span', 'bcard__chip bcard__chip--warn', R.unchecked)),
           ' ', h('code', 'refs__id', r.id));
         li.appendChild(loc);
         const gs = groupsOf(r.citedBy);

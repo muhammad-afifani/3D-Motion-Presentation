@@ -12,6 +12,7 @@ import { langStore } from '../state/langStore.js';
 import { helpReady } from '../state/helpStore.js';
 import { contentOf } from '../state/contentStore.js';
 import { setSceneOrigin } from '../state/backToScene.js';
+import { markNote } from '../state/notes.js';
 
 const G = STR.bi.help;
 const GAP = 8, EDGE = 8;
@@ -90,7 +91,7 @@ function render(item, reviewed) {
     card.append(more);
   }
   if (!reviewed) {
-    const d = h('span', 'help-card__draft', tr(G.draft, lang));
+    const d = markNote(h('span', 'help-card__draft', tr(G.draft, lang)));
     d.dataset.tip = tr(G.draftTip, lang);
     card.append(d);
   }

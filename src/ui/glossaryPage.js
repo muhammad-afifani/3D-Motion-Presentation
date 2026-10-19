@@ -16,6 +16,7 @@ import { contentOf, onContent } from '../state/contentStore.js';
 import { onLearn } from '../state/learnStore.js';
 import { glossaryTerms } from '../state/glossaryView.js';
 import { basicWords } from '../state/learnView.js';
+import { markNote } from '../state/notes.js';
 
 const G = STR.bi.glossary;
 
@@ -56,7 +57,7 @@ export function createGlossaryPage({ homeHash, win } = {}) {
         const it = h('div', 'gl__item gl__item--basic');
         it.id = `basic-${w.id}`;
         const dt = h('dt', 'gl__term');
-        dt.append(h('b', '', w.term), ' ', h('span', 'bcard__chip', t(G.fromLearn)));
+        dt.append(h('b', '', w.term), ' ', markNote(h('span', 'bcard__chip', t(G.fromLearn))));
         it.append(dt, h('dd', 'gl__def', w.definition));
         if (w.refs.length) it.append(sourceLinks(w.refs));
         list.append(it);

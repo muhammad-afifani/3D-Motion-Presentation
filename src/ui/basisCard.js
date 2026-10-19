@@ -8,6 +8,7 @@ import { STR } from './strings.js';
 import { createHelpButton } from './helpButton.js';
 import { cardData } from '../state/basisView.js';
 import { loadContent, fallbackContent } from '../state/content.js';
+import { markNote } from '../state/notes.js';
 
 const B = STR.basis, K = STR.basis.card;
 
@@ -74,7 +75,7 @@ export function createBasisCard(parent = document.body, { onOpenRefs } = {}) {
           else {
             li.append(document.createTextNode(r.cite));
             if (r.locator) li.append(document.createTextNode(` ${K.locator(r.locator)}`));
-            li.append(' ', h('span', r.locatorVerified ? 'bcard__chip bcard__chip--ok' : 'bcard__chip bcard__chip--warn', r.locatorVerified ? K.locatorChecked : K.locatorUnchecked));
+            li.append(' ', r.locatorVerified ? h('span', 'bcard__chip bcard__chip--ok', K.locatorChecked) : markNote(h('span', 'bcard__chip bcard__chip--warn', K.locatorUnchecked)));
           }
           ul.appendChild(li);
         }
@@ -100,7 +101,7 @@ export function createBasisCard(parent = document.body, { onOpenRefs } = {}) {
       box.appendChild(sec);
     }
     const foot = h('div', 'bcard__foot');
-    foot.appendChild(h('span', 'bcard__note', K.note));
+    foot.appendChild(markNote(h('span', 'bcard__note', K.note)));
     if (onOpenRefs) {
       const b = h('button', 'btn btn--sm', K.allRefs);
       b.type = 'button';

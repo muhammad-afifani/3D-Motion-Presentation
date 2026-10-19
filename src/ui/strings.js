@@ -211,6 +211,26 @@ export const STR = {
       backToLesson: { en: '← Back to lesson', id: '← Kembali ke pelajaran' },
       backToLessonTip: { en: 'Return to the lesson you came from.', id: 'Kembali ke pelajaran asal Anda.' },
     },
+    settings: {
+      icon: { en: '⚙', id: '⚙' },
+      tip: { en: 'Settings', id: 'Pengaturan' },
+      title: { en: 'Settings', id: 'Pengaturan' },
+      display: { en: 'Display', id: 'Tampilan' },
+      hideNotes: { en: 'Hide working notes', id: 'Sembunyikan catatan kerja' },
+      hideNotesDesc: {
+        en: 'Hides draft banners, Draft marks, and "to verify" marks. Model labels such as indicative, Basis, and the O₂ and volume basis always stay visible.',
+        id: 'Menyembunyikan banner draf, tanda Draft, dan tanda "to verify". Label model seperti indikatif, Basis, serta basis O₂ dan volume selalu tetap tampil.',
+      },
+      defaultNote: {
+        en: 'Default: notes are shown in Explore and hidden in Present.',
+        id: 'Bawaan: catatan tampil di Explore dan tersembunyi di Present.',
+      },
+      useDefault: { en: 'Use the default', id: 'Pakai bawaan' },
+      presentHint: {
+        en: 'This button is hidden in Present. To change an option there, press key M to return to Explore.',
+        id: 'Tombol ini tidak tampil di Present. Untuk mengubah opsi, tekan tombol M untuk kembali ke Explore.',
+      },
+    },
     help: {
       icon: { en: 'ⓘ', id: 'ⓘ' },
       label: { en: 'Explain this', id: 'Jelaskan ini' },
@@ -884,7 +904,8 @@ export const STR = {
     backKey: 'Esc',
     backTip: 'Return to the scene you came from (Esc or ←).',
     formationTab: {
-      intro: 'How each regulated parameter forms and what moves it. Qualitative content from content/emission_formation.json (draft: check the sources). No numbers here; numbers come from the model tabs.',
+      introNote: 'Draft: check the sources.',
+      intro: 'How each regulated parameter forms and what moves it. Qualitative content from content/emission_formation.json. No numbers here; numbers come from the model tabs.',
       modeledLabel: 'How this is modeled',
       modeled: { calibrated: 'calibrated', 'mass-balance': 'mass balance', 'semi-empirical': 'semi-empirical', qualitative: 'qualitative', 'site-input': 'site input' },
       modeledTip: 'calibrated = model function tuned to typical literature values; mass balance = closed-form balance; semi-empirical = shape correlation, not calibrated; qualitative = direction only; site input = type a measured value in Limits.',

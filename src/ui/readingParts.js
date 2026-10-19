@@ -4,6 +4,7 @@
  */
 import { STR } from './strings.js';
 import { tr } from '../state/lang.js';
+import { markNote } from '../state/notes.js';
 
 const L = STR.bi.lesson;
 
@@ -60,7 +61,7 @@ export function createSourceList(ids, references, o) {
     li.append(h('span', 'srcs__cite', r?.cite ?? id));
     const row = h('span', 'srcs__row');
     if (r?.level === 'intro') row.append(h('span', 'bcard__chip bcard__chip--ok', t(L.startHere)));
-    if (!r || r.locatorVerified !== true) row.append(h('span', 'bcard__chip bcard__chip--warn', t(L.toVerify)));
+    if (!r || r.locatorVerified !== true) row.append(markNote(h('span', 'bcard__chip bcard__chip--warn', t(L.toVerify))));
     if (r?.url) {
       const a = h('a', 'srcs__url', t(L.sourceOpen));
       a.href = r.url; a.target = '_blank'; a.rel = 'noopener noreferrer';

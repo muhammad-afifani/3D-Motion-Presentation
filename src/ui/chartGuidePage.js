@@ -6,6 +6,7 @@
  */
 import { STR } from './strings.js';
 import { tr } from '../state/lang.js';
+import { markNote } from '../state/notes.js';
 import { groupChartsByScene, GUIDE_LEVELS, backToChartHash } from '../state/chartGuide.js';
 import { lessonWords, findLesson } from '../state/learnView.js';
 import { createWordBox, createSourceList } from './readingParts.js';
@@ -62,7 +63,7 @@ export function createChartGuide(root, o) {
     main.append(back);
     return { el, dispose };
   }
-  const draft = () => { if (!j.reviewed && j.landing?.draftBanner) main.append(h('div', 'reg__banner learn-page__draft', tr(j.landing.draftBanner, o.lang))); };
+  const draft = () => { if (!j.reviewed && j.landing?.draftBanner) main.append(markNote(h('div', 'reg__banner learn-page__draft', tr(j.landing.draftBanner, o.lang)))); };
   const charts = j.charts ?? [];
   const guide = o.id ? charts.find((c) => c.id === o.id) : null;
 

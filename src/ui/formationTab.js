@@ -5,6 +5,7 @@
  * #/references/<id> (id yang tidak ada di references.json → "source to verify").
  */
 import { STR } from './strings.js';
+import { markNote } from '../state/notes.js';
 
 const F = STR.scene9.formationTab;
 
@@ -50,7 +51,7 @@ export function createFormationTab(container) {
       key = k;
       el.replaceChildren();
       const head = h('div', 'fm-head');
-      head.append(h('h3', 'reg__title', v.label ?? ''), h('p', 'reg__note', F.intro));
+      head.append(h('h3', 'reg__title', v.label ?? ''), h('p', 'reg__note', F.intro), markNote(h('p', 'reg__note', F.introNote)));
       if (gasFuel) head.append(h('p', 'reg__note fm-comp', STR.scene9.limitsTab.composition));
       el.append(head);
       if (!v.cards.length) { el.append(h('p', 'reg__note', F.empty)); return; }
