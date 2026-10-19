@@ -5,6 +5,7 @@
 import { STR } from './strings.js';
 import { segmented } from './controls.js';
 import { EQUIPMENT_ORDER } from '../state/regulations.js';
+import { tl } from '../state/langStore.js';
 
 const R = STR.regulation;
 
@@ -34,7 +35,7 @@ export function createRegHeader(container, cb) {
       fuel.set(f.sel.fuel);
       for (const b of fuel.el.querySelectorAll('.seg__btn')) b.disabled = f.sel.fuels.length < 2;
       const ck = f.sel.classes.map((c) => c.id).join('|');
-      if (ck !== clsKey) { clsKey = ck; clsSel.innerHTML = f.sel.classes.map((c) => `<option value="${c.id}">${c.label}</option>`).join(''); }
+      if (ck !== clsKey) { clsKey = ck; clsSel.innerHTML = f.sel.classes.map((c) => `<option value="${c.id}">${tl(c.label)}</option>`).join(''); }
       if (clsSel.value !== f.sel.cls) clsSel.value = f.sel.cls ?? '';
       clsSel.disabled = f.sel.classes.length < 2;
       set(V('basis'), f.basis ? `${R.basis(f.basis.refO2Pct, f.basis.TrefC, f.basis.NOxAs)} · ${R.basisChips}` : '');

@@ -19,7 +19,7 @@ export function createCalibFlag(parent, store) {
   const render = (s) => { el.hidden = isDefaultCalib(s); };
   render(store.get());
   const unsub = store.subscribe((s, prev, changed) => { if (changed.includes('calEngine') || changed.includes('calDln')) render(s); });
-  return { el, dispose() { unsub(); el.remove(); } };
+  return { el, relabel() { el.textContent = STR.app.calibFlag; el.dataset.tip = STR.app.calibFlagTip; }, dispose() { unsub(); el.remove(); } };
 }
 
 /**
@@ -38,5 +38,5 @@ export function createQualityFlag(parent, store, onClick) {
   const render = (s) => { el.hidden = !(s.quality === 'auto' && s.qTier > 0); };
   render(store.get());
   const unsub = store.subscribe((s, prev, changed) => { if (changed.includes('quality') || changed.includes('qTier')) render(s); });
-  return { el, dispose() { unsub(); el.remove(); } };
+  return { el, relabel() { el.textContent = STR.app.qualityFlag; el.dataset.tip = STR.app.qualityFlagTip; }, dispose() { unsub(); el.remove(); } };
 }

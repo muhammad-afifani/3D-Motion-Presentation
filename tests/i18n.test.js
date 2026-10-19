@@ -3,7 +3,11 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import { STR, STR_SOURCE, applyStringLang } from '../src/ui/strings.js';
-import { MIGRATED_GROUPS, SAME_OK, isPair, createStrings, resolveText } from '../src/state/i18n.js';
+import { MIGRATED_GROUPS, isPair, createStrings, resolveText } from '../src/state/i18n.js';
+import { KEEP, KEEP_TEXTS, KEEP_PATHS, keptIdentical } from './helpers/keepEnglish.js';
+import { applyToDoc } from '../scripts/gen-tetap-inggris.mjs';
+import { createRelabeler } from '../src/ui/relabel.js';
+import { validateRegulations, validateReferences } from '../src/state/content.js';
 import { fmt, pct, sci, formatNumber, formatInput, parseNumber, checkNumber, setNumberLang, numberLang, dateTime } from '../src/ui/format.js';
 import { tickDigits } from '../src/charts/chartBase.js';
 import { ID_WORDS } from './language.test.js';
@@ -13,20 +17,35 @@ const read = (p) => readFileSync(`${ROOT}${p}`, 'utf8');
 const ID_RE = new RegExp(`(?<![\\p{L}\\p{N}_])(${ID_WORDS.join('|')})(?![\\p{L}\\p{N}_])`, 'iu');
 const sample = (v) => (typeof v === 'function' ? v('1', '2', '3', '4', '5', '6') : v);
 
-/** Semua daun kelompok sumber: [jalur, nilai]. */
+const atPath = (root, dotted) => dotted.split('.').reduce((o, k) => o[k], root);
+/** Semua daun kelompok sumber: [jalur, nilai]; larik: jalur[i]. */
 function leaves(o, path, out = []) {
   if (isPair(o) || typeof o !== 'object' || o == null) { out.push([path, o]); return out; }
-  for (const [k, v] of Object.entries(o)) leaves(v, `${path}.${k}`, out);
+  for (const [k, v] of Object.entries(o)) leaves(v, Array.isArray(o) ? `${path}[${k}]` : `${path}.${k}`, out);
   return out;
 }
-const migrated = MIGRATED_GROUPS.flatMap((g) => leaves(STR_SOURCE[g], `STR.${g}`));
+/** [jalur tanpa awalan STR., pasangan] untuk semua kelompok yang sudah dimigrasi */
+const migrated = MIGRATED_GROUPS.flatMap((g) => leaves(atPath(STR_SOURCE, g), g));
+
+const json = (f) => JSON.parse(read(`content/${f}.json`));
+/** [jalur, pasangan] untuk semua pasangan { en, id } di dalam satu berkas */
+const pairsIn = (x, path = '', out = []) => {
+  if (Array.isArray(x)) x.forEach((v, i) => pairsIn(v, `${path}[${i}]`, out));
+  else if (x && typeof x === 'object') {
+    if (isPair(x)) out.push([path, x]);
+    else for (const [k, v] of Object.entries(x)) pairsIn(v, `${path}.${k}`, out);
+  }
+  return out;
+};
+const files = { glossary: json('glossary'), references: json('references'), regulations: json('regulations') };
 
 afterEach(() => { applyStringLang('en'); setNumberLang('en'); });
 
 describe('kelompok dua bahasa (MIGRATED_GROUPS)', () => {
-  it('kelompok terdaftar ada di strings.js dan tidak kosong', () => {
-    expect(MIGRATED_GROUPS).toEqual(expect.arrayContaining(['theme', 'formula', 'input']));
-    for (const g of MIGRATED_GROUPS) expect(Object.keys(STR_SOURCE[g] ?? {}).length, g).toBeGreaterThan(0);
+  it('kelompok terdaftar ada di strings.js dan tidak kosong; D2 sudah masuk', () => {
+    expect(MIGRATED_GROUPS).toEqual(expect.arrayContaining(['theme', 'formula', 'input', 'common', 'app', 'nav', 'pages', 'content', 'debug', 'snapshot', 'presenter', 'regulation', 'landing', 'basis.refs']));
+    for (const g of MIGRATED_GROUPS) expect(Object.keys(atPath(STR_SOURCE, g) ?? {}).length, g).toBeGreaterThan(0);
+    expect(migrated.length).toBeGreaterThan(330);
   });
   it('setiap daun berupa pasangan { en, id } lengkap; tipe dan jumlah argumen sama', () => {
     const notPair = migrated.filter(([, v]) => !isPair(v)).map(([p]) => p);
@@ -38,19 +57,103 @@ describe('kelompok dua bahasa (MIGRATED_GROUPS)', () => {
       expect(String(sample(v.id) ?? '').trim(), `${p}.id`).not.toBe('');
     }
   });
-  it('sisi id tidak sama dengan sisi en kecuali istilah SAME_OK (menangkap terjemahan yang tertinggal)', () => {
-    const same = migrated.filter(([, v]) => sample(v.en) === sample(v.id) && !SAME_OK.includes(sample(v.en))).map(([p, v]) => `${p}: ${sample(v.en)}`);
+  it('sisi id tidak sama dengan sisi en kecuali entri docs/tetap_inggris.json (menangkap terjemahan yang tertinggal)', () => {
+    const same = migrated.filter(([p, v]) => sample(v.en) === sample(v.id) && !keptIdentical(p, sample(v.en))).map(([p, v]) => `${p}: ${sample(v.en)}`);
     expect(same).toEqual([]);
   });
   it('sisi en tetap bebas kata Indonesia', () => {
     expect(migrated.filter(([, v]) => ID_RE.test(sample(v.en))).map(([p, v]) => `${p}: ${sample(v.en)}`)).toEqual([]);
   });
-  it('SAME_OK tercantum di bagian "Tetap Inggris" docs/PADANAN_ISTILAH.md', () => {
+  it('sisi id tidak membawa kalimat English yang tertinggal (kata fungsi English umum)', () => {
+    const EN_WORDS = /(?<![\p{L}\p{N}_])(the|and|with|for|not|from|this|that|are|is|you|your|press|open|close|show|hide|click|saved|failed|error)(?![\p{L}\p{N}_])/iu;
+    // kutipan nama tetap ("source to verify", "Start here") dan token berkode boleh muncul; hanya kalimat yang diperiksa
+    const bad = migrated.filter(([, v]) => typeof v.id !== 'function' && typeof v.id === 'string' && v.id !== v.en && EN_WORDS.test(v.id.replace(/"[^"]*"/g, '').replace(/content\/[\w.]+/g, ''))).map(([p, v]) => `${p}: ${v.id}`);
+    expect(bad).toEqual([]);
+  });
+});
+
+describe('content/*.json dua bahasa (D2): glossary, references, regulations', () => {
+  it('jumlah pasangan: glossary (term + expansion + definition), references (use), regulations (scope, equipment, label, basisNote, notes)', () => {
+    expect(pairsIn(files.glossary).length).toBe(40 + 26 + 40);
+    expect(pairsIn(files.references).length).toBe(51);
+    expect(pairsIn(files.regulations).length).toBeGreaterThanOrEqual(15);
+  });
+  it('setiap pasangan lengkap; sisi id tidak sama dengan en kecuali entri docs/tetap_inggris.json', () => {
+    for (const [f, data] of Object.entries(files)) {
+      for (const [p, v] of pairsIn(data)) {
+        expect(String(v.en).trim().length, `${f}${p}.en`).toBeGreaterThan(0);
+        expect(String(v.id).trim().length, `${f}${p}.id`).toBeGreaterThan(0);
+        if (v.en === v.id) expect(KEEP_TEXTS.has(v.en), `${f}${p}: "${v.en}" sama di kedua bahasa tetapi tidak ada di daftar Tetap Inggris`).toBe(true);
+      }
+    }
+  });
+  it('sisi id tidak membawa kalimat English yang tertinggal', () => {
+    const EN_WORDS = /(?<![\p{L}\p{N}_])(the|and|with|for|not|from|this|that|are|is|you|your|press|open|close|show|hide|click|saved|failed|error)(?![\p{L}\p{N}_])/iu;
+    const bad = [];
+    for (const [f, data] of Object.entries(files)) for (const [p, v] of pairsIn(data)) if (v.id !== v.en && EN_WORDS.test(v.id.replace(/"[^"]*"/g, ''))) bad.push(`${f}${p}: ${v.id.slice(0, 80)}`);
+    expect(bad).toEqual([]);
+  });
+  it('nama resmi regulasi: satu string Indonesia apa adanya (tanpa pasangan); penjelasan English singkat: pasangan', () => {
+    for (const s of files.regulations.sources) {
+      expect(typeof s.title, s.id).toBe('string'); expect(typeof s.short, s.id).toBe('string');
+      expect(s.title, s.id).toMatch(/^Peraturan Menteri /);
+      expect(s.short, s.id).toMatch(/^Permen LHK? \d+\/\d{4}$/);
+      expect(isPair(s.scope), `${s.id}.scope`).toBe(true);
+    }
+    expect(validateRegulations(files.regulations)).toEqual([]);
+  });
+  it('validateRegulations: nama resmi sebagai pasangan ditolak, penjelasan sebagai string polos ditolak, bagian lain wajib pasangan', () => {
+    const clone = () => JSON.parse(JSON.stringify(files.regulations));
+    const codes = (j) => validateRegulations(j).map((e) => `${e.field}:${e.code}`);
+    const a = clone(); a.sources[0].title = { en: 'Regulation', id: 'Peraturan' };
+    expect(codes(a)).toContain('sources[0].title:officialName');
+    const b = clone(); b.sources[0].short = { en: 'LH 13', id: 'LH 13' };
+    expect(codes(b)).toContain('sources[0].short:officialName');
+    const c = clone(); c.sources[0].scope = 'Gas turbines';
+    expect(codes(c)).toContain('sources[0].scope:pair');
+    const d = clone(); d.groups[0].equipment = 'Gas turbine';
+    expect(codes(d)).toContain('groups[0].equipment:pair');
+    const e = clone(); e.groups[1].capacityClasses[0].label = { en: '100-500 kW', id: '' };
+    expect(codes(e)).toContain('groups[1].capacityClasses[0].label:pair');
+    const f = clone(); f.groups[0].notes[0] = 'Plain text note';
+    expect(codes(f)).toContain('groups[0].notes:pair');
+    const g = clone(); g.sources[0].title = '';
+    expect(codes(g)).toContain('sources[0].title:text');
+    expect(codes(clone())).toEqual([]);
+  });
+  it('validateReferences: use wajib pasangan', () => {
+    const r = JSON.parse(JSON.stringify(files.references)); r.references[0].use = 'Plain';
+    expect(validateReferences(r).map((e) => `${e.field}:${e.code}`)).toContain('references[0].use:pair');
+    expect(validateReferences(files.references)).toEqual([]);
+  });
+});
+
+describe('docs/tetap_inggris.json: daftar putih "Tetap Inggris"', () => {
+  it('berkas data: tiap kelompok punya alasan dan penanda terhadap PADANAN_ISTILAH.md; padanan menyimpang dijelaskan', () => {
+    expect(KEEP.version).toBe(1);
+    expect(KEEP.groups.length).toBeGreaterThan(5);
+    const ids = new Set();
+    for (const g of KEEP.groups) {
+      expect(ids.has(g.id), g.id).toBe(false); ids.add(g.id);
+      expect(String(g.title ?? '').length, g.id).toBeGreaterThan(3);
+      expect(String(g.reason ?? '').length, g.id).toBeGreaterThan(30);
+      expect(['sesuai', 'menyimpang', 'tidak-diatur'], g.id).toContain(g.padanan);
+      if (g.padanan === 'menyimpang') expect(String(g.padananNote ?? '').length, g.id).toBeGreaterThan(30);
+      expect((g.texts?.length ?? 0) + (g.paths?.length ?? 0) + (g.inline?.length ?? 0), g.id).toBeGreaterThan(0);
+    }
+  });
+  it('setiap teks dan jalur whole-string yang terdaftar dipakai oleh pasangan identik (tanpa entri basi) atau ditandai inline', () => {
+    const used = new Set([
+      ...migrated.filter(([, v]) => sample(v.en) === sample(v.id)).flatMap(([p, v]) => [sample(v.en), p]),
+      ...Object.values(files).flatMap((data) => pairsIn(data).filter(([, v]) => v.en === v.id).map(([, v]) => v.en)),
+    ]);
+    // teks yang baru dipakai tahap D3–D6 boleh belum muncul; D2 sudah memakai hampir semuanya
+    const unused = [...KEEP_TEXTS, ...KEEP_PATHS].filter((t) => !used.has(t));
+    expect(unused).toEqual([]);
+  });
+  it('bagian "Tetap Inggris" docs/PADANAN_ISTILAH.md sama dengan hasil scripts/gen-tetap-inggris.mjs', () => {
     const doc = read('docs/PADANAN_ISTILAH.md');
-    const sec = doc.slice(doc.indexOf('## Tetap Inggris'), doc.indexOf('| No |'));
-    expect(sec.length).toBeGreaterThan(100);
-    const listed = new Set([...sec.matchAll(/`([^`]+)`/g)].map((m) => m[1]));
-    expect(SAME_OK.filter((t) => !listed.has(t))).toEqual([]);
+    expect(applyToDoc(doc, KEEP)).toBe(doc);
   });
 });
 
@@ -58,17 +161,21 @@ describe('STR: tampilan diisi di tempat saat bahasa berubah', () => {
   it('default English; id mengganti teks tanpa mengganti objek (alias modul tetap sah)', () => {
     const T = STR.theme, I = STR.input;
     expect(T.dark).toBe('Dark');
-    expect(I.min('5')).toBe('Minimum 5.');
+    expect(I.min('5')).toBe('Minimum 5');
     applyStringLang('id');
     expect(STR.theme).toBe(T);
     expect(T.dark).toBe('Gelap');
     expect(STR.formula.label).toBe('Rumus');
-    expect(I.min('5')).toBe('Minimal 5.');
+    expect(I.min('5')).toBe('Minimal 5');
     applyStringLang('en');
     expect(T.dark).toBe('Dark');
   });
   it('kelompok yang belum dimigrasi tidak disalin ulang (objek sumber yang sama)', () => {
-    for (const g of Object.keys(STR_SOURCE).filter((k) => !MIGRATED_GROUPS.includes(k))) expect(STR[g], g).toBe(STR_SOURCE[g]);
+    const topMigrated = new Set(MIGRATED_GROUPS.map((g) => g.split('.')[0]));
+    for (const g of Object.keys(STR_SOURCE).filter((k) => !topMigrated.has(k))) expect(STR[g], g).toBe(STR_SOURCE[g]);
+    // subkelompok bertitik: induknya disalin tipis, saudaranya yang belum dimigrasi tetap objek sumber
+    expect(STR.basis.card).toBe(STR_SOURCE.basis.card);
+    expect(STR.basis.refs).not.toBe(STR_SOURCE.basis.refs);
   });
   it('createStrings / resolveText: larik, objek bertingkat, fungsi; bahasa sama tidak dihitung ulang', () => {
     const src = { a: { x: { en: 'One', id: 'Satu' }, list: [{ en: 'A', id: 'B' }], fn: { en: (n) => `${n} items`, id: (n) => `${n} butir` } }, b: { y: 'plain' } };
@@ -207,5 +314,55 @@ describe('kotak isian angka: tanpa type="number", satu pembaca', () => {
     expect(main.indexOf('langStore.subscribe(applyUiLang)')).toBeLessThan(main.indexOf('createLearnHost('));
     expect(main).toMatch(/function relangView\(\)[\s\S]*goTo\(index, true\)/);
     expect(read('src/presenter.js')).toMatch(/setNumberLang\(l\); applyStringLang\(l\)/);
+  });
+});
+
+describe('ganti bahasa tanpa muat ulang (D2): relabeler dan sambungannya', () => {
+  const stub = () => { const attrs = new Map(); return { textContent: '', data: '', dataset: {}, getAttribute: (k) => attrs.get(k) ?? null, setAttribute: (k, v) => attrs.set(k, v), removeAttribute: (k) => attrs.delete(k) }; };
+  it('createRelabeler: text / node / attr / data / job dijalankan ulang oleh run(); atribut null dihapus', () => {
+    let lang = 'en';
+    const T = { en: { a: 'Hello', tip: 'Tip', gone: 'x' }, id: { a: 'Halo', tip: 'Petunjuk', gone: null } };
+    const rl = createRelabeler();
+    const el = stub(), tn = stub(), at = stub(), dt = stub(); let jobs = 0;
+    rl.text(el, () => T[lang].a); rl.node(tn, () => T[lang].a); rl.attr(at, 'aria-label', () => T[lang].tip); rl.attr(at, 'title', () => T[lang].gone); rl.data(dt, 'tip', () => T[lang].tip); rl.job(() => { jobs++; });
+    expect([el.textContent, tn.data, at.getAttribute('aria-label'), at.getAttribute('title'), dt.dataset.tip, jobs]).toEqual(['Hello', 'Hello', 'Tip', 'x', 'Tip', 1]);
+    lang = 'id'; rl.run();
+    expect([el.textContent, tn.data, at.getAttribute('aria-label'), at.getAttribute('title'), dt.dataset.tip, jobs]).toEqual(['Halo', 'Halo', 'Petunjuk', null, 'Petunjuk', 2]);
+  });
+  it('main.js: urutan pelanggan bahasa (teks + angka dulu) lalu relabelChrome (navigasi, Explore, lencana, flag, presenter) dan halaman penuh', () => {
+    const main = read('src/main.js');
+    expect(main).toMatch(/function relabelChrome\(\)[\s\S]*nav\.relabel\(\)[\s\S]*exitPresent\.setLabel[\s\S]*relabelModelBadge[\s\S]*calibFlag\.relabel\(\)[\s\S]*qualityFlag\.relabel\(\)[\s\S]*presenter\.relabel\(\)/);
+    expect(main).toMatch(/langStore\.subscribe\(\(l\) => \{ langSwitch\.set\(l\); themeSwitch\.relabel\(\); backPill\.refresh\(\); relabelChrome\(\); relangView\(\); \}\)/);
+    expect(main).toMatch(/for \(const p of OVERLAYS\) \{ const api = PAGE_API\[p\]; if \(api\.refresh\) api\.refresh\(\); \}/);
+  });
+  it('jendela presenter: relabel() di presenterView, event storage etel:lang di presenter.js, hook uji', () => {
+    expect(read('src/ui/presenterView.js')).toMatch(/relabel\(\) \{ rl\.run\(\); paintStatus\(\); paintCurrent\(\); tick\(\); \}/);
+    const pres = read('src/presenter.js');
+    expect(pres).toMatch(/e\.key === LANG_KEY/);
+    expect(pres).toMatch(/view\?\.relabel\(\)/);
+    expect(pres).toMatch(/__etelPresenter/);
+    expect(read('src/ui/presenterMode.js')).toMatch(/relabel\(\) \{ panel\?\.relabel\(\); \}/);
+  });
+  it('halaman penuh dan nav: judul lewat fungsi / relabeler (tidak membeku di bahasa awal)', () => {
+    expect(read('src/ui/pageShell.js')).toMatch(/typeof o\.title === 'function'/);
+    expect(read('src/ui/formationPage.js')).toMatch(/title: \(\) => P\.title/);
+    expect(read('src/ui/glossaryPage.js')).toMatch(/title: \(\) => STR\.pages\.glossary\.title/);
+    expect(read('src/ui/nav.js')).toMatch(/createRelabeler\(\)/);
+    for (const f of ['src/ui/referencesPage.js', 'src/ui/regulationsPage.js']) expect(read(f), f).toMatch(/refresh\(\)/);
+  });
+  it('galat isian: slot .num-err satu baris tetap (tanpa gelembung melayang)', () => {
+    const css = read('src/styles.css');
+    expect(css).toMatch(/\.num-err \{[^}]*height: 14px/);
+    expect(css).not.toMatch(/num-field__err/);
+    const ni = read('src/ui/numberInput.js');
+    expect(ni).toMatch(/errorHost/);
+    expect(ni).not.toMatch(/num-field__err/);
+  });
+  it('tl(): pasangan data content/ mengikuti bahasa aktif; string polos (nama resmi) tetap', async () => {
+    const { langStore, tl } = await import('../src/state/langStore.js');
+    const before = langStore.lang;
+    langStore.set('id'); expect(tl({ en: 'Gas turbine', id: 'Turbin gas' })).toBe('Turbin gas'); expect(tl('Permen LH 13/2009')).toBe('Permen LH 13/2009');
+    langStore.set('en'); expect(tl({ en: 'Gas turbine', id: 'Turbin gas' })).toBe('Gas turbine');
+    langStore.set(before);
   });
 });

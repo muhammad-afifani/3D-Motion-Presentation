@@ -51,6 +51,8 @@ export function createPresenterMode(o) {
 
   return {
     toggle, sync,
+    /** Bahasa berubah: panel di halaman ikut (jendela presenter memakai presenter.js). */
+    relabel() { panel?.relabel(); },
     get inPageOpen() { return !!panel; },
     get windowOpen() { return !!win && !win.closed; },
     dispose() { closeInPage(); link?.dispose(); try { channel?.close?.(); } catch { /* sudah ditutup */ } },

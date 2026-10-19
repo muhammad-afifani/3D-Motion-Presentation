@@ -95,6 +95,7 @@ export function button(o) {
   }
   return {
     el, setLabel,
+    setTip(t) { if (t) b.dataset.tip = t; else delete b.dataset.tip; },
     setOn(on) { b.classList.toggle('is-on', !!on); b.setAttribute('aria-pressed', String(!!on)); },
     setDisabled(on) { b.disabled = !!on; },
   };

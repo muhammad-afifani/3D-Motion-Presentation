@@ -80,7 +80,9 @@ describe('complianceStatus', () => {
 describe('content/regulations.json', () => {
   it('sama dengan seed dan lolos validasi', () => {
     const seed = JSON.parse(readFileSync(join(ROOT, 'docs/m9_pack/seeds/regulations.seed.json'), 'utf8'));
-    expect(regs).toEqual(seed);
+    // D2: teks dua bahasa { en, id }; sisi en sama dengan seed (nama resmi tetap satu string)
+    const enOnly = (v) => (Array.isArray(v) ? v.map(enOnly) : v && typeof v === 'object' ? (Object.keys(v).length === 2 && 'en' in v && 'id' in v ? v.en : Object.fromEntries(Object.entries(v).map(([k, x]) => [k, enOnly(x)]))) : v);
+    expect(enOnly(regs)).toEqual(seed);
     expect(validateRegulations(regs)).toEqual([]);
   });
   it('semua grup masih verified:false (flag hanya diubah pemilik proyek)', () => {

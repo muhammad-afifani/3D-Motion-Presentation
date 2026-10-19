@@ -6,6 +6,7 @@
  */
 import { STR } from './strings.js';
 import { fmt } from './format.js';
+import { tl } from '../state/langStore.js';
 import { regulationsContent, onRegulations } from '../state/regulationsStore.js';
 import { contentErrorText } from './contentBanner.js';
 import { REG_UNITS } from '../state/content.js';
@@ -38,6 +39,7 @@ export function createRegulationsPage(parent = document.body, { win = window, ho
 
   function render() {
     const r = regulationsContent(), d = r.data;
+    el.setAttribute('aria-label', P.title);
     box.replaceChildren();
     const head = h('div', 'refs__head');
     head.appendChild(h('h2', '', P.title));
@@ -53,16 +55,16 @@ export function createRegulationsPage(parent = document.body, { win = window, ho
     for (const g of d?.groups ?? []) {
       const src = d.sources?.find((s) => s.id === g.source);
       const sec = h('section', 'refs__group regs__group');
-      sec.appendChild(h('h3', '', P.group(g.equipment, src?.short ?? g.source)));
+      sec.appendChild(h('h3', '', P.group(tl(g.equipment), src?.short ?? g.source)));
       if (!g.verified) sec.appendChild(h('div', 'refs__banner', `⚠ ${R.banner}`));
       const b = g.basis;
       sec.appendChild(h('p', 'regs__basis', R.basis(b.refO2Pct, b.TrefC, b.NOxAs)));
-      if (g.basisNote) sec.appendChild(h('p', 'refs__use', `${P.basisNote}: ${g.basisNote}`));
+      if (g.basisNote) sec.appendChild(h('p', 'refs__use', `${P.basisNote}: ${tl(g.basisNote)}`));
       for (const c of g.capacityClasses) {
         for (const fuel of ['oil', 'gas']) {
           const rows = g.rows.filter((x) => x.class === c.id && x.fuel === fuel);
           if (!rows.length) continue;
-          sec.appendChild(h('h4', 'regs__cls', P.classFuel(c.label, R.fuels[fuel])));
+          sec.appendChild(h('h4', 'regs__cls', P.classFuel(tl(c.label), R.fuels[fuel])));
           const t = h('table', 'reg__table num');
           t.innerHTML = `<thead><tr>${P.head.map((x) => `<th>${x}</th>`).join('')}</tr></thead>`;
           const tb = h('tbody');
@@ -78,7 +80,7 @@ export function createRegulationsPage(parent = document.body, { win = window, ho
       if (g.notes?.length) {
         sec.appendChild(h('b', 'bcard__label', P.notes));
         const ul = h('ul', 'bcard__assume');
-        for (const n of g.notes) ul.appendChild(h('li', '', n));
+        for (const n of g.notes) ul.appendChild(h('li', '', tl(n)));
         sec.appendChild(ul);
       }
       if (src) {
@@ -121,7 +123,7 @@ export function createRegulationsPage(parent = document.body, { win = window, ho
     setOpen,
     toggle() { setOpen(el.hidden); },
     /** Render ulang bila terbuka (mis. bahasa berubah: format angka tabel). */
-    refresh() { if (!el.hidden) render(); },
+    refresh() { el.setAttribute('aria-label', P.title); if (!el.hidden) render(); },
     dispose() { unsub(); win.removeEventListener('hashchange', onHash); win.removeEventListener('keydown', onKey, true); el.remove(); },
   };
 }

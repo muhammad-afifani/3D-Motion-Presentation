@@ -81,20 +81,25 @@ describe('kata pelajaran dan Glossary dua bahasa', () => {
     const missing = glossary.terms.filter((t) => !learn.glossaryId?.[t.id]?.definition?.trim()).map((t) => t.id);
     expect(missing).toEqual([]);
   });
-  it('glossaryText: EN = glossary.json; ID = glossaryId (nama bila ada, selain itu nama asli)', () => {
-    const g = glossary.terms.find((t) => learn.glossaryId[t.id].term);
-    const g2 = glossary.terms.find((t) => !learn.glossaryId[t.id].term);
-    expect(glossaryText(learn, g, 'en')).toEqual({ term: g.term, definition: g.definition });
-    expect(glossaryText(learn, g, 'id')).toEqual({ term: learn.glossaryId[g.id].term, definition: learn.glossaryId[g.id].definition });
-    expect(glossaryText(learn, g2, 'id').term).toBe(g2.term);
-    expect(glossaryText(null, g, 'id')).toEqual({ term: g.term, definition: g.definition }); // learn.json gagal dimuat → English
+  it('D2: glossary.json berisi pasangan { en, id }; definisi ID sama dengan learn.glossaryId (yang tidak dibaca lagi)', () => {
+    for (const t of glossary.terms) {
+      expect(t.term.en.length, t.id).toBeGreaterThan(0); expect(t.term.id.length, t.id).toBeGreaterThan(0);
+      expect(t.definition.id, t.id).toBe(learn.glossaryId[t.id].definition);
+    }
+  });
+  it('glossaryText: pasangan { en, id } → bahasa yang diminta; tanpa learn tetap berfungsi', () => {
+    const g = glossary.terms.find((t) => t.id === 'load-window');
+    expect(glossaryText(learn, g, 'en')).toEqual({ term: g.term.en, definition: g.definition.en });
+    expect(glossaryText(learn, g, 'id')).toEqual({ term: g.term.id, definition: g.definition.id });
+    expect(glossaryText(null, g, 'id')).toEqual({ term: g.term.id, definition: g.definition.id });
+    expect(g.term.id).not.toBe(g.term.en); // Load window → Jendela beban
   });
   it('glossaryTerms: bahasa ID memakai definisi ID, EN tidak berubah, jumlah sama, urut abjad menurut bahasa', () => {
     const en = glossaryTerms(glossary, refs, '', { learn, lang: 'en' });
     const id = glossaryTerms(glossary, refs, '', { learn, lang: 'id' });
     expect(id).toHaveLength(en.length);
     expect(glossaryTerms(glossary, refs, '')).toEqual(en); // tanpa opsi = perilaku lama
-    for (const t of id) expect(t.definition).toBe(learn.glossaryId[t.id].definition);
+    for (const t of id) expect(t.definition).toBe(glossary.terms.find((x) => x.id === t.id).definition.id);
     const names = id.map((t) => t.term);
     expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b, 'id', { sensitivity: 'base' })));
     expect(glossaryTerms(glossary, refs, 'zzzz-tidak-ada', { learn, lang: 'id' })).toEqual([]);
@@ -108,7 +113,7 @@ describe('kata pelajaran dan Glossary dua bahasa', () => {
       const own = words.find((w) => w.from === 'learn'), t = learn.terms.find((x) => x.id === own.id);
       expect(own.term).toBe(t.term[lang]); expect(own.definition).toBe(t.definition[lang]);
       const gw = words.find((w) => w.from === 'glossary');
-      expect(gw.definition).toBe(lang === 'id' ? learn.glossaryId[gw.id].definition : glossary.terms.find((x) => x.id === gw.id).definition);
+      expect(gw.definition).toBe(glossary.terms.find((x) => x.id === gw.id).definition[lang]);
     }
     expect(lessonWords(learn, glossary, { terms: ['nope'] }, 'en')[0]).toMatchObject({ id: 'nope', known: false });
     // setiap pelajaran: semua kata ditemukan

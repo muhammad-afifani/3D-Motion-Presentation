@@ -34,11 +34,13 @@ export function createFormationPage(store, { homeHash, win } = {}) {
     banner.show(contentOf('formation'));
     tab.update(formationCards(contentOf('formation').data, sel.equip, contentOf('references').data), { gasFuel: sel.fuel === 'gas' });
   }
-  const shell = createPageShell({ className: 'refs--formation', title: P.title, hash: '#/formation', render, homeHash, win });
+  const shell = createPageShell({ className: 'refs--formation', title: () => P.title, hash: '#/formation', render, homeHash, win });
   const unsub = [
     store.subscribe((s, prev, changed) => { if (changed.includes('regEquip') || changed.includes('regFuel')) shell.refresh(); }),
     onContent('formation', () => shell.refresh()),
     onContent('references', () => shell.refresh()),
   ];
-  return { ...shell, get open() { return shell.open; }, dispose() { for (const u of unsub) u(); shell.dispose(); } };
+  /** Bahasa berubah: pilihan penggerak dan pengantar dibangun ulang dari STR. */
+  const relabel = () => { tab = null; equip = null; banner = null; shell.body.replaceChildren(); shell.refresh(); };
+  return { ...shell, get open() { return shell.open; }, refresh: relabel, dispose() { for (const u of unsub) u(); shell.dispose(); } };
 }

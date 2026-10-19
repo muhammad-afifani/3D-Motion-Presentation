@@ -2,6 +2,9 @@
 // src/ui/strings.js atau content/*.json, dan setiap istilah Indonesia ada di dokumen yang disebut kolom "Dipakai di".
 import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
+import { STR_SOURCE } from '../src/ui/strings.js';
+import { isPair } from '../src/state/i18n.js';
+import { KEEP_TEXTS } from './helpers/keepEnglish.js';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const read = (p) => readFileSync(`${ROOT}${p}`, 'utf8');
@@ -50,5 +53,22 @@ describe('docs/PADANAN_ISTILAH.md', () => {
       if (!places.length || !places.some((p) => vs.some((v) => p.includes(v)))) bad.push(`${r[0]} ${r[1]} @ ${where}`);
     }
     expect(bad).toEqual([]);
+  });
+  it('Paket D: label ID yang sudah terpasang memuat istilah Indonesia di tabel ini (atau sengaja tetap Inggris)', () => {
+    const out = [];
+    let checked = 0;
+    for (const r of rows.filter((x) => x[3] !== '—')) {
+      const m = /^STR\.([A-Za-z0-9_.]+?)(\(\))?$/.exec(unquote(r[4]));
+      if (!m) continue;
+      let node = STR_SOURCE;
+      for (const k of m[1].split('.')) node = node?.[k];
+      if (!isPair(node) || typeof node.id !== 'string') continue; // belum dimigrasi (D3–D6) atau fungsi
+      checked++;
+      const id = lower(node.id), vs = variants(r[1]).map(lower);
+      const kept = node.id === node.en && KEEP_TEXTS.has(node.en);
+      if (!kept && !vs.some((v) => id.includes(v))) out.push(`${r[0]} ${r[1]} ↔ ${r[3]} → "${node.id}"`);
+    }
+    expect(checked).toBeGreaterThan(12);
+    expect(out).toEqual([]);
   });
 });

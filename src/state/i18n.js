@@ -1,5 +1,5 @@
 /**
- * i18n.js — kerangka terjemahan seluruh aplikasi (Paket D1). Teks sumber kelompok yang sudah dimigrasi ditulis di
+ * i18n.js — kerangka terjemahan seluruh aplikasi (Paket D). Teks sumber kelompok yang sudah dimigrasi ditulis di
  * src/ui/strings.js sebagai pasangan { en, id } (nilai string atau fungsi). `createStrings` membentuk objek tampilan
  * `STR` (daun = string / fungsi biasa, seperti sebelum migrasi), dan `apply(lang)` mengisi ulang objek itu DI TEMPAT
  * lewat tr(): objek bertingkat tetap sama, jadi alias tingkat modul (`const T = STR.theme`) tetap sah dan komponen
@@ -9,7 +9,8 @@
  * ulang halaman yang terbuka). Tidak ada string yang dibangun ulang setiap frame.
  *
  * Aturan (dijaga tests/i18n.test.js): setiap daun kelompok di MIGRATED_GROUPS adalah pasangan lengkap; sisi id tidak
- * sama dengan sisi en kecuali istilah di daftar "Tetap Inggris" docs/PADANAN_ISTILAH.md (SAME_OK di bawah).
+ * sama dengan sisi en kecuali entri di daftar "Tetap Inggris" (docs/tetap_inggris.json, dibaca tes, bukan kode aplikasi;
+ * ubah daftar itu lalu jalankan `node scripts/gen-tetap-inggris.mjs` untuk memperbarui docs/PADANAN_ISTILAH.md).
  * STR.bi dan STR.lang sudah dua bahasa sejak M11 dan dipilih langsung dengan tr() oleh komponennya: tidak ikut di sini.
  */
 import { tr } from './lang.js';
@@ -20,14 +21,15 @@ import { tr } from './lang.js';
  * @typedef {{en:T, id:T}} BiText
  */
 
-/** Kelompok STR yang sudah berupa pasangan { en, id } (bertambah per tahap D2–D6). */
-export const MIGRATED_GROUPS = Object.freeze(['theme', 'formula', 'input']);
-
 /**
- * Istilah yang sengaja sama di kedua bahasa (singkatan, simbol, nama halaman/produk, jargon lapangan). Harus juga
- * tercantum di bagian "Tetap Inggris" docs/PADANAN_ISTILAH.md (dijaga tests/i18n.test.js).
+ * Kelompok STR yang sudah berupa pasangan { en, id } (bertambah per tahap D2–D6). Jalur bertitik ('basis.refs') =
+ * hanya subkelompok itu; sisa kelompok induknya tetap English sampai tahapnya.
  */
-export const SAME_OK = Object.freeze(['ƒ']);
+export const MIGRATED_GROUPS = Object.freeze([
+  'theme', 'formula', 'input',
+  // D2 kerangka
+  'common', 'app', 'nav', 'pages', 'content', 'debug', 'snapshot', 'presenter', 'regulation', 'landing', 'basis.refs',
+]);
 
 /** Pasangan dua bahasa: tepat kunci { en, id }. @param {any} v @returns {v is BiText<any>} */
 export const isPair = (v) => !!v && typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length === 2 && 'en' in v && 'id' in v;
@@ -43,11 +45,11 @@ export function resolveText(v, lang) {
   return v;
 }
 
-/** Isi `target` dari `src` untuk satu bahasa tanpa mengganti objek bertingkat yang sudah ada. */
+/** Isi `target` dari `src` untuk satu bahasa tanpa mengganti objek / larik bertingkat yang sudah ada. */
 function assignInto(target, src, lang) {
   for (const [k, v] of Object.entries(src)) {
     const t = target[k];
-    if (v && typeof v === 'object' && !Array.isArray(v) && !isPair(v) && t && typeof t === 'object' && !Array.isArray(t)) assignInto(t, v, lang);
+    if (v && typeof v === 'object' && !isPair(v) && t && typeof t === 'object' && Array.isArray(v) === Array.isArray(t) && (!Array.isArray(v) || v.length === t.length)) assignInto(t, v, lang);
     else target[k] = resolveText(v, lang);
   }
 }
@@ -55,19 +57,26 @@ function assignInto(target, src, lang) {
 /**
  * @template {Record<string, any>} S
  * @param {S} src pohon teks sumber (kelompok MIGRATED_GROUPS berisi pasangan)
- * @param {readonly string[]} [groups]
+ * @param {readonly string[]} [groups] jalur kelompok, boleh bertitik ('basis.refs')
  * @returns {{view:S, apply:(lang:'en'|'id')=>void}} view = STR (awal: English)
  */
 export function createStrings(src, groups = MIGRATED_GROUPS) {
-  const view = /** @type {any} */ ({});
-  for (const [k, v] of Object.entries(src)) view[k] = groups.includes(k) ? resolveText(v, 'en') : v;
+  const view = /** @type {any} */ ({ ...src });
+  const at = (root, parts) => parts.reduce((o, k) => o[k], root);
+  for (const g of groups) {
+    const parts = g.split('.'), last = /** @type {string} */ (parts.pop());
+    // salin tipis sepanjang jalur agar objek sumber (EN + id) tidak ikut berubah
+    let s = src, t = view;
+    for (const k of parts) { if (t[k] === s[k]) t[k] = { ...s[k] }; s = s[k]; t = t[k]; }
+    t[last] = resolveText(s[last], 'en');
+  }
   let current = 'en';
   return {
     view,
     apply(lang) {
       if (lang === current) return;
       current = lang;
-      for (const g of groups) assignInto(view[g], src[g], lang);
+      for (const g of groups) { const parts = g.split('.'); assignInto(at(view, parts), at(src, parts), lang); }
     },
   };
 }
