@@ -11,13 +11,68 @@ Jumlah: 75 istilah, 6 tanpa padanan di UI.
 
 ## Tetap Inggris (Paket D)
 
-Sejak Paket D, UI punya sisi Indonesia (sakelar EN/ID; `src/state/i18n.js`). Istilah di bawah ini **sengaja sama** di kedua bahasa. Sisi `id` lain yang sama persis dengan sisi `en` dianggap terjemahan yang tertinggal: `tests/i18n.test.js` gagal kecuali istilahnya ada di `SAME_OK` (`src/state/i18n.js`), dan setiap isi `SAME_OK` harus tercantum di daftar ini. Daftar ini dikunci sebelum D2 selesai; menambah istilah berarti mengubah daftar ini dan `SAME_OK` bersama-sama.
+Sejak Paket D, UI punya sisi Indonesia (sakelar EN/ID; `src/state/i18n.js`). Istilah di bawah ini **sengaja sama** di kedua bahasa. Sumber datanya satu berkas, `docs/tetap_inggris.json` (alasan tiap kelompok, penanda terhadap tabel ini); bagian ini dibuat darinya oleh `node scripts/gen-tetap-inggris.mjs` dan dijaga `tests/i18n.test.js`. Pasangan `{ en, id }` yang sisi `id`-nya sama persis dengan `en` hanya lolos bila teksnya ada di berkas itu; selebihnya dianggap terjemahan yang tertinggal. Perubahan setelah daftar dikunci berarti koreksi sisi ID, bukan perubahan struktur.
 
-- Singkatan dan simbol: `TDC`, `BDC`, `IVC`, `IGV`, `DLN`, `CEMS`, `EGR`, `SCR`, `LHV`, `GWP`, `AR6`, `PM`, `NOx`, `NO`, `NO₂`, `CO`, `CO₂`, `CO₂e`, `CH₄`, `SO₂`, `UHC`, `η`, `φ`, `λ`, `θ`, `P-V`, `T-s`, `ƒ`
-- Satuan: `ppm`, `ppmvd`, `mg/Nm³`, `g/kWh`, `K`, `°C`, `bar`, `kW`, `MW`, `rpm`, `%`
-- Nama halaman dan produk: `Learn`, `Chart guide`, `Glossary`, `References`, `About`, `Start`, `Assumptions`, `Try it`, `to verify`, `Basis`, `Explore`, `Present`, `Scene`, `Model OK`
-- Token status chip (keputusan D-a; tooltip chip diterjemahkan): `Within`, `Above`, `Not modeled`, `Site data`
-- Jargon lapangan tanpa padanan umum: `head`, `derating`, `part-load`, `methane slip`, `fuel-only`, `single-shaft`, `twin-shaft`, `lean-burn`, `lean premix`, `premix`, `fuel split`, `suction`, `discharge`, `surge`
+<!-- tetap-inggris:mulai (dibuat oleh scripts/gen-tetap-inggris.mjs dari docs/tetap_inggris.json; jangan diedit tangan) -->
+
+### Satuan dan simbol satuan
+
+- Alasan: Satuan SI dan simbol teknis ditulis sama di semua bahasa. Angka di sampingnya yang mengikuti bahasa (1.500,5 / 1,500.5).
+- Terhadap tabel PADANAN di bawah: tidak diatur tabel ini
+- Teks utuh (sisi id sengaja sama dengan en): `bar`, `K`, `%`, `mm`, `L`, `g/kWh`, `kJ/kg`, `kJ/kWh`, `MW`, `°C`, `mg/Nm³`, `ms`, `ATDC`, `rpm visual`, `ppm`, `% O₂`, `–`, `ppmvd`, `100-500 kW`, `500-1000 kW`
+- Dipakai di dalam kalimat (hanya dicatat): `kW`, `rpm`
+
+### Singkatan, rumus kimia, dan simbol
+
+- Alasan: Singkatan baku industri dan rumus kimia dipakai sama di naskah dan di layar; definisinya ada di Glossary. Simbol Yunani dan ƒ tidak diterjemahkan.
+- Terhadap tabel PADANAN di bawah: sesuai. Baris tabel: singkatan English (TDC, IGV, DLN, CEMS, PM, …) dipakai sama di naskah dan di layar.
+- Teks utuh (sisi id sengaja sama dengan en): `NOx`, `CO`, `CO₂`, `CH₄`, `PM`, `ƒ`, `CO₂e`, `SO₂`, `CEMS`, `DLN`, `IGV`, `GWP`, `UHC`, `LHV`, `TDC`, `ATDC / BTDC`, `EGR`, `BSFC`, `Pmax`, `AFR`, `λ (lambda)`, `φ (phi)`
+- Dipakai di dalam kalimat (hanya dicatat): `BDC`, `IVC`, `SCR`, `AR6`, `NO`, `NO₂`, `η`, `φ`, `λ`, `θ`, `P-V`, `T-s`
+
+### Nama tombol keyboard
+
+- Alasan: Huruf pada tombol keyboard sama di semua bahasa. Tombol Space ditulis Spasi di ID (bukan entri daftar ini).
+- Terhadap tabel PADANAN di bawah: tidak diatur tabel ini
+- Teks utuh (sisi id sengaja sama dengan en): `S`, `P`, `G`, `?`, `H`, `M`, `M: Explore`
+
+### Nama halaman, mode, dan produk
+
+- Alasan: Nama halaman dan mode sudah menjadi nama produk (Learn, Chart guide, Glossary, References, About, Start, Explore, Presenter, Basis, Assumptions) dan dipakai sama di ID, supaya tombol, tautan, dan naskah presenter menyebut hal yang sama. Nama aplikasi tidak diterjemahkan.
+- Terhadap tabel PADANAN di bawah: sesuai. Baris 67 (Explore), 69 (Presenter), 70 (References), 72 (Basis). Present menjadi 'Mode Present' (baris 68); Regulations dan Emission formation DITERJEMAHKAN (Baku mutu, Pembentukan emisi), jadi tidak ada di daftar ini.
+- Teks utuh (sisi id sengaja sama dengan en): `Start`, `Learn`, `Chart guide`, `About`, `References`, `Glossary`, `Assumptions`, `Explore`, `Presenter`, `Basis`, `Start here`, `Engine & Turbine Emission Lab`, `Presenter · Engine & Turbine Emission Lab`
+
+### Kode singkat navigasi yang dilipat
+
+- Alasan: Dua huruf di rail navigasi untuk halaman dan alat yang namanya tetap Inggris (Start, Learn, Chart guide, About, References, Glossary, Assumptions, Present, Presenter). Kode untuk halaman yang diterjemahkan berbeda (Bm, Pe, Tl).
+- Terhadap tabel PADANAN di bawah: sesuai. Mengikuti kelompok halaman_produk.
+- Teks utuh (sisi id sengaja sama dengan en): `St`, `Ln`, `Cg`, `Ab`, `Rf`, `Gl`, `As`, `Pr`, `Pw`
+
+### Token status chip dan Site data
+
+- Alasan: Keputusan D (a): chip Within / Above / Not modeled dan label Site data tetap Inggris di kedua bahasa, seperti tag Basis. Tooltip, alasan, dan kalimat di sekitarnya diterjemahkan. Chip tidak pernah berarti 'lulus' atau 'compliant'.
+- Terhadap tabel PADANAN di bawah: **MENYIMPANG**. Baris 56 memetakan 'tidak dimodelkan' ke chip Not modeled dan baris 58 'data lapangan / data unit' ke Site data. Di ID, chip dan label kolom tetap 'Not modeled' dan 'Site data'; kalimat biasa memakai 'tidak dimodelkan' dan 'data lapangan'. Within dan Above tidak punya baris di tabel.
+- Teks utuh (sisi id sengaja sama dengan en): `Within`, `Above`, `Not modeled`, `Site data`
+
+### Istilah lapangan dan teknis tanpa padanan umum
+
+- Alasan: Istilah yang di lapangan dan di perangkat lunak dipakai dalam bentuk Inggris. Menerjemahkannya membuat peserta mencari kata yang tidak mereka temui di dokumen vendor atau panel kontrol.
+- Terhadap tabel PADANAN di bawah: sesuai. Baris 26 (part-load dipakai apa adanya), 39 (head), 41 (methane slip), 33 (derating).
+- Teks utuh (sisi id sengaja sama dengan en): `Part-load`, `Renderer`, `Bloom`, `FPS`, `Frame [ms]`, `Thermal NOx`, `Methane slip`, `Lean premix`
+- Dipakai di dalam kalimat (hanya dicatat): `head`, `derating`, `part-load`, `methane slip`, `fuel-only`, `single-shaft`, `twin-shaft`, `lean-burn`, `lean premix`, `premix`, `fuel split`, `suction`, `discharge`, `surge`
+
+### Kata yang kebetulan sama di kedua bahasa
+
+- Alasan: Kata serapan yang ejaannya sama di Inggris dan Indonesia. Bukan terjemahan yang tertinggal.
+- Terhadap tabel PADANAN di bawah: tidak diatur tabel ini
+- Teks utuh (sisi id sengaja sama dengan en): `Ideal`, `Parameter`, `Model`, `Status`, `Timer`, `Total`, `Scene`, `Gas`
+
+### Fungsi pembentuk teks dengan sisi id identik
+
+- Alasan: Teks yang hanya terdiri atas nama tetap, angka, dan satuan (mis. 'Scene 3 · Judul', 'Model OK · 19/19', 'margin +4,2 %'). Tidak ada kata yang bisa diterjemahkan; angkanya sudah mengikuti bahasa lewat format angka.
+- Terhadap tabel PADANAN di bawah: sesuai. Mengikuti kelompok halaman_produk dan status_chip.
+- Fungsi teks: `common.animSpeedValue`, `app.sceneTag`, `app.docTitle`, `app.toast.bloom`, `app.badge.ok`, `app.badge.fail`, `nav.sceneTip`, `content.item`, `debug.gpu`, `presenter.current`, `presenter.target`, `presenter.nextLine`, `regulation.margin`, `regulation.mg`, `regulation.pct`, `regulation.scene6Row`, `regulation.scene6Item`, `regulation.scene6Margin`, `regulation.page.group`
+
+<!-- tetap-inggris:selesai -->
 
 | No | Istilah Indonesia | Dipakai di | Label English di UI | Sumber | Catatan |
 |---|---|---|---|---|---|
