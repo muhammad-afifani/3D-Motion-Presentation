@@ -24,7 +24,8 @@ import { CV } from '../charts/chartBase.js';
 
 const S = STR.scene7, C = STR.common, U = STR.common.units, H = STR.scene7.hud, SU = STR.scene7.units;
 
-export const meta = { id: 'compressor', number: 7, title: S.title, message: S.message };
+/** title / message dibaca saat dipakai (bukan saat modul dimuat) agar ikut bahasa aktif. */
+export const meta = { id: 'compressor', number: 7, get title() { return S.title; }, get message() { return S.message; } };
 
 const LABEL_KEYS = ['impeller', 'volute', 'inlet', 'discharge', 'coupling'];
 const WHATIF = CV.cold;

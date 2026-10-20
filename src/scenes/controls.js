@@ -11,7 +11,8 @@ import { STR } from '../ui/strings.js';
 
 const S = STR.scene10;
 
-export const meta = { id: 'controls', number: 10, title: S.title, message: S.message };
+/** title / message dibaca saat dipakai (bukan saat modul dimuat) agar ikut bahasa aktif. */
+export const meta = { id: 'controls', number: 10, get title() { return S.title; }, get message() { return S.message; } };
 
 const FILTERS = ['all', 'diesel', 'gas', 'turbine'];
 const KEYS_FILTER = { 1: 'all', 2: 'diesel', 3: 'gas', 4: 'turbine' };

@@ -29,6 +29,8 @@ export const MIGRATED_GROUPS = Object.freeze([
   'theme', 'formula', 'input',
   // D2 kerangka
   'common', 'app', 'nav', 'pages', 'content', 'debug', 'snapshot', 'presenter', 'regulation', 'landing', 'basis.refs',
+  // D3 Scene 1–4, grafik bersama, tag Basis di sudut grafik / HUD
+  'charts', 'scene1', 'scene2', 'scene3', 'scene4', 'basis.tag', 'basis.tagTip',
 ]);
 
 /** Pasangan dua bahasa: tepat kunci { en, id }. @param {any} v @returns {v is BiText<any>} */
@@ -57,7 +59,7 @@ function assignInto(target, src, lang) {
 /**
  * @template {Record<string, any>} S
  * @param {S} src pohon teks sumber (kelompok MIGRATED_GROUPS berisi pasangan)
- * @param {readonly string[]} [groups] jalur kelompok, boleh bertitik ('basis.refs')
+ * @param {readonly string[]} [groups] jalur kelompok, boleh bertitik ('basis.refs') atau menunjuk satu daun ('basis.tag')
  * @returns {{view:S, apply:(lang:'en'|'id')=>void}} view = STR (awal: English)
  */
 export function createStrings(src, groups = MIGRATED_GROUPS) {
@@ -76,7 +78,11 @@ export function createStrings(src, groups = MIGRATED_GROUPS) {
     apply(lang) {
       if (lang === current) return;
       current = lang;
-      for (const g of groups) { const parts = g.split('.'); assignInto(at(view, parts), at(src, parts), lang); }
+      for (const g of groups) {
+        const parts = g.split('.'), node = at(src, parts);
+        if (isPair(node) || typeof node !== 'object') at(view, parts.slice(0, -1))[parts.at(-1)] = resolveText(node, lang); // daun tunggal ('basis.tag')
+        else assignInto(at(view, parts), node, lang);
+      }
     },
   };
 }

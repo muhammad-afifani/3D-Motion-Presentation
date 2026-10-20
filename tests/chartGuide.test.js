@@ -2,7 +2,8 @@
 // kabel tombol di setiap pembuat grafik, asal klik ⓘ, dan label dua bahasa. Tampilan nyata diuji di smoke.
 import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
-import { STR } from '../src/ui/strings.js';
+import { STR, STR_SOURCE } from '../src/ui/strings.js';
+import { isPair } from '../src/state/i18n.js';
 import { guideIdForTitle, groupChartsByScene, GUIDE_LEVELS, setChartOrigin, chartOrigin, clearChartOrigin, backToChartHash } from '../src/state/chartGuide.js';
 import { parseHash, learnHash } from '../src/state/route.js';
 
@@ -59,6 +60,16 @@ describe('guideIdForTitle (un lugar)', () => {
     expect(guideIdForTitle(W.title('gas', 11.5), charts)).toBe('waterfall');
     expect(guideIdForTitle(W.braytonTitle, charts)).toBe('waterfall');
     expect(guideIdForTitle(STR.charts.waterfall.title, charts)).toBe('waterfall');
+  });
+  it('judul grafik berbahasa Indonesia (D3) menuju panduan yang sama dengan sisi English', () => {
+    const pairs = [];
+    const walk = (o) => { if (isPair(o)) { if (typeof o.en === 'string') pairs.push(o); } else if (o && typeof o === 'object') Object.values(o).forEach(walk); };
+    walk(STR_SOURCE.charts); walk(STR_SOURCE.scene1); walk(STR_SOURCE.scene2); walk(STR_SOURCE.scene3); walk(STR_SOURCE.scene4);
+    const checked = pairs.filter((p) => guideIdForTitle(p.en, charts) && p.en !== p.id);
+    expect(checked.length).toBeGreaterThan(8);
+    for (const p of checked) expect(guideIdForTitle(p.id, charts), `${p.en} | ${p.id}`).toBe(guideIdForTitle(p.en, charts));
+    const W = STR_SOURCE.scene2.waterfall;
+    for (const t of [W.title.id('diesel', 18), W.title.id('gas', 11.5), W.braytonTitle.id]) expect(guideIdForTitle(t, charts), t).toBe('waterfall');
   });
   it('spasi ekstra diabaikan; judul tak dikenal / kosong → null', () => {
     expect(guideIdForTitle('  NOx &   CO vs load ', charts)).toBe('partload');

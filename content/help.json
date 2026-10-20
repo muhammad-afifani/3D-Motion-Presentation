@@ -1453,7 +1453,7 @@
       },
       "how": {
         "en": "Site data takes priority over the model value and is marked as site data. It is a user input. The turbine table has no CO limit, so a CO value comes only from the permit or OEM value you type.",
-        "id": "Data unit diutamakan atas nilai model dan ditandai sebagai data unit. Ini isian pengguna. Tabel turbin tidak punya limit CO, jadi nilai CO hanya berasal dari nilai izin atau OEM yang Anda isi."
+        "id": "Data lapangan diutamakan atas nilai model dan ditandai sebagai data lapangan. Ini isian pengguna. Tabel turbin tidak punya limit CO, jadi nilai CO hanya berasal dari nilai izin atau OEM yang Anda isi."
       },
       "glossary": [
         "site-data",
@@ -1554,7 +1554,7 @@
       },
       "how": {
         "en": "It lists the level (Ideal, Real, Semi-empirical, or Site data), where the formula comes from, the sources, and the assumptions. Use it to judge how far to trust a result. A source marked to verify is not yet checked.",
-        "id": "Kartu ini memuat tingkat (Ideal, Real, Semi-empirical, atau Site data), asal rumus, sumber, dan asumsi. Pakai untuk menilai seberapa jauh hasil bisa dipercaya. Sumber bertanda to verify belum diperiksa."
+        "id": "Kartu ini memuat tingkat (Ideal, Real, Semi-empiris, atau Data lapangan), asal rumus, sumber, dan asumsi. Pakai untuk menilai seberapa jauh hasil bisa dipercaya. Sumber bertanda to verify belum diperiksa."
       },
       "glossary": [
         "indicative"

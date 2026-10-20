@@ -12,7 +12,8 @@ import { STR } from '../ui/strings.js';
 
 const S = STR.scene11;
 
-export const meta = { id: 'closing', number: 11, title: S.title, message: S.message };
+/** title / message dibaca saat dipakai (bukan saat modul dimuat) agar ikut bahasa aktif. */
+export const meta = { id: 'closing', number: 11, get title() { return S.title; }, get message() { return S.message; } };
 
 
 /** Opsi yang tampil di daftar presentasi (diekspor untuk tes). */

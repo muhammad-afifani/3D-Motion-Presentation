@@ -27,7 +27,9 @@
         "–",
         "ppmvd",
         "100-500 kW",
-        "500-1000 kW"
+        "500-1000 kW",
+        "η [%]",
+        "P [bar]"
       ],
       "inline": [
         "kW",
@@ -62,7 +64,12 @@
         "Pmax",
         "AFR",
         "λ (lambda)",
-        "φ (phi)"
+        "φ (phi)",
+        "BDC",
+        "MEP",
+        "IVC",
+        "EVO",
+        "SOC θ₀"
       ],
       "inline": [
         "BDC",
@@ -91,7 +98,8 @@
         "?",
         "H",
         "M",
-        "M: Explore"
+        "M: Explore",
+        "C"
       ]
     },
     {
@@ -136,15 +144,14 @@
     },
     {
       "id": "status_chip",
-      "title": "Token status chip dan Site data",
-      "reason": "Keputusan D (a): chip Within / Above / Not modeled dan label Site data tetap Inggris di kedua bahasa, seperti tag Basis. Tooltip, alasan, dan kalimat di sekitarnya diterjemahkan. Chip tidak pernah berarti 'lulus' atau 'compliant'.",
+      "title": "Token status chip",
+      "reason": "Keputusan D (a), terkunci: chip Within / Above / Not modeled tetap Inggris di kedua bahasa, seperti tag Basis. Tooltip, alasan, dan kalimat di sekitarnya diterjemahkan. Chip tidak pernah berarti 'lulus' atau 'compliant'. Label 'Site data' TIDAK termasuk: di ID menjadi 'Data lapangan' (keputusan terkunci).",
       "padanan": "menyimpang",
-      "padananNote": "Baris 56 memetakan 'tidak dimodelkan' ke chip Not modeled dan baris 58 'data lapangan / data unit' ke Site data. Di ID, chip dan label kolom tetap 'Not modeled' dan 'Site data'; kalimat biasa memakai 'tidak dimodelkan' dan 'data lapangan'. Within dan Above tidak punya baris di tabel.",
+      "padananNote": "Baris 56 memetakan 'tidak dimodelkan' ke chip Not modeled; di ID chip tetap 'Not modeled' dan kalimat biasa memakai 'tidak dimodelkan'. Within dan Above tidak punya baris di tabel. Baris 58 ('data lapangan / data unit') kini sesuai: label ID 'Data lapangan'.",
       "texts": [
         "Within",
         "Above",
-        "Not modeled",
-        "Site data"
+        "Not modeled"
       ]
     },
     {
@@ -161,7 +168,8 @@
         "Frame [ms]",
         "Thermal NOx",
         "Methane slip",
-        "Lean premix"
+        "Lean premix",
+        "Bloom: Auto"
       ],
       "inline": [
         "head",
@@ -177,7 +185,10 @@
         "fuel split",
         "suction",
         "discharge",
-        "surge"
+        "surge",
+        "waterfall",
+        "timing",
+        "what-if"
       ]
     },
     {
@@ -193,7 +204,10 @@
         "Timer",
         "Total",
         "Scene",
-        "Gas"
+        "Gas",
+        "Real",
+        "Piston",
+        "Preset"
       ]
     },
     {
@@ -221,7 +235,61 @@
         "regulation.scene6Row",
         "regulation.scene6Item",
         "regulation.scene6Margin",
-        "regulation.page.group"
+        "regulation.page.group",
+        "charts.flame.dT",
+        "charts.flame.point",
+        "scene3.tinValue",
+        "scene3.bars.sub",
+        "scene4.tradeoff.point",
+        "scene4.tradeoff.now",
+        "scene4.hud.calib.value",
+        "scene2.hud.tips.etaIdealBrayton",
+        "scene1.formula.VcVal",
+        "scene1.ptheta.pmax"
+      ]
+    },
+    {
+      "id": "nama_siklus",
+      "title": "Nama siklus dan komponen yang berupa nama diri",
+      "reason": "Nama siklus termodinamika (Otto, Diesel, Dual, Brayton) dan kombinasi yang hanya memuatnya adalah nama diri; menerjemahkannya tidak bermakna. Entri ditambahkan karena string Scene 1–4 memuatnya; kebijakan 'Tetap Inggris' tidak berubah.",
+      "padanan": "tidak-diatur",
+      "texts": [
+        "Otto",
+        "Diesel",
+        "Dual",
+        "Brayton",
+        "Brayton ideal",
+        "Brayton: ideal → real"
+      ]
+    },
+    {
+      "id": "rumus_simbol",
+      "title": "Rumus dan label matematika tanpa kata",
+      "reason": "String yang hanya berisi simbol, subskrip, dan operator (mis. 'T = ', 'x<sub>b</sub>', rumus η dan Zeldovich) tidak punya kata yang bisa diterjemahkan. Entri ditambahkan karena string Scene 1–4 memuatnya; kebijakan 'Tetap Inggris' tidak berubah.",
+      "padanan": "tidak-diatur",
+      "texts": [
+        "P",
+        "T",
+        "x<sub>b</sub>",
+        "P<sub>max</sub>",
+        "w<sub>net</sub>",
+        "T = ",
+        "P = ",
+        "V = ",
+        "B = ",
+        "a = ",
+        "l = ",
+        "l + a − s = "
+      ],
+      "paths": [
+        "scene1.formula.s",
+        "scene1.formula.V",
+        "scene1.formula.theta",
+        "scene1.formula.Vc",
+        "scene2.formula.otto",
+        "scene2.formula.diesel",
+        "scene2.formula.dual",
+        "scene2.formula.brayton"
       ]
     }
   ]

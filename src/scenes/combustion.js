@@ -23,7 +23,8 @@ import { STR, signedDeg } from '../ui/strings.js';
 
 const S = STR.scene3, C = STR.common, U = STR.common.units, H = STR.scene3.hud;
 
-export const meta = { id: 'combustion', number: 3, title: S.title, message: S.message };
+/** title / message dibaca saat dipakai (bukan saat modul dimuat) agar ikut bahasa aktif. */
+export const meta = { id: 'combustion', number: 3, get title() { return S.title; }, get message() { return S.message; } };
 
 const F_KEYS = ['fMode', 'fPhi', 'fPhiLocal'];
 const KEYS_MODE = { 1: 'diesel', 2: 'gas', 3: 'turbine' };
