@@ -181,7 +181,8 @@
         "Lean premix",
         "Bloom: Auto",
         "Power turbine",
-        "Derating"
+        "Derating",
+        "Heat rate"
       ],
       "inline": [
         "head",
