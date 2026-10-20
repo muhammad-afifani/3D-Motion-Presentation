@@ -1103,10 +1103,11 @@ async function scenesIdFlow(browser, url, cfg) {
   /** Tanda tangan teks scene (DOM + kanvas) tanpa angka: dipakai membandingkan "ganti bahasa" dengan "muat langsung dalam ID". */
   const SIG = () => {
     const strip = (t) => t.replace(/[\d.,+\-−×%·()/:→≈=[\]]+/g, ' ').replace(/\s+/g, ' ').trim();
+    const PHASE = /^(Isap|Kompresi|Ekspansi|Buang|Intake|Compression|Expansion|Exhaust)$/; // fase siklus berganti saat animasi berjalan
     const dom = new Set();
     for (const el of document.querySelectorAll('.scene *, .chart *')) {
       if (el.children.length || el.checkVisibility?.() === false || el.closest('.chart__tools')) continue;
-      const t = strip(el.textContent ?? ''); if (/[A-Za-zÀ-ÿα-ωΑ-Ω]{2}/.test(t)) dom.add(t);
+      const t = strip(el.textContent ?? ''); if (/[A-Za-zÀ-ÿα-ωΑ-Ω]{2}/.test(t) && !PHASE.test(t)) dom.add(t);
       for (const a of ['aria-label', 'title']) { const v = strip(el.getAttribute(a) ?? ''); if (/[A-Za-z]{2}/.test(v)) dom.add(`@${v}`); }
     }
     const cv = new Set();
