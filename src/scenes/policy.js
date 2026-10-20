@@ -35,7 +35,8 @@ import { CV } from '../charts/chartBase.js';
 
 const S = STR.scene9, C = STR.common, U = STR.common.units, H = STR.scene9.hud, LV = STR.scene9.leversTab, R = STR.regulation;
 
-export const meta = { id: 'policy', number: 9, title: S.title, message: S.message };
+/** title / message dibaca saat dipakai (bukan saat modul dimuat) agar ikut bahasa aktif. */
+export const meta = { id: 'policy', number: 9, get title() { return S.title; }, get message() { return S.message; } };
 
 const KEYS_TAB = Object.fromEntries(POLICY.tabs.map((t, i) => [String(i + 1), t]));
 /** Tab berlayout lebar (tanpa grafik dan HUD). */

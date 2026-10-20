@@ -20,7 +20,8 @@ import { STR } from '../ui/strings.js';
 
 const S = STR.scene5, C = STR.common, U = STR.common.units, H = STR.scene5.hud;
 
-export const meta = { id: 'turbine', number: 5, title: S.title, message: S.message };
+/** title / message dibaca saat dipakai (bukan saat modul dimuat) agar ikut bahasa aktif. */
+export const meta = { id: 'turbine', number: 5, get title() { return S.title; }, get message() { return S.message; } };
 
 const KEYS_CFG = { 1: 'generator', 2: 'compressorDrive' };
 const CAM = { generator: { pos: [-0.2, 1.7, 5.6], target: [-0.9, 0.05, 0] }, compressorDrive: { pos: [1.1, 1.7, 5.9], target: [0.8, 0.05, 0] } };

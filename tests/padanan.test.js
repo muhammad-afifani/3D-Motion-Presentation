@@ -64,7 +64,10 @@ describe('docs/PADANAN_ISTILAH.md', () => {
       for (const k of m[1].split('.')) node = node?.[k];
       if (!isPair(node) || typeof node.id !== 'string') continue; // belum dimigrasi (D3–D6) atau fungsi
       checked++;
-      const id = lower(node.id), vs = variants(r[1]).map(lower);
+      // varian istilah tabel; "efisiensi" boleh ditulis η, dan kata umum di depan (panel, faktor) boleh dihilangkan di label pendek
+      const base = variants(r[1]).map(lower);
+      const vs = [...new Set(base.flatMap((v) => [v, v.replace(/^efisiensi /, 'η '), v.replace(/^(panel|faktor) /, '')]))];
+      const id = lower(node.id);
       const kept = node.id === node.en && KEEP_TEXTS.has(node.en);
       if (!kept && !vs.some((v) => id.includes(v))) out.push(`${r[0]} ${r[1]} ↔ ${r[3]} → "${node.id}"`);
     }

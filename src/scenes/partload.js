@@ -29,7 +29,8 @@ import { CV } from '../charts/chartBase.js';
 
 const S = STR.scene6, C = STR.common, U = STR.common.units, H = STR.scene6.hud;
 
-export const meta = { id: 'partload', number: 6, title: S.title, message: S.message };
+/** title / message dibaca saat dipakai (bukan saat modul dimuat) agar ikut bahasa aktif. */
+export const meta = { id: 'partload', number: 6, get title() { return S.title; }, get message() { return S.message; } };
 
 const CFGS = ['single', 'twin'];
 const DASH = { single: [], twin: [7, 5] };

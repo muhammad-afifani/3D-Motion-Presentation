@@ -19,21 +19,21 @@ Sejak Paket D, UI punya sisi Indonesia (sakelar EN/ID; `src/state/i18n.js`). Ist
 
 - Alasan: Satuan SI dan simbol teknis ditulis sama di semua bahasa. Angka di sampingnya yang mengikuti bahasa (1.500,5 / 1,500.5).
 - Terhadap tabel PADANAN di bawah: tidak diatur tabel ini
-- Teks utuh (sisi id sengaja sama dengan en): `bar`, `K`, `%`, `mm`, `L`, `g/kWh`, `kJ/kg`, `kJ/kWh`, `MW`, `°C`, `mg/Nm³`, `ms`, `ATDC`, `rpm visual`, `ppm`, `% O₂`, `–`, `ppmvd`, `100-500 kW`, `500-1000 kW`
+- Teks utuh (sisi id sengaja sama dengan en): `bar`, `K`, `%`, `mm`, `L`, `g/kWh`, `kJ/kg`, `kJ/kWh`, `MW`, `°C`, `mg/Nm³`, `ms`, `ATDC`, `rpm visual`, `ppm`, `% O₂`, `–`, `ppmvd`, `100-500 kW`, `500-1000 kW`, `η [%]`, `P [bar]`
 - Dipakai di dalam kalimat (hanya dicatat): `kW`, `rpm`
 
 ### Singkatan, rumus kimia, dan simbol
 
 - Alasan: Singkatan baku industri dan rumus kimia dipakai sama di naskah dan di layar; definisinya ada di Glossary. Simbol Yunani dan ƒ tidak diterjemahkan.
 - Terhadap tabel PADANAN di bawah: sesuai. Baris tabel: singkatan English (TDC, IGV, DLN, CEMS, PM, …) dipakai sama di naskah dan di layar.
-- Teks utuh (sisi id sengaja sama dengan en): `NOx`, `CO`, `CO₂`, `CH₄`, `PM`, `ƒ`, `CO₂e`, `SO₂`, `CEMS`, `DLN`, `IGV`, `GWP`, `UHC`, `LHV`, `TDC`, `ATDC / BTDC`, `EGR`, `BSFC`, `Pmax`, `AFR`, `λ (lambda)`, `φ (phi)`
+- Teks utuh (sisi id sengaja sama dengan en): `NOx`, `CO`, `CO₂`, `CH₄`, `PM`, `ƒ`, `CO₂e`, `SO₂`, `CEMS`, `DLN`, `IGV`, `GWP`, `UHC`, `LHV`, `TDC`, `ATDC / BTDC`, `EGR`, `BSFC`, `Pmax`, `AFR`, `λ (lambda)`, `φ (phi)`, `BDC`, `MEP`, `IVC`, `EVO`, `SOC θ₀`
 - Dipakai di dalam kalimat (hanya dicatat): `BDC`, `IVC`, `SCR`, `AR6`, `NO`, `NO₂`, `η`, `φ`, `λ`, `θ`, `P-V`, `T-s`
 
 ### Nama tombol keyboard
 
 - Alasan: Huruf pada tombol keyboard sama di semua bahasa. Tombol Space ditulis Spasi di ID (bukan entri daftar ini).
 - Terhadap tabel PADANAN di bawah: tidak diatur tabel ini
-- Teks utuh (sisi id sengaja sama dengan en): `S`, `P`, `G`, `?`, `H`, `M`, `M: Explore`
+- Teks utuh (sisi id sengaja sama dengan en): `S`, `P`, `G`, `?`, `H`, `M`, `M: Explore`, `C`
 
 ### Nama halaman, mode, dan produk
 
@@ -47,30 +47,43 @@ Sejak Paket D, UI punya sisi Indonesia (sakelar EN/ID; `src/state/i18n.js`). Ist
 - Terhadap tabel PADANAN di bawah: sesuai. Mengikuti kelompok halaman_produk.
 - Teks utuh (sisi id sengaja sama dengan en): `St`, `Ln`, `Cg`, `Ab`, `Rf`, `Gl`, `As`, `Pr`, `Pw`
 
-### Token status chip dan Site data
+### Token status chip
 
-- Alasan: Keputusan D (a): chip Within / Above / Not modeled dan label Site data tetap Inggris di kedua bahasa, seperti tag Basis. Tooltip, alasan, dan kalimat di sekitarnya diterjemahkan. Chip tidak pernah berarti 'lulus' atau 'compliant'.
-- Terhadap tabel PADANAN di bawah: **MENYIMPANG**. Baris 56 memetakan 'tidak dimodelkan' ke chip Not modeled dan baris 58 'data lapangan / data unit' ke Site data. Di ID, chip dan label kolom tetap 'Not modeled' dan 'Site data'; kalimat biasa memakai 'tidak dimodelkan' dan 'data lapangan'. Within dan Above tidak punya baris di tabel.
-- Teks utuh (sisi id sengaja sama dengan en): `Within`, `Above`, `Not modeled`, `Site data`
+- Alasan: Keputusan D (a), terkunci: chip Within / Above / Not modeled tetap Inggris di kedua bahasa, seperti tag Basis. Tooltip, alasan, dan kalimat di sekitarnya diterjemahkan. Chip tidak pernah berarti 'lulus' atau 'compliant'. Label 'Site data' TIDAK termasuk: di ID menjadi 'Data lapangan' (keputusan terkunci).
+- Terhadap tabel PADANAN di bawah: **MENYIMPANG**. Baris 56 memetakan 'tidak dimodelkan' ke chip Not modeled; di ID chip tetap 'Not modeled' dan kalimat biasa memakai 'tidak dimodelkan'. Within dan Above tidak punya baris di tabel. Baris 58 ('data lapangan / data unit') kini sesuai: label ID 'Data lapangan'.
+- Teks utuh (sisi id sengaja sama dengan en): `Within`, `Above`, `Not modeled`
 
 ### Istilah lapangan dan teknis tanpa padanan umum
 
 - Alasan: Istilah yang di lapangan dan di perangkat lunak dipakai dalam bentuk Inggris. Menerjemahkannya membuat peserta mencari kata yang tidak mereka temui di dokumen vendor atau panel kontrol.
 - Terhadap tabel PADANAN di bawah: sesuai. Baris 26 (part-load dipakai apa adanya), 39 (head), 41 (methane slip), 33 (derating).
-- Teks utuh (sisi id sengaja sama dengan en): `Part-load`, `Renderer`, `Bloom`, `FPS`, `Frame [ms]`, `Thermal NOx`, `Methane slip`, `Lean premix`
+- Teks utuh (sisi id sengaja sama dengan en): `Part-load`, `Renderer`, `Bloom`, `FPS`, `Frame [ms]`, `Thermal NOx`, `Methane slip`, `Lean premix`, `Bloom: Auto`
 - Dipakai di dalam kalimat (hanya dicatat): `head`, `derating`, `part-load`, `methane slip`, `fuel-only`, `single-shaft`, `twin-shaft`, `lean-burn`, `lean premix`, `premix`, `fuel split`, `suction`, `discharge`, `surge`
 
 ### Kata yang kebetulan sama di kedua bahasa
 
 - Alasan: Kata serapan yang ejaannya sama di Inggris dan Indonesia. Bukan terjemahan yang tertinggal.
 - Terhadap tabel PADANAN di bawah: tidak diatur tabel ini
-- Teks utuh (sisi id sengaja sama dengan en): `Ideal`, `Parameter`, `Model`, `Status`, `Timer`, `Total`, `Scene`, `Gas`
+- Teks utuh (sisi id sengaja sama dengan en): `Ideal`, `Parameter`, `Model`, `Status`, `Timer`, `Total`, `Scene`, `Gas`, `Real`, `Piston`, `Preset`
 
 ### Fungsi pembentuk teks dengan sisi id identik
 
 - Alasan: Teks yang hanya terdiri atas nama tetap, angka, dan satuan (mis. 'Scene 3 · Judul', 'Model OK · 19/19', 'margin +4,2 %'). Tidak ada kata yang bisa diterjemahkan; angkanya sudah mengikuti bahasa lewat format angka.
 - Terhadap tabel PADANAN di bawah: sesuai. Mengikuti kelompok halaman_produk dan status_chip.
-- Fungsi teks: `common.animSpeedValue`, `app.sceneTag`, `app.docTitle`, `app.toast.bloom`, `app.badge.ok`, `app.badge.fail`, `nav.sceneTip`, `content.item`, `debug.gpu`, `presenter.current`, `presenter.target`, `presenter.nextLine`, `regulation.margin`, `regulation.mg`, `regulation.pct`, `regulation.scene6Row`, `regulation.scene6Item`, `regulation.scene6Margin`, `regulation.page.group`
+- Fungsi teks: `common.animSpeedValue`, `app.sceneTag`, `app.docTitle`, `app.toast.bloom`, `app.badge.ok`, `app.badge.fail`, `nav.sceneTip`, `content.item`, `debug.gpu`, `presenter.current`, `presenter.target`, `presenter.nextLine`, `regulation.margin`, `regulation.mg`, `regulation.pct`, `regulation.scene6Row`, `regulation.scene6Item`, `regulation.scene6Margin`, `regulation.page.group`, `charts.flame.dT`, `charts.flame.point`, `scene3.tinValue`, `scene3.bars.sub`, `scene4.tradeoff.point`, `scene4.tradeoff.now`, `scene4.hud.calib.value`, `scene2.hud.tips.etaIdealBrayton`, `scene1.formula.VcVal`, `scene1.ptheta.pmax`
+
+### Nama siklus dan komponen yang berupa nama diri
+
+- Alasan: Nama siklus termodinamika (Otto, Diesel, Dual, Brayton) dan kombinasi yang hanya memuatnya adalah nama diri; menerjemahkannya tidak bermakna. Entri ditambahkan karena string Scene 1–4 memuatnya; kebijakan 'Tetap Inggris' tidak berubah.
+- Terhadap tabel PADANAN di bawah: tidak diatur tabel ini
+- Teks utuh (sisi id sengaja sama dengan en): `Otto`, `Diesel`, `Dual`, `Brayton`, `Brayton ideal`, `Brayton: ideal → real`
+
+### Rumus dan label matematika tanpa kata
+
+- Alasan: String yang hanya berisi simbol, subskrip, dan operator (mis. 'T = ', 'x<sub>b</sub>', rumus η dan Zeldovich) tidak punya kata yang bisa diterjemahkan. Entri ditambahkan karena string Scene 1–4 memuatnya; kebijakan 'Tetap Inggris' tidak berubah.
+- Terhadap tabel PADANAN di bawah: tidak diatur tabel ini
+- Teks utuh (sisi id sengaja sama dengan en): `P`, `T`, `x<sub>b</sub>`, `P<sub>max</sub>`, `w<sub>net</sub>`, `T = `, `P = `, `V = `, `B = `, `a = `, `l = `, `l + a − s = `
+- Fungsi teks: `scene1.formula.s`, `scene1.formula.V`, `scene1.formula.theta`, `scene1.formula.Vc`, `scene2.formula.otto`, `scene2.formula.diesel`, `scene2.formula.dual`, `scene2.formula.brayton`
 
 <!-- tetap-inggris:selesai -->
 
