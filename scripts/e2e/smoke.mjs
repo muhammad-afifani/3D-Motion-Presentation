@@ -16,6 +16,7 @@
  *      ⓘ → panduan → Back to the chart, Present tanpa ⓘ, PNG tanpa ⓘ, indeks 15 panduan, alamat langsung, G/? + Esc.
  *  12. Klik setiap ⓘ di dalam layar (semua scene, Dark/Light, 3 viewport; legenda viewport 3D tidak tertutup overlay) + drag area kosong viewport 3D memutar kamera.
  *  14. D2: galat isian angka di slot tetap (tanpa pergeseran tata letak), jendela presenter + panel presenter ikut EN ↔ ID, kerangka ID (navigasi, Settings, halaman penuh) di 3 viewport × 2 tema.
+ *  15. D3: Scene 1–4 ID vs EN: teks kanvas (keluar kotak / bertumpuk yang bertambah), judul ID → panduan ⓘ, label 3D dan PNG ikut bahasa, ganti bahasa tanpa galat.
  *  13. Bahasa ID (Paket D1): semua scene + tab di 3 viewport × 2 tema tanpa luapan (1280: chip, tab Scene 9, header), angka HUD format ID, ganti EN ↔ ID tanpa muat ulang (HUD, Limits, Regulations), isian koma / titik dan pesan galat ID.
  *  11. Settings ⚙ + Hide working notes: panel, penyimpanan, Explore / Present, catatan kerja hilang dan label kejujuran tetap, header 3 viewport tanpa tumpang tindih.
  *  10. Bagian C: bantuan ⓘ (kartu di HUD, slider, navigasi; Glossary / Lesson; Present; PNG; ID) di 3 viewport × 2 tema; tumpang tindih ⓘ semua scene.
@@ -1049,6 +1050,148 @@ async function langIdInteraction(browser, url) {
 
 
 /**
+ * D3: Scene 1–4 dan grafiknya dalam ID dibandingkan dengan EN. Teks kanvas direkam dari fillText (kotak per teks, bingkai
+ * terakhir tiap kanvas); yang dihitung: teks keluar kanvas dan teks bertumpuk. Hanya penambahan di ID terhadap EN yang
+ * dilaporkan (cacat bawaan EN bukan urusan terjemahan). Juga: judul ID menuju panduan ⓘ yang sama, label 3D ikut bahasa
+ * tanpa muat ulang, ganti bahasa saat scene berjalan tanpa galat konsol, dan footer PNG mengikuti bahasa.
+ */
+async function d3Interaction(browser, url) {
+  const fails = [];
+  const base = url.replace(/#.*$/, '');
+  const REC = () => {
+    if (window.__rec) return;
+    window.__rec = { on: true, byCanvas: new Map(), all: [] };
+    const P = CanvasRenderingContext2D.prototype, ft = P.fillText, st = P.strokeText, cr = P.clearRect, fr = P.fillRect;
+    const reset = (ctx) => window.__rec.byCanvas.set(ctx.canvas, []);
+    P.clearRect = function (x, y, w, h) { if (w >= this.canvas.width * 0.9 && h >= this.canvas.height * 0.9) reset(this); return cr.call(this, x, y, w, h); };
+    P.fillRect = function (x, y, w, h) { if (w >= this.canvas.width * 0.9 && h >= this.canvas.height * 0.9 && this.canvas.isConnected) reset(this); return fr.call(this, x, y, w, h); };
+    const note = (ctx, text, x, y) => {
+      const R = window.__rec; if (!R.on) return;
+      R.all.push(String(text));
+      if (!ctx.canvas.isConnected) return;
+      const m = ctx.measureText(String(text)), t = ctx.getTransform();
+      const k = Math.hypot(t.a, t.b) || 1, rot = Math.abs(t.b) > 0.5;
+      let w = m.width * k, h = (m.actualBoundingBoxAscent + m.actualBoundingBoxDescent) * k || 8 * k;
+      let X = t.a * x + t.c * y + t.e, Y = t.b * x + t.d * y + t.f;
+      if (rot) [w, h] = [h, w];
+      const al = ctx.textAlign, bl = ctx.textBaseline;
+      const left = rot ? X - w / 2 : al === 'center' ? X - w / 2 : al === 'right' || al === 'end' ? X - w : X;
+      const top = rot ? Y - h / 2 : bl === 'top' || bl === 'hanging' ? Y : bl === 'middle' ? Y - h / 2 : Y - h;
+      const arr = R.byCanvas.get(ctx.canvas) ?? []; R.byCanvas.set(ctx.canvas, arr);
+      arr.push({ text: String(text), l: left, t: top, r: left + w, b: top + h });
+    };
+    P.fillText = function (text, x, y, mw) { note(this, text, x, y); return ft.call(this, text, x, y, mw); };
+    P.strokeText = function (text, x, y, mw) { return st.call(this, text, x, y, mw); };
+  };
+  const measure = () => {
+    const out = [];
+    for (const [cv, arr] of window.__rec.byCanvas) {
+      if (!cv.isConnected || cv.checkVisibility?.() === false || !cv.width) continue;
+      let over = 0, ov = 0; const detail = [];
+      for (const a of arr) if (a.l < -1 || a.t < -1 || a.r > cv.width + 1 || a.b > cv.height + 1) { over++; detail.push(`keluar "${a.text}"`); }
+      for (let i = 0; i < arr.length; i++) for (let j = i + 1; j < arr.length; j++) {
+        const a = arr[i], b = arr[j];
+        const iw = Math.min(a.r, b.r) - Math.max(a.l, b.l), ih = Math.min(a.b, b.b) - Math.max(a.t, b.t);
+        if (iw > 2 && ih > 2 && a.text !== b.text) { ov++; detail.push(`"${a.text}" × "${b.text}" (${iw.toFixed(1)}×${ih.toFixed(1)} px)`); }
+      }
+      out.push({ key: `${(cv.closest('.chart')?.querySelector('.chart__title')?.textContent ?? cv.className).trim().slice(0, 28)}`, over, ov, n: arr.length, detail });
+    }
+    return out;
+  };
+  const probe = async (p, n, tab) => {
+    await goScene(p, n, 500);
+    if (tab) { await p.keyboard.press(tab); await p.waitForTimeout(400); }
+    await p.waitForTimeout(900);
+    return p.evaluate(measure);
+  };
+  const tabsOf = (n) => (n === 2 ? [null, '4'] : [null]);
+  const sums = (a) => ({ over: a.reduce((s, x) => s + x.over, 0), ov: a.reduce((s, x) => s + x.ov, 0), n: a.reduce((s, x) => s + x.n, 0) });
+  let compared = 0, texts = 0;
+  for (const [w, h] of VIEWPORTS) {
+    for (const theme of ['dark', 'light']) {
+      const res = {};
+      for (const lang of ['en', 'id']) {
+        const p = await browser.newPage({ viewport: { width: w, height: h } });
+        const errs = [];
+        p.on('pageerror', (e) => errs.push(`pageerror: ${e.message}`));
+        p.on('console', (m) => { if (m.type() === 'error') errs.push(`console: ${m.text()}`); });
+        await p.addInitScript(REC);
+        await p.addInitScript(([l, t]) => { try { localStorage.setItem('etel:lang', l); localStorage.setItem('etel:theme', t); } catch { /* */ } }, [lang, theme]);
+        await p.goto(`${base}#/scene/1`);
+        await p.waitForFunction(() => window.__etelDebug?.scene() === 1 && !window.__etelDebug.loading(), null, { timeout: 30000 });
+        for (let n = 1; n <= 4; n++) for (const tab of tabsOf(n)) {
+          const key = `Scene ${n}${tab ? ' Brayton' : ''}`;
+          res[`${lang}|${key}`] = await probe(p, n, tab);
+          if (lang === 'id') {
+            // judul grafik ID → panduan yang sama dengan sisi EN
+            const titles = await p.evaluate(() => [...document.querySelectorAll('.chart')].filter((c) => c.checkVisibility?.() !== false).map((c) => c.querySelector('.chart__title')?.textContent?.trim()).filter(Boolean));
+            for (const t of titles) if (!(await p.evaluate((x) => window.__etelDebug.guideFor(x), t))) fails.push(`${w}×${h} ${theme} ${key}: judul ID "${t}" tanpa panduan ⓘ`);
+            if (tab) { await p.keyboard.press('1'); await p.waitForTimeout(200); }
+          } else if (tab) { await p.keyboard.press('1'); await p.waitForTimeout(200); }
+        }
+        for (const e of [...new Set(errs)]) fails.push(`${w}×${h} ${theme} ${lang}: ${e}`);
+        texts += await p.evaluate(() => window.__rec.all.length);
+        await p.close();
+      }
+      for (const k of Object.keys(res).filter((x) => x.startsWith('id|'))) {
+        const name = k.slice(3), a = sums(res[`en|${name}`] ?? []), b = sums(res[k]);
+        compared++;
+        if (b.over > a.over) fails.push(`${w}×${h} ${theme} ${name}: teks kanvas keluar kotak ID ${b.over} > EN ${a.over} (${res[k].filter((x) => x.over).map((x) => `${x.key}: ${x.detail.join('; ')}`).join(', ')})`);
+        if (b.ov > a.ov) fails.push(`${w}×${h} ${theme} ${name}: teks kanvas bertumpuk ID ${b.ov} > EN ${a.ov} (${res[k].filter((x) => x.ov).map((x) => `${x.key}: ${x.detail.join('; ')}`).join(', ')} | EN: ${(res[`en|${name}`] ?? []).filter((x) => x.ov).map((x) => x.detail.join('; ')).join(' / ')})`);
+        if (b.n === 0) fails.push(`${w}×${h} ${theme} ${name}: tidak ada teks kanvas terekam`);
+      }
+    }
+  }
+  if (!texts) fails.push('perekam teks kanvas tidak menangkap apa pun');
+
+  // ganti bahasa saat scene berjalan: label 3D, judul grafik, footer PNG; tanpa galat konsol / halaman, tanpa muat ulang
+  const p = await browser.newPage({ viewport: { width: 1366, height: 768 }, acceptDownloads: true });
+  try {
+    const errs = [];
+    p.on('pageerror', (e) => errs.push(`pageerror: ${e.message}`));
+    p.on('console', (m) => { if (m.type() === 'error') errs.push(`console: ${m.text()}`); });
+    await p.addInitScript(REC);
+    await p.addInitScript(() => { try { localStorage.setItem('etel:lang', 'en'); localStorage.setItem('etel:theme', 'dark'); } catch { /* */ } });
+    await p.goto(`${base}#/scene/1`);
+    await p.waitForFunction(() => window.__etelDebug?.scene() === 1 && !window.__etelDebug.loading(), null, { timeout: 30000 });
+    await p.evaluate(() => { window.__noReload = 1; });
+    const toLang = async (l) => {
+      await p.click(`.topbar .lang-switch [data-lang="${l}"]`);
+      await p.waitForFunction((x) => window.__etelDebug.uiLang() === x && !window.__etelDebug.loading(), l, { timeout: 15000 });
+      await p.waitForTimeout(1000);
+    };
+    const labels = () => [...document.querySelectorAll('.label3d')].filter((e) => e.checkVisibility?.() !== false).map((e) => e.textContent.trim()).filter(Boolean);
+    const chartTitles = () => [...document.querySelectorAll('.chart .chart__title')].filter((e) => e.checkVisibility?.() !== false).map((e) => e.textContent.trim());
+    for (const n of [1, 2, 3, 4]) {
+      await goScene(p, n, 900);
+      const l1 = await p.evaluate(labels), c1 = await p.evaluate(chartTitles);
+      await toLang('id');
+      const l2 = await p.evaluate(labels), c2 = await p.evaluate(chartTitles);
+      if (await p.evaluate(() => window.__noReload) !== 1) fails.push(`ganti bahasa Scene ${n}: halaman dimuat ulang`);
+      if (!c1.length || c1.join('|') === c2.join('|')) fails.push(`ganti bahasa Scene ${n}: judul grafik tidak berubah (${c1.join(' / ')})`);
+      if (l1.length && l1.join('|') === l2.join('|')) fails.push(`ganti bahasa Scene ${n}: label 3D tidak berubah (${l1.join(' / ')})`);
+      if (n === 1) {
+        await p.evaluate(() => { window.__rec.all.length = 0; document.activeElement?.blur?.(); });
+        try {
+          await Promise.all([p.waitForEvent('download', { timeout: 30000 }), p.keyboard.press('s')]);
+          await p.waitForTimeout(600);
+          const foot = await p.evaluate(() => window.__rec.all.filter((t) => /Emission Lab/.test(t)));
+          if (!foot.some((t) => /indikatif/.test(t))) fails.push(`PNG (ID): footer tanpa "indikatif" (${foot.join(' | ').slice(0, 120) || 'tidak terekam'})`);
+        } catch { fails.push('PNG (ID): ekspor S tidak menghasilkan unduhan'); }
+      }
+      await toLang('en');
+    }
+    // beberapa kali bolak-balik saat animasi berjalan
+    await goScene(p, 3, 600);
+    for (let i = 0; i < 4; i++) { await toLang(i % 2 ? 'en' : 'id'); }
+    for (const e of [...new Set(errs)]) fails.push(`ganti bahasa D3: ${e}`);
+  } catch (e) { fails.push(`ganti bahasa D3: ${e.message.split('\n')[0]}`); }
+  await p.close();
+  console.log(`\nD3 Scene 1–4 (ID vs EN): ${compared} perbandingan teks kanvas (3 viewport × 2 tema), ${texts} teks kanvas terekam`);
+  return fails;
+}
+
+/**
  * D2: galat isian angka di slot tetap di bawah kotak (ui/numberInput.js). Di 1280 × {EN, ID} × {Dark, Light}, lima tempat isian
  * (limit NOx / CO Scene 6, site data nilai / O₂ dan sulfur di Scene 9 Limits, target Calibration Scene 4, O₂ acuan panel H):
  * ketik nilai salah → pesan muncul dalam bahasa aktif, tidak terpotong (tanpa elipsis), tidak keluar layar, tidak tertutup
@@ -1837,7 +1980,7 @@ try {
   // E2E_ONLY=learn,landing,deeplinks: hanya alur halaman tersebut (iterasi cepat); tanpa variabel = smoke penuh
   const only = process.env.E2E_ONLY ? new Set(process.env.E2E_ONLY.split(',')) : null;
   if (only) {
-    const flows = { numerr: numberErrorsInteraction, presenterlang: presenterLangInteraction, idchrome: idChromeInteraction, langid: langIdInteraction, learn: learnInteraction, chartguide: chartGuideInteraction, help: helpInteraction, helpclick: helpClickInteraction, settings: settingsInteraction, landing: landingInteraction, deeplinks: deepLinks, theme: themeInteraction };
+    const flows = { numerr: numberErrorsInteraction, presenterlang: presenterLangInteraction, idchrome: idChromeInteraction, langid: langIdInteraction, d3: d3Interaction, learn: learnInteraction, chartguide: chartGuideInteraction, help: helpInteraction, helpclick: helpClickInteraction, settings: settingsInteraction, landing: landingInteraction, deeplinks: deepLinks, theme: themeInteraction };
     for (const k of only) if (flows[k]) failures.push(...await flows[k](chromium.browser, srv.url));
   }
   for (const [w, h] of only ? [] : VIEWPORTS) {
@@ -1892,6 +2035,7 @@ try {
     if (w === 1366) failures.push(...await settingsInteraction(chromium.browser, srv.url));
     if (w === 1366) failures.push(...await helpClickInteraction(chromium.browser, srv.url));
     if (w === 1366) failures.push(...await langIdInteraction(chromium.browser, srv.url));
+    if (w === 1366) failures.push(...await d3Interaction(chromium.browser, srv.url));
     if (w === 1366) failures.push(...await presenterLangInteraction(chromium.browser, srv.url));
     if (w === 1366) failures.push(...await idChromeInteraction(chromium.browser, srv.url));
     if (w === 1280) failures.push(...await numberErrorsInteraction(chromium.browser, srv.url));
