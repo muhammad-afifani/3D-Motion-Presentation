@@ -34,7 +34,8 @@ Tiap tahap menambah frasa EN yang relevan bila muncul kalimat jujur model baru (
 
 - `langid` (semua scene × 3 viewport × 2 tema, ID): luapan, tumpang tindih, angka HUD format ID.
 - `d3` (Scene 1–4 dan tab grafik): teks kanvas direkam dari `fillText` dan dibandingkan ID terhadap EN. Hanya yang bertambah di ID yang gagal (cacat bawaan EN bukan urusan terjemahan). Juga: judul ID → panduan ⓘ yang sama; label 3D dan judul grafik ikut bahasa tanpa muat ulang; footer PNG berbahasa ID; bolak-balik EN ↔ ID saat animasi berjalan tanpa galat konsol atau halaman.
-- Tahap berikutnya memperluas daftar scene di alur `d3` (atau alur sejenis) ke scene tahap itu.
+- `d4` (Scene 5–8) memakai kerangka yang sama (`scenesIdFlow`) ditambah: perbandingan teks DOM + kanvas "ganti bahasa" vs "muat langsung ID" (menangkap teks yang membeku di bahasa awal), jaga tinggi grafik ID ≥ EN − 25 px, tumpang tindih panel kontrol, dan Scene 6 (chip, margin, garis batas, isian koma / titik saat bahasa berganti). Tahap berikutnya memakai `scenesIdFlow` dengan daftar scene tahap itu.
+- Tick × tick pada kanvas diabaikan dalam perbandingan (bergantung tinggi grafik, bukan panjang teks); tinggi grafik dijaga terpisah.
 
 ## 5. Laporan akhir tahap
 

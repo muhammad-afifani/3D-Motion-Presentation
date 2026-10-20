@@ -31,6 +31,8 @@ export const MIGRATED_GROUPS = Object.freeze([
   'common', 'app', 'nav', 'pages', 'content', 'debug', 'snapshot', 'presenter', 'regulation', 'landing', 'basis.refs',
   // D3 Scene 1–4, grafik bersama, tag Basis di sudut grafik / HUD
   'charts', 'scene1', 'scene2', 'scene3', 'scene4', 'basis.tag', 'basis.tagTip',
+  // D4 Scene 5–8
+  'scene5', 'scene6', 'scene7', 'scene8',
 ]);
 
 /** Pasangan dua bahasa: tepat kunci { en, id }. @param {any} v @returns {v is BiText<any>} */
