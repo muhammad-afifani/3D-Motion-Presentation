@@ -358,7 +358,7 @@ const SRC = {
     brayton: {
       title: { en: 'Brayton schematic (state markers)', id: 'Skema Brayton (penanda keadaan)' },
       compressor: { en: 'Compressor', id: 'Kompresor' }, combustor: { en: 'Combustor', id: 'Ruang bakar' }, turbine: { en: 'Turbine', id: 'Turbin' },
-      returnPath: { en: '4→1 heat rejected to ambient (a closed cycle, in concept)', id: '4→1 panas dibuang ke lingkungan (dianggap siklus tertutup)' },
+      returnPath: { en: '4→1 heat rejected to ambient (a closed cycle, in concept)', id: '4→1 panas dibuang ke lingkungan (dianggap tertutup)' },
       note: { en: '2D sketch of the state points, not the turbine rig (3D rig: Scene 5)', id: 'Sketsa 2D titik keadaan, bukan rig turbin (rig 3D: Scene 5)' },
     },
     flame: {
@@ -514,7 +514,7 @@ const SRC = {
     modes: { diesel: { en: 'Diesel', id: 'Diesel' }, gas: { en: 'Gas engine', id: 'Mesin gas' }, turbine: { en: 'Turbine (premix)', id: 'Turbin (premix)' } },
     phiLabel: { diesel: { en: 'Global φ (mean)', id: 'φ global (rata-rata)' }, gas: { en: 'Mixture φ (homogeneous)', id: 'φ campuran (homogen)' }, turbine: { en: 'Premix-zone φ', id: 'φ zona premix' } },
     phiLocal: { en: 'Local φ (flame zone)', id: 'φ lokal (zona nyala)' },
-    tin: { en: 'Inlet mixture T', id: 'T campuran masuk' },
+    tin: { en: 'Inlet mixture T', id: 'T_in campuran' },
     tinValue: { en: (Tin, manual) => `${fmt(Tin, 0)} K ${manual ? '(manual)' : '(model)'}`, id: (Tin, manual) => `${fmt(Tin, 0)} K ${manual ? '(manual)' : '(model)'}` },
     tinModel: { en: 'T_in from model', id: 'T_in dari model' },
     focus: { en: 'Combustion window focus', id: 'Fokus pembakaran' },
@@ -531,7 +531,7 @@ const SRC = {
       tflame: { label: { en: 'Adiabatic flame temperature', id: 'Suhu nyala adiabatik' }, tip: { en: (diesel) => `Adiabatic flame temperature at the moment the mixture burns, from ${diesel ? 'local ' : ''}φ, inlet T, and fuel.\nNot the "Peak burned-zone temperature" in Scene 4 (burned gas that keeps being compressed, so it gets hotter).\nIndicative ±100 K.`, id: (diesel) => `Suhu nyala adiabatik saat campuran terbakar, dari φ${diesel ? ' lokal' : ''}, T masuk, dan bahan bakar.\nBukan "Suhu puncak zona terbakar" di Scene 4 (gas terbakar yang terus dikompresi, sehingga makin panas).\nIndikatif ±100 K.` } },
       dT: { label: { en: 'ΔT local zone vs global φ', id: 'ΔT zona lokal vs φ global' }, tip: { en: 'Flame temperature at local φ minus flame temperature at global φ, at the same T_in.\nA non-homogeneous charge: nearly stoichiometric pockets even though the mean is lean.', id: 'Suhu nyala pada φ lokal dikurangi suhu nyala pada φ global, pada T_in yang sama.\nMuatan tidak homogen: kantong hampir stoikiometrik walau rata-ratanya miskin.' } },
       phiTip: { turbine: { en: 'φ in the combustor premix zone (DLN), not the overall turbine φ.', id: 'φ di zona premix ruang bakar (DLN), bukan φ turbin keseluruhan.' }, other: { en: 'φ = (fuel/air) ÷ stoichiometric.', id: 'φ = (bahan bakar/udara) ÷ stoikiometrik.' } },
-      tin: { label: { en: 'Inlet mixture T', id: 'T campuran masuk' }, tipTurbine: { en: 'Model: T₂ at the compressor outlet.', id: 'Model: T₂ di keluaran kompresor.' }, tipPiston: { en: 'Model: gas temperature at θ₀ (end of compression, before burning) from the cylinder model.', id: 'Model: suhu gas pada θ₀ (akhir kompresi, sebelum terbakar) dari model silinder.' } },
+      tin: { label: { en: 'Inlet mixture T', id: 'T_in campuran' }, tipTurbine: { en: 'Model: T₂ at the compressor outlet.', id: 'Model: T₂ di keluaran kompresor.' }, tipPiston: { en: 'Model: gas temperature at θ₀ (end of compression, before burning) from the cylinder model.', id: 'Model: suhu gas pada θ₀ (akhir kompresi, sebelum terbakar) dari model silinder.' } },
       q: { label: { en: 'q_in per kg premix-zone air', id: 'q_in per kg udara zona premix' }, tip: { en: 'q_in = φ · LHV / stoichiometric air-fuel ratio, for the premix-zone φ.\nFlame size ∝ q_in (normalized to φ = 1.2).', id: 'q_in = φ · LHV / rasio udara-bahan bakar stoikiometrik, untuk φ zona premix.\nUkuran nyala ∝ q_in (dinormalkan ke φ = 1,2).' } },
       hr: { label: { en: 'Heat release rate (relative)', id: 'Laju pelepasan panas (relatif)' }, tip: { en: 'Total heat × dx_b/dθ from the cylinder model, normalized to φ = 1.2.\nFlame size and brightness follow this value.', id: 'Total panas × dx_b/dθ dari model silinder, dinormalkan ke φ = 1,2.\nUkuran dan kecerahan nyala mengikuti nilai ini.' } },
       note: { en: 'Flame temperature from a CH₄ adiabatic-temperature table with a diesel correction; preheat adds 0.5–0.8 × the rise in inlet T (dissociation). Indicative ±100 K.', id: 'Suhu nyala dari tabel suhu adiabatik CH₄ dengan koreksi diesel; pemanasan awal menambah 0,5–0,8 × kenaikan T masuk (disosiasi). Indikatif ±100 K.' },
