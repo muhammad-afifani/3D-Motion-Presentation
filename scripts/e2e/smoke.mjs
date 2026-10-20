@@ -1138,7 +1138,7 @@ async function scenesIdFlow(browser, url, cfg) {
         for (const n of cfg.scenes) for (const tab of tabsOf(n)) {
           const key = `Scene ${n}${tab ? ' Brayton' : ''}`;
           res[`${lang}|${key}`] = await probe(p, n, tab);
-          if (lang === 'id' && w === 1366 && theme === 'dark' && !tab) fresh[n] = await p.evaluate(SIG);
+          if (lang === 'id' && w === 1366 && theme === 'dark' && !tab) { await p.waitForTimeout(2500); fresh[n] = await p.evaluate(SIG); } // grafik berbasis Worker (sapuan) butuh waktu
           if (lang === 'id') {
             // judul grafik ID → panduan yang sama dengan sisi EN
             const titles = await p.evaluate(() => [...document.querySelectorAll('.chart')].filter((c) => c.checkVisibility?.() !== false).map((c) => c.querySelector('.chart__title')?.textContent?.trim()).filter(Boolean));
@@ -1187,7 +1187,7 @@ async function scenesIdFlow(browser, url, cfg) {
       let c2 = await p.evaluate(chartTitles);
       for (let t = 0; t < 8 && c2.join('|') === c1.join('|'); t++) { await p.waitForTimeout(500); c2 = await p.evaluate(chartTitles); } // fade-through memasang ulang scene
       const l2 = await p.evaluate(labels);
-      await p.waitForTimeout(700);
+      await p.waitForTimeout(2500);
       const sw = await p.evaluate(SIG);
       if (fresh[n]) {
         const miss = (x, y) => x.filter((t) => !y.includes(t));
