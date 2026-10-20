@@ -185,7 +185,10 @@
         "fuel split",
         "suction",
         "discharge",
-        "surge"
+        "surge",
+        "waterfall",
+        "timing",
+        "what-if"
       ]
     },
     {

@@ -358,7 +358,7 @@ const SRC = {
     brayton: {
       title: { en: 'Brayton schematic (state markers)', id: 'Skema Brayton (penanda keadaan)' },
       compressor: { en: 'Compressor', id: 'Kompresor' }, combustor: { en: 'Combustor', id: 'Ruang bakar' }, turbine: { en: 'Turbine', id: 'Turbin' },
-      returnPath: { en: '4→1 heat rejected to ambient (a closed cycle, in concept)', id: '4→1 panas dibuang (siklus tertutup, konsep)' },
+      returnPath: { en: '4→1 heat rejected to ambient (a closed cycle, in concept)', id: '4→1 panas dibuang ke lingkungan (dianggap siklus tertutup)' },
       note: { en: '2D sketch of the state points, not the turbine rig (3D rig: Scene 5)', id: 'Sketsa 2D titik keadaan, bukan rig turbin (rig 3D: Scene 5)' },
     },
     flame: {
@@ -383,7 +383,7 @@ const SRC = {
     tips: {
       r: { en: 'r = (Vc+Vd)/Vc. Changing r changes Vc, so the combustion chamber height, Pmax, and η all change.', id: 'r = (Vc+Vd)/Vc. Mengubah r mengubah Vc, sehingga tinggi ruang bakar, Pmax, dan η ikut berubah.' },
       phi: { en: 'φ = (fuel/air) ÷ stoichiometric. φ < 1 is lean.', id: 'φ = (bahan bakar/udara) ÷ stoikiometrik. φ < 1 berarti miskin.' },
-      theta0: { en: 'Injection timing (diesel) or spark timing (gas). Negative = before TDC.', id: 'Waktu injeksi (diesel) atau waktu percikan (gas). Negatif = sebelum TDC.' },
+      theta0: { en: 'Injection timing (diesel) or spark timing (gas). Negative = before TDC.', id: 'Timing injeksi (diesel) atau timing percikan (gas). Negatif = sebelum TDC.' },
       reset: { en: 'Return the parameters to the engine preset', id: 'Kembalikan parameter ke preset mesin' },
       labels: { en: 'Show or hide the 3D component labels', id: 'Tampilkan atau sembunyikan label komponen 3D' },
       gauge: { en: 'Cylinder pressure relative to this cycle’s Pmax', id: 'Tekanan silinder relatif terhadap Pmax siklus ini' },
@@ -408,7 +408,7 @@ const SRC = {
       etai: { label: { en: 'Indicated η', id: 'η indikator' }, tip: { en: 'Indicated efficiency = gross work / (fuel mass × LHV) per cycle.', id: 'Efisiensi indikator = kerja bruto / (massa bahan bakar × LHV) per siklus.' } },
       etab: { label: { en: 'Brake η', id: 'η rem' }, tip: { en: 'Brake efficiency = brake power / (fuel flow × LHV); BMEP = IMEP − FMEP.\nFMEP uses the Chen–Flynn friction correlation (indicative).', id: 'Efisiensi rem = daya rem / (aliran bahan bakar × LHV); BMEP = IMEP − FMEP.\nFMEP memakai korelasi gesekan Chen–Flynn (indikatif).' } },
       bsfc: { label: { en: 'BSFC', id: 'BSFC' }, tip: { en: 'Brake specific fuel consumption = fuel flow / brake power.', id: 'Konsumsi bahan bakar spesifik rem = aliran bahan bakar / daya rem.' } },
-      note: { en: 'Cylinder model: crank-slider geometry, Wiebe heat release, first law, k(T). Heat loss is lumped; friction uses the Chen–Flynn correlation (indicative). Not a vendor prediction.', id: 'Model silinder: geometri engkol-peluncur, pelepasan panas Wiebe, hukum pertama, k(T). Rugi panas digabung; gesekan memakai korelasi Chen–Flynn (indikatif). Bukan prediksi vendor.' },
+      note: { en: 'Cylinder model: crank-slider geometry, Wiebe heat release, first law, k(T). Heat loss is lumped; friction uses the Chen–Flynn correlation (indicative). Not a vendor prediction.', id: 'Model silinder: geometri engkol-peluncur, pelepasan panas Wiebe, hukum pertama, k(T). Rugi panas digabung jadi satu parameter; gesekan memakai korelasi Chen–Flynn (indikatif). Bukan prediksi vendor.' },
     },
     ptheta: {
       title: { en: 'Pressure vs crank angle (P-θ)', id: 'Tekanan vs sudut engkol (P-θ)' }, xLabel: { en: 'Crank angle θ [°], 0 = firing TDC', id: 'Sudut engkol θ [°], 0 = TDC pembakaran' }, yLabel: { en: 'P [bar]', id: 'P [bar]' },
@@ -495,10 +495,10 @@ const SRC = {
     },
     waterfall: {
       title: { en: (engine, r) => `${engine === 'gas' ? 'Gas engine' : 'Diesel'} waterfall: ideal limit → brake η (r = ${fmt(r, 1)})`, id: (engine, r) => `Waterfall ${engine === 'gas' ? 'mesin gas' : 'diesel'}: batas ideal → η rem (r = ${fmt(r, 1)})` },
-      caption: { en: 'Efficiency lost between the ideal limit and brake efficiency, at preset valve timing (IVC to EVO)', id: 'Efisiensi yang hilang antara batas ideal dan efisiensi rem, pada waktu katup preset (IVC sampai EVO)' },
-      captionDiesel: { en: 'Efficiency lost between the ideal limit and brake efficiency, at preset valve timing (IVC to EVO). Diesel ideal limit = dual cycle; its constant-volume heat share is set equal to the preset premix fraction (assumption). The second bar mixes k(T) with the constant-volume vs dual difference.', id: 'Efisiensi yang hilang antara batas ideal dan efisiensi rem, pada waktu katup preset (IVC sampai EVO). Batas ideal diesel = siklus dual; porsi panas volume tetapnya disamakan dengan fraksi premix preset (asumsi). Batang kedua mencampur k(T) dengan selisih volume tetap vs dual.' },
+      caption: { en: 'Efficiency lost between the ideal limit and brake efficiency, at preset valve timing (IVC to EVO)', id: 'Efisiensi yang hilang antara batas ideal dan efisiensi rem, pada timing katup preset (IVC sampai EVO)' },
+      captionDiesel: { en: 'Efficiency lost between the ideal limit and brake efficiency, at preset valve timing (IVC to EVO). Diesel ideal limit = dual cycle; its constant-volume heat share is set equal to the preset premix fraction (assumption). The second bar mixes k(T) with the constant-volume vs dual difference.', id: 'Efisiensi yang hilang antara batas ideal dan efisiensi rem, pada timing katup preset (IVC sampai EVO). Batas ideal diesel = siklus dual; porsi panas volume tetapnya disamakan dengan fraksi premix preset (asumsi). Batang kedua mencampur k(T) dengan selisih volume tetap vs dual.' },
       steps: {
-        idealOtto: { en: 'Ideal limit (Otto, k = 1.4)', id: 'Batas ideal (Otto, k\u00a0=\u00a01,4)' }, idealDual: { en: 'Ideal limit (dual, k = 1.4)', id: 'Batas ideal (dual, k\u00a0=\u00a01,4)' }, kT: { en: 'Variable specific heat k(T)', id: 'Kalor spesifik variabel k(T)' },
+        idealOtto: { en: 'Ideal limit (Otto, k = 1.4)', id: 'Batas ideal (Otto, k\u00a0=\u00a01,4)' }, idealDual: { en: 'Ideal limit (dual, k = 1.4)', id: 'Batas ideal (dual, k\u00a0=\u00a01,4)' }, kT: { en: 'Variable specific heat k(T)', id: 'Rasio kalor spesifik variabel k(T)' },
         burn: { en: 'Finite combustion duration (Wiebe)', id: 'Waktu pembakaran terbatas (Wiebe)' }, heat: { en: 'Wall heat loss + unburned', id: 'Rugi panas dinding + tak terbakar' }, friction: { en: 'Mechanical friction (brake η)', id: 'Gesekan mekanis (η rem)' },
       },
       braytonTitle: { en: 'Brayton: ideal → real', id: 'Brayton: ideal → real' },
@@ -521,7 +521,7 @@ const SRC = {
     bloom: { auto: { en: 'Bloom: Auto', id: 'Bloom: Auto' }, on: { en: 'Bloom: On', id: 'Bloom: Aktif' }, off: { en: 'Bloom: Off', id: 'Bloom: Mati' } },
     tips: {
       phiLocal: { en: 'Diesel: the fuel spray forms nearly stoichiometric pockets around the plume (local φ).', id: 'Diesel: semprotan bahan bakar membentuk kantong hampir stoikiometrik di sekitar pancaran (φ lokal).' },
-      tin: { en: 'Drag for a what-if scenario. The default comes from the model.', id: 'Geser untuk skenario bagaimana-jika. Bawaannya dari model.' },
+      tin: { en: 'Drag for a what-if scenario. The default comes from the model.', id: 'Geser untuk mencoba skenario lain (what-if). Bawaannya dari model.' },
       tinModel: { en: 'Reset the inlet temperature to the model value (piston: T at θ₀; turbine: T₂)', id: 'Kembalikan suhu masuk ke nilai model (piston: T pada θ₀; turbin: T₂)' },
       focus: { en: 'The θ animation only loops around θ₀ … end of combustion, so the flame is not on screen for just a moment.', id: 'Animasi θ hanya berulang di sekitar θ₀ … akhir pembakaran, sehingga nyala tidak hanya tampak sesaat.' },
       bloom: { en: 'Glow around the flame. Turn it off if the animation is slow.\nOne setting for all scenes. Auto lets the quality control decide. Click: Auto → On → Off.', id: 'Cahaya di sekitar nyala. Matikan bila animasi lambat.\nSatu pengaturan untuk semua scene. Auto menyerahkan keputusan ke kontrol kualitas. Klik: Auto → Aktif → Mati.' },
@@ -560,7 +560,7 @@ const SRC = {
       xLabel: { en: 'Adiabatic flame T [K]', id: 'T nyala adiabatik [K]' },
       labels: { diesel: { en: 'Diesel: local-φ zone', id: 'Diesel: zona φ lokal' }, gas: { en: 'Gas lean-burn (homogeneous)', id: 'Gas lean-burn (homogen)' }, turbine: { en: 'Turbine: premix zone', id: 'Turbin: zona premix' } },
       sub: { en: (phi, Tin) => `φ ${fmt(phi, 2)} · T_in ${fmt(Tin, 0)} K`, id: (phi, Tin) => `φ ${fmt(phi, 2)} · T_in ${fmt(Tin, 0)} K` },
-      caption: { en: 'Each bar uses its own model T_in; the active mode follows the slider. Bar color = flame color for that φ.', id: 'Tiap batang memakai T_in sendiri; mode aktif mengikuti slider. Warna batang = warna nyala φ itu.' },
+      caption: { en: 'Each bar uses its own model T_in; the active mode follows the slider. Bar color = flame color for that φ.', id: 'Tiap batang memakai T_in model-nya; mode aktif mengikuti slider. Warna batang = warna nyala φ itu.' },
     },
   },
   // ─────────────────────────── Scene 4 — NOx ───────────────────────────
@@ -572,18 +572,18 @@ const SRC = {
       `NOx naik secara eksponensial terhadap suhu: +100 K pada ${fmt(Tref, 0)} K ≈ ×${fmt(ratio, 1)} laju pembentukan NO (model Zeldovich).` },
     engine: { en: 'Engine', id: 'Mesin' },
     engines: { diesel: { en: 'Diesel', id: 'Diesel' }, gas: { en: 'Gas lean-burn', id: 'Mesin gas lean-burn' } },
-    timing: { diesel: { en: 'Injection timing θ₀', id: 'Waktu injeksi θ₀' }, gas: { en: 'Spark timing θ₀', id: 'Waktu percikan θ₀' } },
+    timing: { diesel: { en: 'Injection timing θ₀', id: 'Timing injeksi θ₀' }, gas: { en: 'Spark timing θ₀', id: 'Timing percikan θ₀' } },
     window: { en: 'Crank angle θ', id: 'Sudut engkol θ' },
     tips: {
-      engine: { en: 'Engine preset (same as Scene 1). Only the timing changes in this scene.', id: 'Preset mesin (sama seperti Scene 1). Hanya waktu pembakaran yang berubah di scene ini.' },
+      engine: { en: 'Engine preset (same as Scene 1). Only the timing changes in this scene.', id: 'Preset mesin (sama seperti Scene 1). Hanya timing pembakaran yang berubah di scene ini.' },
       timing: { en: 'Start of combustion θ₀ (° ATDC; negative = before TDC). Drag right = retard: the peak burned-zone temperature drops, so NOx drops, but η drops and CO₂ rises.', id: 'Awal pembakaran θ₀ (° ATDC; negatif = sebelum TDC). Geser ke kanan = mundur (retard): suhu puncak zona terbakar turun, sehingga NOx turun, tetapi η turun dan CO₂ naik.' },
       window: { en: 'The animation only loops from late compression to EVO, where the burned zone exists. Drag to pause at one angle.', id: 'Animasi hanya berulang dari akhir kompresi sampai EVO, saat zona terbakar ada. Geser untuk menjeda pada satu sudut.' },
-      reset: { en: 'Return the timing to the engine preset', id: 'Kembalikan waktu pembakaran ke preset mesin' },
+      reset: { en: 'Return the timing to the engine preset', id: 'Kembalikan timing pembakaran ke preset mesin' },
       labels: { en: 'Show or hide the 3D component labels', id: 'Tampilkan atau sembunyikan label komponen 3D' },
     },
     formula: {
       zeldovich: { en: 'd[NO]/dt ≈ 6×10¹⁶/√T · exp(−69,090/T) · [O₂]<sup>½</sup> [N₂]', id: 'd[NO]/dt ≈ 6×10¹⁶/√T · exp(−69.090/T) · [O₂]<sup>½</sup> [N₂]' },
-      o2: { en: 'C<sub>ref</sub> = C · (20.9 − O₂<sub>ref</sub>) / (20.9 − O₂<sub>meas</sub>)', id: 'C<sub>ref</sub> = C · (20,9 − O₂<sub>ref</sub>) / (20,9 − O₂<sub>meas</sub>)' },
+      o2: { en: 'C<sub>ref</sub> = C · (20.9 − O₂<sub>ref</sub>) / (20.9 − O₂<sub>meas</sub>)', id: 'C<sub>acuan</sub> = C · (20,9 − O₂<sub>acuan</sub>) / (20,9 − O₂<sub>ukur</sub>)' },
       note: { en: (refO2) => `Thermal Zeldovich (Heywood) · corrected to ${fmt(refO2, 0)} % O₂, dry · indicative`, id: (refO2) => `Zeldovich termal (Heywood) · dikoreksi ke ${fmt(refO2, 0)} % O₂, kering · indikatif` },
     },
     readout: {
@@ -594,7 +594,7 @@ const SRC = {
     speciesNo: { en: 'NO (thermal)', id: 'NO (termal)' },
     labels3d: { burned: { en: 'Burned zone', id: 'Zona terbakar' }, no: { en: 'NO particles', id: 'Partikel NO' }, piston: { en: 'Piston', id: 'Piston' }, top: { diesel: { en: 'Injector', id: 'Injektor' }, gas: { en: 'Spark plug', id: 'Busi' } } },
     tradeoff: {
-      title: { en: 'NOx vs brake efficiency (timing sweep)', id: 'NOx vs efisiensi rem (sapuan waktu pembakaran)' },
+      title: { en: 'NOx vs brake efficiency (timing sweep)', id: 'NOx vs efisiensi rem (variasi timing pembakaran)' },
       xLabel: { en: 'Brake efficiency η [%]', id: 'Efisiensi rem η [%]' },
       yLabel: { en: 'NOx [g/kWh] · indicative', id: 'NOx [g/kWh] · indikatif' },
       preset: { en: 'Preset', id: 'Preset' },
@@ -602,8 +602,8 @@ const SRC = {
       now: { en: (nox, eta) => `${fmt(nox, 1)} g/kWh · η ${fmt(eta * 100, 1)}%`, id: (nox, eta) => `${fmt(nox, 1)} g/kWh · η ${fmt(eta * 100, 1)}%` },
       caption: { en: (dNox, dCo2) =>
         `Retard → NOx drops, η drops, CO₂ rises. Versus preset: NOx <b>${dNox >= 0 ? '+' : '−'}${fmt(Math.abs(dNox) * 100, 0)}%</b>, CO₂ <b>${dCo2 >= 0 ? '+' : '−'}${fmt(Math.abs(dCo2) * 100, 1)}%</b> (timing sweep, indicative)`, id: (dNox, dCo2) =>
-        `Retard → NOx turun, η turun, CO₂ naik. Dibanding preset: NOx <b>${dNox >= 0 ? '+' : '−'}${fmt(Math.abs(dNox) * 100, 0)}%</b>, CO₂ <b>${dCo2 >= 0 ? '+' : '−'}${fmt(Math.abs(dCo2) * 100, 1)}%</b> (sapuan waktu pembakaran, indikatif)` },
-      captionWait: { en: 'Computing the timing sweep…', id: 'Menghitung sapuan waktu pembakaran…' },
+        `Retard → NOx turun, η turun, CO₂ naik. Dibanding preset: NOx <b>${dNox >= 0 ? '+' : '−'}${fmt(Math.abs(dNox) * 100, 0)}%</b>, CO₂ <b>${dCo2 >= 0 ? '+' : '−'}${fmt(Math.abs(dCo2) * 100, 1)}%</b> (variasi timing pembakaran, indikatif)` },
+      captionWait: { en: 'Computing the timing sweep…', id: 'Menghitung variasi timing pembakaran…' },
     },
     arrhenius: {
       title: { en: 'Zeldovich rate vs temperature (Arrhenius)', id: 'Laju Zeldovich vs suhu (Arrhenius)' },
@@ -617,7 +617,7 @@ const SRC = {
         `+100 K → laju NO <b>×${fmt(ratioRef, 1)}</b> pada ${fmt(Tref, 0)} K, <b>×${fmt(ratioPeak, 1)}</b> pada T puncak ${fmt(Tpeak, 0)} K.<br />Rentang zona terbakar mesin (2.200–3.000 K) berbeda dari T nyala DLN (1.500–2.000 K; lihat Scene 6 dan 9).` },
     },
     hud: {
-      timing: { label: { en: (diesel) => (diesel ? 'Injection timing' : 'Spark timing'), id: (diesel) => (diesel ? 'Waktu injeksi' : 'Waktu percikan') }, tip: { en: 'θ₀ = start of combustion (Wiebe), ° ATDC. Negative = before TDC.', id: 'θ₀ = awal pembakaran (Wiebe), ° ATDC. Negatif = sebelum TDC.' } },
+      timing: { label: { en: (diesel) => (diesel ? 'Injection timing' : 'Spark timing'), id: (diesel) => (diesel ? 'Timing injeksi' : 'Timing percikan') }, tip: { en: 'θ₀ = start of combustion (Wiebe), ° ATDC. Negative = before TDC.', id: 'θ₀ = awal pembakaran (Wiebe), ° ATDC. Negatif = sebelum TDC.' } },
       tbPeak: {
         label: { en: 'Peak burned-zone temperature', id: 'Suhu puncak zona terbakar' },
         tip: { en: 'Highest burned-zone temperature during the cycle. Burned gas is compressed further as cylinder pressure rises, so it can exceed the adiabatic flame temperature.\nDifferent from "Adiabatic flame temperature" in Scene 3: that is the temperature at the moment the mixture burns, at fixed inlet conditions.\nThermal NOx (Zeldovich) is set by this burned-zone temperature.', id: 'Suhu zona terbakar tertinggi selama siklus. Gas terbakar dikompresi lebih lanjut saat tekanan silinder naik, sehingga bisa melampaui suhu nyala adiabatik.\nBerbeda dari "Suhu nyala adiabatik" di Scene 3: itu suhu saat campuran terbakar, pada kondisi masuk tetap.\nNOx termal (Zeldovich) ditentukan oleh suhu zona terbakar ini.' },
@@ -647,18 +647,18 @@ const SRC = {
       engines: { diesel: { en: 'Diesel', id: 'Diesel' }, gas: { en: 'Gas lean-burn', id: 'Mesin gas lean-burn' } },
       factor: { en: 'Factor', id: 'Faktor' },
       defaultEngine: { en: (c) => `default ×${fmt(c, c < 1 ? 3 : 2)} (typical-literature calibration)`, id: (c) => `bawaan ×${fmt(c, c < 1 ? 3 : 2)} (kalibrasi literatur tipikal)` },
-      targetEngine: { en: 'Target NOx at preset timing [g/kWh]', id: 'Target NOx pada waktu pembakaran preset [g/kWh]' },
+      targetEngine: { en: 'Target NOx at preset timing [g/kWh]', id: 'Target NOx pada timing pembakaran preset [g/kWh]' },
       litEngine: { en: (v) => `typical literature ≈ ${fmt(v, 1)} g/kWh`, id: (v) => `literatur tipikal ≈ ${fmt(v, 1)} g/kWh` },
       dlnTitle: { en: 'DLN combustor (design point per configuration)', id: 'Ruang bakar DLN (titik desain per konfigurasi)' },
       dlnRows: { single: { en: 'Generator (single-shaft)', id: 'Turbin generator (single-shaft)' }, twin: { en: 'Compressor drive (twin-shaft)', id: 'Turbin kompresor (twin-shaft)' } },
       defaultDln: { en: (c, ppm, ref) => `default ×${fmt(c, 2)} (${fmt(ppm, 0)} ppmvd @ ${fmt(ref, 0)} % O₂)`, id: (c, ppm, ref) => `bawaan ×${fmt(c, 2)} (${fmt(ppm, 0)} ppmvd @ ${fmt(ref, 0)} % O₂)` },
       targetDln: { en: 'Target NOx at design point [ppmvd]', id: 'Target NOx pada titik desain [ppmvd]' },
-      usedBy: { en: 'Used by Scene 6 (turbine part-load), calibrated separately for each configuration. Does not change the engine numbers in this scene.', id: 'Dipakai Scene 6 (turbin beban sebagian), dikalibrasi terpisah untuk tiap konfigurasi. Tidak mengubah angka mesin di scene ini.' },
+      usedBy: { en: 'Used by Scene 6 (turbine part-load), calibrated separately for each configuration. Does not change the engine numbers in this scene.', id: 'Dipakai Scene 6 (turbin part-load), dikalibrasi terpisah untuk tiap konfigurasi. Tidak mengubah angka mesin di scene ini.' },
       apply: { en: 'Apply', id: 'Terapkan' },
       reset: { en: 'Reset to default', id: 'Kembalikan ke bawaan' },
       close: { en: 'Close', id: 'Tutup' },
       computing: { en: 'Computing…', id: 'Menghitung…' },
-      doneEngine: { en: (got, it) => `Done: ${fmt(got, 2)} g/kWh at preset timing (${it} iterations)`, id: (got, it) => `Selesai: ${fmt(got, 2)} g/kWh pada waktu pembakaran preset (${it} iterasi)` },
+      doneEngine: { en: (got, it) => `Done: ${fmt(got, 2)} g/kWh at preset timing (${it} iterations)`, id: (got, it) => `Selesai: ${fmt(got, 2)} g/kWh pada timing pembakaran preset (${it} iterasi)` },
       notConverged: { en: 'Did not converge. Check the target.', id: 'Tidak konvergen. Periksa targetnya.' },
       doneDln: { en: (ppm, Tf) => `Done: ${fmt(ppm, 1)} ppmvd at design flame T ${fmt(Tf, 0)} K`, id: (ppm, Tf) => `Selesai: ${fmt(ppm, 1)} ppmvd pada T nyala desain ${fmt(Tf, 0)} K` },
       resetDone: { en: 'Calibration reset to default', id: 'Kalibrasi dikembalikan ke bawaan' },
