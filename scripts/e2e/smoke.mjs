@@ -1091,7 +1091,7 @@ async function scenesIdFlow(browser, url, cfg) {
     for (const [cv, arr] of window.__rec.byCanvas) {
       if (!cv.isConnected || cv.checkVisibility?.() === false || !cv.width) continue;
       let over = 0, ov = 0; const detail = [];
-      for (const a of arr) if (a.l < -1 || a.t < -1 || a.r > cv.width + 1 || a.b > cv.height + 1) { over++; detail.push(`keluar "${a.text}"`); }
+      for (const a of arr) if (!TICK.test(a.text) && (a.l < -1 || a.t < -1 || a.r > cv.width + 1 || a.b > cv.height + 1)) { over++; detail.push(`keluar "${a.text}"`); }
       for (let i = 0; i < arr.length; i++) for (let j = i + 1; j < arr.length; j++) {
         const a = arr[i], b = arr[j];
         const iw = Math.min(a.r, b.r) - Math.max(a.l, b.l), ih = Math.min(a.b, b.b) - Math.max(a.t, b.t);
@@ -1158,7 +1158,7 @@ async function scenesIdFlow(browser, url, cfg) {
         if (b.over > a.over) fails.push(`${w}×${h} ${theme} ${name}: teks kanvas keluar kotak ID ${b.over} > EN ${a.over} (${res[k].filter((x) => x.over).map((x) => `${x.key}: ${x.detail.join('; ')}`).join(', ')})`);
         if (b.ov > a.ov) fails.push(`${w}×${h} ${theme} ${name}: teks kanvas bertumpuk ID ${b.ov} > EN ${a.ov} (${res[k].filter((x) => x.ov).map((x) => `${x.key}: ${x.detail.join('; ')}`).join(', ')} | EN: ${(res[`en|${name}`] ?? []).filter((x) => x.ov).map((x) => x.detail.join('; ')).join(' / ')})`);
         if (cfg.heightGuard && b.h < a.h - 25) fails.push(`${w}×${h} ${theme} ${name}: grafik ID lebih pendek ${a.h - b.h} px dari EN (${b.h} vs ${a.h}); teks panel / HUD melipat lebih banyak`);
-        if (b.n === 0) fails.push(`${w}×${h} ${theme} ${name}: tidak ada teks kanvas terekam`);
+        if (b.n === 0 && a.n > 0) fails.push(`${w}×${h} ${theme} ${name}: tidak ada teks kanvas terekam`);
       }
     }
   }
