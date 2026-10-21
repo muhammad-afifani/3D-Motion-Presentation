@@ -3,11 +3,12 @@
  * Siklus 1→11→1 (3×); setelah tiap siklus, jumlah listener window/document, ResizeObserver, Worker, konteks WebGL
  * aktif, dan subscriber store harus kembali ke baseline; setiap renderer yang dilepas harus menyisakan 0 geometry
  * dan 0 texture (renderer.info.memory); tanpa galat halaman / peringatan konteks WebGL.
- * Jalankan: npm run e2e   (build + skrip ini; butuh Playwright, lihat lib.mjs)
+ * Jalankan: npm run e2e   (build + skrip ini; butuh Playwright, lihat lib.mjs). Bahasa Indonesia: E2E_LANG=id (D6).
  */
 import { loadPlaywright, startPreview, launchers, instrument, goScene } from './lib.mjs';
 
 const CYCLES = Number(process.env.E2E_CYCLES ?? 3);
+const LANG = process.env.E2E_LANG === 'id' ? 'id' : 'en'; // D6: E2E_LANG=id menjalankan siklus yang sama dalam bahasa Indonesia
 const pw = await loadPlaywright();
 const srv = await startPreview();
 const results = [];
@@ -20,6 +21,7 @@ try {
     page.on('pageerror', (e) => errs.push(e.message));
     page.on('console', (m) => { if (/too many active webgl|context lost/i.test(m.text()) && !/forceContextLoss/.test(m.text())) errs.push(`console: ${m.text()}`); });
     await page.addInitScript(instrument);
+    await page.addInitScript((l) => { try { localStorage.setItem('etel:lang', l); } catch { /* storage diblokir */ } }, LANG);
     await page.goto(`${srv.url}#/scene/1`);
     await page.waitForFunction(() => window.__etelDebug?.scene() != null, null, { timeout: 30000 });
     await goScene(page, 1, 1200);

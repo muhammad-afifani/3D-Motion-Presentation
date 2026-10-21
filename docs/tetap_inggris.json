@@ -39,7 +39,12 @@
         "CO₂e [g/kWh]",
         "H₂S [ppmv]",
         "ppm @ basis",
-        "…"
+        "…",
+        "0 °C (Nm³)",
+        "25 °C",
+        "Gas (CH₄) [K]",
+        "Diesel [K]",
+        " / "
       ],
       "inline": [
         "kW",
@@ -124,7 +129,9 @@
         "M",
         "M: Explore",
         "C",
-        "Esc"
+        "Esc",
+        "H / Esc",
+        "Q / B"
       ]
     },
     {
@@ -146,7 +153,9 @@
         "Basis",
         "Start here",
         "Engine & Turbine Emission Lab",
-        "Presenter · Engine & Turbine Emission Lab"
+        "Presenter · Engine & Turbine Emission Lab",
+        "source to verify",
+        "Source to verify"
       ]
     },
     {
@@ -252,7 +261,8 @@
         "Piston",
         "Preset",
         "Generator",
-        "Tab"
+        "Tab",
+        "Auto"
       ]
     },
     {
@@ -312,7 +322,10 @@
         "scene9.hud.co2B",
         "scene9.hud.co2e",
         "scene9.hud.before",
-        "scene10.goScene"
+        "scene10.goScene",
+        "assumptions.zeldovich.formula",
+        "assumptions.calib.targetEngine",
+        "assumptions.calib.factor"
       ]
     },
     {
