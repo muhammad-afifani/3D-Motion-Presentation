@@ -1357,7 +1357,7 @@ async function d5bInteraction(browser, url) {
     if (c.length !== 7) fails.push(`Scene 10 ID: ${c.length} kartu`);
     const idHit = c.filter((x) => x.hit).map((x) => x.h);
     if (!enHit.length || enHit.length !== idHit.length) fails.push(`Scene 10: filter turbin tidak bertahan setelah ganti bahasa (EN ${enHit.length} kartu, ID ${idHit.length})`);
-    for (const t of ['DLN / premix miskin', 'Injeksi air / uap', 'Katalis oksidasi', 'DPF (filter partikulat diesel)']) if (!c.some((x) => x.h === t)) fails.push(`Scene 10 ID: kartu "${t}" tidak ada (${c.map((x) => x.h).join(' | ')})`);
+    for (const t of ['DLN / lean premix', 'Injeksi air / uap', 'Katalis oksidasi', 'DPF (filter partikulat diesel)']) if (!c.some((x) => x.h === t)) fails.push(`Scene 10 ID: kartu "${t}" tidak ada (${c.map((x) => x.h).join(' | ')})`);
     const body = c.map((x) => x.text).join('\n');
     if (!/Menurunkan/.test(body) || !/Menaikkan/.test(body) || !/Berlaku untuk/.test(body)) fails.push('Scene 10 ID: label bidang kartu tidak berbahasa Indonesia');
     if (/\b(Lowers|Raises|Applies to|Operation)\b/.test(body)) fails.push('Scene 10 ID: label bidang kartu masih English');
