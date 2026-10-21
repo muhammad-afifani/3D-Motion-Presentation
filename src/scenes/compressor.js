@@ -51,8 +51,8 @@ export function driveHudItems(f) {
     { id: 'load', help: 'hud.turbineLoad', label: H.load.label, unit: SU.pct, model: H.load.model, flag: f.train.inRange ? undefined : H.outOfRange, value: (x) => fmt(x.train.loadRaw * 100, 1), tip: H.load.tip },
     { id: 'ngg', help: 'hud.nGG', label: H.ngg.label, unit: '', model: H.ngg.model, value: (x) => H.ngg.value(x.train.Ngg), tip: H.ngg.tip },
     { id: 'tf', help: 'hud.flameT', label: H.flame.label, unit: U.K, model: H.flame.model, value: (x) => fmt(x.train.Tflame, 0), tip: H.flame.tip },
-    { id: 'nox', help: 'hud.noxPpm', label: H.nox.label, unit: H.nox.unit, sub: C.basis.full(b.refO2, b.TrefC), flag: flagB, value: (x) => fmt(x.train.nox, x.train.nox < 10 ? 2 : 1), tip: H.nox.tip },
-    { id: 'co', help: 'hud.coPpm', label: H.co.label, unit: H.co.unit, sub: C.basis.fullCO(b.refO2, b.TrefC), flag: flagB, value: (x) => fmt(x.train.co, 1), tip: H.co.tip },
+    { id: 'nox', help: 'hud.noxPpm', label: H.nox.label, unit: H.nox.unit, sub: C.basis.tile(b.refO2, b.TrefC), flag: flagB, value: (x) => fmt(x.train.nox, x.train.nox < 10 ? 2 : 1), tip: H.nox.tip },
+    { id: 'co', help: 'hud.coPpm', label: H.co.label, unit: H.co.unit, sub: C.basis.tileCO(b.refO2, b.TrefC), flag: flagB, value: (x) => fmt(x.train.co, 1), tip: H.co.tip },
   ];
 }
 

@@ -9,10 +9,8 @@ import { STR } from '../ui/strings.js';
 
 const S = STR.charts.cycle;
 
-const AXES = {
-  pv: { x: 'v', y: 'P', ...S.pv },
-  ts: { x: 's', y: 'T', ...S.ts },
-};
+/** Besaran sumbu; teks (judul, label) dibaca dari S saat grafik dibuat agar ikut bahasa aktif. */
+const AXES = { pv: { x: 'v', y: 'P' }, ts: { x: 's', y: 'T' } };
 const conv = { v: (x) => x, P: (x) => x / 1e5, T: (x) => x, s: (x) => x / 1e3 };
 
 /** Warna per peran proses (kompresi dingin → pemanasan panas → ekspansi → buang); peran dari derive. */
@@ -29,7 +27,7 @@ export const stateInfo = (st) => S.stateInfo(st.label, st.noteKey ? STR.scene2.r
  * @param {{onHover?: (idx:number|null) => void, basis?: string}} [opts] basis = kelompok Basis awal (frame `basis` menggantinya)
  */
 export function createCycleChart(container, which, { onHover, basis = null } = {}) {
-  const ax = AXES[which];
+  const ax = { ...AXES[which], ...S[which] };
   const base = createChartBase(container, { title: ax.title, modelLevel: 'ideal', basis, pad: { l: 58, r: 18, t: 58, b: 40 } });
   const { col } = base;
   const tip = document.createElement('div');

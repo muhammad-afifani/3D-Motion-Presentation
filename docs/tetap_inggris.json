@@ -29,7 +29,12 @@
         "100-500 kW",
         "500-1000 kW",
         "η [%]",
-        "P [bar]"
+        "P [bar]",
+        "%/°C",
+        "kg/kmol",
+        "kg/s",
+        "m³/s",
+        "ppmvd (log)"
       ],
       "inline": [
         "kW",
@@ -69,7 +74,12 @@
         "MEP",
         "IVC",
         "EVO",
-        "SOC θ₀"
+        "SOC θ₀",
+        "η",
+        "N_GG",
+        "CO₂ & CO₂e (g/kWh)",
+        "Slip → CO₂e",
+        "GWP CH₄"
       ],
       "inline": [
         "BDC",
@@ -169,7 +179,10 @@
         "Thermal NOx",
         "Methane slip",
         "Lean premix",
-        "Bloom: Auto"
+        "Bloom: Auto",
+        "Power turbine",
+        "Derating",
+        "Heat rate"
       ],
       "inline": [
         "head",
@@ -207,7 +220,8 @@
         "Gas",
         "Real",
         "Piston",
-        "Preset"
+        "Preset",
+        "Generator"
       ]
     },
     {
@@ -245,7 +259,21 @@
         "scene4.hud.calib.value",
         "scene2.hud.tips.etaIdealBrayton",
         "scene1.formula.VcVal",
-        "scene1.ptheta.pmax"
+        "scene1.ptheta.pmax",
+        "scene5.speedGen",
+        "scene5.speedTwin",
+        "scene6.windowText",
+        "scene6.hud.speed.single",
+        "scene6.hud.speed.twin",
+        "scene6.hud.igv.value",
+        "scene6.hud.calib.value",
+        "scene7.hud.ngg.value",
+        "scene7.affinity.head",
+        "scene8.charts.sub",
+        "scene8.charts.subTurbine",
+        "scene8.hud.slip.value",
+        "scene8.hud.inc.value",
+        "scene8.hud.calib.value"
       ]
     },
     {
@@ -279,7 +307,9 @@
         "B = ",
         "a = ",
         "l = ",
-        "l + a − s = "
+        "l + a − s = ",
+        "r_p = P_discharge / P_suction.",
+        "Q ∝ N · H ∝ N² · P ∝ N³"
       ],
       "paths": [
         "scene1.formula.s",

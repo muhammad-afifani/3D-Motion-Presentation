@@ -48,8 +48,8 @@ export function hudItems(f, cfg) {
     { id: 'eta', help: 'hud.etaThermal', label: H.eta.label, unit: U.pct, value: (x) => pct(P(x).point.eta, 1), tip: H.eta.tip },
     { id: 't3', help: 'hud.turbineInletT', label: H.T3.label, unit: U.K, value: (x) => fmt(P(x).point.T3, 0), tip: H.T3.tip },
     { id: 'tf', help: 'hud.flameT', label: H.flame.label, unit: U.K, value: (x) => fmt(P(x).point.Tflame, 0), tip: H.flame.tip },
-    { id: 'nox', help: 'hud.noxPpm', label: H.nox.label, unit: H.nox.unit, sub: C.basis.full(b.refO2, b.TrefC), flag, value: (x) => fmt(P(x).point.nox, P(x).point.nox < 10 ? 2 : 1), tip: H.nox.tip },
-    { id: 'co', help: 'hud.coPpm', label: H.co.label, unit: H.co.unit, sub: C.basis.fullCO(b.refO2, b.TrefC), flag, value: (x) => fmt(P(x).point.co, 1), tip: H.co.tip },
+    { id: 'nox', help: 'hud.noxPpm', label: H.nox.label, unit: H.nox.unit, sub: C.basis.tile(b.refO2, b.TrefC), flag, value: (x) => fmt(P(x).point.nox, P(x).point.nox < 10 ? 2 : 1), tip: H.nox.tip },
+    { id: 'co', help: 'hud.coPpm', label: H.co.label, unit: H.co.unit, sub: C.basis.tileCO(b.refO2, b.TrefC), flag, value: (x) => fmt(P(x).point.co, 1), tip: H.co.tip },
     twin
       ? { id: 'n', help: 'hud.speed', label: H.speed.label, unit: '', value: (x) => H.speed.twin(x.twin.N.gg), tip: H.speed.tipTwin }
       : { id: 'n', help: 'hud.speed', label: H.speed.label, unit: '', value: (x) => H.speed.single(x.single.N.rpm), tip: H.speed.tipSingle },

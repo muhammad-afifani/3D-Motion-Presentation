@@ -15,7 +15,7 @@ import { ID_WORDS } from './language.test.js';
 const ROOT = new URL('..', import.meta.url).pathname;
 const read = (p) => readFileSync(`${ROOT}${p}`, 'utf8');
 const ID_RE = new RegExp(`(?<![\\p{L}\\p{N}_])(${ID_WORDS.join('|')})(?![\\p{L}\\p{N}_])`, 'iu');
-const sample = (v) => (typeof v === 'function' ? v('1', '2', '3', '4', '5', '6') : v);
+const sample = (v) => { if (typeof v !== 'function') return v; try { return v('1', '2', '3', '4', '5', '6'); } catch { return v([[100, 50]], 2, 3, 4, 5, 6); } }; // windowText butuh larik
 
 const atPath = (root, dotted) => dotted.split('.').reduce((o, k) => o[k], root);
 /** Semua daun kelompok sumber: [jalur, nilai]; larik: jalur[i]. */

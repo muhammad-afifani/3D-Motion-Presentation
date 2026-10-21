@@ -64,9 +64,9 @@ describe('guideIdForTitle (un lugar)', () => {
   it('judul grafik berbahasa Indonesia (D3) menuju panduan yang sama dengan sisi English', () => {
     const pairs = [];
     const walk = (o) => { if (isPair(o)) { if (typeof o.en === 'string') pairs.push(o); } else if (o && typeof o === 'object') Object.values(o).forEach(walk); };
-    walk(STR_SOURCE.charts); walk(STR_SOURCE.scene1); walk(STR_SOURCE.scene2); walk(STR_SOURCE.scene3); walk(STR_SOURCE.scene4);
+    walk(STR_SOURCE.charts); walk(STR_SOURCE.scene1); walk(STR_SOURCE.scene2); walk(STR_SOURCE.scene3); walk(STR_SOURCE.scene4); walk(STR_SOURCE.scene5); walk(STR_SOURCE.scene6); walk(STR_SOURCE.scene7); walk(STR_SOURCE.scene8);
     const checked = pairs.filter((p) => guideIdForTitle(p.en, charts) && p.en !== p.id);
-    expect(checked.length).toBeGreaterThan(8);
+    expect(checked.length).toBeGreaterThanOrEqual(16); // D3: 9 + D4: 7 (Scene 6 ×3, Scene 7 ×2, Scene 8 ×2)
     for (const p of checked) expect(guideIdForTitle(p.id, charts), `${p.en} | ${p.id}`).toBe(guideIdForTitle(p.en, charts));
     const W = STR_SOURCE.scene2.waterfall;
     for (const t of [W.title.id('diesel', 18), W.title.id('gas', 11.5), W.braytonTitle.id]) expect(guideIdForTitle(t, charts), t).toBe('waterfall');

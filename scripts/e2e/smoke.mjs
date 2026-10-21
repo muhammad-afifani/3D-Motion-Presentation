@@ -17,6 +17,7 @@
  *  12. Klik setiap ⓘ di dalam layar (semua scene, Dark/Light, 3 viewport; legenda viewport 3D tidak tertutup overlay) + drag area kosong viewport 3D memutar kamera.
  *  14. D2: galat isian angka di slot tetap (tanpa pergeseran tata letak), jendela presenter + panel presenter ikut EN ↔ ID, kerangka ID (navigasi, Settings, halaman penuh) di 3 viewport × 2 tema.
  *  15. D3: Scene 1–4 ID vs EN: teks kanvas (keluar kotak / bertumpuk yang bertambah), judul ID → panduan ⓘ, label 3D dan PNG ikut bahasa, ganti bahasa tanpa galat.
+ *  16. D4: Scene 5–8 ID vs EN (teks kanvas, panduan ⓘ, label 3D, PNG), panel kontrol tanpa tumpang tindih di ID (3 viewport × 2 tema), Scene 6: ganti bahasa saat chip dan garis batas tampil, isian koma / titik.
  *  13. Bahasa ID (Paket D1): semua scene + tab di 3 viewport × 2 tema tanpa luapan (1280: chip, tab Scene 9, header), angka HUD format ID, ganti EN ↔ ID tanpa muat ulang (HUD, Limits, Regulations), isian koma / titik dan pesan galat ID.
  *  11. Settings ⚙ + Hide working notes: panel, penyimpanan, Explore / Present, catatan kerja hilang dan label kejujuran tetap, header 3 viewport tanpa tumpang tindih.
  *  10. Bagian C: bantuan ⓘ (kartu di HUD, slider, navigasi; Glossary / Lesson; Present; PNG; ID) di 3 viewport × 2 tema; tumpang tindih ⓘ semua scene.
@@ -1055,7 +1056,7 @@ async function langIdInteraction(browser, url) {
  * dilaporkan (cacat bawaan EN bukan urusan terjemahan). Juga: judul ID menuju panduan ⓘ yang sama, label 3D ikut bahasa
  * tanpa muat ulang, ganti bahasa saat scene berjalan tanpa galat konsol, dan footer PNG mengikuti bahasa.
  */
-async function d3Interaction(browser, url) {
+async function scenesIdFlow(browser, url, cfg) {
   const fails = [];
   const base = url.replace(/#.*$/, '');
   const REC = () => {
@@ -1085,6 +1086,7 @@ async function d3Interaction(browser, url) {
   };
   const measure = () => {
     const out = [];
+    const TICK = /^[\d.,\s⁻⁰¹²³⁴⁵⁶⁷⁸⁹]+$/; // tick × tick bergantung tinggi grafik, bukan panjang teks (tinggi dijaga terpisah)
     for (const [cv, arr] of window.__rec.byCanvas) {
       if (!cv.isConnected || cv.checkVisibility?.() === false || !cv.width) continue;
       let over = 0, ov = 0; const detail = [];
@@ -1092,11 +1094,25 @@ async function d3Interaction(browser, url) {
       for (let i = 0; i < arr.length; i++) for (let j = i + 1; j < arr.length; j++) {
         const a = arr[i], b = arr[j];
         const iw = Math.min(a.r, b.r) - Math.max(a.l, b.l), ih = Math.min(a.b, b.b) - Math.max(a.t, b.t);
-        if (iw > 2 && ih > 2 && a.text !== b.text) { ov++; detail.push(`"${a.text}" × "${b.text}" (${iw.toFixed(1)}×${ih.toFixed(1)} px)`); }
+        if (iw > 2 && ih > 2 && a.text !== b.text && !(TICK.test(a.text) && TICK.test(b.text))) { ov++; detail.push(`"${a.text}" × "${b.text}" (${iw.toFixed(1)}×${ih.toFixed(1)} px)`); }
       }
-      out.push({ key: `${(cv.closest('.chart')?.querySelector('.chart__title')?.textContent ?? cv.className).trim().slice(0, 28)}`, over, ov, n: arr.length, detail });
+      out.push({ key: `${(cv.closest('.chart')?.querySelector('.chart__title')?.textContent ?? cv.className).trim().slice(0, 28)}`, over, ov, n: arr.length, detail, h: Math.round(cv.getBoundingClientRect().height) });
     }
     return out;
+  };
+  /** Tanda tangan teks scene (DOM + kanvas) tanpa angka: dipakai membandingkan "ganti bahasa" dengan "muat langsung dalam ID". */
+  const SIG = () => {
+    const strip = (t) => t.replace(/[\d.,+\-−×%·()/:→≈=[\]]+/g, ' ').replace(/\s+/g, ' ').trim();
+    const PHASE = /^(Isap|Kompresi|Ekspansi|Buang|Intake|Compression|Expansion|Exhaust)$/; // fase siklus berganti saat animasi berjalan
+    const dom = new Set();
+    for (const el of document.querySelectorAll('.scene *, .chart *')) {
+      if (el.children.length || el.checkVisibility?.() === false || el.closest('.chart__tools')) continue;
+      const t = strip(el.textContent ?? ''); if (/[A-Za-zÀ-ÿα-ωΑ-Ω]{2}/.test(t) && !PHASE.test(t)) dom.add(t);
+      for (const a of ['aria-label', 'title']) { const v = strip(el.getAttribute(a) ?? ''); if (/[A-Za-z]{2}/.test(v)) dom.add(`@${v}`); }
+    }
+    const cv = new Set();
+    for (const [c, arr] of window.__rec.byCanvas) if (c.isConnected) for (const a of arr) { const t = strip(a.text); if (/[A-Za-z]{2}/.test(t)) cv.add(t); }
+    return { dom: [...dom], cv: [...cv] };
   };
   const probe = async (p, n, tab) => {
     await goScene(p, n, 500);
@@ -1104,9 +1120,10 @@ async function d3Interaction(browser, url) {
     await p.waitForTimeout(900);
     return p.evaluate(measure);
   };
-  const tabsOf = (n) => (n === 2 ? [null, '4'] : [null]);
-  const sums = (a) => ({ over: a.reduce((s, x) => s + x.over, 0), ov: a.reduce((s, x) => s + x.ov, 0), n: a.reduce((s, x) => s + x.n, 0) });
+  const tabsOf = (n) => cfg.tabs[n] ?? [null];
+  const sums = (a) => ({ h: a.reduce((s, x) => s + x.h, 0), over: a.reduce((s, x) => s + x.over, 0), ov: a.reduce((s, x) => s + x.ov, 0), n: a.reduce((s, x) => s + x.n, 0) });
   let compared = 0, texts = 0;
+  const fresh = {};
   for (const [w, h] of VIEWPORTS) {
     for (const theme of ['dark', 'light']) {
       const res = {};
@@ -1119,9 +1136,10 @@ async function d3Interaction(browser, url) {
         await p.addInitScript(([l, t]) => { try { localStorage.setItem('etel:lang', l); localStorage.setItem('etel:theme', t); } catch { /* */ } }, [lang, theme]);
         await p.goto(`${base}#/scene/1`);
         await p.waitForFunction(() => window.__etelDebug?.scene() === 1 && !window.__etelDebug.loading(), null, { timeout: 30000 });
-        for (let n = 1; n <= 4; n++) for (const tab of tabsOf(n)) {
+        for (const n of cfg.scenes) for (const tab of tabsOf(n)) {
           const key = `Scene ${n}${tab ? ' Brayton' : ''}`;
           res[`${lang}|${key}`] = await probe(p, n, tab);
+          if (lang === 'id' && w === 1366 && theme === 'dark' && !tab) { await p.waitForTimeout(2500); fresh[n] = await p.evaluate(SIG); } // grafik berbasis Worker (sapuan) butuh waktu
           if (lang === 'id') {
             // judul grafik ID → panduan yang sama dengan sisi EN
             const titles = await p.evaluate(() => [...document.querySelectorAll('.chart')].filter((c) => c.checkVisibility?.() !== false).map((c) => c.querySelector('.chart__title')?.textContent?.trim()).filter(Boolean));
@@ -1138,6 +1156,7 @@ async function d3Interaction(browser, url) {
         compared++;
         if (b.over > a.over) fails.push(`${w}×${h} ${theme} ${name}: teks kanvas keluar kotak ID ${b.over} > EN ${a.over} (${res[k].filter((x) => x.over).map((x) => `${x.key}: ${x.detail.join('; ')}`).join(', ')})`);
         if (b.ov > a.ov) fails.push(`${w}×${h} ${theme} ${name}: teks kanvas bertumpuk ID ${b.ov} > EN ${a.ov} (${res[k].filter((x) => x.ov).map((x) => `${x.key}: ${x.detail.join('; ')}`).join(', ')} | EN: ${(res[`en|${name}`] ?? []).filter((x) => x.ov).map((x) => x.detail.join('; ')).join(' / ')})`);
+        if (cfg.heightGuard && b.h < a.h - 25) fails.push(`${w}×${h} ${theme} ${name}: grafik ID lebih pendek ${a.h - b.h} px dari EN (${b.h} vs ${a.h}); teks panel / HUD melipat lebih banyak`);
         if (b.n === 0) fails.push(`${w}×${h} ${theme} ${name}: tidak ada teks kanvas terekam`);
       }
     }
@@ -1162,15 +1181,25 @@ async function d3Interaction(browser, url) {
     };
     const labels = () => [...document.querySelectorAll('.label3d')].filter((e) => e.checkVisibility?.() !== false).map((e) => e.textContent.trim()).filter(Boolean);
     const chartTitles = () => [...document.querySelectorAll('.chart .chart__title')].filter((e) => e.checkVisibility?.() !== false).map((e) => e.textContent.trim());
-    for (const n of [1, 2, 3, 4]) {
+    for (const n of cfg.scenes) {
       await goScene(p, n, 900);
       const l1 = await p.evaluate(labels), c1 = await p.evaluate(chartTitles);
       await toLang('id');
-      const l2 = await p.evaluate(labels), c2 = await p.evaluate(chartTitles);
+      let c2 = await p.evaluate(chartTitles);
+      for (let t = 0; t < 8 && c2.join('|') === c1.join('|'); t++) { await p.waitForTimeout(500); c2 = await p.evaluate(chartTitles); } // fade-through memasang ulang scene
+      const l2 = await p.evaluate(labels);
+      await p.waitForTimeout(2500);
+      const sw = await p.evaluate(SIG);
+      if (fresh[n]) {
+        const miss = (x, y) => x.filter((t) => !y.includes(t));
+        const dd = miss(sw.dom, fresh[n].dom), cc = miss(sw.cv, fresh[n].cv);
+        if (dd.length) fails.push(`ganti bahasa Scene ${n}: teks DOM berbeda dari muat langsung ID: ${dd.slice(0, 6).join(' | ')}`);
+        if (cc.length) fails.push(`ganti bahasa Scene ${n}: teks kanvas berbeda dari muat langsung ID: ${cc.slice(0, 6).join(' | ')}`);
+      }
       if (await p.evaluate(() => window.__noReload) !== 1) fails.push(`ganti bahasa Scene ${n}: halaman dimuat ulang`);
       if (!c1.length || c1.join('|') === c2.join('|')) fails.push(`ganti bahasa Scene ${n}: judul grafik tidak berubah (${c1.join(' / ')})`);
       if (l1.length && l1.join('|') === l2.join('|')) fails.push(`ganti bahasa Scene ${n}: label 3D tidak berubah (${l1.join(' / ')})`);
-      if (n === 1) {
+      if (n === cfg.scenes[0]) {
         await p.evaluate(() => { window.__rec.all.length = 0; document.activeElement?.blur?.(); });
         try {
           await Promise.all([p.waitForEvent('download', { timeout: 30000 }), p.keyboard.press('s')]);
@@ -1182,12 +1211,121 @@ async function d3Interaction(browser, url) {
       await toLang('en');
     }
     // beberapa kali bolak-balik saat animasi berjalan
-    await goScene(p, 3, 600);
+    await goScene(p, cfg.scenes[2], 600);
     for (let i = 0; i < 4; i++) { await toLang(i % 2 ? 'en' : 'id'); }
-    for (const e of [...new Set(errs)]) fails.push(`ganti bahasa D3: ${e}`);
-  } catch (e) { fails.push(`ganti bahasa D3: ${e.message.split('\n')[0]}`); }
+    for (const e of [...new Set(errs)]) fails.push(`ganti bahasa ${cfg.name}: ${e}`);
+  } catch (e) { fails.push(`ganti bahasa ${cfg.name}: ${e.message.split('\n')[0]}`); }
   await p.close();
-  console.log(`\nD3 Scene 1–4 (ID vs EN): ${compared} perbandingan teks kanvas (3 viewport × 2 tema), ${texts} teks kanvas terekam`);
+  console.log(`\n${cfg.name} Scene ${cfg.scenes[0]}–${cfg.scenes.at(-1)} (ID vs EN): ${compared} perbandingan teks kanvas (3 viewport × 2 tema), ${texts} teks kanvas terekam`);
+  return fails;
+}
+
+const d3Interaction = (browser, url) => scenesIdFlow(browser, url, { name: 'D3', scenes: [1, 2, 3, 4], tabs: { 2: [null, '4'] } });
+
+/**
+ * D4: Scene 5–8 (teks kanvas ID vs EN, judul → panduan ⓘ, label 3D, PNG, bolak-balik bahasa) + panel kontrol yang padat
+ * tanpa tumpang tindih di ID (3 viewport × 2 tema) + Scene 6: ganti bahasa saat chip dan garis batas tampil (isian koma / titik,
+ * label garis batas di kanvas, chip tetap Within / Above / Not modeled).
+ */
+async function d4Interaction(browser, url) {
+  const fails = await scenesIdFlow(browser, url, { name: 'D4', scenes: [5, 6, 7, 8], tabs: {}, heightGuard: true });
+  const base = url.replace(/#.*$/, '');
+  /** Elemen interaktif di panel kontrol (.scene__controls) yang saling menimpa, selain hubungan induk–anak. */
+  const controlOverlap = () => {
+    const els = [...document.querySelectorAll('.scene__controls .ctl, .scene__controls .btn, .scene__controls .btn-wrap, .scene__controls .seg, .scene__controls .lim__in, .scene__controls .num-err')]
+      .filter((e) => e.checkVisibility?.() !== false && e.getBoundingClientRect().width > 0 && (e.textContent.trim() || e.matches('.lim__in')));
+    const out = [];
+    for (let i = 0; i < els.length; i++) for (let j = i + 1; j < els.length; j++) {
+      const a = els[i], b = els[j];
+      if (a.contains(b) || b.contains(a)) continue;
+      const r = a.getBoundingClientRect(), q = b.getBoundingClientRect();
+      const iw = Math.min(r.right, q.right) - Math.max(r.left, q.left), ih = Math.min(r.bottom, q.bottom) - Math.max(r.top, q.top);
+      if (iw > 2 && ih > 2) out.push(`"${a.textContent.trim().slice(0, 22)}" × "${b.textContent.trim().slice(0, 22)}" (${iw.toFixed(0)}×${ih.toFixed(0)} px)`);
+    }
+    const lab = [...document.querySelectorAll('.scene__controls .ctl__label, .scene__controls .btn')].filter((e) => e.checkVisibility?.() !== false)
+      .filter((e) => e.scrollWidth > e.clientWidth + 1 && e.clientWidth > 0).map((e) => `teks terpotong "${e.textContent.trim().slice(0, 28)}" (${e.scrollWidth} > ${e.clientWidth})`);
+    return [...out, ...lab];
+  };
+  let states = 0;
+  for (const [w, h] of VIEWPORTS) {
+    for (const theme of ['dark', 'light']) {
+      const p = await browser.newPage({ viewport: { width: w, height: h } });
+      const errs = [];
+      p.on('pageerror', (e) => errs.push(`pageerror: ${e.message}`));
+      p.on('console', (m) => { if (m.type() === 'error') errs.push(`console: ${m.text()}`); });
+      await p.addInitScript(([t]) => { try { localStorage.setItem('etel:lang', 'id'); localStorage.setItem('etel:theme', t); } catch { /* */ } }, [theme]);
+      await p.goto(`${base}#/scene/5`);
+      await p.waitForFunction(() => window.__etelDebug?.scene() === 5 && !window.__etelDebug.loading(), null, { timeout: 30000 });
+      for (const n of [5, 6, 7, 8]) {
+        await goScene(p, n, 700);
+        states++;
+        for (const o of await p.evaluate(controlOverlap)) fails.push(`${w}×${h} ${theme} ID Scene ${n}: panel kontrol: ${o}`);
+        const res = await p.evaluate(inspect, { minFill: MIN_FILL_PCT });
+        for (const o of res.overflow) fails.push(`${w}×${h} ${theme} ID Scene ${n}: teks meluber di ${o.el}: ${o.reasons[0]}`);
+        for (const o of [...new Set(res.helpOverlap)]) fails.push(`${w}×${h} ${theme} ID Scene ${n}: bantuan ⓘ bertumpuk: ${o}`);
+        if (res.hscroll) fails.push(`${w}×${h} ${theme} ID Scene ${n}: scroll horizontal`);
+      }
+      for (const e of [...new Set(errs)]) fails.push(`${w}×${h} ${theme} ID: ${e}`);
+      await p.close();
+    }
+  }
+
+  // Scene 6: chip dan garis batas saat bahasa berganti
+  const p = await browser.newPage({ viewport: { width: 1366, height: 768 } });
+  try {
+    const errs = [];
+    p.on('pageerror', (e) => errs.push(`pageerror: ${e.message}`));
+    p.on('console', (m) => { if (m.type() === 'error') errs.push(`console: ${m.text()}`); });
+    await p.addInitScript(() => {
+      window.__ft = [];
+      const ft = CanvasRenderingContext2D.prototype.fillText;
+      CanvasRenderingContext2D.prototype.fillText = function (t, x, y, m) { window.__ft.push(String(t)); return ft.call(this, t, x, y, m); };
+      try { localStorage.setItem('etel:lang', 'en'); localStorage.setItem('etel:theme', 'dark'); } catch { /* */ }
+    });
+    await p.goto(`${base}#/scene/6`);
+    await p.waitForFunction(() => window.__etelDebug?.scene() === 6 && !window.__etelDebug.loading(), null, { timeout: 30000 });
+    await p.evaluate(() => { window.__noReload = 1; });
+    await p.waitForTimeout(900);
+    const typeIn = async (sel, text) => { await p.click(sel, { clickCount: 3 }); await p.keyboard.press('Control+A'); await p.keyboard.press('Backspace'); await p.keyboard.type(text); await p.keyboard.press('Tab'); await p.waitForTimeout(500); };
+    await typeIn('[data-lim="co"]', '30.5');
+    const regLine = () => p.evaluate(() => document.querySelector('.pl-reg [data-k="regline"]')?.textContent.trim() ?? '');
+    const lim = () => p.evaluate(() => ({ co: window.__etelDebug.limits().co, val: document.querySelector('[data-lim="co"]').value }));
+    const toLang = async (l) => {
+      await p.evaluate(() => { window.__ft.length = 0; });
+      await p.click(`.topbar .lang-switch [data-lang="${l}"]`);
+      await p.waitForFunction((x) => window.__etelDebug.uiLang() === x && !window.__etelDebug.loading(), l, { timeout: 15000 });
+      await p.waitForTimeout(1200);
+    };
+    let line = await regLine();
+    if (!/\b(Within|Above|Not modeled)\b/.test(line) || !/indicative/.test(line) || !/margin [+−-]?\d+\.\d %/.test(line)) fails.push(`Scene 6 EN: baris chip "${line.slice(0, 160)}"`);
+    if (!/CO (Within|Above)/.test(line)) fails.push(`Scene 6 EN: CO tanpa chip setelah isian nilai izin/OEM: "${line.slice(0, 160)}"`);
+    if ((await lim()).co !== 30.5 || (await lim()).val !== '30.5') fails.push(`Scene 6 EN: isian CO "30.5" → ${JSON.stringify(await lim())}`);
+    await toLang('id');
+    const ftId = await p.evaluate(() => window.__ft.join('\n'));
+    for (const t of ['CO: nilai izin/OEM (isian pengguna)', 'Batas NOx (regulasi)']) if (!ftId.includes(t)) fails.push(`Scene 6 ID: garis batas di kanvas tanpa "${t}"`);
+    if (/NOx limit \(regulation\)|permit\/OEM value/.test(ftId)) fails.push('Scene 6 ID: label garis batas masih English di kanvas');
+    line = await regLine();
+    if (!/\b(Within|Above|Not modeled)\b/.test(line)) fails.push(`Scene 6 ID: chip bukan Within / Above / Not modeled: "${line.slice(0, 160)}"`);
+    if (!/indikatif/.test(line) || /indicative/.test(line)) fails.push(`Scene 6 ID: baris chip tanpa "indikatif" / masih English: "${line.slice(0, 160)}"`);
+    if (!/margin [+−-]?\d+,\d %/.test(line)) fails.push(`Scene 6 ID: margin tanpa koma desimal: "${line.slice(0, 160)}"`);
+    if (/\b(lulus|patuh|compliant)\b/i.test(line)) fails.push(`Scene 6 ID: baris chip terbaca sebagai klaim kepatuhan: "${line.slice(0, 160)}"`);
+    if ((await lim()).co !== 30.5 || (await lim()).val !== '30,5') fails.push(`Scene 6 ID: isian CO tampil "${(await lim()).val}" (harusnya "30,5", nilai 30.5)`);
+    await typeIn('[data-lim="co"]', '12'); // dekat nilai model CO → margin < 10 %: keterangan ketidakpastian model
+    line = await regLine();
+    if (!/margin lebih kecil daripada ketidakpastian model/.test(line)) fails.push(`Scene 6 ID: margin kecil tanpa keterangan "margin lebih kecil daripada ketidakpastian model": "${line.slice(0, 200)}"`);
+    await typeIn('[data-lim="co"]', '1.500,5');
+    if ((await lim()).co !== 1500.5) fails.push(`Scene 6 ID: isian "1.500,5" tersimpan ${(await lim()).co}`);
+    await typeIn('[data-lim="co"]', '30,5');
+    await toLang('en');
+    const ftEn = await p.evaluate(() => window.__ft.join('\n'));
+    for (const t of ['CO: permit/OEM value (user input)', 'NOx limit (regulation)']) if (!ftEn.includes(t)) fails.push(`Scene 6 EN: garis batas di kanvas tanpa "${t}"`);
+    if ((await lim()).val !== '30.5') fails.push(`Scene 6 EN: isian CO tampil "${(await lim()).val}" (harusnya "30.5")`);
+    if (await p.evaluate(() => window.__noReload) !== 1) fails.push('Scene 6: halaman dimuat ulang saat ganti bahasa');
+    for (let i = 0; i < 4; i++) await toLang(i % 2 ? 'en' : 'id');
+    for (const e of [...new Set(errs)]) fails.push(`Scene 6 ganti bahasa: ${e}`);
+  } catch (e) { fails.push(`Scene 6 ganti bahasa: ${e.message.split('\n')[0]}`); }
+  await p.close();
+  console.log(`\nD4 panel kontrol ID Scene 5–8: ${states} keadaan (3 viewport × 2 tema)`);
   return fails;
 }
 
@@ -1980,7 +2118,7 @@ try {
   // E2E_ONLY=learn,landing,deeplinks: hanya alur halaman tersebut (iterasi cepat); tanpa variabel = smoke penuh
   const only = process.env.E2E_ONLY ? new Set(process.env.E2E_ONLY.split(',')) : null;
   if (only) {
-    const flows = { numerr: numberErrorsInteraction, presenterlang: presenterLangInteraction, idchrome: idChromeInteraction, langid: langIdInteraction, d3: d3Interaction, learn: learnInteraction, chartguide: chartGuideInteraction, help: helpInteraction, helpclick: helpClickInteraction, settings: settingsInteraction, landing: landingInteraction, deeplinks: deepLinks, theme: themeInteraction };
+    const flows = { numerr: numberErrorsInteraction, presenterlang: presenterLangInteraction, idchrome: idChromeInteraction, langid: langIdInteraction, d3: d3Interaction, d4: d4Interaction, learn: learnInteraction, chartguide: chartGuideInteraction, help: helpInteraction, helpclick: helpClickInteraction, settings: settingsInteraction, landing: landingInteraction, deeplinks: deepLinks, theme: themeInteraction };
     for (const k of only) if (flows[k]) failures.push(...await flows[k](chromium.browser, srv.url));
   }
   for (const [w, h] of only ? [] : VIEWPORTS) {
@@ -2036,6 +2174,7 @@ try {
     if (w === 1366) failures.push(...await helpClickInteraction(chromium.browser, srv.url));
     if (w === 1366) failures.push(...await langIdInteraction(chromium.browser, srv.url));
     if (w === 1366) failures.push(...await d3Interaction(chromium.browser, srv.url));
+    if (w === 1366) failures.push(...await d4Interaction(chromium.browser, srv.url));
     if (w === 1366) failures.push(...await presenterLangInteraction(chromium.browser, srv.url));
     if (w === 1366) failures.push(...await idChromeInteraction(chromium.browser, srv.url));
     if (w === 1280) failures.push(...await numberErrorsInteraction(chromium.browser, srv.url));
