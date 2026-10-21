@@ -46,6 +46,7 @@ const isPairText = (x) => !!x && typeof x === 'object' && !Array.isArray(x) && O
 /** Isi teks pasangan (untuk pemeriksaan "tanpa angka"). */
 const pairTexts = (x) => (isPairText(x) ? [x.en, x.id] : []);
 const isTextList = (x) => Array.isArray(x) && x.length > 0 && x.every(isText);
+const isPairList = (x) => Array.isArray(x) && x.length > 0 && x.every(isPairText);
 
 /**
  * Validasi controls.json. @returns {{field:string, code:string}[]} kosong bila valid.
@@ -63,21 +64,21 @@ export function validateControls(j, sceneNumbers = DEFAULT_SCENES) {
     if (!isText(c.id)) e.push({ field: f('id'), code: 'text' });
     else if (ids.has(c.id)) e.push({ field: f('id'), code: 'duplicate' });
     else ids.add(c.id);
-    if (!isText(c.name)) e.push({ field: f('name'), code: 'text' });
-    for (const k of ['lowers', 'raises', 'operation']) if (!isTextList(c[k])) e.push({ field: f(k), code: 'textList' });
-    if (!isText(c.efficiency)) e.push({ field: f('efficiency'), code: 'text' });
+    if (!isPairText(c.name)) e.push({ field: f('name'), code: 'pair' });
+    for (const k of ['lowers', 'raises', 'operation']) if (!isPairList(c[k])) e.push({ field: f(k), code: 'pairList' });
+    if (!isPairText(c.efficiency)) e.push({ field: f('efficiency'), code: 'pair' });
     if (!Array.isArray(c.appliesTo) || !c.appliesTo.length || !c.appliesTo.every((m) => MACHINES.includes(m))) e.push({ field: f('appliesTo'), code: 'machines' });
     if (!Array.isArray(c.relatedScenes) || !c.relatedScenes.every((n) => sceneNumbers.includes(n))) e.push({ field: f('relatedScenes'), code: 'scenes' });
   });
   return e;
 }
 
-/** Validasi closing.json: tepat 3 poin teks + opsi { id, text } unik. */
+/** Validasi closing.json: tepat 3 poin teks + opsi { id, text } unik. Sejak D5b semua teks berupa pasangan { en, id }. */
 export function validateClosing(j) {
   const e = [];
   if (!j || typeof j !== 'object' || Array.isArray(j)) return [{ field: '(root)', code: 'notObject' }];
   if (j.version !== 1) e.push({ field: 'version', code: 'version' });
-  if (!Array.isArray(j.points) || j.points.length !== 3 || !j.points.every(isText)) e.push({ field: 'points', code: 'threePoints' });
+  if (!Array.isArray(j.points) || j.points.length !== 3 || !j.points.every(isPairText)) e.push({ field: 'points', code: 'threePoints' });
   if (!Array.isArray(j.options) || !j.options.length) e.push({ field: 'options', code: 'array' });
   else {
     const ids = new Set();
@@ -85,7 +86,7 @@ export function validateClosing(j) {
       if (!o || !isText(o.id)) e.push({ field: `options[${i}].id`, code: 'text' });
       else if (ids.has(o.id)) e.push({ field: `options[${i}].id`, code: 'duplicate' });
       else ids.add(o.id);
-      if (!o || !isText(o.text)) e.push({ field: `options[${i}].text`, code: 'text' });
+      if (!o || !isPairText(o.text)) e.push({ field: `options[${i}].text`, code: 'pair' });
     });
   }
   return e;

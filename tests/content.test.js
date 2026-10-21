@@ -38,7 +38,11 @@ describe('content/controls.json', () => {
     for (const c of controls.cards) expect(c.appliesTo.every((x) => MACHINES.includes(x))).toBe(true);
   });
   it('SCR & oxidation catalyst: kebutuhan operasi kualitatif (jendela suhu exhaust, besaran dari data unit)', () => {
-    for (const id of ['scr', 'oxcat']) expect(controls.cards.find((c) => c.id === id).operation.join(' ')).toMatch(/exhaust temperature window; the values come from unit data/);
+    for (const id of ['scr', 'oxcat']) {
+      const op = controls.cards.find((c) => c.id === id).operation;
+      expect(op.map((x) => x.en).join(' ')).toMatch(/exhaust temperature window; the values come from unit data/);
+      expect(op.map((x) => x.id).join(' ')).toMatch(/jendela suhu gas buang; nilainya berasal dari data unit/); // D5b: sisi ID
+    }
   });
 });
 
@@ -71,7 +75,7 @@ describe('validator: pesan galat dengan nama bidang', () => {
     bad.cards[2].relatedScenes = [42];
     bad.cards[3].id = bad.cards[0].id;
     expect(validateControls(bad)).toEqual([
-      { field: 'cards[0].raises', code: 'textList' },
+      { field: 'cards[0].raises', code: 'pairList' },
       { field: 'cards[1].appliesTo', code: 'machines' },
       { field: 'cards[2].relatedScenes', code: 'scenes' },
       { field: 'cards[3].id', code: 'duplicate' },
@@ -80,8 +84,11 @@ describe('validator: pesan galat dengan nama bidang', () => {
   });
   it('closing: bukan tiga poin / opsi tanpa teks', () => {
     expect(validateClosing({ version: 1, points: ['a'], options: [{ id: 'x' }] })).toEqual([
-      { field: 'points', code: 'threePoints' }, { field: 'options[0].text', code: 'text' },
+      { field: 'points', code: 'threePoints' }, { field: 'options[0].text', code: 'pair' },
     ]);
+    // D5b: teks polos (bukan pasangan { en, id }) ditolak
+    const plain = { version: 1, points: ['a', 'b', 'c'], options: [{ id: 'x', text: 'teks' }] };
+    expect(validateClosing(plain).map((x) => x.code)).toEqual(['threePoints', 'pair']);
   });
 });
 

@@ -233,3 +233,69 @@ describe('D5a: content/emission_formation.json sisi ID', () => {
   });
 });
 
+// D5b: Scene 10–11, controls.json, closing.json, kalimat hdr.switches.
+describe('D5b: Scene 10–11, controls.json, closing.json, hdr.switches, sisi ID', () => {
+  const S10 = STR_SOURCE.scene10, S11 = STR_SOURCE.scene11;
+  const id = (pair, ...a) => String(typeof pair.id === 'function' ? pair.id(...a) : pair.id);
+  const readJson = (f) => JSON.parse(readFileSync(new URL(`../content/${f}`, import.meta.url), 'utf8'));
+  const controls = readJson('controls.json'), closing = readJson('closing.json'), help = readJson('help.json');
+  const card = (cid) => controls.cards.find((c) => c.id === cid);
+  const all = (o) => (isPair(o) ? [o] : Array.isArray(o) ? o.flatMap(all) : o && typeof o === 'object' ? Object.values(o).flatMap(all) : []);
+  it('judul dan pesan kunci: kartu dari file (diisi presenter), bukan dari model; besarnya kualitatif', () => {
+    expect(id(S10.title)).toBe('Perangkat pengendali emisi');
+    expect(id(S10.note)).toMatch(/content\/controls\.json \(diisi presenter\), bukan dari model/);
+    expect(id(S10.note)).toMatch(/Besarnya kualitatif; periksa sebelum dipakai/);
+    expect(id(S11.title)).toBe('Penutup');
+    expect(id(S11.message)).toMatch(/bukan melonggarkan batas, tetapi mengukur cara mesin benar-benar bekerja/);
+    expect(id(S11.note)).toMatch(/tanpa klaim baru/);
+  });
+  it('kartu: besar efek butuh data unit (bukan angka), tanpa angka model, tanpa nama vendor', () => {
+    for (const c of controls.cards) {
+      const texts = all([c.name, c.efficiency, c.lowers, c.raises, c.operation]);
+      for (const t of texts) expect(/\d/.test(t.id.replace(/Scene \d+/g, "")), `${c.id}: ${t.id}`).toBe(false);
+      const enNeeds = texts.filter((t) => /unit data|unit or supplier data|needs unit data/i.test(t.en));
+      for (const t of enNeeds) expect(t.id, `${c.id}: ${t.id}`).toMatch(/data unit/);
+    }
+    const idText = all(controls).map((t) => t.id).join('\n');
+    expect(idText).not.toMatch(/\b(Siemens|Solar Turbines|Caterpillar|Wärtsilä|Cummins|Rolls-Royce|Baker Hughes|Mitsubishi)\b/);
+    expect(idText).not.toMatch(/\b(lulus|patuh|compliant)\b|—/i);
+  });
+  it('kartu kunci: DLN (jadwal OEM tidak dimodelkan), lean-burn (methane slip menambah CO₂e), EGR, SCR memutus trade-off, oksidasi tidak menurunkan NOx', () => {
+    expect(card('dln').operation[0].id).toMatch(/jadwal OEM, tidak dimodelkan/);
+    expect(card('dln').raises[0].id).toMatch(/risiko nyala tidak stabil/);
+    expect(card('leanburn').raises[1].id).toMatch(/Methane slip .* menambah CO₂e/);
+    expect(card('leanburn').efficiency.id).toMatch(/memakan keunggulan CO₂e \(lihat Scene 8\)/);
+    expect(card('egr').name.id).toMatch(/^EGR /);
+    expect(card('scr').lowers[0].id).toMatch(/Memutus trade-off dengan ruang bakar/);
+    expect(card('oxcat').raises[0].id).toBe('Tidak menurunkan NOx');
+  });
+  it('penutup: tiga poin dan empat opsi tetap bermakna sama (suhu nyala eksponensial, jendela turbin kompresor bergerak, batas efektif memperhitungkan GRK, CEMS)', () => {
+    expect(closing.points.map((p) => p.id)).toEqual([
+      'Suhu nyala menentukan NOx secara eksponensial.',
+      'Tiap mesin punya jendela operasinya sendiri, dan jendela turbin kompresor bergerak mengikuti proses.',
+      'Batas yang efektif harus memperhitungkan jenis mesin, rentang beban, dan dampak GRK.',
+    ]);
+    expect(closing.options.map((o) => o.id)).toEqual(['by-type', 'load-range', 'inventory', 'cems']);
+    expect(closing.options[3].text.id).toMatch(/Pemantauan kontinu \(CEMS\)/);
+    expect(closing.options[2].text.id).toMatch(/NOx dan GRK bersama/);
+  });
+  it('hdr.switches: sakelar bahasa menerjemahkan seluruh aplikasi (bukan hanya halaman belajar); catatan presenter dan nama resmi regulasi tetap Indonesia', () => {
+    const t = help.items['hdr.switches'];
+    expect(t.how.en).toMatch(/change the language of the whole app/);
+    expect(t.how.en).not.toMatch(/for now|rest of the app stays in English/);
+    expect(t.how.en).toMatch(/Presenter notes stay in Indonesian/);
+    expect(t.how.en).toMatch(/official regulation names stay in Indonesian/);
+    expect(t.how.id).toMatch(/mengubah bahasa seluruh aplikasi/);
+    expect(t.how.id).not.toMatch(/sementara|tetap berbahasa Inggris/);
+    expect(t.how.id).toMatch(/Catatan presenter tetap berbahasa Indonesia/);
+    expect(t.how.id).toMatch(/nama resmi regulasi tetap berbahasa Indonesia/);
+    expect(t.how.id).toMatch(/Gelap dan Terang/);
+  });
+  it('hdr.status: ID memakai nama chip yang tampil ("Kualitas turun"), lencana bukan klaim tentang unit', () => {
+    const t = help.items['hdr.status'];
+    expect(t.what.id).toMatch(/chip Kualitas turun/);
+    expect(t.how.id).toMatch(/Ini tidak berarti ada angka yang cocok dengan data unit/);
+    expect(id(STR_SOURCE.app.qualityFlag)).toBe('Kualitas turun (Auto)');
+  });
+});
+

@@ -41,6 +41,8 @@ function leaves(o, path = 'STR', out = []) {
   }
   return out;
 }
+/** Sisi en dari JSON dua bahasa (pasangan { en, id } → string en). */
+const enSide = (o) => (Array.isArray(o) ? o.map(enSide) : o && typeof o === 'object' ? (Object.keys(o).length === 2 && 'en' in o && 'id' in o ? o.en : Object.fromEntries(Object.entries(o).map(([k, v]) => [k, enSide(v)]))) : o);
 const textsOf = (j) => (typeof j === 'string' ? [j] : Array.isArray(j) ? j.flatMap(textsOf) : j && typeof j === 'object' ? Object.values(j).flatMap(textsOf) : []);
 
 describe('bahasa UI: English, tanpa sisa kata Indonesia', () => {
@@ -73,7 +75,7 @@ describe('bahasa UI: English, tanpa sisa kata Indonesia', () => {
   });
   it('content/controls.json, closing.json, glossary.json (kartu, penutup, glossary) berbahasa English', () => {
     for (const f of ['content/controls.json', 'content/closing.json']) {
-      const bad = textsOf(JSON.parse(read(f))).filter((t) => ID_RE.test(clean(t)));
+      const bad = textsOf(enSide(JSON.parse(read(f)))).filter((t) => ID_RE.test(clean(t))); // D5b: pasangan { en, id }; sisi en diperiksa
       expect(bad, f).toEqual([]);
     }
     // glossary: hanya teks tampil (id sumber seperti "lieuwen-yang" bukan teks)

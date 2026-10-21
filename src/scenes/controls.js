@@ -8,6 +8,7 @@ import { segmented } from '../ui/controls.js';
 import { createContentBanner } from '../ui/contentBanner.js';
 import { escapeHtml as esc } from '../ui/format.js';
 import { STR } from '../ui/strings.js';
+import { tl } from '../state/langStore.js';
 
 const S = STR.scene10;
 
@@ -22,11 +23,11 @@ export const isHighlighted = (card, filter) => filter === 'all' || card.appliesT
 
 /** HTML satu kartu (teks konten di-escape; label dari strings.js). */
 export function cardHtml(c) {
-  const list = (x) => (Array.isArray(x) ? `<ul>${x.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>` : `<p>${esc(x)}</p>`);
+  const list = (x) => (Array.isArray(x) ? `<ul>${x.map((t) => `<li>${esc(tl(t))}</li>`).join('')}</ul>` : `<p>${esc(tl(x))}</p>`);
   const fields = CARD_FIELDS.map((k) => `<div class="card-f card-f--${k}"><div class="card-f__label">${S.fields[k]}</div>${list(c[k])}</div>`).join('');
   const chips = c.appliesTo.map((m) => `<span class="chip">${S.machines[m]}</span>`).join('');
   const links = c.relatedScenes.map((n) => `<button type="button" class="btn btn--sm" data-scene="${n}" data-tip="${S.tips.goScene}">${S.goScene(n)}</button>`).join('');
-  return `<article class="ctrl-card" data-id="${esc(c.id)}"><h3>${esc(c.name)}</h3><div class="card-chips"><span class="card-f__label">${S.appliesTo}</span>${chips}</div>${fields}<div class="card-links">${links}</div></article>`;
+  return `<article class="ctrl-card" data-id="${esc(c.id)}"><h3>${esc(tl(c.name))}</h3><div class="card-chips"><span class="card-f__label">${S.appliesTo}</span>${chips}</div>${fields}<div class="card-links">${links}</div></article>`;
 }
 
 /** @param {import('./sceneBase.js').SceneContext} ctx */
