@@ -37,6 +37,11 @@ const pairsIn = (x, path = '', out = []) => {
   }
   return out;
 };
+/**
+ * Pengecualian eksplisit D6: sisi en KOSONG dengan sengaja. src/model/basis.js (derivasi, asumsi, penyimpangan) tetap English;
+ * di sisi ID kartu Basis dan panel H memberi satu catatan tetap (bukan catatan kerja, tidak bisa disembunyikan). Di EN tidak ada yang tampil.
+ */
+const EN_EMPTY_BY_DESIGN = new Set(['basis.enOnly']);
 const files = { glossary: json('glossary'), references: json('references'), regulations: json('regulations'), formation: json('emission_formation'), controls: json('controls'), closing: json('closing') };
 
 afterEach(() => { applyStringLang('en'); setNumberLang('en'); });
@@ -53,7 +58,8 @@ describe('kelompok dua bahasa (MIGRATED_GROUPS)', () => {
     for (const [p, v] of migrated) {
       expect(typeof v.en, p).toBe(typeof v.id);
       if (typeof v.en === 'function') expect(v.id.length, p).toBe(v.en.length);
-      expect(String(sample(v.en) ?? '').trim(), `${p}.en`).not.toBe('');
+      if (EN_EMPTY_BY_DESIGN.has(p)) expect(String(sample(v.en) ?? ''), `${p}.en harus kosong (catatan hanya di sisi ID)`).toBe('');
+      else expect(String(sample(v.en) ?? '').trim(), `${p}.en`).not.toBe('');
       expect(String(sample(v.id) ?? '').trim(), `${p}.id`).not.toBe('');
     }
   });
@@ -177,7 +183,7 @@ describe('STR: tampilan diisi di tempat saat bahasa berubah', () => {
     const topMigrated = new Set(MIGRATED_GROUPS.map((g) => g.split('.')[0]));
     for (const g of Object.keys(STR_SOURCE).filter((k) => !topMigrated.has(k))) expect(STR[g], g).toBe(STR_SOURCE[g]);
     // subkelompok bertitik: induknya disalin tipis, saudaranya yang belum dimigrasi tetap objek sumber
-    expect(STR.basis.card).toBe(STR_SOURCE.basis.card);
+    expect(STR.basis.card).not.toBe(STR_SOURCE.basis.card); // D6: kartu Basis sudah dimigrasi (sisanya basis.js tetap English)
     expect(STR.basis.refs).not.toBe(STR_SOURCE.basis.refs);
   });
   it('createStrings / resolveText: larik, objek bertingkat, fungsi; bahasa sama tidak dihitung ulang', () => {

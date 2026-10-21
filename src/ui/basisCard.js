@@ -6,11 +6,13 @@
  */
 import { STR } from './strings.js';
 import { createHelpButton } from './helpButton.js';
-import { cardData } from '../state/basisView.js';
+import { cardData, levelKey } from '../state/basisView.js';
 import { loadContent, fallbackContent } from '../state/content.js';
 import { markNote } from '../state/notes.js';
 
 const B = STR.basis, K = STR.basis.card;
+/** Nama tingkat sesuai bahasa aktif (data basis.js memakai nama English). */
+const levelName = (name) => B.levelWord[levelKey(name)] ?? name;
 
 /** @param {string} tag @param {string} [cls] @param {string} [text] */
 function h(tag, cls = '', text = '') {
@@ -52,13 +54,15 @@ export function createBasisCard(parent = document.body, { onOpenRefs } = {}) {
     box.appendChild(head);
     const chips = h('div', 'bcard__levels');
     chips.appendChild(h('span', 'bcard__label', K.level));
-    for (const lv of d.levels) chips.appendChild(h('span', 'bcard__chip', lv));
+    for (const lv of d.levels) chips.appendChild(h('span', 'bcard__chip', levelName(lv)));
     box.appendChild(chips);
+    // D6: uraian derivasi / asumsi / penyimpangan (src/model/basis.js) hanya English. Di sisi ID satu catatan tetap, BUKAN catatan kerja (tidak diberi markNote, tidak bisa disembunyikan).
+    if (B.enOnly) { const n = h('p', 'bcard__enonly', B.enOnly); n.setAttribute('data-en-only', ''); box.appendChild(n); }
 
     for (const e of d.entries) {
       const sec = h('section', 'bcard__entry');
       const title = h('div', 'bcard__name');
-      title.append(h('code', '', e.name), h('span', 'bcard__chip', e.level));
+      title.append(h('code', '', e.name), h('span', 'bcard__chip', levelName(e.level)));
       sec.appendChild(title);
       const dv = h('p', 'bcard__deriv');
       dv.append(h('b', '', `${K.derivation}: `), document.createTextNode(e.derivation));
@@ -128,6 +132,8 @@ export function createBasisCard(parent = document.body, { onOpenRefs } = {}) {
       /** @type {HTMLElement|null} */ (opener)?.focus?.();
       opener = null;
     },
+    /** Bahasa berubah: perbarui label dan, bila terbuka, gambar ulang kartu. */
+    relabel() { el.setAttribute('aria-label', K.title); if (!el.hidden && last) render(last); },
     dispose() { alive = false; off(); el.remove(); },
   };
 

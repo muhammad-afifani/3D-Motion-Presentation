@@ -2,6 +2,8 @@
 // berlaku untuk kelompok yang dimigrasi tahap berikutnya (D4: twin/single-shaft, D5: batas dan kebijakan, dst.).
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
+import { BASIS } from '../src/model/basis.js';
+import { levelKey, cardData } from '../src/state/basisView.js';
 import * as thermo from '../src/model/thermo.js';
 import { STR_SOURCE } from '../src/ui/strings.js';
 import { MIGRATED_GROUPS, isPair } from '../src/state/i18n.js';
@@ -69,7 +71,8 @@ describe('kalimat jujur model, sisi ID', () => {
   it('sisi ID bersih: tanpa nama fungsi / konstanta kode, tanpa tanda pisah panjang, angka desimal gaya Indonesia', () => {
     const names = Object.keys(thermo).filter((n) => /[a-z][A-Z0-9]|_/.test(n));
     const re = new RegExp(`(?<![\\p{L}\\p{N}_])(${names.join('|')})(?![\\p{L}\\p{N}_])`, 'u');
-    expect(where(PAIRS.filter(([, , id]) => re.test(id)))).toEqual([]);
+    // panel asumsi (H, assumptions.*) sengaja boleh menyebut nama fungsi / konstanta (CLAUDE.md: hanya kartu Basis dan panel H)
+    expect(where(PAIRS.filter(([p, , id]) => !/^assumptions\./.test(p) && re.test(id)))).toEqual([]);
     expect(where(PAIRS.filter(([, , id]) => /—/.test(id)))).toEqual([]); // tanda pisah panjang (em dash)
     // desimal bertitik gaya en-US ("1.4") tidak boleh ada di teks ID; pemisah ribuan titik (2.200) boleh
     const bad = STATIC.filter(([, , id]) => /\d\.\d/.test(id.replace(/\d{1,3}(\.\d{3})+(?!\d)/g, '').replace(/\d+\.\d+\.\d+/g, '')));
@@ -299,6 +302,71 @@ describe('D5b: Scene 10–11, controls.json, closing.json, hdr.switches, sisi ID
     expect(t.what.id).toMatch(/chip Kualitas turun/);
     expect(t.how.id).toMatch(/Ini tidak menjamin angka apa pun cocok dengan data unit/);
     expect(id(STR_SOURCE.app.qualityFlag)).toBe('Kualitas turun (Auto)');
+  });
+});
+
+// D6: panel asumsi (H), kartu Basis, pengecualian basis.js (tetap English).
+describe('D6: panel asumsi, kartu Basis, basis.js tetap English, sisi ID', () => {
+  const A = STR_SOURCE.assumptions, K = STR_SOURCE.basis.card;
+  const id = (pair, ...a) => String(typeof pair.id === 'function' ? pair.id(...a) : pair.id);
+  const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), 'utf8');
+  it('kalimat kejujuran panel H: indikatif, kalibrasi ke nilai tipikal literatur bukan data unit atau vendor, efek butuh data OEM/CEMS unit', () => {
+    expect(id(A.intro)).toMatch(/^Semua korelasi emisi bersifat indikatif\./);
+    expect(id(A.intro)).toMatch(/dikalibrasi ke nilai tipikal literatur, bukan data unit atau vendor/);
+    expect(id(A.calib.notUnit)).toMatch(/^Bukan data unit atau vendor\. Ganti dengan data CEMS\/OEM/);
+    expect(id(A.flame.title)).toMatch(/indikatif ±100 K/);
+    expect(id(A.turbine.items[1])).toMatch(/Fuel split premix tetap/);
+    expect(id(A.turbine.items[1])).toMatch(/tidak dimodelkan/);
+    expect(id(A.turbine.items[3])).toMatch(/Besar efeknya butuh data OEM\/CEMS unit Anda/);
+    expect(id(A.turbine.items[4])).toMatch(/single-shaft = IGV menjaga T3 tetap[\s\S]*Twin-shaft/);
+    expect(id(A.compressor.items[3])).toMatch(/Bukan klaim tentang beban unit sungguhan/);
+    expect(id(A.engine.items[3])).toMatch(/bukan prediksi vendor/);
+    expect(id(A.issues.intro)).toMatch(/bukan koreksi tersembunyi/);
+  });
+  it('GWP dan CO₂e: 29,8 (AR6, horizon 100 tahun), horizon lain memberi hasil lain, CO₂e sedikit konservatif; PM hanya kualitatif', () => {
+    expect(id(A.ghg.items[1])).toMatch(/GWP CH₄ = 29,8 \(AR6, horizon 100 tahun, CH₄ fosil\)/);
+    expect(id(A.ghg.items[1])).toMatch(/Horizon waktu lain memberi hasil lain/);
+    expect(id(A.ghg.items[2])).toMatch(/CO₂e sedikit konservatif/);
+    expect(id(A.ghg.items[3])).toMatch(/PM tidak dimodelkan \(hanya kualitatif\)/);
+  });
+  it('panel H boleh menyebut nama fungsi: nama tetap persis (cylinderSim, lossFrac, ppmToGkWh, co2eWithSlip, co2Specific, speedForHead, gasCompressor, coDLN)', () => {
+    const all = JSON.stringify([A.engine, A.turbine, A.ghg, A.compressor].map((g) => JSON.parse(JSON.stringify(g, (k, v) => (isPair(v) ? v.id : v)))));
+    for (const n of ['cylinderSim', 'lossFrac', 'ppmToGkWh', 'co2eWithSlip', 'co2Specific', 'speedForHead', 'gasCompressor', 'coDLN']) expect(all, n).toContain(n);
+  });
+  it('kartu Basis: label terjemahan; "source to verify" dan lokasi belum diverifikasi tidak melunak', () => {
+    expect(id(K.derivation)).toBe('Diturunkan dari');
+    expect(id(K.toVerify)).toBe('Source to verify');
+    expect(id(K.unknownRef, 'x')).toMatch(/^source to verify \(x tidak ada di daftar referensi\)$/);
+    expect(id(K.locatorUnchecked)).toBe('lokasi belum diverifikasi');
+    expect(id(K.note)).toMatch(/belum dicocokkan dengan salinan cetak/);
+    expect(id(K.knownIssue)).toBe('Penyimpangan yang diketahui');
+  });
+  it('PENGECUALIAN EKSPLISIT: src/model/basis.js (derivasi, asumsi, penyimpangan) tetap English; sisi ID punya satu catatan tetap, kosong di sisi EN', () => {
+    const note = STR_SOURCE.basis.enOnly;
+    expect(note.en).toBe('');
+    expect(note.id).toMatch(/hanya tersedia dalam bahasa Inggris/);
+    for (const [name, b] of Object.entries(BASIS)) {
+      expect(typeof b.derivation, name).toBe('string'); // bukan pasangan { en, id }
+      expect(b.assumptions.every((x) => typeof x === 'string'), name).toBe(true);
+      expect(levelKey(b.level), `${name}: tingkat ${b.level} tanpa kunci STR.common.level`).not.toBeNull();
+    }
+    const d = cardData('compressor', null);
+    expect(d.levelKeys.every(Boolean)).toBe(true);
+    expect(d.levels.every((x) => typeof x === 'string')).toBe(true);
+  });
+  it('catatan tetap bukan catatan kerja: tidak lewat markNote (tidak ikut Hide working notes) di kartu Basis dan panel H', () => {
+    const card = read('src/ui/basisCard.js'), asm = read('src/ui/assumptions.js');
+    expect(card).toMatch(/B\.enOnly/);
+    expect(card).not.toMatch(/markNote\([^)]*enOnly/);
+    expect(card).toMatch(/data-en-only/);
+    expect(asm).toMatch(/STR\.basis\.enOnly/);
+    expect(asm).not.toMatch(/markNote/);
+    expect((asm.match(/data-en-only/g) ?? []).length).toBe(2); // bagian fungsi dan bagian penyimpangan
+  });
+  it('aturan tertulis di CLAUDE.md (basis.js tetap English; catatan tetap di sisi ID; dijaga tes)', () => {
+    const md = read('CLAUDE.md');
+    expect(md).toMatch(/src\/model\/basis\.js[^\n]*TETAP English/);
+    expect(md).toMatch(/basis\.enOnly/);
   });
 });
 

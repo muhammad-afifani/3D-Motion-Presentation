@@ -14,6 +14,7 @@ import { QUALITY_TUNING, TIER_MAX, displayState } from '../gfx/quality.js';
 import { rendererStats } from '../gfx/renderer.js';
 import { BASIS } from '../model/basis.js';
 import { LEVER_STATUS } from '../state/levers.js';
+import { levelKey } from '../state/basisView.js';
 
 const A = STR.assumptions, C = STR.common;
 export const ASSUMPTIONS_HASH = '#/assumptions';
@@ -55,6 +56,13 @@ export function createAssumptionsPanel(store, parent = document.body, saved = nu
   el.hidden = true;
   el.setAttribute('role', 'dialog');
   el.setAttribute('aria-modal', 'true');
+  parent.appendChild(el);
+  const q = (sel) => el.querySelector(sel);
+  const V = (k) => q(`[data-v="${k}"]`);
+  // D6: isi panel dibuat ulang saat bahasa berubah (relabel); state dan pendengar tingkat panel tetap
+  /** @type {HTMLInputElement} */ let o2;
+  let o2Field, volBtns, qBtns, bBtns;
+  function build() {
   el.setAttribute('aria-label', A.title);
   el.innerHTML = `
     <div class="asm__box">
@@ -94,24 +102,21 @@ export function createAssumptionsPanel(store, parent = document.body, saved = nu
         <section><h3>${A.calib.title}</h3><table data-v="calib"></table><div class="asm__intro">${A.calib.notUnit}</div></section>
         <section><h3>${A.flame.title}</h3><table data-v="flame"></table><div class="asm__intro" data-v="flameNote"></div></section>
         <section style="grid-column: 1 / -1"><h3>${A.levels.title}</h3><table data-v="levels"></table></section>
-        <section style="grid-column: 1 / -1" data-section="functions"><h3>${A.functions.title}</h3><div class="asm__intro">${A.functions.intro}</div>
+        <section style="grid-column: 1 / -1" data-section="functions"><h3>${A.functions.title}</h3><div class="asm__intro">${A.functions.intro}</div>${STR.basis.enOnly ? `<div class="asm__intro asm__enonly" data-en-only>${STR.basis.enOnly}</div>` : ''}
           <table data-v="functions"></table></section>
-        <section style="grid-column: 1 / -1" data-section="issues"><h3>${A.issues.title}</h3><div class="asm__intro">${A.issues.intro}</div>
+        <section style="grid-column: 1 / -1" data-section="issues"><h3>${A.issues.title}</h3><div class="asm__intro">${A.issues.intro}</div>${STR.basis.enOnly ? `<div class="asm__intro asm__enonly" data-en-only>${STR.basis.enOnly}</div>` : ''}
           <ul data-v="issues"></ul></section>
         ${saved ? `<section style="grid-column: 1 / -1"><h3>${A.saved.title}</h3>
           <div class="asm__intro">${saved.available ? A.saved.note : A.saved.unavailable}</div>
           <button type="button" class="btn btn--sm" data-reset-saved data-tip="${A.saved.resetTip}">${A.saved.reset}</button></section>` : ''}
       </div>
     </div>`;
-  parent.appendChild(el);
   { const h2 = el.querySelector('.asm__head h2'); h2.append(' ', createHelpButton('ui.assumptions', { describes: h2 }).el); } // ⓘ di judul panel
 
-  const q = (sel) => el.querySelector(sel);
-  const V = (k) => q(`[data-v="${k}"]`);
-  const o2 = /** @type {HTMLInputElement} */ (q('[data-o2]'));
+  o2 = /** @type {HTMLInputElement} */ (q('[data-o2]'));
   const d0 = deriveAssumptions(store.get());
   o2.title = A.basis.o2Tip(d0.basis.range.min, d0.basis.range.max);
-  const volBtns = d0.basis.options.map((T) => {
+  volBtns = d0.basis.options.map((T) => {
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'seg__btn';
@@ -129,10 +134,10 @@ export function createAssumptionsPanel(store, parent = document.body, saved = nu
     q(sel).appendChild(b);
     return [v, b];
   });
-  const qBtns = segBtns('[data-quality]', QUALITY_ORDER, D.qualityOpts, 'quality');
-  const bBtns = segBtns('[data-bloom]', BLOOM_ORDER, D.bloomOpts, 'bloomMode');
+  qBtns = segBtns('[data-quality]', QUALITY_ORDER, D.qualityOpts, 'quality');
+  bBtns = segBtns('[data-bloom]', BLOOM_ORDER, D.bloomOpts, 'bloomMode');
   // O₂ acuan: wajib, di dalam rentang basis (koma / titik desimal); di luar rentang → pesan galat, nilai tidak berubah
-  const o2Field = createNumberField(o2, {
+  o2Field = createNumberField(o2, {
     min: d0.basis.range.min, max: d0.basis.range.max, allowEmpty: false,
     onCommit: (v) => { const patch = basisPatch({ refO2: v }); if (Object.keys(patch).length) store.set(patch); render(); },
   });
@@ -140,6 +145,7 @@ export function createAssumptionsPanel(store, parent = document.body, saved = nu
   q('[data-reset]').addEventListener('click', () => store.set(basisResetPatch()));
   q('[data-close]').addEventListener('click', () => setOpen(false));
   q('[data-reset-saved]')?.addEventListener('click', () => saved.onReset());
+  }
   el.addEventListener('click', (e) => { if (e.target === el) setOpen(false); });
 
   function render() {
@@ -165,16 +171,22 @@ export function createAssumptionsPanel(store, parent = document.body, saved = nu
     V('flameNote').textContent = A.flame.note(d.flame.Tin);
     V('levels').innerHTML = row(A.levels.head, 'th')
       + d.chartLevels.map((x) => row([String(x.scene), CHART_TITLES[x.chart](), x.levels.map((k) => C.level[k]).join(A.levels.sep)])).join('');
+    fillRegistry();
   }
 
-  // Theory basis per function: rows come straight from src/model/basis.js (clicking a row opens its Basis card)
-  const fnRows = Object.entries(BASIS).map(([name, b]) => {
-    const src = b.refs.length ? b.refs.join(', ') : A.functions.none;
-    return `<tr class="asm-fn" role="button" tabindex="0" data-basis="${name}"><td><code>${name}</code></td><td>${b.level}</td><td>${src}${b.toVerify.length ? ` · <b>${A.functions.toVerify}</b>` : ''}</td></tr>`;
-  });
-  V('functions').innerHTML = row(A.functions.head, 'th') + fnRows.join('');
-  // penyimpangan yang diketahui (basis.js knownIssue), mis. cv(T) linear vs data polinomial NASA (koreksi direncanakan M10)
-  V('issues').innerHTML = Object.entries(BASIS).filter(([, b]) => b.knownIssue).map(([name, b]) => `<li class="asm-fn" role="button" tabindex="0" data-basis="${name}"><code>${name}</code>: ${b.knownIssue}</li>`).join('');
+  /** Dasar teori per fungsi dan penyimpangan yang diketahui: baris dari src/model/basis.js (uraian tetap English; satu catatan tetap di sisi ID). */
+  function fillRegistry() {
+    const fnRows = Object.entries(BASIS).map(([name, b]) => {
+      const src = b.refs.length ? b.refs.join(', ') : A.functions.none;
+      return `<tr class="asm-fn" role="button" tabindex="0" data-basis="${name}"><td><code>${name}</code></td><td>${STR.basis.levelWord[levelKey(b.level)] ?? b.level}</td><td>${src}${b.toVerify.length ? ` · <b>${A.functions.toVerify}</b>` : ''}</td></tr>`;
+    });
+    V('functions').innerHTML = row(A.functions.head, 'th') + fnRows.join('');
+    // penyimpangan yang diketahui (basis.js knownIssue), mis. cv(T) linear vs data polinomial NASA (koreksi direncanakan M10)
+    V('issues').innerHTML = Object.entries(BASIS).filter(([, b]) => b.knownIssue).map(([name, b]) => `<li class="asm-fn" role="button" tabindex="0" data-basis="${name}"><code>${name}</code>: ${b.knownIssue}</li>`).join('');
+  }
+  build();
+  fillRegistry();
+
 
   const isHash = (h) => String(h ?? '').replace(/\?.*$/, '').replace(/\/+$/, '') === ASSUMPTIONS_HASH;
   let page = false;
@@ -208,6 +220,8 @@ export function createAssumptionsPanel(store, parent = document.body, saved = nu
     /** Buka panel dan gulir ke satu bagian (mis. 'display' dari pill Quality reduced). */
     openSection(name) { setOpen(true); q(`[data-section="${name}"]`)?.scrollIntoView({ block: 'start' }); },
     render,
+    /** Bahasa berubah: bangun ulang isi panel (tetap terbuka / tertutup seperti semula). */
+    relabel() { build(); fillRegistry(); if (!el.hidden) render(); },
     dispose() { unsub(); window.removeEventListener('keydown', onKey, true); win.removeEventListener('hashchange', onHash); el.remove(); },
   };
 }
