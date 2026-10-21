@@ -19,21 +19,21 @@ Sejak Paket D, UI punya sisi Indonesia (sakelar EN/ID; `src/state/i18n.js`). Ist
 
 - Alasan: Satuan SI dan simbol teknis ditulis sama di semua bahasa. Angka di sampingnya yang mengikuti bahasa (1.500,5 / 1,500.5).
 - Terhadap tabel PADANAN di bawah: tidak diatur tabel ini
-- Teks utuh (sisi id sengaja sama dengan en): `bar`, `K`, `%`, `mm`, `L`, `g/kWh`, `kJ/kg`, `kJ/kWh`, `MW`, `°C`, `mg/Nm³`, `ms`, `ATDC`, `rpm visual`, `ppm`, `% O₂`, `–`, `ppmvd`, `100-500 kW`, `500-1000 kW`, `η [%]`, `P [bar]`, `%/°C`, `kg/kmol`, `kg/s`, `m³/s`, `ppmvd (log)`
+- Teks utuh (sisi id sengaja sama dengan en): `bar`, `K`, `%`, `mm`, `L`, `g/kWh`, `kJ/kg`, `kJ/kWh`, `MW`, `°C`, `mg/Nm³`, `ms`, `ATDC`, `rpm visual`, `ppm`, `% O₂`, `–`, `ppmvd`, `100-500 kW`, `500-1000 kW`, `η [%]`, `P [bar]`, `%/°C`, `kg/kmol`, `kg/s`, `m³/s`, `ppmvd (log)`, `NOx [mg/Nm³]`, `CO₂e [g/kWh]`, `H₂S [ppmv]`, `ppm @ basis`, `…`
 - Dipakai di dalam kalimat (hanya dicatat): `kW`, `rpm`
 
 ### Singkatan, rumus kimia, dan simbol
 
 - Alasan: Singkatan baku industri dan rumus kimia dipakai sama di naskah dan di layar; definisinya ada di Glossary. Simbol Yunani dan ƒ tidak diterjemahkan.
 - Terhadap tabel PADANAN di bawah: sesuai. Baris tabel: singkatan English (TDC, IGV, DLN, CEMS, PM, …) dipakai sama di naskah dan di layar.
-- Teks utuh (sisi id sengaja sama dengan en): `NOx`, `CO`, `CO₂`, `CH₄`, `PM`, `ƒ`, `CO₂e`, `SO₂`, `CEMS`, `DLN`, `IGV`, `GWP`, `UHC`, `LHV`, `TDC`, `ATDC / BTDC`, `EGR`, `BSFC`, `Pmax`, `AFR`, `λ (lambda)`, `φ (phi)`, `BDC`, `MEP`, `IVC`, `EVO`, `SOC θ₀`, `η`, `N_GG`, `CO₂ & CO₂e (g/kWh)`, `Slip → CO₂e`, `GWP CH₄`
+- Teks utuh (sisi id sengaja sama dengan en): `NOx`, `CO`, `CO₂`, `CH₄`, `PM`, `ƒ`, `CO₂e`, `SO₂`, `CEMS`, `DLN`, `IGV`, `GWP`, `UHC`, `LHV`, `TDC`, `ATDC / BTDC`, `EGR`, `BSFC`, `Pmax`, `AFR`, `λ (lambda)`, `φ (phi)`, `BDC`, `MEP`, `IVC`, `EVO`, `SOC θ₀`, `η`, `N_GG`, `CO₂ & CO₂e (g/kWh)`, `Slip → CO₂e`, `GWP CH₄`, `φ`, `λ = 1/φ`, `C₂H₆`, `C₃H₈`, `C₄H₁₀+`, `N₂`, `UHC / methane slip`, `n/a`
 - Dipakai di dalam kalimat (hanya dicatat): `BDC`, `IVC`, `SCR`, `AR6`, `NO`, `NO₂`, `η`, `φ`, `λ`, `θ`, `P-V`, `T-s`
 
 ### Nama tombol keyboard
 
 - Alasan: Huruf pada tombol keyboard sama di semua bahasa. Tombol Space ditulis Spasi di ID (bukan entri daftar ini).
 - Terhadap tabel PADANAN di bawah: tidak diatur tabel ini
-- Teks utuh (sisi id sengaja sama dengan en): `S`, `P`, `G`, `?`, `H`, `M`, `M: Explore`, `C`
+- Teks utuh (sisi id sengaja sama dengan en): `S`, `P`, `G`, `?`, `H`, `M`, `M: Explore`, `C`, `Esc`
 
 ### Nama halaman, mode, dan produk
 
@@ -64,13 +64,13 @@ Sejak Paket D, UI punya sisi Indonesia (sakelar EN/ID; `src/state/i18n.js`). Ist
 
 - Alasan: Kata serapan yang ejaannya sama di Inggris dan Indonesia. Bukan terjemahan yang tertinggal.
 - Terhadap tabel PADANAN di bawah: tidak diatur tabel ini
-- Teks utuh (sisi id sengaja sama dengan en): `Ideal`, `Parameter`, `Model`, `Status`, `Timer`, `Total`, `Scene`, `Gas`, `Real`, `Piston`, `Preset`, `Generator`
+- Teks utuh (sisi id sengaja sama dengan en): `Ideal`, `Parameter`, `Model`, `Status`, `Timer`, `Total`, `Scene`, `Gas`, `Real`, `Piston`, `Preset`, `Generator`, `Tab`
 
 ### Fungsi pembentuk teks dengan sisi id identik
 
 - Alasan: Teks yang hanya terdiri atas nama tetap, angka, dan satuan (mis. 'Scene 3 · Judul', 'Model OK · 19/19', 'margin +4,2 %'). Tidak ada kata yang bisa diterjemahkan; angkanya sudah mengikuti bahasa lewat format angka.
 - Terhadap tabel PADANAN di bawah: sesuai. Mengikuti kelompok halaman_produk dan status_chip.
-- Fungsi teks: `common.animSpeedValue`, `app.sceneTag`, `app.docTitle`, `app.toast.bloom`, `app.badge.ok`, `app.badge.fail`, `nav.sceneTip`, `content.item`, `debug.gpu`, `presenter.current`, `presenter.target`, `presenter.nextLine`, `regulation.margin`, `regulation.mg`, `regulation.pct`, `regulation.scene6Row`, `regulation.scene6Item`, `regulation.scene6Margin`, `regulation.page.group`, `charts.flame.dT`, `charts.flame.point`, `scene3.tinValue`, `scene3.bars.sub`, `scene4.tradeoff.point`, `scene4.tradeoff.now`, `scene4.hud.calib.value`, `scene2.hud.tips.etaIdealBrayton`, `scene1.formula.VcVal`, `scene1.ptheta.pmax`, `scene5.speedGen`, `scene5.speedTwin`, `scene6.windowText`, `scene6.hud.speed.single`, `scene6.hud.speed.twin`, `scene6.hud.igv.value`, `scene6.hud.calib.value`, `scene7.hud.ngg.value`, `scene7.affinity.head`, `scene8.charts.sub`, `scene8.charts.subTurbine`, `scene8.hud.slip.value`, `scene8.hud.inc.value`, `scene8.hud.calib.value`
+- Fungsi teks: `common.animSpeedValue`, `app.sceneTag`, `app.docTitle`, `app.toast.bloom`, `app.badge.ok`, `app.badge.fail`, `nav.sceneTip`, `content.item`, `debug.gpu`, `presenter.current`, `presenter.target`, `presenter.nextLine`, `regulation.margin`, `regulation.mg`, `regulation.pct`, `regulation.scene6Row`, `regulation.scene6Item`, `regulation.scene6Margin`, `regulation.page.group`, `charts.flame.dT`, `charts.flame.point`, `scene3.tinValue`, `scene3.bars.sub`, `scene4.tradeoff.point`, `scene4.tradeoff.now`, `scene4.hud.calib.value`, `scene2.hud.tips.etaIdealBrayton`, `scene1.formula.VcVal`, `scene1.ptheta.pmax`, `scene5.speedGen`, `scene5.speedTwin`, `scene6.windowText`, `scene6.hud.speed.single`, `scene6.hud.speed.twin`, `scene6.hud.igv.value`, `scene6.hud.calib.value`, `scene7.hud.ngg.value`, `scene7.affinity.head`, `scene8.charts.sub`, `scene8.charts.subTurbine`, `scene8.hud.slip.value`, `scene8.hud.inc.value`, `scene8.hud.calib.value`, `scene9.leversTab.value.Tivc`, `scene9.leversTab.value.Pivc`, `scene9.leversTab.value.N`, `scene9.formationTab.sourceToVerify`, `scene9.hud.co2B`, `scene9.hud.co2e`, `scene9.hud.before`
 
 ### Nama siklus dan komponen yang berupa nama diri
 
@@ -82,7 +82,7 @@ Sejak Paket D, UI punya sisi Indonesia (sakelar EN/ID; `src/state/i18n.js`). Ist
 
 - Alasan: String yang hanya berisi simbol, subskrip, dan operator (mis. 'T = ', 'x<sub>b</sub>', rumus η dan Zeldovich) tidak punya kata yang bisa diterjemahkan. Entri ditambahkan karena string Scene 1–4 memuatnya; kebijakan 'Tetap Inggris' tidak berubah.
 - Terhadap tabel PADANAN di bawah: tidak diatur tabel ini
-- Teks utuh (sisi id sengaja sama dengan en): `P`, `T`, `x<sub>b</sub>`, `P<sub>max</sub>`, `w<sub>net</sub>`, `T = `, `P = `, `V = `, `B = `, `a = `, `l = `, `l + a − s = `, `r_p = P_discharge / P_suction.`, `Q ∝ N · H ∝ N² · P ∝ N³`
+- Teks utuh (sisi id sengaja sama dengan en): `P`, `T`, `x<sub>b</sub>`, `P<sub>max</sub>`, `w<sub>net</sub>`, `T = `, `P = `, `V = `, `B = `, `a = `, `l = `, `l + a − s = `, `r_p = P_discharge / P_suction.`, `Q ∝ N · H ∝ N² · P ∝ N³`, `Timing θ₀ [° ATDC]`, `↑`, `↓`, `→`, `↕`
 - Fungsi teks: `scene1.formula.s`, `scene1.formula.V`, `scene1.formula.theta`, `scene1.formula.Vc`, `scene2.formula.otto`, `scene2.formula.diesel`, `scene2.formula.dual`, `scene2.formula.brayton`
 
 <!-- tetap-inggris:selesai -->

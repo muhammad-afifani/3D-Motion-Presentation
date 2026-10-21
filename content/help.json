@@ -477,11 +477,11 @@
     "hud.loadWindow": {
       "what": {
         "en": "The load range where NOx and CO both stay at or below the limits you entered (indicative).",
-        "id": "Rentang beban tempat NOx dan CO sama-sama tetap pada atau di bawah limit yang Anda isi (indikatif)."
+        "id": "Rentang beban tempat NOx dan CO sama-sama tetap pada atau di bawah batas yang Anda isi (indikatif)."
       },
       "how": {
         "en": "A single-shaft turbine loses the window at the CO cliff after the IGV run out. In a twin-shaft turbine the operating window shifts and narrows. It stays empty until limits are entered.",
-        "id": "Turbin single-shaft kehilangan jendela di tebing CO setelah IGV habis. Pada turbin twin-shaft jendela operasi bergeser dan menyempit. Kolom ini kosong sampai limit diisi."
+        "id": "Turbin single-shaft kehilangan jendela di tebing CO setelah IGV habis. Pada turbin twin-shaft jendela operasi bergeser dan menyempit. Kolom ini kosong sampai batas diisi."
       },
       "glossary": [
         "load-window",
@@ -700,7 +700,7 @@
     "hud.limitStatus": {
       "what": {
         "en": "Compares the model value with the limit on the regulation basis.",
-        "id": "Membandingkan nilai model dengan limit pada basis regulasi."
+        "id": "Membandingkan nilai model dengan batas pada basis regulasi."
       },
       "how": {
         "en": "Within or Above shows which side the model value falls on. It is not a test result and not a statement that a unit complies. A small margin is smaller than the model uncertainty.",
@@ -801,7 +801,7 @@
       },
       "how": {
         "en": "The turbine regulation table has no CO limit, so this stays empty until you enter one. It is marked as user input.",
-        "id": "Tabel regulasi turbin tidak punya limit CO, jadi kolom ini kosong sampai Anda mengisinya. Ditandai sebagai isian pengguna."
+        "id": "Tabel regulasi turbin tidak punya batas CO, jadi kolom ini kosong sampai Anda mengisinya. Ditandai sebagai isian pengguna."
       },
       "glossary": [
         "permit-oem"
@@ -894,7 +894,7 @@
     "ctl.limUnit": {
       "what": {
         "en": "Choose the unit of the limit inputs: ppmvd or mg/Nm³.",
-        "id": "Pilih satuan isian limit: ppmvd atau mg/Nm³."
+        "id": "Pilih satuan isian batas: ppmvd atau mg/Nm³."
       },
       "how": {
         "en": "Both use the active reference O₂ shown beside them. mg/Nm³ also uses the volume basis. Values are stored as ppmvd.",
@@ -1424,11 +1424,11 @@
     "ui.s9tabs": {
       "what": {
         "en": "Five views of the emission argument: Limits, Formation, Levers, Load window, and GHG.",
-        "id": "Lima tampilan untuk argumen emisi: Limits, Formation, Levers, Load window, dan GHG."
+        "id": "Lima tampilan untuk argumen emisi: Batas, Pembentukan, Tuas, Jendela beban, dan GRK."
       },
       "how": {
         "en": "Limits compares the model with the limit table. Formation shows how each pollutant forms. Levers sweeps engine settings and fuel. Load window shows the part-load curves against your limits. GHG shows the fuel penalty and methane slip. The number keys switch tabs. Load is not a separate lever here.",
-        "id": "Limits membandingkan model dengan tabel limit. Formation menunjukkan bagaimana tiap polutan terbentuk. Levers menyapu pengaturan mesin dan bahan bakar. Load window menunjukkan kurva beban sebagian terhadap limit Anda. GHG menunjukkan penalti bahan bakar dan methane slip. Tombol angka berpindah antar tab. Beban bukan tuas terpisah di sini."
+        "id": "Batas membandingkan model dengan tabel batas. Pembentukan menunjukkan bagaimana tiap polutan terbentuk. Tuas memvariasikan pengaturan mesin dan bahan bakar. Jendela beban menunjukkan kurva part-load terhadap batas Anda. GRK menunjukkan penalti bahan bakar dan methane slip. Tombol angka berpindah antar tab. Beban bukan tuas terpisah di sini."
       },
       "glossary": [
         "load-window"
@@ -1438,11 +1438,11 @@
     "ui.regSelectors": {
       "what": {
         "en": "Choose the machine type, the capacity class, and the fuel that decide which limit rows apply.",
-        "id": "Pilih jenis mesin, kelas kapasitas, dan bahan bakar yang menentukan baris limit yang berlaku."
+        "id": "Pilih jenis mesin, kelas kapasitas, dan bahan bakar yang menentukan baris batas yang berlaku."
       },
       "how": {
         "en": "The limit table and the comparison follow your choice. A choice you cannot click has no row in the table for the current selection.",
-        "id": "Tabel limit dan perbandingan mengikuti pilihan Anda. Pilihan yang tidak bisa diklik tidak punya baris di tabel untuk seleksi saat ini."
+        "id": "Tabel batas dan perbandingan mengikuti pilihan Anda. Pilihan yang tidak bisa diklik tidak punya baris di tabel untuk seleksi saat ini."
       },
       "lesson": "l5-2"
     },
@@ -1453,7 +1453,7 @@
       },
       "how": {
         "en": "Site data takes priority over the model value and is marked as site data. It is a user input. The turbine table has no CO limit, so a CO value comes only from the permit or OEM value you type.",
-        "id": "Data lapangan diutamakan atas nilai model dan ditandai sebagai data lapangan. Ini isian pengguna. Tabel turbin tidak punya limit CO, jadi nilai CO hanya berasal dari nilai izin atau OEM yang Anda isi."
+        "id": "Data lapangan diutamakan atas nilai model dan ditandai sebagai data lapangan. Ini isian pengguna. Tabel turbin tidak punya batas CO, jadi nilai CO hanya berasal dari nilai izin atau OEM yang Anda isi."
       },
       "glossary": [
         "site-data",
@@ -1464,11 +1464,11 @@
     "ui.limitOverride": {
       "what": {
         "en": "Type a NOx limit that replaces the table value, and a permit or OEM value for CO.",
-        "id": "Isi limit NOx yang menggantikan nilai tabel, dan nilai izin atau OEM untuk CO."
+        "id": "Isi batas NOx yang menggantikan nilai tabel, dan nilai izin atau OEM untuk CO."
       },
       "how": {
         "en": "An override is marked as a user override. The turbine table has no CO limit, so CO is compared only with the permit or OEM value you type, marked as user input. The basis is shown under the boxes.",
-        "id": "Override ditandai sebagai override pengguna. Tabel turbin tidak punya limit CO, jadi CO hanya dibandingkan dengan nilai izin atau OEM yang Anda isi, ditandai sebagai isian pengguna. Basisnya tampil di bawah kotak."
+        "id": "Override ditandai sebagai override pengguna. Tabel turbin tidak punya batas CO, jadi CO hanya dibandingkan dengan nilai izin atau OEM yang Anda isi, ditandai sebagai isian pengguna. Basisnya tampil di bawah kotak."
       },
       "glossary": [
         "permit-oem",
@@ -1490,11 +1490,11 @@
     "ui.statusChip": {
       "what": {
         "en": "The chip compares the model value with the limit on the regulation basis.",
-        "id": "Chip membandingkan nilai model dengan limit pada basis regulasi."
+        "id": "Chip membandingkan nilai model dengan batas pada basis regulasi."
       },
       "how": {
         "en": "Within or Above shows which side of the limit the model value falls on. Not modeled means the app does not compute that parameter. It is not a test result and not a statement that a unit complies. A margin smaller than the model uncertainty is flagged.",
-        "id": "Within atau Above menunjukkan di sisi mana limit nilai model jatuh. Not modeled berarti aplikasi tidak menghitung parameter itu. Ini bukan hasil uji dan bukan pernyataan bahwa unit memenuhi syarat. Margin yang lebih kecil daripada ketidakpastian model diberi tanda."
+        "id": "Within atau Above menunjukkan di sisi mana batas nilai model jatuh. Not modeled berarti aplikasi tidak menghitung parameter itu. Ini bukan hasil uji dan bukan pernyataan bahwa unit memenuhi syarat. Margin yang lebih kecil daripada ketidakpastian model diberi tanda."
       },
       "glossary": [
         "indicative"

@@ -164,11 +164,11 @@ describe('isi: aturan bahasa dan kejujuran model', () => {
   }
   for (const id of ['hud.noxPpm', 'hud.noxMg']) must(id, [/O₂/, /O₂/], [/volume basis/, /basis volume/]);
   // chip dan status: perbandingan nilai model dengan limit pada basis regulasi, bukan pernyataan memenuhi syarat; margin kecil diberi keterangan
-  for (const id of ['ui.statusChip', 'hud.limitStatus']) must(id, [/compares the model value with the limit on the regulation basis/i, /membandingkan nilai model dengan limit pada basis regulasi/i], [/not a test result/i, /bukan hasil uji/], [/not a statement that a unit complies/, /bukan pernyataan bahwa unit memenuhi syarat/], [/margin/i, /[Mm]argin/], [/uncertainty/, /ketidakpastian/]);
+  for (const id of ['ui.statusChip', 'hud.limitStatus']) must(id, [/compares the model value with the limit on the regulation basis/i, /membandingkan nilai model dengan batas pada basis regulasi/i], [/not a test result/i, /bukan hasil uji/], [/not a statement that a unit complies/, /bukan pernyataan bahwa unit memenuhi syarat/], [/margin/i, /[Mm]argin/], [/uncertainty/, /ketidakpastian/]);
   // site data dan Permit/OEM CO
-  for (const id of ['ui.siteData', 'ui.limitOverride']) must(id, [/no CO limit/, /tidak punya limit CO/], [/permit or OEM/, /izin atau OEM/], [/user (?:input|override)/, /(?:isian|override) pengguna|Ini isian pengguna/]);
+  for (const id of ['ui.siteData', 'ui.limitOverride']) must(id, [/no CO limit/, /tidak punya batas CO/], [/permit or OEM/, /izin atau OEM/], [/user (?:input|override)/, /(?:isian|override) pengguna|Ini isian pengguna/]);
   must('ui.siteData', [/takes priority/, /diutamakan/], [/marked as site data/, /ditandai sebagai data lapangan/]);
-  must('hud.limitCo', [/no CO limit/, /tidak punya limit CO/], [/user input/, /isian pengguna/]);
+  must('hud.limitCo', [/no CO limit/, /tidak punya batas CO/], [/user input/, /isian pengguna/]);
   // part-load: single-shaft tebing CO setelah IGV habis; twin-shaft jendela operasi bergeser dan menyempit
   for (const id of ['hud.coPpm', 'hud.loadWindow', 'ctl.strategy']) must(id, [/shifts and narrows/, /bergeser dan menyempit/], [/cliff/, /tebing/]);
   // bahan bakar: komposisi tidak mengubah NOx/CO; sulfur hanya SO₂

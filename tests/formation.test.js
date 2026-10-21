@@ -12,10 +12,13 @@ const read = (p) => JSON.parse(readFileSync(new URL(`../${p}`, import.meta.url),
 const form = read('content/emission_formation.json');
 const refs = read('content/references.json');
 const REF_IDS = new Set(refs.references.map((r) => r.id));
+/** Sisi bahasa dari JSON dua bahasa (D5a): pasangan { en, id } → string satu bahasa. */
+const side = (o, lang) => (Array.isArray(o) ? o.map((x) => side(x, lang)) : o && typeof o === 'object' ? (Object.keys(o).length === 2 && 'en' in o && 'id' in o ? o[lang] : Object.fromEntries(Object.entries(o).map(([k, v]) => [k, side(v, lang)]))) : o);
+const formEn = side(form, 'en');
 
 describe('content/emission_formation.json', () => {
   it('sama dengan seed (termasuk koreksi CO turbin = semi-empirical) dan lolos validasi', () => {
-    expect(form).toEqual(read('docs/m9_pack/seeds/emission_formation.seed.json'));
+    expect(formEn).toEqual(read('docs/m9_pack/seeds/emission_formation.seed.json')); // sisi en = seed; sisi id ditambahkan di D5a
     expect(validateFormation(form)).toEqual([]);
     expect(form.equipment.turbine.params.CO.modeled).toBe('semi-empirical');
   });
@@ -30,7 +33,7 @@ describe('content/emission_formation.json', () => {
   it('berbahasa English (tanpa kata Indonesia umum di luar nama regulasi)', () => {
     const re = new RegExp(`(?<![\\p{L}\\p{N}_])(${ID_WORDS.join('|')})(?![\\p{L}\\p{N}_])`, 'iu');
     // id sumber (mis. lieuwen-yang) bukan teks tampilan: dibuang dulu
-    const texts = JSON.stringify(form.equipment, (k, v) => (k === 'refs' ? undefined : v)).replace(/Permen LHK? [0-9/]+/g, ' ');
+    const texts = JSON.stringify(formEn.equipment, (k, v) => (k === 'refs' ? undefined : v)).replace(/Permen LHK? [0-9/]+/g, ' ');
     expect(texts.match(re)?.[0] ?? null).toBe(null);
   });
   it('validasi menolak modeled / direction yang tidak dikenal; loader fallback bila rusak', async () => {

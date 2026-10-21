@@ -1,9 +1,10 @@
 /**
  * formationView.js — data kartu Formation (Scene 9) dari content/emission_formation.json + references.json.
- * Pure shaping, tanpa angka model dan tanpa teks UI. Sumber yang tidak ada di references.json → known:false
+ * Pure shaping, tanpa angka model dan tanpa teks UI. Teks pasangan { en, id } dipilih bahasa aktif lewat tl() saat kartu dibentuk. Sumber yang tidak ada di references.json → known:false
  * (UI menulis "source to verify"). Tautan sumber memakai alamat #/references/<id>.
  */
 import { EQUIPMENT } from './regulations.js';
+import { tl } from './langStore.js';
 
 /** Alamat halaman References untuk satu sumber. */
 export const referenceHref = (id) => `#/references/${encodeURIComponent(id)}`;
@@ -39,11 +40,11 @@ export function formationCards(data, equip, refsData) {
   if (!eq) return { equipment: key, label: null, cards: [] };
   const cards = Object.entries(eq.params).map(([param, p]) => ({
     param, modeled: p.modeled,
-    summary: p.formation.summary, reactionsName: chemTokens(p.formation.reactionsName), rateNote: p.formation.rateNote,
+    summary: tl(p.formation.summary), reactionsName: chemTokens(tl(p.formation.reactionsName)), rateNote: p.formation.rateNote ? tl(p.formation.rateNote) : '',
     reactions: p.formation.reactions.map(chemTokens),
     refs: p.formation.refs.map(ref),
-    drivers: p.drivers.map((d) => ({ ...d })),
-    levers: p.levers.map((l) => ({ id: l.id, label: l.label, effects: Object.entries(l.effects).map(([k, v]) => ({ key: k, dir: v })), consequence: l.consequence, refs: (l.refs ?? []).map(ref) })),
+    drivers: p.drivers.map((d) => ({ ...d, label: tl(d.label), why: tl(d.why) })),
+    levers: p.levers.map((l) => ({ id: l.id, label: tl(l.label), effects: Object.entries(l.effects).map(([k, v]) => ({ key: k, dir: v })), consequence: tl(l.consequence), refs: (l.refs ?? []).map(ref) })),
   }));
-  return { equipment: key, label: eq.label, cards };
+  return { equipment: key, label: tl(eq.label), cards };
 }

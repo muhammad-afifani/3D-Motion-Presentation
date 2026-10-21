@@ -34,7 +34,12 @@
         "kg/kmol",
         "kg/s",
         "m³/s",
-        "ppmvd (log)"
+        "ppmvd (log)",
+        "NOx [mg/Nm³]",
+        "CO₂e [g/kWh]",
+        "H₂S [ppmv]",
+        "ppm @ basis",
+        "…"
       ],
       "inline": [
         "kW",
@@ -79,7 +84,15 @@
         "N_GG",
         "CO₂ & CO₂e (g/kWh)",
         "Slip → CO₂e",
-        "GWP CH₄"
+        "GWP CH₄",
+        "φ",
+        "λ = 1/φ",
+        "C₂H₆",
+        "C₃H₈",
+        "C₄H₁₀+",
+        "N₂",
+        "UHC / methane slip",
+        "n/a"
       ],
       "inline": [
         "BDC",
@@ -109,7 +122,8 @@
         "H",
         "M",
         "M: Explore",
-        "C"
+        "C",
+        "Esc"
       ]
     },
     {
@@ -221,7 +235,8 @@
         "Real",
         "Piston",
         "Preset",
-        "Generator"
+        "Generator",
+        "Tab"
       ]
     },
     {
@@ -273,7 +288,14 @@
         "scene8.charts.subTurbine",
         "scene8.hud.slip.value",
         "scene8.hud.inc.value",
-        "scene8.hud.calib.value"
+        "scene8.hud.calib.value",
+        "scene9.leversTab.value.Tivc",
+        "scene9.leversTab.value.Pivc",
+        "scene9.leversTab.value.N",
+        "scene9.formationTab.sourceToVerify",
+        "scene9.hud.co2B",
+        "scene9.hud.co2e",
+        "scene9.hud.before"
       ]
     },
     {
@@ -309,7 +331,12 @@
         "l = ",
         "l + a − s = ",
         "r_p = P_discharge / P_suction.",
-        "Q ∝ N · H ∝ N² · P ∝ N³"
+        "Q ∝ N · H ∝ N² · P ∝ N³",
+        "Timing θ₀ [° ATDC]",
+        "↑",
+        "↓",
+        "→",
+        "↕"
       ],
       "paths": [
         "scene1.formula.s",
