@@ -1633,19 +1633,19 @@
         "id": "Mode, bahasa, dan tema warna."
       },
       "how": {
-        "en": "Explore shows the navigation and every page. Present hides the navigation for an audience. EN and ID change the language of the translated pages and help cards; the rest of the app stays in English for now. Dark and Light change the colours. Your choices are remembered.",
-        "id": "Explore menampilkan navigasi dan semua halaman. Present menyembunyikan navigasi untuk audiens. EN dan ID mengubah bahasa halaman terjemahan dan kartu bantuan; bagian lain aplikasi sementara tetap berbahasa Inggris. Dark dan Light mengubah warna. Pilihan Anda diingat."
+        "en": "Explore shows the navigation and every page. Present hides the navigation for an audience. EN and ID change the language of the whole app: labels, charts, 3D labels, numbers, help cards, and the Learn pages. Presenter notes stay in Indonesian because they are the spoken script, and official regulation names stay in Indonesian. Dark and Light change the colours. Your choices are remembered.",
+        "id": "Explore menampilkan navigasi dan semua halaman. Present menyembunyikan navigasi untuk audiens. EN dan ID mengubah bahasa seluruh aplikasi: label, grafik, label 3D, angka, kartu bantuan, dan halaman Learn. Catatan presenter tetap berbahasa Indonesia karena itu naskah lisan, dan nama resmi regulasi tetap berbahasa Indonesia. Gelap dan Terang mengubah warna. Pilihan Anda diingat."
       },
       "lesson": "l0-1"
     },
     "hdr.status": {
       "what": {
         "en": "The Model OK badge and the Quality chip show the state of the app, not of your unit.",
-        "id": "Lencana Model OK dan chip Quality menunjukkan keadaan aplikasi, bukan keadaan unit Anda."
+        "id": "Lencana Model OK dan chip Kualitas turun menunjukkan keadaan aplikasi, bukan keadaan unit Anda."
       },
       "how": {
         "en": "Model OK means the built-in model passed its reference checks at start. It does not mean any number matches unit data. The Quality chip appears when the app lowered the 3D quality to keep the frame rate. HUD numbers and charts do not change. Key Q changes quality.",
-        "id": "Model OK berarti model bawaan berhasil melewati pemeriksaan acuan saat mulai. Ini tidak berarti ada angka yang cocok dengan data unit. Chip Quality muncul saat aplikasi menurunkan kualitas 3D agar kecepatan bingkai terjaga. Angka HUD dan grafik tidak berubah. Tombol Q mengubah kualitas."
+        "id": "Model OK berarti model bawaan berhasil melewati pemeriksaan acuan saat mulai. Ini tidak menjamin angka apa pun cocok dengan data unit. Chip Kualitas turun muncul saat aplikasi menurunkan kualitas 3D agar kecepatan bingkai terjaga. Angka HUD dan grafik tidak berubah. Tombol Q mengubah kualitas."
       },
       "glossary": [
         "indicative"

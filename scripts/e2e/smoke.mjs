@@ -19,6 +19,7 @@
  *  15. D3: Scene 1–4 ID vs EN: teks kanvas (keluar kotak / bertumpuk yang bertambah), judul ID → panduan ⓘ, label 3D dan PNG ikut bahasa, ganti bahasa tanpa galat.
  *  16. D4: Scene 5–8 ID vs EN (teks kanvas, panduan ⓘ, label 3D, PNG), panel kontrol tanpa tumpang tindih di ID (3 viewport × 2 tema), Scene 6: ganti bahasa saat chip dan garis batas tampil, isian koma / titik.
  *  17. D5a: Scene 9 (5 tab) ID vs EN, banner "Transcribed…" dan chip "not verified" tidak hilang / melunak di ID, chip Within / Above / Not modeled, GRK (CO₂ vs CO₂e), halaman Formation dan Regulations, PNG per tab berbahasa ID.
+ *  18. D5b: Scene 10–11 ID vs EN (kartu, filter, opsi diskusi, PNG berfooter ID) dan kartu bantuan hdr.switches (seluruh aplikasi) di EN / ID.
  *  13. Bahasa ID (Paket D1): semua scene + tab di 3 viewport × 2 tema tanpa luapan (1280: chip, tab Scene 9, header), angka HUD format ID, ganti EN ↔ ID tanpa muat ulang (HUD, Limits, Regulations), isian koma / titik dan pesan galat ID.
  *  11. Settings ⚙ + Hide working notes: panel, penyimpanan, Explore / Present, catatan kerja hilang dan label kejujuran tetap, header 3 viewport tanpa tumpang tindih.
  *  10. Bagian C: bantuan ⓘ (kartu di HUD, slider, navigasi; Glossary / Lesson; Present; PNG; ID) di 3 viewport × 2 tema; tumpang tindih ⓘ semua scene.
@@ -1329,6 +1330,71 @@ async function d5aInteraction(browser, url) {
 }
 
 /**
+ * D5b: Scene 10–11 ID vs EN lewat scenesIdFlow (ganti bahasa vs muat langsung ID, PNG berfooter ID), ditambah: kartu Scene 10 (7 kartu,
+ * filter mesin tetap terpilih saat bahasa berganti, teks dari controls.json ikut bahasa), Scene 11 (opsi diskusi: pilihan centang
+ * bertahan saat bahasa berganti), dan kartu bantuan ⓘ hdr.switches di EN dan ID (sakelar bahasa menerjemahkan seluruh aplikasi).
+ */
+async function d5bInteraction(browser, url) {
+  const fails = await scenesIdFlow(browser, url, { name: 'D5b', scenes: [10, 11], tabs: {}, pngEveryTab: true });
+  const base = url.replace(/#.*$/, '');
+  const p = await browser.newPage({ viewport: { width: 1366, height: 768 } });
+  try {
+    const errs = [];
+    p.on('pageerror', (e) => errs.push(`pageerror: ${e.message}`));
+    p.on('console', (m) => { if (m.type() === 'error') errs.push(`console: ${m.text()}`); });
+    await p.addInitScript(() => { try { localStorage.setItem('etel:lang', 'en'); localStorage.setItem('etel:theme', 'dark'); } catch { /* */ } });
+    await p.goto(`${base}#/scene/10`);
+    await p.waitForFunction(() => window.__etelDebug?.scene() === 10 && !window.__etelDebug.loading(), null, { timeout: 30000 });
+    const lang = async (l) => { await p.click(`.topbar .lang-switch [data-lang="${l}"]`); await p.waitForFunction((x) => window.__etelDebug.uiLang() === x && !window.__etelDebug.loading(), l, { timeout: 15000 }); await p.waitForTimeout(1200); };
+    const cards = () => p.evaluate(() => [...document.querySelectorAll('.ctrl-card')].map((c) => ({ h: c.querySelector('h3')?.textContent.trim(), hit: c.classList.contains('is-hit'), dim: c.classList.contains('is-dim'), text: c.innerText })));
+    await p.waitForTimeout(800);
+    let c = await cards();
+    if (c.length !== 7) fails.push(`Scene 10 EN: ${c.length} kartu (harusnya 7)`);
+    await p.keyboard.press('4'); await p.waitForTimeout(500); // filter: turbin gas
+    const enHit = (await cards()).filter((x) => x.hit).map((x) => x.h);
+    await lang('id');
+    c = await cards();
+    if (c.length !== 7) fails.push(`Scene 10 ID: ${c.length} kartu`);
+    const idHit = c.filter((x) => x.hit).map((x) => x.h);
+    if (!enHit.length || enHit.length !== idHit.length) fails.push(`Scene 10: filter turbin tidak bertahan setelah ganti bahasa (EN ${enHit.length} kartu, ID ${idHit.length})`);
+    for (const t of ['DLN / lean premix', 'Injeksi air / uap', 'Katalis oksidasi', 'DPF (filter partikulat diesel)']) if (!c.some((x) => x.h === t)) fails.push(`Scene 10 ID: kartu "${t}" tidak ada (${c.map((x) => x.h).join(' | ')})`);
+    const body = c.map((x) => x.text).join('\n');
+    if (!/Menurunkan/.test(body) || !/Menaikkan/.test(body) || !/Berlaku untuk/.test(body)) fails.push('Scene 10 ID: label bidang kartu tidak berbahasa Indonesia');
+    if (/\b(Lowers|Raises|Applies to|Operation)\b/.test(body)) fails.push('Scene 10 ID: label bidang kartu masih English');
+    if (/\b(lulus|patuh|compliant)\b/i.test(body)) fails.push('Scene 10 ID: kartu terbaca sebagai klaim kepatuhan');
+    // Scene 11: opsi diskusi
+    await p.evaluate(() => window.__etelDebug.goToScene(11)); await p.waitForFunction(() => window.__etelDebug.scene() === 11 && !window.__etelDebug.loading(), null, { timeout: 15000 });
+    await p.waitForTimeout(900);
+    const opts = () => p.evaluate(() => [...document.querySelectorAll('.close-options li')].map((e) => e.textContent.trim()));
+    const idOpts = await opts();
+    if (idOpts.length !== 4 || !idOpts.some((t) => /Pemantauan kontinu \(CEMS\)/.test(t))) fails.push(`Scene 11 ID: opsi diskusi ${JSON.stringify(idOpts).slice(0, 160)}`);
+    const pts = await p.evaluate(() => [...document.querySelectorAll('.close-points li')].map((e) => e.textContent.trim()));
+    if (pts.length !== 3 || !/Suhu nyala menentukan NOx secara eksponensial/.test(pts[0])) fails.push(`Scene 11 ID: poin ringkasan ${JSON.stringify(pts).slice(0, 160)}`);
+    await p.click('button:has-text("Ubah opsi")'); await p.waitForTimeout(300);
+    await p.click('.close-check [data-opt="inventory"]'); await p.waitForTimeout(300); // sembunyikan satu opsi
+    const after = await opts();
+    if (after.length !== 3) fails.push(`Scene 11: menyembunyikan opsi: ${after.length} tersisa (harusnya 3)`);
+    await lang('en');
+    const enOpts = await opts();
+    if (enOpts.length !== 3 || enOpts.some((t) => /Pemantauan|kontinu/.test(t)) || !enOpts.some((t) => /Continuous monitoring \(CEMS\)/.test(t))) fails.push(`Scene 11 EN: pilihan opsi tidak bertahan / teks tidak ikut bahasa: ${JSON.stringify(enOpts).slice(0, 200)}`);
+    await p.evaluate(() => { try { localStorage.removeItem('etel:closing'); } catch { /* */ } });
+    // kartu bantuan ⓘ hdr.switches (EN lalu ID)
+    for (const [l, re] of [['en', /whole app/], ['id', /seluruh aplikasi/]]) {
+      if (l === 'id') await lang('id');
+      await p.click('.help-btn[data-help="hdr.switches"]'); await p.waitForTimeout(400);
+      const card = await p.evaluate(() => document.getElementById('help-card')?.innerText ?? '');
+      if (!re.test(card)) fails.push(`hdr.switches (${l}): kartu bantuan tidak menyebut "${re}": ${card.slice(0, 160)}`);
+      if (/for now|sementara|tetap berbahasa Inggris/.test(card)) fails.push(`hdr.switches (${l}): kalimat lama masih ada`);
+      await p.keyboard.press('Escape'); await p.waitForTimeout(200);
+    }
+    for (const e of [...new Set(errs)]) fails.push(`D5b: ${e}`);
+  } catch (e) { fails.push(`D5b ganti bahasa: ${e.message.split('\n')[0]}`); }
+  await p.close();
+  console.log('\nD5b: kartu Scene 10, opsi Scene 11, kartu bantuan hdr.switches');
+  return fails;
+}
+
+/**
  * D4: Scene 5–8 (teks kanvas ID vs EN, judul → panduan ⓘ, label 3D, PNG, bolak-balik bahasa) + panel kontrol yang padat
  * tanpa tumpang tindih di ID (3 viewport × 2 tema) + Scene 6: ganti bahasa saat chip dan garis batas tampil (isian koma / titik,
  * label garis batas di kanvas, chip tetap Within / Above / Not modeled).
@@ -2224,7 +2290,7 @@ try {
   // E2E_ONLY=learn,landing,deeplinks: hanya alur halaman tersebut (iterasi cepat); tanpa variabel = smoke penuh
   const only = process.env.E2E_ONLY ? new Set(process.env.E2E_ONLY.split(',')) : null;
   if (only) {
-    const flows = { numerr: numberErrorsInteraction, presenterlang: presenterLangInteraction, idchrome: idChromeInteraction, langid: langIdInteraction, d3: d3Interaction, d4: d4Interaction, d5a: d5aInteraction, learn: learnInteraction, chartguide: chartGuideInteraction, help: helpInteraction, helpclick: helpClickInteraction, settings: settingsInteraction, landing: landingInteraction, deeplinks: deepLinks, theme: themeInteraction };
+    const flows = { numerr: numberErrorsInteraction, presenterlang: presenterLangInteraction, idchrome: idChromeInteraction, langid: langIdInteraction, d3: d3Interaction, d4: d4Interaction, d5a: d5aInteraction, d5b: d5bInteraction, learn: learnInteraction, chartguide: chartGuideInteraction, help: helpInteraction, helpclick: helpClickInteraction, settings: settingsInteraction, landing: landingInteraction, deeplinks: deepLinks, theme: themeInteraction };
     for (const k of only) if (flows[k]) failures.push(...await flows[k](chromium.browser, srv.url));
   }
   for (const [w, h] of only ? [] : VIEWPORTS) {
@@ -2282,6 +2348,7 @@ try {
     if (w === 1366) failures.push(...await d3Interaction(chromium.browser, srv.url));
     if (w === 1366) failures.push(...await d4Interaction(chromium.browser, srv.url));
     if (w === 1366) failures.push(...await d5aInteraction(chromium.browser, srv.url));
+    if (w === 1366) failures.push(...await d5bInteraction(chromium.browser, srv.url));
     if (w === 1366) failures.push(...await presenterLangInteraction(chromium.browser, srv.url));
     if (w === 1366) failures.push(...await idChromeInteraction(chromium.browser, srv.url));
     if (w === 1280) failures.push(...await numberErrorsInteraction(chromium.browser, srv.url));

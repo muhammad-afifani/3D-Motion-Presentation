@@ -92,7 +92,8 @@
         "C₄H₁₀+",
         "N₂",
         "UHC / methane slip",
-        "n/a"
+        "n/a",
+        "η / CO₂"
       ],
       "inline": [
         "BDC",
@@ -196,7 +197,9 @@
         "Bloom: Auto",
         "Power turbine",
         "Derating",
-        "Heat rate"
+        "Heat rate",
+        "Lean-burn",
+        "DLN / lean premix"
       ],
       "inline": [
         "head",
@@ -226,7 +229,9 @@
         "valve overlap",
         "lean blowout",
         "override",
-        "stack"
+        "stack",
+        "ammonia slip",
+        "VOC"
       ]
     },
     {
@@ -306,7 +311,8 @@
         "scene9.formationTab.sourceToVerify",
         "scene9.hud.co2B",
         "scene9.hud.co2e",
-        "scene9.hud.before"
+        "scene9.hud.before",
+        "scene10.goScene"
       ]
     },
     {

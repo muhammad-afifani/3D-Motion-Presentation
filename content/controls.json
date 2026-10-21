@@ -3,73 +3,308 @@
   "cards": [
     {
       "id": "dln",
-      "name": "DLN / lean premix",
-      "lowers": ["NOx: keeps the premix-zone flame temperature low and uniform"],
-      "raises": ["CO, and the risk of flame instability when the flame temperature drops at part load", "A narrow operating window"],
-      "efficiency": "Adds no fuel use directly. The limit is the load range you can run at low emissions.",
-      "operation": ["Needs a fuel-split and IGV schedule that follows load (OEM schedule, not modeled)", "The usable load range needs unit data"],
-      "appliesTo": ["turbine"],
-      "relatedScenes": [6, 4]
+      "name": {
+        "en": "DLN / lean premix",
+        "id": "DLN / lean premix"
+      },
+      "lowers": [
+        {
+          "en": "NOx: keeps the premix-zone flame temperature low and uniform",
+          "id": "NOx: menjaga suhu nyala zona premix tetap rendah dan seragam"
+        }
+      ],
+      "raises": [
+        {
+          "en": "CO, and the risk of flame instability when the flame temperature drops at part load",
+          "id": "CO, dan risiko nyala tidak stabil saat suhu nyala turun pada part-load"
+        },
+        {
+          "en": "A narrow operating window",
+          "id": "Jendela operasi yang sempit"
+        }
+      ],
+      "efficiency": {
+        "en": "Adds no fuel use directly. The limit is the load range you can run at low emissions.",
+        "id": "Tidak menambah pemakaian bahan bakar secara langsung. Kendalanya adalah rentang beban yang bisa dijalankan dengan emisi rendah."
+      },
+      "operation": [
+        {
+          "en": "Needs a fuel-split and IGV schedule that follows load (OEM schedule, not modeled)",
+          "id": "Butuh jadwal fuel split dan IGV yang mengikuti beban (jadwal OEM, tidak dimodelkan)"
+        },
+        {
+          "en": "The usable load range needs unit data",
+          "id": "Rentang beban yang bisa dipakai butuh data unit"
+        }
+      ],
+      "appliesTo": [
+        "turbine"
+      ],
+      "relatedScenes": [
+        6,
+        4
+      ]
     },
     {
       "id": "leanburn",
-      "name": "Lean-burn",
-      "lowers": ["NOx: a lean, homogeneous mixture lowers the flame temperature"],
-      "raises": ["Misfire risk at low load", "Methane slip (unburned CH₄) adds CO₂e"],
-      "efficiency": "Efficiency stays good at high load. Methane slip eats into the CO₂e advantage (see Scene 8).",
-      "operation": ["Tight air-fuel ratio control", "The size of the methane slip needs unit data"],
-      "appliesTo": ["gas"],
-      "relatedScenes": [8, 3]
+      "name": {
+        "en": "Lean-burn",
+        "id": "Lean-burn"
+      },
+      "lowers": [
+        {
+          "en": "NOx: a lean, homogeneous mixture lowers the flame temperature",
+          "id": "NOx: campuran miskin yang homogen menurunkan suhu nyala"
+        }
+      ],
+      "raises": [
+        {
+          "en": "Misfire risk at low load",
+          "id": "Risiko misfire pada beban rendah"
+        },
+        {
+          "en": "Methane slip (unburned CH₄) adds CO₂e",
+          "id": "Methane slip (CH₄ tak terbakar) menambah CO₂e"
+        }
+      ],
+      "efficiency": {
+        "en": "Efficiency stays good at high load. Methane slip eats into the CO₂e advantage (see Scene 8).",
+        "id": "Efisiensi tetap baik pada beban tinggi. Methane slip memakan keunggulan CO₂e (lihat Scene 8)."
+      },
+      "operation": [
+        {
+          "en": "Tight air-fuel ratio control",
+          "id": "Kontrol rasio udara-bahan bakar yang ketat"
+        },
+        {
+          "en": "The size of the methane slip needs unit data",
+          "id": "Besar methane slip butuh data unit"
+        }
+      ],
+      "appliesTo": [
+        "gas"
+      ],
+      "relatedScenes": [
+        8,
+        3
+      ]
     },
     {
       "id": "egr",
-      "name": "EGR (exhaust gas recirculation)",
-      "lowers": ["NOx: recirculated exhaust lowers the peak burned-zone temperature"],
-      "raises": ["PM and CO can rise", "Thermal load on the EGR cooler"],
-      "efficiency": "A small to moderate efficiency penalty. The size needs unit data.",
-      "operation": ["Needs an EGR cooler and control of the recirculation rate", "Extra maintenance from deposits"],
-      "appliesTo": ["diesel", "gas"],
-      "relatedScenes": [4]
+      "name": {
+        "en": "EGR (exhaust gas recirculation)",
+        "id": "EGR (resirkulasi gas buang)"
+      },
+      "lowers": [
+        {
+          "en": "NOx: recirculated exhaust lowers the peak burned-zone temperature",
+          "id": "NOx: gas buang yang disirkulasikan menurunkan suhu puncak zona terbakar"
+        }
+      ],
+      "raises": [
+        {
+          "en": "PM and CO can rise",
+          "id": "PM dan CO bisa naik"
+        },
+        {
+          "en": "Thermal load on the EGR cooler",
+          "id": "Beban panas pada pendingin EGR"
+        }
+      ],
+      "efficiency": {
+        "en": "A small to moderate efficiency penalty. The size needs unit data.",
+        "id": "Penurunan efisiensi kecil sampai sedang. Besarnya butuh data unit."
+      },
+      "operation": [
+        {
+          "en": "Needs an EGR cooler and control of the recirculation rate",
+          "id": "Butuh pendingin EGR dan kontrol laju resirkulasi"
+        },
+        {
+          "en": "Extra maintenance from deposits",
+          "id": "Perawatan tambahan akibat endapan"
+        }
+      ],
+      "appliesTo": [
+        "diesel",
+        "gas"
+      ],
+      "relatedScenes": [
+        4
+      ]
     },
     {
       "id": "water",
-      "name": "Water / steam injection",
-      "lowers": ["NOx: water or steam absorbs heat and lowers the flame temperature"],
-      "raises": ["CO can rise", "Demineralized water consumption"],
-      "efficiency": "Power output can rise, but efficiency usually drops. The size needs unit data.",
-      "operation": ["Needs a demineralized water supply and treatment", "The water-to-fuel ratio must be kept in range"],
-      "appliesTo": ["turbine"],
-      "relatedScenes": [3, 6]
+      "name": {
+        "en": "Water / steam injection",
+        "id": "Injeksi air / uap"
+      },
+      "lowers": [
+        {
+          "en": "NOx: water or steam absorbs heat and lowers the flame temperature",
+          "id": "NOx: air atau uap menyerap panas dan menurunkan suhu nyala"
+        }
+      ],
+      "raises": [
+        {
+          "en": "CO can rise",
+          "id": "CO bisa naik"
+        },
+        {
+          "en": "Demineralized water consumption",
+          "id": "Konsumsi air demineral"
+        }
+      ],
+      "efficiency": {
+        "en": "Power output can rise, but efficiency usually drops. The size needs unit data.",
+        "id": "Daya keluaran bisa naik, tetapi efisiensi biasanya turun. Besarnya butuh data unit."
+      },
+      "operation": [
+        {
+          "en": "Needs a demineralized water supply and treatment",
+          "id": "Butuh pasokan dan pengolahan air demineral"
+        },
+        {
+          "en": "The water-to-fuel ratio must be kept in range",
+          "id": "Rasio air terhadap bahan bakar harus dijaga dalam rentang yang ditentukan"
+        }
+      ],
+      "appliesTo": [
+        "turbine"
+      ],
+      "relatedScenes": [
+        3,
+        6
+      ]
     },
     {
       "id": "scr",
-      "name": "SCR (selective catalytic reduction)",
-      "lowers": ["NOx in the exhaust, after combustion. Breaks the trade-off with the combustor"],
-      "raises": ["Ammonia slip if the dose is wrong", "Exhaust backpressure"],
-      "efficiency": "A small η penalty from backpressure. The size needs unit or supplier data.",
-      "operation": ["Needs an exhaust temperature window; the values come from unit data", "Needs a reductant (ammonia or urea), installation space, and a dosing system"],
-      "appliesTo": ["diesel", "gas", "turbine"],
-      "relatedScenes": [9]
+      "name": {
+        "en": "SCR (selective catalytic reduction)",
+        "id": "SCR (reduksi katalitik selektif)"
+      },
+      "lowers": [
+        {
+          "en": "NOx in the exhaust, after combustion. Breaks the trade-off with the combustor",
+          "id": "NOx di gas buang, setelah pembakaran. Memutus trade-off dengan ruang bakar"
+        }
+      ],
+      "raises": [
+        {
+          "en": "Ammonia slip if the dose is wrong",
+          "id": "Ammonia slip bila dosis salah"
+        },
+        {
+          "en": "Exhaust backpressure",
+          "id": "Tekanan balik gas buang"
+        }
+      ],
+      "efficiency": {
+        "en": "A small η penalty from backpressure. The size needs unit or supplier data.",
+        "id": "Penurunan η kecil akibat tekanan balik. Besarnya butuh data unit atau pemasok."
+      },
+      "operation": [
+        {
+          "en": "Needs an exhaust temperature window; the values come from unit data",
+          "id": "Butuh jendela suhu gas buang; nilainya berasal dari data unit"
+        },
+        {
+          "en": "Needs a reductant (ammonia or urea), installation space, and a dosing system",
+          "id": "Butuh reduktan (ammonia atau urea), ruang pemasangan, dan sistem pendosisan"
+        }
+      ],
+      "appliesTo": [
+        "diesel",
+        "gas",
+        "turbine"
+      ],
+      "relatedScenes": [
+        9
+      ]
     },
     {
       "id": "oxcat",
-      "name": "Oxidation catalyst",
-      "lowers": ["CO and VOC in the exhaust"],
-      "raises": ["Does not lower NOx", "Exhaust backpressure"],
-      "efficiency": "A small η penalty from backpressure. The size needs unit data.",
-      "operation": ["Needs an exhaust temperature window; the values come from unit data", "The catalyst is sensitive to fuel and lube-oil contaminants"],
-      "appliesTo": ["diesel", "gas", "turbine"],
-      "relatedScenes": [6]
+      "name": {
+        "en": "Oxidation catalyst",
+        "id": "Katalis oksidasi"
+      },
+      "lowers": [
+        {
+          "en": "CO and VOC in the exhaust",
+          "id": "CO dan VOC (senyawa organik volatil) di gas buang"
+        }
+      ],
+      "raises": [
+        {
+          "en": "Does not lower NOx",
+          "id": "Tidak menurunkan NOx"
+        },
+        {
+          "en": "Exhaust backpressure",
+          "id": "Tekanan balik gas buang"
+        }
+      ],
+      "efficiency": {
+        "en": "A small η penalty from backpressure. The size needs unit data.",
+        "id": "Penurunan η kecil akibat tekanan balik. Besarnya butuh data unit."
+      },
+      "operation": [
+        {
+          "en": "Needs an exhaust temperature window; the values come from unit data",
+          "id": "Butuh jendela suhu gas buang; nilainya berasal dari data unit"
+        },
+        {
+          "en": "The catalyst is sensitive to fuel and lube-oil contaminants",
+          "id": "Katalis peka terhadap kontaminan bahan bakar dan oli pelumas"
+        }
+      ],
+      "appliesTo": [
+        "diesel",
+        "gas",
+        "turbine"
+      ],
+      "relatedScenes": [
+        6
+      ]
     },
     {
       "id": "dpf",
-      "name": "DPF (diesel particulate filter)",
-      "lowers": ["Diesel particulate matter (PM)"],
-      "raises": ["Exhaust backpressure, which grows as the filter loads up"],
-      "efficiency": "A small η penalty that grows during regeneration. The size needs unit data.",
-      "operation": ["Needs filter regeneration (passive or active)", "Regular maintenance and ash cleaning"],
-      "appliesTo": ["diesel"],
-      "relatedScenes": [8]
+      "name": {
+        "en": "DPF (diesel particulate filter)",
+        "id": "DPF (filter partikulat diesel)"
+      },
+      "lowers": [
+        {
+          "en": "Diesel particulate matter (PM)",
+          "id": "Partikulat diesel (PM)"
+        }
+      ],
+      "raises": [
+        {
+          "en": "Exhaust backpressure, which grows as the filter loads up",
+          "id": "Tekanan balik gas buang, yang naik saat filter terisi"
+        }
+      ],
+      "efficiency": {
+        "en": "A small η penalty that grows during regeneration. The size needs unit data.",
+        "id": "Penurunan η kecil yang membesar saat regenerasi. Besarnya butuh data unit."
+      },
+      "operation": [
+        {
+          "en": "Needs filter regeneration (passive or active)",
+          "id": "Butuh regenerasi filter (pasif atau aktif)"
+        },
+        {
+          "en": "Regular maintenance and ash cleaning",
+          "id": "Perawatan rutin dan pembersihan abu"
+        }
+      ],
+      "appliesTo": [
+        "diesel"
+      ],
+      "relatedScenes": [
+        8
+      ]
     }
   ]
 }

@@ -35,6 +35,8 @@ export const MIGRATED_GROUPS = Object.freeze([
   'scene5', 'scene6', 'scene7', 'scene8',
   // D5a Scene 9 (kelima tab)
   'scene9',
+  // D5b Scene 10–11
+  'scene10', 'scene11',
 ]);
 
 /** Pasangan dua bahasa: tepat kunci { en, id }. @param {any} v @returns {v is BiText<any>} */

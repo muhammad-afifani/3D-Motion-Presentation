@@ -9,6 +9,7 @@ import { button } from '../ui/controls.js';
 import { createContentBanner } from '../ui/contentBanner.js';
 import { escapeHtml as esc } from '../ui/format.js';
 import { STR } from '../ui/strings.js';
+import { tl } from '../state/langStore.js';
 
 const S = STR.scene11;
 
@@ -29,12 +30,12 @@ export function createScene(ctx) {
 
   function render() {
     const s = store.get();
-    q('.close-points').innerHTML = data.points.map((p) => `<li>${esc(p)}</li>`).join('');
+    q('.close-points').innerHTML = data.points.map((p) => `<li>${esc(tl(p))}</li>`).join('');
     const vis = visibleOptions(data, s);
-    q('.close-options').innerHTML = vis.length ? vis.map((o) => `<li>${esc(o.text)}</li>`).join('') : `<li class="close-none">${S.none}</li>`;
+    q('.close-options').innerHTML = vis.length ? vis.map((o) => `<li>${esc(tl(o.text))}</li>`).join('') : `<li class="close-none">${S.none}</li>`;
     const ed = q('.close-edit');
     ed.hidden = !s.closingEdit;
-    ed.innerHTML = data.options.map((o) => `<label class="close-check"><input type="checkbox" data-opt="${esc(o.id)}" ${isOptionVisible(s, o.id) ? 'checked' : ''} /> <span>${S.show}</span> <span class="close-check__txt">${esc(o.text)}</span></label>`).join('');
+    ed.innerHTML = data.options.map((o) => `<label class="close-check"><input type="checkbox" data-opt="${esc(o.id)}" ${isOptionVisible(s, o.id) ? 'checked' : ''} /> <span>${S.show}</span> <span class="close-check__txt">${esc(tl(o.text))}</span></label>`).join('');
     for (const cb of ed.querySelectorAll('[data-opt]')) cb.addEventListener('change', () => store.set(closingTogglePatch(store.get(), cb.dataset.opt)));
     editBtn.setLabel(s.closingEdit ? S.done : S.edit);
     editBtn.setOn(s.closingEdit);

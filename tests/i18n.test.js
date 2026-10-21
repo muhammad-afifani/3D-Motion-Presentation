@@ -37,7 +37,7 @@ const pairsIn = (x, path = '', out = []) => {
   }
   return out;
 };
-const files = { glossary: json('glossary'), references: json('references'), regulations: json('regulations'), formation: json('emission_formation') };
+const files = { glossary: json('glossary'), references: json('references'), regulations: json('regulations'), formation: json('emission_formation'), controls: json('controls'), closing: json('closing') };
 
 afterEach(() => { applyStringLang('en'); setNumberLang('en'); });
 
@@ -77,6 +77,8 @@ describe('content/*.json dua bahasa (D2, D5a): glossary, references, regulations
     expect(pairsIn(files.glossary).length).toBe(40 + 26 + 40);
     expect(pairsIn(files.references).length).toBe(51);
     expect(pairsIn(files.regulations).length).toBeGreaterThanOrEqual(15);
+    expect(pairsIn(files.controls).length).toBe(48); // D5b: name, efficiency, lowers / raises / operation per kartu
+    expect(pairsIn(files.closing).length).toBe(7); // 3 poin + 4 opsi
     expect(pairsIn(files.formation).length).toBe(148); // D5a: label peralatan, summary, reactionsName, rateNote, drivers label/why, levers label/consequence
   });
   it('setiap pasangan lengkap; sisi id tidak sama dengan en kecuali entri docs/tetap_inggris.json', () => {
