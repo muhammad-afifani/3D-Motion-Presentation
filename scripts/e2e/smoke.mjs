@@ -1269,7 +1269,7 @@ async function d5aInteraction(browser, url) {
     const margins = await p.evaluate(`${texts('.reg__margin')}`);
     if (margins.some((t) => /\d\.\d/.test(t))) fails.push(`${tag} Scene 9 Batas: margin masih format en-US: ${JSON.stringify(margins)}`);
     const tabs = await p.evaluate(`${texts('.seg__btn, [role="tab"]')}`);
-    for (const t of ['Batas', 'Pembentukan', 'Tuas', 'Jendela beban', 'GRK']) if (!tabs.some((x) => x.includes(t))) fails.push(`${tag} Scene 9: tab "${t}" tidak ada (${tabs.join(' | ').slice(0, 120)})`);
+    for (const t of ['Batas', 'Terbentuk', 'Tuas', 'Jendela beban', 'GRK']) if (!tabs.some((x) => x.includes(t))) fails.push(`${tag} Scene 9: tab "${t}" tidak ada (${tabs.join(' | ').slice(0, 120)})`);
     if (tabs.some((x) => /^Limits|\bLimits\b/.test(x))) fails.push(`${tag} Scene 9: tab masih "Limits"`);
     await p.goto(`${base}#/regulations`);
     await p.waitForFunction(() => window.__etelDebug?.regulationsOpen(), null, { timeout: 10000 }).catch(() => fails.push(`${tag}: halaman Regulations tidak terbuka`));

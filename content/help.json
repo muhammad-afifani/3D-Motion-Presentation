@@ -1424,11 +1424,11 @@
     "ui.s9tabs": {
       "what": {
         "en": "Five views of the emission argument: Limits, Formation, Levers, Load window, and GHG.",
-        "id": "Lima tampilan untuk argumen emisi: Batas, Pembentukan, Tuas, Jendela beban, dan GRK."
+        "id": "Lima tampilan untuk argumen emisi: Batas, Terbentuk, Tuas, Jendela beban, dan GRK."
       },
       "how": {
         "en": "Limits compares the model with the limit table. Formation shows how each pollutant forms. Levers sweeps engine settings and fuel. Load window shows the part-load curves against your limits. GHG shows the fuel penalty and methane slip. The number keys switch tabs. Load is not a separate lever here.",
-        "id": "Batas membandingkan model dengan tabel batas. Pembentukan menunjukkan bagaimana tiap polutan terbentuk. Tuas memvariasikan pengaturan mesin dan bahan bakar. Jendela beban menunjukkan kurva part-load terhadap batas Anda. GRK menunjukkan penalti bahan bakar dan methane slip. Tombol angka berpindah antar tab. Beban bukan tuas terpisah di sini."
+        "id": "Batas membandingkan model dengan tabel batas. Terbentuk menunjukkan bagaimana tiap polutan terbentuk. Tuas memvariasikan pengaturan mesin dan bahan bakar. Jendela beban menunjukkan kurva part-load terhadap batas Anda. GRK menunjukkan penalti bahan bakar dan methane slip. Tombol angka berpindah antar tab. Beban bukan tuas terpisah di sini."
       },
       "glossary": [
         "load-window"

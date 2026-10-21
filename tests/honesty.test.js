@@ -158,9 +158,9 @@ describe('D5a: Scene 9, Formation, banner "Transcribed…" dan chip "not verifie
   const id = (pair, ...a) => String(typeof pair.id === 'function' ? pair.id(...a) : pair.id);
   const findKey = (root, key) => { for (const [k, v] of Object.entries(root ?? {})) { if (k === key && isPair(v)) return v; if (v && typeof v === 'object' && !isPair(v)) { const r = findKey(v, key); if (r) return r; } } return null; };
   it('nama tab: "Limits" menjadi "Batas"; kelima tab disebut di tooltip tab', () => {
-    expect(['limits', 'formation', 'levers', 'C', 'B'].map((k) => id(S9.tabs[k]))).toEqual(['Batas', 'Pembentukan', 'Tuas', 'Jendela beban', 'GRK']);
+    expect(['limits', 'formation', 'levers', 'C', 'B'].map((k) => id(S9.tabs[k]))).toEqual(['Batas', 'Terbentuk', 'Tuas', 'Jendela beban', 'GRK']);
     const tip = id(S9.tips.tab);
-    for (const n of ['Batas', 'Pembentukan', 'Tuas', 'Jendela beban', 'GRK']) expect(tip).toContain(n);
+    for (const n of ['Batas', 'Terbentuk', 'Tuas', 'Jendela beban', 'GRK']) expect(tip).toContain(n);
     expect(id(STR_SOURCE.regulation.scene6Link)).toMatch(/→ Batas$/);
   });
   it('komposisi bahan bakar tidak mengubah NOx / CO; EGR tidak tersedia; beban bukan tuas terpisah', () => {
