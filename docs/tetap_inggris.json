@@ -198,7 +198,8 @@
         "Power turbine",
         "Derating",
         "Heat rate",
-        "Lean-burn"
+        "Lean-burn",
+        "DLN / lean premix"
       ],
       "inline": [
         "head",
@@ -228,7 +229,9 @@
         "valve overlap",
         "lean blowout",
         "override",
-        "stack"
+        "stack",
+        "ammonia slip",
+        "VOC"
       ]
     },
     {

@@ -1382,7 +1382,7 @@ async function d5bInteraction(browser, url) {
     for (const [l, re] of [['en', /whole app/], ['id', /seluruh aplikasi/]]) {
       if (l === 'id') await lang('id');
       await p.click('.help-btn[data-help="hdr.switches"]'); await p.waitForTimeout(400);
-      const card = await p.evaluate(() => document.querySelector('.help-pop, .help-card, [role="dialog"]')?.innerText ?? '');
+      const card = await p.evaluate(() => document.getElementById('help-card')?.innerText ?? '');
       if (!re.test(card)) fails.push(`hdr.switches (${l}): kartu bantuan tidak menyebut "${re}": ${card.slice(0, 160)}`);
       if (/for now|sementara|tetap berbahasa Inggris/.test(card)) fails.push(`hdr.switches (${l}): kalimat lama masih ada`);
       await p.keyboard.press('Escape'); await p.waitForTimeout(200);

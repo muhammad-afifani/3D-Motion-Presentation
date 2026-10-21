@@ -261,6 +261,9 @@ describe('D5b: Scene 10–11, controls.json, closing.json, hdr.switches, sisi ID
     expect(idText).not.toMatch(/\b(lulus|patuh|compliant)\b|—/i);
   });
   it('kartu kunci: DLN (jadwal OEM tidak dimodelkan), lean-burn (methane slip menambah CO₂e), EGR, SCR memutus trade-off, oksidasi tidak menurunkan NOx', () => {
+    expect(card('dln').name.id).toBe('DLN / lean premix');
+    expect(card('scr').raises[0].id).toMatch(/^Ammonia slip/);
+    expect(card('oxcat').lowers[0].id).toMatch(/VOC \(senyawa organik volatil\)/);
     expect(card('dln').operation[0].id).toMatch(/jadwal OEM, tidak dimodelkan/);
     expect(card('dln').raises[0].id).toMatch(/risiko nyala tidak stabil/);
     expect(card('leanburn').raises[1].id).toMatch(/Methane slip .* menambah CO₂e/);
@@ -277,7 +280,7 @@ describe('D5b: Scene 10–11, controls.json, closing.json, hdr.switches, sisi ID
     ]);
     expect(closing.options.map((o) => o.id)).toEqual(['by-type', 'load-range', 'inventory', 'cems']);
     expect(closing.options[3].text.id).toMatch(/Pemantauan kontinu \(CEMS\)/);
-    expect(closing.options[2].text.id).toMatch(/NOx dan GRK bersama/);
+    expect(closing.options[2].text.id).toMatch(/^Evaluasi NOx dan GRK bersama/);
   });
   it('hdr.switches: sakelar bahasa menerjemahkan seluruh aplikasi (bukan hanya halaman belajar); catatan presenter dan nama resmi regulasi tetap Indonesia', () => {
     const t = help.items['hdr.switches'];
@@ -294,7 +297,7 @@ describe('D5b: Scene 10–11, controls.json, closing.json, hdr.switches, sisi ID
   it('hdr.status: ID memakai nama chip yang tampil ("Kualitas turun"), lencana bukan klaim tentang unit', () => {
     const t = help.items['hdr.status'];
     expect(t.what.id).toMatch(/chip Kualitas turun/);
-    expect(t.how.id).toMatch(/Ini tidak berarti ada angka yang cocok dengan data unit/);
+    expect(t.how.id).toMatch(/Ini tidak menjamin angka apa pun cocok dengan data unit/);
     expect(id(STR_SOURCE.app.qualityFlag)).toBe('Kualitas turun (Auto)');
   });
 });

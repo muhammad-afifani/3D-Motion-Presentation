@@ -1021,7 +1021,7 @@ const SRC = {
   scene10: {
     title: { en: 'Emission control devices', id: 'Perangkat pengendali emisi' },
     message: { en: 'Each control device lowers one thing and loads another.', id: 'Tiap perangkat pengendali menurunkan satu hal dan membebani hal lain.' },
-    filter: { en: 'Machine', id: 'Penggerak' },
+    filter: { en: 'Machine', id: 'Jenis penggerak' },
     filters: { all: { en: 'All', id: 'Semua' }, diesel: { en: 'Diesel engine', id: 'Mesin diesel' }, gas: { en: 'Gas engine', id: 'Mesin gas' }, turbine: { en: 'Gas turbine', id: 'Turbin gas' } },
     fields: { lowers: { en: 'Lowers ↓', id: 'Menurunkan ↓' }, raises: { en: 'Raises ↑', id: 'Menaikkan ↑' }, efficiency: { en: 'η / CO₂', id: 'η / CO₂' }, operation: { en: 'Operation', id: 'Operasi' } },
     appliesTo: { en: 'Applies to', id: 'Berlaku untuk' },

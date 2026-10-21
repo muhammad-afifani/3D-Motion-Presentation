@@ -19,7 +19,7 @@
       "id": "by-type",
       "text": {
         "en": "Set limits by driver type (generator vs mechanical drive).",
-        "id": "Tetapkan batas menurut jenis penggerak (generator vs penggerak mekanis)."
+        "id": "Tetapkan batas menurut jenis penggerak (penggerak generator vs penggerak mekanis)."
       }
     },
     {
@@ -33,7 +33,7 @@
       "id": "inventory",
       "text": {
         "en": "Evaluate NOx and GHG together as one inventory.",
-        "id": "Nilai NOx dan GRK bersama sebagai satu inventaris."
+        "id": "Evaluasi NOx dan GRK bersama sebagai satu inventaris."
       }
     },
     {

@@ -57,8 +57,8 @@ Sejak Paket D, UI punya sisi Indonesia (sakelar EN/ID; `src/state/i18n.js`). Ist
 
 - Alasan: Istilah yang di lapangan dan di perangkat lunak dipakai dalam bentuk Inggris. Menerjemahkannya membuat peserta mencari kata yang tidak mereka temui di dokumen vendor atau panel kontrol.
 - Terhadap tabel PADANAN di bawah: sesuai. Baris 26 (part-load dipakai apa adanya), 39 (head), 41 (methane slip), 33 (derating).
-- Teks utuh (sisi id sengaja sama dengan en): `Part-load`, `Renderer`, `Bloom`, `FPS`, `Frame [ms]`, `Thermal NOx`, `Methane slip`, `Lean premix`, `Bloom: Auto`, `Power turbine`, `Derating`, `Heat rate`, `Lean-burn`
-- Dipakai di dalam kalimat (hanya dicatat): `head`, `derating`, `part-load`, `methane slip`, `fuel-only`, `single-shaft`, `twin-shaft`, `lean-burn`, `lean premix`, `premix`, `fuel split`, `suction`, `discharge`, `surge`, `waterfall`, `timing`, `what-if`, `misfire`, `knock`, `liner`, `trade-off`, `premixer`, `boost`, `scavenging`, `valve overlap`, `lean blowout`, `override`, `stack`
+- Teks utuh (sisi id sengaja sama dengan en): `Part-load`, `Renderer`, `Bloom`, `FPS`, `Frame [ms]`, `Thermal NOx`, `Methane slip`, `Lean premix`, `Bloom: Auto`, `Power turbine`, `Derating`, `Heat rate`, `Lean-burn`, `DLN / lean premix`
+- Dipakai di dalam kalimat (hanya dicatat): `head`, `derating`, `part-load`, `methane slip`, `fuel-only`, `single-shaft`, `twin-shaft`, `lean-burn`, `lean premix`, `premix`, `fuel split`, `suction`, `discharge`, `surge`, `waterfall`, `timing`, `what-if`, `misfire`, `knock`, `liner`, `trade-off`, `premixer`, `boost`, `scavenging`, `valve overlap`, `lean blowout`, `override`, `stack`, `ammonia slip`, `VOC`
 
 ### Kata yang kebetulan sama di kedua bahasa
 

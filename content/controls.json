@@ -5,7 +5,7 @@
       "id": "dln",
       "name": {
         "en": "DLN / lean premix",
-        "id": "DLN / premix miskin"
+        "id": "DLN / lean premix"
       },
       "lowers": [
         {
@@ -25,7 +25,7 @@
       ],
       "efficiency": {
         "en": "Adds no fuel use directly. The limit is the load range you can run at low emissions.",
-        "id": "Tidak menambah pemakaian bahan bakar secara langsung. Batasnya adalah rentang beban yang bisa dijalankan dengan emisi rendah."
+        "id": "Tidak menambah pemakaian bahan bakar secara langsung. Kendalanya adalah rentang beban yang bisa dijalankan dengan emisi rendah."
       },
       "operation": [
         {
@@ -166,7 +166,7 @@
         },
         {
           "en": "The water-to-fuel ratio must be kept in range",
-          "id": "Rasio air terhadap bahan bakar harus dijaga dalam rentang"
+          "id": "Rasio air terhadap bahan bakar harus dijaga dalam rentang yang ditentukan"
         }
       ],
       "appliesTo": [
@@ -210,7 +210,7 @@
         },
         {
           "en": "Needs a reductant (ammonia or urea), installation space, and a dosing system",
-          "id": "Butuh reduktan (amonia atau urea), ruang pemasangan, dan sistem dosis"
+          "id": "Butuh reduktan (ammonia atau urea), ruang pemasangan, dan sistem pendosisan"
         }
       ],
       "appliesTo": [
@@ -231,7 +231,7 @@
       "lowers": [
         {
           "en": "CO and VOC in the exhaust",
-          "id": "CO dan VOC di gas buang"
+          "id": "CO dan VOC (senyawa organik volatil) di gas buang"
         }
       ],
       "raises": [
