@@ -4,200 +4,852 @@
   "note": "Qualitative formation content for Scene 9 'Formation' tab. No site data and no invented numbers. Every card cites ids from references.json. The 'modeled' field says what the app actually computes: 'calibrated' = thermo.js function exists, 'mass-balance' = closed-form balance, 'semi-empirical' = a shape correlation exists in thermo.js but is not calibrated to data (turbine CO, coDLN), 'qualitative' = direction arrows only, 'site-input' = presenter types a measured value. Directions: up = increases, down = decreases, flat = little effect, mixed = depends on regime. Check every locator against the book/paper before presenting.",
   "equipment": {
     "diesel": {
-      "label": "Diesel engine (compression ignition)",
+      "label": {
+        "en": "Diesel engine (compression ignition)",
+        "id": "Mesin diesel (penyalaan kompresi)"
+      },
       "params": {
         "NOx": {
           "modeled": "calibrated",
           "formation": {
-            "summary": "Almost all NOx is thermal NO formed in the hot burned gas behind the flame. NO2 is a small fraction at the exhaust and forms mostly by NO oxidation in cooler zones. Regulations express the total as NO2.",
+            "summary": {
+              "en": "Almost all NOx is thermal NO formed in the hot burned gas behind the flame. NO2 is a small fraction at the exhaust and forms mostly by NO oxidation in cooler zones. Regulations express the total as NO2.",
+              "id": "Hampir semua NOx adalah NO termal yang terbentuk di gas terbakar yang panas di belakang nyala. NO2 hanya fraksi kecil di gas buang dan terbentuk terutama lewat oksidasi NO di zona yang lebih dingin. Regulasi menyatakan totalnya sebagai NO2."
+            },
             "reactions": [
               "O + N2 <=> NO + N",
               "N + O2 <=> NO + O",
               "N + OH <=> NO + H"
             ],
-            "reactionsName": "Extended Zeldovich mechanism",
-            "rateNote": "The first step has a high activation energy, so the rate rises very steeply with burned-gas temperature and with residence time at that temperature.",
-            "refs": ["zeldovich-1946", "lavoie-1970", "heywood", "turns"]
+            "reactionsName": {
+              "en": "Extended Zeldovich mechanism",
+              "id": "Mekanisme Zeldovich diperluas"
+            },
+            "rateNote": {
+              "en": "The first step has a high activation energy, so the rate rises very steeply with burned-gas temperature and with residence time at that temperature.",
+              "id": "Langkah pertama punya energi aktivasi tinggi, jadi lajunya naik sangat tajam terhadap suhu gas terbakar dan terhadap waktu tinggal pada suhu itu."
+            },
+            "refs": [
+              "zeldovich-1946",
+              "lavoie-1970",
+              "heywood",
+              "turns"
+            ]
           },
           "drivers": [
-            { "id": "peakT", "label": "Peak burned-gas temperature", "direction": "up", "why": "Rate is exponential in temperature." },
-            { "id": "timing", "label": "Injection timing", "direction": "mixed", "why": "Earlier injection raises peak pressure and temperature, so more NO." },
-            { "id": "o2", "label": "Local oxygen availability", "direction": "up", "why": "N + O2 step needs O2; very rich zones make little NO." },
-            { "id": "residence", "label": "Time at high temperature", "direction": "up", "why": "Zeldovich NO is kinetically limited, not at equilibrium." }
+            {
+              "id": "peakT",
+              "label": {
+                "en": "Peak burned-gas temperature",
+                "id": "Suhu puncak gas terbakar"
+              },
+              "direction": "up",
+              "why": {
+                "en": "Rate is exponential in temperature.",
+                "id": "Laju bersifat eksponensial terhadap suhu."
+              }
+            },
+            {
+              "id": "timing",
+              "label": {
+                "en": "Injection timing",
+                "id": "Timing injeksi"
+              },
+              "direction": "mixed",
+              "why": {
+                "en": "Earlier injection raises peak pressure and temperature, so more NO.",
+                "id": "Injeksi lebih awal menaikkan tekanan dan suhu puncak, jadi NO lebih banyak."
+              }
+            },
+            {
+              "id": "o2",
+              "label": {
+                "en": "Local oxygen availability",
+                "id": "Ketersediaan oksigen lokal"
+              },
+              "direction": "up",
+              "why": {
+                "en": "N + O2 step needs O2; very rich zones make little NO.",
+                "id": "Langkah N + O2 butuh O2; zona sangat kaya hanya membentuk sedikit NO."
+              }
+            },
+            {
+              "id": "residence",
+              "label": {
+                "en": "Time at high temperature",
+                "id": "Waktu pada suhu tinggi"
+              },
+              "direction": "up",
+              "why": {
+                "en": "Zeldovich NO is kinetically limited, not at equilibrium.",
+                "id": "NO Zeldovich dibatasi kinetika, tidak berada pada kesetimbangan."
+              }
+            }
           ],
           "levers": [
-            { "id": "retard", "label": "Retard injection timing", "effects": { "NOx": "down", "PM": "up", "CO": "up", "eta": "down" }, "consequence": "Lower peak temperature. Combustion moves later in the expansion stroke, so brake efficiency drops and exhaust temperature rises. Soot burnout gets worse.", "refs": ["heywood", "dec-1997"] },
-            { "id": "egr", "label": "Exhaust gas recirculation", "effects": { "NOx": "down", "PM": "up", "CO": "up", "eta": "down" }, "consequence": "Inert gas lowers flame temperature and oxygen. Needs cooling to be effective. Raises soot and wear risk. Not available on every engine.", "refs": ["ladommatos-1996", "heywood"] },
-            { "id": "chargeCool", "label": "Lower charge-air temperature", "effects": { "NOx": "down", "PM": "flat", "eta": "up" }, "consequence": "Lower start-of-compression temperature lowers the whole cycle temperature. Slightly denser charge also helps.", "refs": ["heywood"] },
-            { "id": "injP", "label": "Higher injection pressure", "effects": { "NOx": "up", "PM": "down" }, "consequence": "Better atomization cuts soot but raises local temperature. This is the classic NOx-PM trade-off.", "refs": ["heywood", "dec-1997"] }
+            {
+              "id": "retard",
+              "label": {
+                "en": "Retard injection timing",
+                "id": "Mundurkan timing injeksi"
+              },
+              "effects": {
+                "NOx": "down",
+                "PM": "up",
+                "CO": "up",
+                "eta": "down"
+              },
+              "consequence": {
+                "en": "Lower peak temperature. Combustion moves later in the expansion stroke, so brake efficiency drops and exhaust temperature rises. Soot burnout gets worse.",
+                "id": "Suhu puncak lebih rendah. Pembakaran terjadi lebih akhir di langkah ekspansi, sehingga efisiensi rem turun dan suhu gas buang naik. Pembakaran jelaga makin buruk."
+              },
+              "refs": [
+                "heywood",
+                "dec-1997"
+              ]
+            },
+            {
+              "id": "egr",
+              "label": {
+                "en": "Exhaust gas recirculation",
+                "id": "Resirkulasi gas buang (EGR)"
+              },
+              "effects": {
+                "NOx": "down",
+                "PM": "up",
+                "CO": "up",
+                "eta": "down"
+              },
+              "consequence": {
+                "en": "Inert gas lowers flame temperature and oxygen. Needs cooling to be effective. Raises soot and wear risk. Not available on every engine.",
+                "id": "Gas inert menurunkan suhu nyala dan oksigen. Perlu pendinginan agar efektif. Menaikkan risiko jelaga dan keausan. Tidak tersedia di semua mesin."
+              },
+              "refs": [
+                "ladommatos-1996",
+                "heywood"
+              ]
+            },
+            {
+              "id": "chargeCool",
+              "label": {
+                "en": "Lower charge-air temperature",
+                "id": "Suhu udara pengisi lebih rendah"
+              },
+              "effects": {
+                "NOx": "down",
+                "PM": "flat",
+                "eta": "up"
+              },
+              "consequence": {
+                "en": "Lower start-of-compression temperature lowers the whole cycle temperature. Slightly denser charge also helps.",
+                "id": "Suhu awal kompresi yang lebih rendah menurunkan suhu seluruh siklus. Muatan yang sedikit lebih rapat juga membantu."
+              },
+              "refs": [
+                "heywood"
+              ]
+            },
+            {
+              "id": "injP",
+              "label": {
+                "en": "Higher injection pressure",
+                "id": "Tekanan injeksi lebih tinggi"
+              },
+              "effects": {
+                "NOx": "up",
+                "PM": "down"
+              },
+              "consequence": {
+                "en": "Better atomization cuts soot but raises local temperature. This is the classic NOx-PM trade-off.",
+                "id": "Atomisasi lebih baik menurunkan jelaga tetapi menaikkan suhu lokal. Ini trade-off klasik NOx-PM."
+              },
+              "refs": [
+                "heywood",
+                "dec-1997"
+              ]
+            }
           ]
         },
         "CO": {
           "modeled": "site-input",
           "formation": {
-            "summary": "CO is an intermediate of hydrocarbon oxidation. Diesel runs lean overall, so CO comes from local over-rich zones and from zones that cool before burnout finishes.",
+            "summary": {
+              "en": "CO is an intermediate of hydrocarbon oxidation. Diesel runs lean overall, so CO comes from local over-rich zones and from zones that cool before burnout finishes.",
+              "id": "CO adalah zat antara oksidasi hidrokarbon. Diesel secara keseluruhan beroperasi miskin, jadi CO berasal dari zona lokal yang terlalu kaya dan dari zona yang mendingin sebelum pembakaran tuntas."
+            },
             "reactions": [
               "CO + OH <=> CO2 + H"
             ],
-            "reactionsName": "Main CO burnout step",
-            "rateNote": "OH is the key oxidizer. Low temperature, low OH, or short residence time freezes CO.",
-            "refs": ["turns", "heywood"]
+            "reactionsName": {
+              "en": "Main CO burnout step",
+              "id": "Langkah utama pembakaran tuntas CO"
+            },
+            "rateNote": {
+              "en": "OH is the key oxidizer. Low temperature, low OH, or short residence time freezes CO.",
+              "id": "OH adalah oksidator kunci. Suhu rendah, OH rendah, atau waktu tinggal pendek membuat CO membeku."
+            },
+            "refs": [
+              "turns",
+              "heywood"
+            ]
           },
           "drivers": [
-            { "id": "load", "label": "Very low load (cold gas, wall quench)", "direction": "up", "why": "Lower gas temperature slows burnout." },
-            { "id": "rich", "label": "Locally rich zones", "direction": "up", "why": "Not enough O2 for full oxidation." }
+            {
+              "id": "load",
+              "label": {
+                "en": "Very low load (cold gas, wall quench)",
+                "id": "Beban sangat rendah (gas dingin, pemadaman di dinding)"
+              },
+              "direction": "up",
+              "why": {
+                "en": "Lower gas temperature slows burnout.",
+                "id": "Suhu gas lebih rendah memperlambat pembakaran tuntas."
+              }
+            },
+            {
+              "id": "rich",
+              "label": {
+                "en": "Locally rich zones",
+                "id": "Zona kaya lokal"
+              },
+              "direction": "up",
+              "why": {
+                "en": "Not enough O2 for full oxidation.",
+                "id": "O2 tidak cukup untuk oksidasi penuh."
+              }
+            }
           ],
           "levers": [
-            { "id": "retard", "label": "Retard injection timing", "effects": { "CO": "up" }, "consequence": "Later burn means lower temperature during burnout.", "refs": ["heywood"] }
+            {
+              "id": "retard",
+              "label": {
+                "en": "Retard injection timing",
+                "id": "Mundurkan timing injeksi"
+              },
+              "effects": {
+                "CO": "up"
+              },
+              "consequence": {
+                "en": "Later burn means lower temperature during burnout.",
+                "id": "Pembakaran yang tertunda berarti suhu lebih rendah saat pembakaran tuntas."
+              },
+              "refs": [
+                "heywood"
+              ]
+            }
           ]
         },
         "PM": {
           "modeled": "site-input",
           "formation": {
-            "summary": "Soot forms in fuel-rich regions of the spray, where pyrolysis and PAH growth beat oxidation. Most of it is oxidized later in the cycle. What leaves the stack is the surviving fraction, plus ash and condensed hydrocarbons.",
+            "summary": {
+              "en": "Soot forms in fuel-rich regions of the spray, where pyrolysis and PAH growth beat oxidation. Most of it is oxidized later in the cycle. What leaves the stack is the surviving fraction, plus ash and condensed hydrocarbons.",
+              "id": "Jelaga terbentuk di daerah semprotan yang kaya bahan bakar, tempat pirolisis dan pertumbuhan PAH mengalahkan oksidasi. Sebagian besar teroksidasi kemudian dalam siklus. Yang keluar dari cerobong adalah fraksi yang bertahan, ditambah abu dan hidrokarbon terkondensasi."
+            },
             "reactions": [],
-            "reactionsName": "Conceptual spray model, no single global reaction",
-            "rateNote": "Net soot = formation minus oxidation. Anything that starves late-cycle oxidation (low temperature, low O2, poor mixing) leaves more soot.",
-            "refs": ["dec-1997", "kittelson-1998", "heywood"]
+            "reactionsName": {
+              "en": "Conceptual spray model, no single global reaction",
+              "id": "Model semprotan konseptual, tanpa satu reaksi global"
+            },
+            "rateNote": {
+              "en": "Net soot = formation minus oxidation. Anything that starves late-cycle oxidation (low temperature, low O2, poor mixing) leaves more soot.",
+              "id": "Jelaga bersih = pembentukan dikurangi oksidasi. Apa pun yang menghambat oksidasi akhir siklus (suhu rendah, O2 rendah, pencampuran buruk) meninggalkan lebih banyak jelaga."
+            },
+            "refs": [
+              "dec-1997",
+              "kittelson-1998",
+              "heywood"
+            ]
           },
           "drivers": [
-            { "id": "rich", "label": "Rich spray core", "direction": "up", "why": "Soot precursors form where there is no O2." },
-            { "id": "lateMix", "label": "Poor late-cycle mixing", "direction": "up", "why": "Less soot burnout." }
+            {
+              "id": "rich",
+              "label": {
+                "en": "Rich spray core",
+                "id": "Inti semprotan yang kaya"
+              },
+              "direction": "up",
+              "why": {
+                "en": "Soot precursors form where there is no O2.",
+                "id": "Prekursor jelaga terbentuk di tempat yang tidak ada O2."
+              }
+            },
+            {
+              "id": "lateMix",
+              "label": {
+                "en": "Poor late-cycle mixing",
+                "id": "Pencampuran akhir siklus yang buruk"
+              },
+              "direction": "up",
+              "why": {
+                "en": "Less soot burnout.",
+                "id": "Pembakaran jelaga berkurang."
+              }
+            }
           ],
           "levers": [
-            { "id": "retard", "label": "Retard injection timing", "effects": { "PM": "up", "NOx": "down" }, "consequence": "NOx-PM trade-off.", "refs": ["heywood"] },
-            { "id": "injP", "label": "Higher injection pressure", "effects": { "PM": "down", "NOx": "up" }, "consequence": "Better mixing.", "refs": ["heywood"] }
+            {
+              "id": "retard",
+              "label": {
+                "en": "Retard injection timing",
+                "id": "Mundurkan timing injeksi"
+              },
+              "effects": {
+                "PM": "up",
+                "NOx": "down"
+              },
+              "consequence": {
+                "en": "NOx-PM trade-off.",
+                "id": "Trade-off NOx-PM."
+              },
+              "refs": [
+                "heywood"
+              ]
+            },
+            {
+              "id": "injP",
+              "label": {
+                "en": "Higher injection pressure",
+                "id": "Tekanan injeksi lebih tinggi"
+              },
+              "effects": {
+                "PM": "down",
+                "NOx": "up"
+              },
+              "consequence": {
+                "en": "Better mixing.",
+                "id": "Pencampuran lebih baik."
+              },
+              "refs": [
+                "heywood"
+              ]
+            }
           ]
         },
         "SO2": {
           "modeled": "mass-balance",
           "formation": {
-            "summary": "SO2 follows from the sulfur in the fuel. Almost all fuel sulfur leaves as SO2 (a small part as SO3 or sulfate). Engine tuning does not change it.",
-            "reactions": ["S + O2 -> SO2"],
-            "reactionsName": "Sulfur mass balance",
-            "rateNote": "Mass of SO2 = 2 x mass of sulfur burned (molar mass 64.07 / 32.06). The only levers are fuel sulfur and after-treatment.",
-            "refs": ["epa-ap42-3-1", "heywood"]
+            "summary": {
+              "en": "SO2 follows from the sulfur in the fuel. Almost all fuel sulfur leaves as SO2 (a small part as SO3 or sulfate). Engine tuning does not change it.",
+              "id": "SO2 mengikuti sulfur di bahan bakar. Hampir semua sulfur bahan bakar keluar sebagai SO2 (sebagian kecil sebagai SO3 atau sulfat). Penyetelan mesin tidak mengubahnya."
+            },
+            "reactions": [
+              "S + O2 -> SO2"
+            ],
+            "reactionsName": {
+              "en": "Sulfur mass balance",
+              "id": "Neraca massa sulfur"
+            },
+            "rateNote": {
+              "en": "Mass of SO2 = 2 x mass of sulfur burned (molar mass 64.07 / 32.06). The only levers are fuel sulfur and after-treatment.",
+              "id": "Massa SO2 = 2 x massa sulfur terbakar (massa molar 64,07 / 32,06). Satu-satunya tuas adalah sulfur bahan bakar dan pengolahan gas buang."
+            },
+            "refs": [
+              "epa-ap42-3-1",
+              "heywood"
+            ]
           },
           "drivers": [
-            { "id": "fuelS", "label": "Fuel sulfur content", "direction": "up", "why": "Direct proportion." }
+            {
+              "id": "fuelS",
+              "label": {
+                "en": "Fuel sulfur content",
+                "id": "Kandungan sulfur bahan bakar"
+              },
+              "direction": "up",
+              "why": {
+                "en": "Direct proportion.",
+                "id": "Berbanding lurus."
+              }
+            }
           ],
           "levers": [
-            { "id": "fuelS", "label": "Lower-sulfur fuel", "effects": { "SO2": "down" }, "consequence": "Cost and availability. No effect on efficiency.", "refs": [] }
+            {
+              "id": "fuelS",
+              "label": {
+                "en": "Lower-sulfur fuel",
+                "id": "Bahan bakar bersulfur lebih rendah"
+              },
+              "effects": {
+                "SO2": "down"
+              },
+              "consequence": {
+                "en": "Cost and availability. No effect on efficiency.",
+                "id": "Biaya dan ketersediaan. Tidak berpengaruh pada efisiensi."
+              },
+              "refs": []
+            }
           ]
         },
         "CO2": {
           "modeled": "mass-balance",
           "formation": {
-            "summary": "CO2 follows from the carbon in the fuel. Specific CO2 (g/kWh) falls only when efficiency rises or the fuel has less carbon per unit energy.",
-            "reactions": ["C + O2 -> CO2"],
-            "reactionsName": "Carbon mass balance",
-            "rateNote": "Mass of CO2 = 44.01 / 12.011 x mass of carbon burned.",
-            "refs": ["epa-ap42-3-1", "heywood"]
+            "summary": {
+              "en": "CO2 follows from the carbon in the fuel. Specific CO2 (g/kWh) falls only when efficiency rises or the fuel has less carbon per unit energy.",
+              "id": "CO2 mengikuti karbon di bahan bakar. CO2 spesifik (g/kWh) turun hanya bila efisiensi naik atau bahan bakar punya lebih sedikit karbon per satuan energi."
+            },
+            "reactions": [
+              "C + O2 -> CO2"
+            ],
+            "reactionsName": {
+              "en": "Carbon mass balance",
+              "id": "Neraca massa karbon"
+            },
+            "rateNote": {
+              "en": "Mass of CO2 = 44.01 / 12.011 x mass of carbon burned.",
+              "id": "Massa CO2 = 44,01 / 12,011 x massa karbon terbakar."
+            },
+            "refs": [
+              "epa-ap42-3-1",
+              "heywood"
+            ]
           },
           "drivers": [
-            { "id": "eta", "label": "Brake efficiency", "direction": "down", "why": "More work per kg fuel means less CO2 per kWh." }
+            {
+              "id": "eta",
+              "label": {
+                "en": "Brake efficiency",
+                "id": "Efisiensi rem"
+              },
+              "direction": "down",
+              "why": {
+                "en": "More work per kg fuel means less CO2 per kWh.",
+                "id": "Kerja per kg bahan bakar lebih besar berarti CO2 per kWh lebih kecil."
+              }
+            }
           ],
           "levers": [
-            { "id": "retard", "label": "Retard injection timing", "effects": { "CO2": "up" }, "consequence": "Efficiency loss raises g CO2 per kWh.", "refs": [] }
+            {
+              "id": "retard",
+              "label": {
+                "en": "Retard injection timing",
+                "id": "Mundurkan timing injeksi"
+              },
+              "effects": {
+                "CO2": "up"
+              },
+              "consequence": {
+                "en": "Efficiency loss raises g CO2 per kWh.",
+                "id": "Kehilangan efisiensi menaikkan g CO2 per kWh."
+              },
+              "refs": []
+            }
           ]
         }
       }
     },
     "gas-engine": {
-      "label": "Gas engine (spark ignition, lean-burn)",
+      "label": {
+        "en": "Gas engine (spark ignition, lean-burn)",
+        "id": "Mesin gas (penyalaan busi, lean-burn)"
+      },
       "params": {
         "NOx": {
           "modeled": "calibrated",
           "formation": {
-            "summary": "Thermal NO again. In a premixed lean-burn engine the flame temperature is set mostly by air-fuel ratio (lambda) and by ignition timing. Lean burn lowers flame temperature and NOx steeply, until misfire limits it.",
-            "reactions": ["O + N2 <=> NO + N", "N + O2 <=> NO + O", "N + OH <=> NO + H"],
-            "reactionsName": "Extended Zeldovich mechanism",
-            "rateNote": "Peak NO is near slightly lean mixtures, where flame temperature and O2 are both high. Going leaner cuts temperature faster than O2 helps.",
-            "refs": ["zeldovich-1946", "lavoie-1970", "heywood"]
+            "summary": {
+              "en": "Thermal NO again. In a premixed lean-burn engine the flame temperature is set mostly by air-fuel ratio (lambda) and by ignition timing. Lean burn lowers flame temperature and NOx steeply, until misfire limits it.",
+              "id": "Lagi-lagi NO termal. Pada mesin lean-burn premix, suhu nyala ditentukan terutama oleh rasio udara-bahan bakar (lambda) dan timing penyalaan. Campuran miskin menurunkan suhu nyala dan NOx dengan tajam, sampai batas misfire."
+            },
+            "reactions": [
+              "O + N2 <=> NO + N",
+              "N + O2 <=> NO + O",
+              "N + OH <=> NO + H"
+            ],
+            "reactionsName": {
+              "en": "Extended Zeldovich mechanism",
+              "id": "Mekanisme Zeldovich diperluas"
+            },
+            "rateNote": {
+              "en": "Peak NO is near slightly lean mixtures, where flame temperature and O2 are both high. Going leaner cuts temperature faster than O2 helps.",
+              "id": "NO puncak ada di campuran sedikit miskin, tempat suhu nyala dan O2 sama-sama tinggi. Makin miskin, suhu turun lebih cepat daripada manfaat O2."
+            },
+            "refs": [
+              "zeldovich-1946",
+              "lavoie-1970",
+              "heywood"
+            ]
           },
           "drivers": [
-            { "id": "lambda", "label": "Air-fuel ratio (lambda)", "direction": "mixed", "why": "NOx peaks slightly lean of stoichiometric and falls steeply on the lean side." },
-            { "id": "timing", "label": "Spark timing", "direction": "up", "why": "Advance raises peak pressure and temperature." },
-            { "id": "intakeT", "label": "Intake manifold temperature", "direction": "up", "why": "Hotter charge, hotter flame." },
-            { "id": "compRatio", "label": "Compression ratio", "direction": "up", "why": "Higher end-of-compression temperature." }
+            {
+              "id": "lambda",
+              "label": {
+                "en": "Air-fuel ratio (lambda)",
+                "id": "Rasio udara-bahan bakar (lambda)"
+              },
+              "direction": "mixed",
+              "why": {
+                "en": "NOx peaks slightly lean of stoichiometric and falls steeply on the lean side.",
+                "id": "NOx memuncak sedikit di sisi miskin stoikiometrik dan turun tajam ke arah campuran yang lebih miskin."
+              }
+            },
+            {
+              "id": "timing",
+              "label": {
+                "en": "Spark timing",
+                "id": "Timing percikan"
+              },
+              "direction": "up",
+              "why": {
+                "en": "Advance raises peak pressure and temperature.",
+                "id": "Memajukan percikan menaikkan tekanan dan suhu puncak."
+              }
+            },
+            {
+              "id": "intakeT",
+              "label": {
+                "en": "Intake manifold temperature",
+                "id": "Suhu udara masuk (manifold)"
+              },
+              "direction": "up",
+              "why": {
+                "en": "Hotter charge, hotter flame.",
+                "id": "Muatan lebih panas, nyala lebih panas."
+              }
+            },
+            {
+              "id": "compRatio",
+              "label": {
+                "en": "Compression ratio",
+                "id": "Rasio kompresi"
+              },
+              "direction": "up",
+              "why": {
+                "en": "Higher end-of-compression temperature.",
+                "id": "Suhu akhir kompresi lebih tinggi."
+              }
+            }
           ],
           "levers": [
-            { "id": "lambda", "label": "Increase lambda (leaner)", "effects": { "NOx": "down", "CO": "up", "UHC": "up", "eta": "mixed" }, "consequence": "Efficiency tends to rise as mixture gets leaner, then falls near the lean limit as combustion gets slow and incomplete. Misfire and unburned methane rise near the limit.", "refs": ["heywood"] },
-            { "id": "retard", "label": "Retard spark timing", "effects": { "NOx": "down", "eta": "down", "exhaustT": "up" }, "consequence": "Lower peak pressure and temperature. Efficiency loss and hotter exhaust. Also lowers knock risk.", "refs": ["heywood"] },
-            { "id": "intakeT", "label": "Lower intake temperature", "effects": { "NOx": "down", "knock": "down", "eta": "up" }, "consequence": "Needs charge cooler capacity.", "refs": ["heywood"] }
+            {
+              "id": "lambda",
+              "label": {
+                "en": "Increase lambda (leaner)",
+                "id": "Naikkan lambda (lebih miskin)"
+              },
+              "effects": {
+                "NOx": "down",
+                "CO": "up",
+                "UHC": "up",
+                "eta": "mixed"
+              },
+              "consequence": {
+                "en": "Efficiency tends to rise as mixture gets leaner, then falls near the lean limit as combustion gets slow and incomplete. Misfire and unburned methane rise near the limit.",
+                "id": "Efisiensi cenderung naik saat campuran makin miskin, lalu turun dekat batas miskin karena pembakaran lambat dan tidak tuntas. Misfire dan metana tak terbakar naik dekat batas."
+              },
+              "refs": [
+                "heywood"
+              ]
+            },
+            {
+              "id": "retard",
+              "label": {
+                "en": "Retard spark timing",
+                "id": "Mundurkan timing percikan"
+              },
+              "effects": {
+                "NOx": "down",
+                "eta": "down",
+                "exhaustT": "up"
+              },
+              "consequence": {
+                "en": "Lower peak pressure and temperature. Efficiency loss and hotter exhaust. Also lowers knock risk.",
+                "id": "Tekanan dan suhu puncak lebih rendah. Efisiensi turun dan gas buang lebih panas. Risiko knock juga turun."
+              },
+              "refs": [
+                "heywood"
+              ]
+            },
+            {
+              "id": "intakeT",
+              "label": {
+                "en": "Lower intake temperature",
+                "id": "Suhu udara masuk lebih rendah"
+              },
+              "effects": {
+                "NOx": "down",
+                "knock": "down",
+                "eta": "up"
+              },
+              "consequence": {
+                "en": "Needs charge cooler capacity.",
+                "id": "Butuh kapasitas pendingin udara pengisi."
+              },
+              "refs": [
+                "heywood"
+              ]
+            }
           ]
         },
         "CO": {
           "modeled": "site-input",
           "formation": {
-            "summary": "Lean-burn gas engines make CO from incomplete burnout in cool zones near walls and crevices, and from slow combustion near the lean limit. CO rises when flame temperature is pushed down to cut NOx.",
-            "reactions": ["CO + OH <=> CO2 + H"],
-            "reactionsName": "Main CO burnout step",
-            "rateNote": "Same chemistry as the diesel card. Lower temperature slows it.",
-            "refs": ["turns", "heywood"]
+            "summary": {
+              "en": "Lean-burn gas engines make CO from incomplete burnout in cool zones near walls and crevices, and from slow combustion near the lean limit. CO rises when flame temperature is pushed down to cut NOx.",
+              "id": "Mesin gas lean-burn menghasilkan CO dari pembakaran yang tidak tuntas di zona dingin dekat dinding dan celah, dan dari pembakaran lambat dekat batas miskin. CO naik saat suhu nyala ditekan untuk menurunkan NOx."
+            },
+            "reactions": [
+              "CO + OH <=> CO2 + H"
+            ],
+            "reactionsName": {
+              "en": "Main CO burnout step",
+              "id": "Langkah utama pembakaran tuntas CO"
+            },
+            "rateNote": {
+              "en": "Same chemistry as the diesel card. Lower temperature slows it.",
+              "id": "Kimia yang sama dengan kartu diesel. Suhu lebih rendah memperlambatnya."
+            },
+            "refs": [
+              "turns",
+              "heywood"
+            ]
           },
           "drivers": [
-            { "id": "lambda", "label": "Very lean mixture", "direction": "up", "why": "Low flame temperature and slow burn." },
-            { "id": "load", "label": "Low load", "direction": "up", "why": "Lower gas temperature." }
+            {
+              "id": "lambda",
+              "label": {
+                "en": "Very lean mixture",
+                "id": "Campuran sangat miskin"
+              },
+              "direction": "up",
+              "why": {
+                "en": "Low flame temperature and slow burn.",
+                "id": "Suhu nyala rendah dan pembakaran lambat."
+              }
+            },
+            {
+              "id": "load",
+              "label": {
+                "en": "Low load",
+                "id": "Beban rendah"
+              },
+              "direction": "up",
+              "why": {
+                "en": "Lower gas temperature.",
+                "id": "Suhu gas lebih rendah."
+              }
+            }
           ],
           "levers": [
-            { "id": "lambda", "label": "Increase lambda (leaner)", "effects": { "CO": "up", "NOx": "down" }, "consequence": "NOx-CO trade-off along lambda.", "refs": ["heywood"] }
+            {
+              "id": "lambda",
+              "label": {
+                "en": "Increase lambda (leaner)",
+                "id": "Naikkan lambda (lebih miskin)"
+              },
+              "effects": {
+                "CO": "up",
+                "NOx": "down"
+              },
+              "consequence": {
+                "en": "NOx-CO trade-off along lambda.",
+                "id": "Trade-off NOx-CO sepanjang lambda."
+              },
+              "refs": [
+                "heywood"
+              ]
+            }
           ]
         },
         "UHC": {
           "modeled": "qualitative",
           "formation": {
-            "summary": "Unburned hydrocarbons in a gas engine are mostly methane. Sources: crevice volumes (piston ring land), flame quench at walls, partial burn or misfire, and scavenging losses with valve overlap.",
+            "summary": {
+              "en": "Unburned hydrocarbons in a gas engine are mostly methane. Sources: crevice volumes (piston ring land), flame quench at walls, partial burn or misfire, and scavenging losses with valve overlap.",
+              "id": "Hidrokarbon tak terbakar di mesin gas sebagian besar metana. Sumbernya: volume celah (land ring piston), pemadaman nyala di dinding, pembakaran parsial atau misfire, dan kehilangan scavenging saat valve overlap."
+            },
             "reactions": [],
-            "reactionsName": "No single reaction",
-            "rateNote": "Methane is the hardest hydrocarbon to oxidize, so it survives where other fuels would burn out. Methane has a much higher warming potential than CO2, so slip matters for GHG even where there is no regulated limit.",
-            "refs": ["heywood", "ipcc-ar6-wg1-ch7"]
+            "reactionsName": {
+              "en": "No single reaction",
+              "id": "Tanpa satu reaksi tunggal"
+            },
+            "rateNote": {
+              "en": "Methane is the hardest hydrocarbon to oxidize, so it survives where other fuels would burn out. Methane has a much higher warming potential than CO2, so slip matters for GHG even where there is no regulated limit.",
+              "id": "Metana adalah hidrokarbon yang paling sulit dioksidasi, jadi ia bertahan di tempat bahan bakar lain sudah habis terbakar. Metana punya potensi pemanasan jauh lebih tinggi daripada CO2, jadi slip penting bagi GRK walau tidak ada batas teregulasi."
+            },
+            "refs": [
+              "heywood",
+              "ipcc-ar6-wg1-ch7"
+            ]
           },
           "drivers": [
-            { "id": "lambda", "label": "Lean limit proximity", "direction": "up", "why": "Partial burn and misfire." },
-            { "id": "load", "label": "Low load", "direction": "up", "why": "Cooler walls and slower burn." },
-            { "id": "overlap", "label": "Valve overlap / scavenging", "direction": "up", "why": "Fresh charge passes straight to exhaust." }
+            {
+              "id": "lambda",
+              "label": {
+                "en": "Lean limit proximity",
+                "id": "Dekat batas miskin"
+              },
+              "direction": "up",
+              "why": {
+                "en": "Partial burn and misfire.",
+                "id": "Pembakaran parsial dan misfire."
+              }
+            },
+            {
+              "id": "load",
+              "label": {
+                "en": "Low load",
+                "id": "Beban rendah"
+              },
+              "direction": "up",
+              "why": {
+                "en": "Cooler walls and slower burn.",
+                "id": "Dinding lebih dingin dan pembakaran lebih lambat."
+              }
+            },
+            {
+              "id": "overlap",
+              "label": {
+                "en": "Valve overlap / scavenging",
+                "id": "Valve overlap / pembilasan (scavenging)"
+              },
+              "direction": "up",
+              "why": {
+                "en": "Fresh charge passes straight to exhaust.",
+                "id": "Muatan segar langsung lewat ke gas buang."
+              }
+            }
           ],
           "levers": [
-            { "id": "lambda", "label": "Stay away from lean limit", "effects": { "UHC": "down", "NOx": "up" }, "consequence": "Gives back some of the NOx benefit.", "refs": ["heywood"] }
+            {
+              "id": "lambda",
+              "label": {
+                "en": "Stay away from lean limit",
+                "id": "Jauhi batas miskin"
+              },
+              "effects": {
+                "UHC": "down",
+                "NOx": "up"
+              },
+              "consequence": {
+                "en": "Gives back some of the NOx benefit.",
+                "id": "Sebagian manfaat penurunan NOx hilang."
+              },
+              "refs": [
+                "heywood"
+              ]
+            }
           ]
         },
         "SO2": {
           "modeled": "mass-balance",
           "formation": {
-            "summary": "From sulfur compounds in the fuel gas, mainly H2S. Pipeline-quality gas has very little. Sour or associated gas can have much more.",
-            "reactions": ["H2S + 1.5 O2 -> SO2 + H2O"],
-            "reactionsName": "Sulfur mass balance",
-            "rateNote": "Set by fuel gas H2S and total sulfur, not by engine tuning.",
-            "refs": ["epa-ap42-3-2"]
+            "summary": {
+              "en": "From sulfur compounds in the fuel gas, mainly H2S. Pipeline-quality gas has very little. Sour or associated gas can have much more.",
+              "id": "Berasal dari senyawa sulfur di gas bahan bakar, terutama H2S. Gas kualitas pipa hanya sedikit mengandungnya. Gas asam atau gas ikutan bisa jauh lebih banyak."
+            },
+            "reactions": [
+              "H2S + 1.5 O2 -> SO2 + H2O"
+            ],
+            "reactionsName": {
+              "en": "Sulfur mass balance",
+              "id": "Neraca massa sulfur"
+            },
+            "rateNote": {
+              "en": "Set by fuel gas H2S and total sulfur, not by engine tuning.",
+              "id": "Ditentukan oleh H2S dan total sulfur gas bahan bakar, bukan oleh penyetelan mesin."
+            },
+            "refs": [
+              "epa-ap42-3-2"
+            ]
           },
-          "drivers": [{ "id": "fuelS", "label": "H2S in fuel gas", "direction": "up", "why": "Direct proportion." }],
-          "levers": [{ "id": "fuelS", "label": "Treat or switch fuel gas", "effects": { "SO2": "down" }, "consequence": "Gas treatment cost.", "refs": [] }]
+          "drivers": [
+            {
+              "id": "fuelS",
+              "label": {
+                "en": "H2S in fuel gas",
+                "id": "H2S di gas bahan bakar"
+              },
+              "direction": "up",
+              "why": {
+                "en": "Direct proportion.",
+                "id": "Berbanding lurus."
+              }
+            }
+          ],
+          "levers": [
+            {
+              "id": "fuelS",
+              "label": {
+                "en": "Treat or switch fuel gas",
+                "id": "Olah atau ganti gas bahan bakar"
+              },
+              "effects": {
+                "SO2": "down"
+              },
+              "consequence": {
+                "en": "Gas treatment cost.",
+                "id": "Biaya pengolahan gas."
+              },
+              "refs": []
+            }
+          ]
         },
         "CO2": {
           "modeled": "mass-balance",
           "formation": {
-            "summary": "Carbon balance on fuel gas composition. Heavier hydrocarbons in the gas add carbon per unit energy.",
-            "reactions": ["CH4 + 2 O2 -> CO2 + 2 H2O"],
-            "reactionsName": "Carbon mass balance",
-            "rateNote": "Inert CO2 already in the fuel gas passes through and also counts at the stack.",
-            "refs": ["epa-ap42-3-2", "iso-6976"]
+            "summary": {
+              "en": "Carbon balance on fuel gas composition. Heavier hydrocarbons in the gas add carbon per unit energy.",
+              "id": "Neraca karbon dari komposisi gas bahan bakar. Hidrokarbon yang lebih berat di gas menambah karbon per satuan energi."
+            },
+            "reactions": [
+              "CH4 + 2 O2 -> CO2 + 2 H2O"
+            ],
+            "reactionsName": {
+              "en": "Carbon mass balance",
+              "id": "Neraca massa karbon"
+            },
+            "rateNote": {
+              "en": "Inert CO2 already in the fuel gas passes through and also counts at the stack.",
+              "id": "CO2 inert yang sudah ada di gas bahan bakar ikut lewat dan juga terhitung di cerobong."
+            },
+            "refs": [
+              "epa-ap42-3-2",
+              "iso-6976"
+            ]
           },
           "drivers": [
-            { "id": "eta", "label": "Brake efficiency", "direction": "down", "why": "Less fuel per kWh." },
-            { "id": "composition", "label": "Fuel gas composition", "direction": "mixed", "why": "Heavier hydrocarbons and CO2 content change carbon per unit energy." }
+            {
+              "id": "eta",
+              "label": {
+                "en": "Brake efficiency",
+                "id": "Efisiensi rem"
+              },
+              "direction": "down",
+              "why": {
+                "en": "Less fuel per kWh.",
+                "id": "Bahan bakar per kWh lebih sedikit."
+              }
+            },
+            {
+              "id": "composition",
+              "label": {
+                "en": "Fuel gas composition",
+                "id": "Komposisi gas bahan bakar"
+              },
+              "direction": "mixed",
+              "why": {
+                "en": "Heavier hydrocarbons and CO2 content change carbon per unit energy.",
+                "id": "Hidrokarbon yang lebih berat dan kandungan CO2 mengubah karbon per satuan energi."
+              }
+            }
           ],
           "levers": []
         }
       }
     },
     "turbine": {
-      "label": "Gas turbine (DLN combustor, single-shaft and twin-shaft)",
+      "label": {
+        "en": "Gas turbine (DLN combustor, single-shaft and twin-shaft)",
+        "id": "Turbin gas (ruang bakar DLN, single-shaft dan twin-shaft)"
+      },
       "params": {
         "NOx": {
           "modeled": "calibrated",
           "formation": {
-            "summary": "Dry low-NOx combustors burn a lean premixed charge so the flame temperature stays low. Thermal NO still dominates, with prompt NO and the N2O route becoming relatively more important at low flame temperature.",
+            "summary": {
+              "en": "Dry low-NOx combustors burn a lean premixed charge so the flame temperature stays low. Thermal NO still dominates, with prompt NO and the N2O route becoming relatively more important at low flame temperature.",
+              "id": "Ruang bakar dry low-NOx membakar muatan premix miskin agar suhu nyala tetap rendah. NO termal tetap dominan, sementara NO prompt dan jalur N2O menjadi relatif lebih penting pada suhu nyala rendah."
+            },
             "reactions": [
               "O + N2 <=> NO + N",
               "N + O2 <=> NO + O",
@@ -205,70 +857,278 @@
               "CH + N2 <=> HCN + N   (prompt route)",
               "N2O route: O + N2 + M <=> N2O + M, then N2O + O <=> 2 NO"
             ],
-            "reactionsName": "Thermal (Zeldovich), prompt (Fenimore), N2O route",
-            "rateNote": "In a lean premix flame the flame temperature is set by the fuel-air ratio at the flame, so mixing uniformity matters as much as the average.",
-            "refs": ["lefebvre", "lieuwen-yang", "fenimore-1971", "correa-1992", "miller-bowman-1989"]
+            "reactionsName": {
+              "en": "Thermal (Zeldovich), prompt (Fenimore), N2O route",
+              "id": "Termal (Zeldovich), prompt (Fenimore), jalur N2O"
+            },
+            "rateNote": {
+              "en": "In a lean premix flame the flame temperature is set by the fuel-air ratio at the flame, so mixing uniformity matters as much as the average.",
+              "id": "Pada nyala premix miskin, suhu nyala ditentukan oleh rasio bahan bakar-udara di nyala, jadi keseragaman pencampuran sama pentingnya dengan rata-ratanya."
+            },
+            "refs": [
+              "lefebvre",
+              "lieuwen-yang",
+              "fenimore-1971",
+              "correa-1992",
+              "miller-bowman-1989"
+            ]
           },
           "drivers": [
-            { "id": "flameT", "label": "Flame temperature", "direction": "up", "why": "Exponential rate dependence." },
-            { "id": "residence", "label": "Residence time in the hot zone", "direction": "up", "why": "Kinetically limited." },
-            { "id": "mixing", "label": "Premixer uniformity", "direction": "down", "why": "Hot spots make most of the NO." },
-            { "id": "inletT", "label": "Compressor discharge temperature", "direction": "up", "why": "Raises flame temperature at a given fuel-air ratio." }
+            {
+              "id": "flameT",
+              "label": {
+                "en": "Flame temperature",
+                "id": "Suhu nyala"
+              },
+              "direction": "up",
+              "why": {
+                "en": "Exponential rate dependence.",
+                "id": "Laju bergantung eksponensial."
+              }
+            },
+            {
+              "id": "residence",
+              "label": {
+                "en": "Residence time in the hot zone",
+                "id": "Waktu tinggal di zona panas"
+              },
+              "direction": "up",
+              "why": {
+                "en": "Kinetically limited.",
+                "id": "Dibatasi kinetika."
+              }
+            },
+            {
+              "id": "mixing",
+              "label": {
+                "en": "Premixer uniformity",
+                "id": "Keseragaman premixer"
+              },
+              "direction": "down",
+              "why": {
+                "en": "Hot spots make most of the NO.",
+                "id": "Titik panas membentuk sebagian besar NO."
+              }
+            },
+            {
+              "id": "inletT",
+              "label": {
+                "en": "Compressor discharge temperature",
+                "id": "Suhu keluar kompresor"
+              },
+              "direction": "up",
+              "why": {
+                "en": "Raises flame temperature at a given fuel-air ratio.",
+                "id": "Menaikkan suhu nyala pada rasio bahan bakar-udara tertentu."
+              }
+            }
           ],
           "levers": [
-            { "id": "flameT", "label": "Lower flame temperature (leaner premix)", "effects": { "NOx": "down", "CO": "up" }, "consequence": "Leaner flame is cooler but CO burnout slows. The operating window closes at both ends: NOx at the top, CO and flame stability at the bottom.", "refs": ["lefebvre", "lieuwen-yang"] },
-            { "id": "loadStrategy", "label": "Part-load strategy (IGV closure vs fuel-only turndown)", "effects": { "NOx": "mixed", "CO": "mixed", "eta": "down" }, "consequence": "Closing IGVs holds exhaust and flame temperature up at part load so CO stays low, at some cost in efficiency and compressor margin. This model uses a fixed premix split.", "refs": ["saravanamuttoo", "boyce"] }
+            {
+              "id": "flameT",
+              "label": {
+                "en": "Lower flame temperature (leaner premix)",
+                "id": "Suhu nyala lebih rendah (premix lebih miskin)"
+              },
+              "effects": {
+                "NOx": "down",
+                "CO": "up"
+              },
+              "consequence": {
+                "en": "Leaner flame is cooler but CO burnout slows. The operating window closes at both ends: NOx at the top, CO and flame stability at the bottom.",
+                "id": "Nyala lebih miskin lebih dingin, tetapi pembakaran tuntas CO melambat. Jendela operasi menutup di kedua ujung: NOx di atas, CO dan stabilitas nyala di bawah."
+              },
+              "refs": [
+                "lefebvre",
+                "lieuwen-yang"
+              ]
+            },
+            {
+              "id": "loadStrategy",
+              "label": {
+                "en": "Part-load strategy (IGV closure vs fuel-only turndown)",
+                "id": "Strategi part-load (penutupan IGV vs penurunan bahan bakar saja)"
+              },
+              "effects": {
+                "NOx": "mixed",
+                "CO": "mixed",
+                "eta": "down"
+              },
+              "consequence": {
+                "en": "Closing IGVs holds exhaust and flame temperature up at part load so CO stays low, at some cost in efficiency and compressor margin. This model uses a fixed premix split.",
+                "id": "Menutup IGV menjaga suhu gas buang dan suhu nyala tetap tinggi saat part-load sehingga CO tetap rendah, dengan sedikit biaya pada efisiensi dan margin kompresor. Model ini memakai fuel split premix tetap."
+              },
+              "refs": [
+                "saravanamuttoo",
+                "boyce"
+              ]
+            }
           ]
         },
         "CO": {
           "modeled": "semi-empirical",
           "formation": {
-            "summary": "CO is the partially burned intermediate. In a DLN combustor it rises when flame temperature falls, because CO + OH slows down and the residence time is too short to finish burning it. Quenching on liner walls adds to it.",
-            "reactions": ["CO + OH <=> CO2 + H"],
-            "reactionsName": "Main CO burnout step",
-            "rateNote": "The Gas Turbine table in Permen LH 13/2009 has no CO limit. A turbine CO limit comes from the site permit or the OEM guarantee.",
-            "refs": ["lefebvre", "lieuwen-yang", "turns"]
+            "summary": {
+              "en": "CO is the partially burned intermediate. In a DLN combustor it rises when flame temperature falls, because CO + OH slows down and the residence time is too short to finish burning it. Quenching on liner walls adds to it.",
+              "id": "CO adalah zat antara yang terbakar sebagian. Di ruang bakar DLN, CO naik saat suhu nyala turun, karena CO + OH melambat dan waktu tinggal terlalu singkat untuk menuntaskannya. Pemadaman di dinding liner menambahnya."
+            },
+            "reactions": [
+              "CO + OH <=> CO2 + H"
+            ],
+            "reactionsName": {
+              "en": "Main CO burnout step",
+              "id": "Langkah utama pembakaran tuntas CO"
+            },
+            "rateNote": {
+              "en": "The Gas Turbine table in Permen LH 13/2009 has no CO limit. A turbine CO limit comes from the site permit or the OEM guarantee.",
+              "id": "Tabel Gas Turbine di Permen LH 13/2009 tidak punya batas CO. Batas CO turbin berasal dari izin operasi unit atau jaminan OEM."
+            },
+            "refs": [
+              "lefebvre",
+              "lieuwen-yang",
+              "turns"
+            ]
           },
           "drivers": [
-            { "id": "flameT", "label": "Low flame temperature", "direction": "up", "why": "Slow burnout." },
-            { "id": "load", "label": "Low load", "direction": "up", "why": "Flame temperature and pressure both fall." }
+            {
+              "id": "flameT",
+              "label": {
+                "en": "Low flame temperature",
+                "id": "Suhu nyala rendah"
+              },
+              "direction": "up",
+              "why": {
+                "en": "Slow burnout.",
+                "id": "Pembakaran tuntas lambat."
+              }
+            },
+            {
+              "id": "load",
+              "label": {
+                "en": "Low load",
+                "id": "Beban rendah"
+              },
+              "direction": "up",
+              "why": {
+                "en": "Flame temperature and pressure both fall.",
+                "id": "Suhu nyala dan tekanan sama-sama turun."
+              }
+            }
           ],
           "levers": [
-            { "id": "loadStrategy", "label": "Hold flame temperature with IGV", "effects": { "CO": "down", "eta": "down" }, "consequence": "Lower CO at part load, small efficiency cost.", "refs": ["saravanamuttoo"] }
+            {
+              "id": "loadStrategy",
+              "label": {
+                "en": "Hold flame temperature with IGV",
+                "id": "Pertahankan suhu nyala dengan IGV"
+              },
+              "effects": {
+                "CO": "down",
+                "eta": "down"
+              },
+              "consequence": {
+                "en": "Lower CO at part load, small efficiency cost.",
+                "id": "CO lebih rendah saat part-load, dengan sedikit biaya efisiensi."
+              },
+              "refs": [
+                "saravanamuttoo"
+              ]
+            }
           ]
         },
         "UHC": {
           "modeled": "qualitative",
           "formation": {
-            "summary": "Unburned hydrocarbons in a turbine are usually small at normal load and rise near lean blowout and at very low load.",
+            "summary": {
+              "en": "Unburned hydrocarbons in a turbine are usually small at normal load and rise near lean blowout and at very low load.",
+              "id": "Hidrokarbon tak terbakar di turbin biasanya kecil pada beban normal dan naik dekat lean blowout dan pada beban sangat rendah."
+            },
             "reactions": [],
-            "reactionsName": "No single reaction",
-            "rateNote": "Not modeled. Enter measured values as site data.",
-            "refs": ["lefebvre"]
+            "reactionsName": {
+              "en": "No single reaction",
+              "id": "Tanpa satu reaksi tunggal"
+            },
+            "rateNote": {
+              "en": "Not modeled. Enter measured values as site data.",
+              "id": "Tidak dimodelkan. Isi nilai terukur sebagai data lapangan."
+            },
+            "refs": [
+              "lefebvre"
+            ]
           },
-          "drivers": [{ "id": "blowout", "label": "Approaching lean blowout", "direction": "up", "why": "Incomplete burn." }],
+          "drivers": [
+            {
+              "id": "blowout",
+              "label": {
+                "en": "Approaching lean blowout",
+                "id": "Mendekati lean blowout"
+              },
+              "direction": "up",
+              "why": {
+                "en": "Incomplete burn.",
+                "id": "Pembakaran tidak tuntas."
+              }
+            }
+          ],
           "levers": []
         },
         "SO2": {
           "modeled": "mass-balance",
           "formation": {
-            "summary": "Sulfur mass balance from the fuel. No combustor setting changes it.",
-            "reactions": ["H2S + 1.5 O2 -> SO2 + H2O"],
-            "reactionsName": "Sulfur mass balance",
-            "rateNote": "Set by fuel sulfur only.",
-            "refs": ["epa-ap42-3-1"]
+            "summary": {
+              "en": "Sulfur mass balance from the fuel. No combustor setting changes it.",
+              "id": "Neraca massa sulfur dari bahan bakar. Tidak ada pengaturan ruang bakar yang mengubahnya."
+            },
+            "reactions": [
+              "H2S + 1.5 O2 -> SO2 + H2O"
+            ],
+            "reactionsName": {
+              "en": "Sulfur mass balance",
+              "id": "Neraca massa sulfur"
+            },
+            "rateNote": {
+              "en": "Set by fuel sulfur only.",
+              "id": "Ditentukan hanya oleh sulfur bahan bakar."
+            },
+            "refs": [
+              "epa-ap42-3-1"
+            ]
           },
-          "drivers": [{ "id": "fuelS", "label": "Fuel sulfur", "direction": "up", "why": "Direct proportion." }],
+          "drivers": [
+            {
+              "id": "fuelS",
+              "label": {
+                "en": "Fuel sulfur",
+                "id": "Sulfur bahan bakar"
+              },
+              "direction": "up",
+              "why": {
+                "en": "Direct proportion.",
+                "id": "Berbanding lurus."
+              }
+            }
+          ],
           "levers": []
         },
         "PM": {
           "modeled": "site-input",
           "formation": {
-            "summary": "On clean gas fuel particulate is very low. On liquid fuel, soot comes from fuel-rich pockets and ash from fuel impurities.",
+            "summary": {
+              "en": "On clean gas fuel particulate is very low. On liquid fuel, soot comes from fuel-rich pockets and ash from fuel impurities.",
+              "id": "Pada bahan bakar gas bersih, partikulat sangat rendah. Pada bahan bakar cair, jelaga berasal dari kantong kaya bahan bakar dan abu dari pengotor bahan bakar."
+            },
             "reactions": [],
-            "reactionsName": "Not modeled",
-            "rateNote": "Enter measured values as site data.",
-            "refs": ["epa-ap42-3-1"]
+            "reactionsName": {
+              "en": "Not modeled",
+              "id": "Tidak dimodelkan"
+            },
+            "rateNote": {
+              "en": "Enter measured values as site data.",
+              "id": "Isi nilai terukur sebagai data lapangan."
+            },
+            "refs": [
+              "epa-ap42-3-1"
+            ]
           },
           "drivers": [],
           "levers": []
@@ -276,13 +1136,36 @@
         "CO2": {
           "modeled": "mass-balance",
           "formation": {
-            "summary": "Carbon balance on the fuel. Specific CO2 falls only with higher efficiency or lower-carbon fuel.",
-            "reactions": ["CH4 + 2 O2 -> CO2 + 2 H2O"],
-            "reactionsName": "Carbon mass balance",
+            "summary": {
+              "en": "Carbon balance on the fuel. Specific CO2 falls only with higher efficiency or lower-carbon fuel.",
+              "id": "Neraca karbon bahan bakar. CO2 spesifik turun hanya dengan efisiensi lebih tinggi atau bahan bakar berkarbon lebih rendah."
+            },
+            "reactions": [
+              "CH4 + 2 O2 -> CO2 + 2 H2O"
+            ],
+            "reactionsName": {
+              "en": "Carbon mass balance",
+              "id": "Neraca massa karbon"
+            },
             "rateNote": "",
-            "refs": ["epa-ap42-3-1"]
+            "refs": [
+              "epa-ap42-3-1"
+            ]
           },
-          "drivers": [{ "id": "eta", "label": "Efficiency", "direction": "down", "why": "Less fuel per kWh." }],
+          "drivers": [
+            {
+              "id": "eta",
+              "label": {
+                "en": "Efficiency",
+                "id": "Efisiensi"
+              },
+              "direction": "down",
+              "why": {
+                "en": "Less fuel per kWh.",
+                "id": "Bahan bakar per kWh lebih sedikit."
+              }
+            }
+          ],
           "levers": []
         }
       }

@@ -52,6 +52,8 @@ const SWEEP_FIELDS = ['p9Lev', 'p9Axis', 'regEquip', 'pEngine', 'calEngine'];
 const winText = (w) => (w ? STR.scene6.windowText(w.ranges) : H.empty);
 /** Teks basis lengkap sesuai satuan (ppmvd atau mg/Nm³) dan spesies. */
 const basisText = (sp, unit, b) => (unit === 'mg' ? (sp === 'nox' ? C.basis.fullMg : C.basis.fullMgCO) : (sp === 'nox' ? C.basis.full : C.basis.fullCO))(b.refO2, b.TrefC);
+/** Baris basis di bawah kotak isian batas: satuan [ppmvd] sudah ada di label kotak, jadi pakai varian tile (lebih pendek di ID). */
+const inputBasisText = (sp, unit, b) => (unit === 'mg' ? basisText(sp, unit, b) : (sp === 'nox' ? C.basis.tile : C.basis.tileCO)(b.refO2, b.TrefC));
 
 /** Item HUD per tab (diekspor untuk tes). */
 export function hudItems(f) {
@@ -198,7 +200,7 @@ export function createScene(ctx) {
   function updateLimits(f, s) {
     const c = f.C;
     // input hanya menampilkan isian presenter (override / permit-OEM); kosong = limit dari file regulasi
-    lim.update({ nox: c.limits.overrideShown.nox, co: c.limits.overrideShown.co, basisText: `${basisText('nox', c.unit, c.basis)} · ${basisText('co', c.unit, c.basis)}`, labels: S.limitLabels[s.limUnit] });
+    lim.update({ nox: c.limits.overrideShown.nox, co: c.limits.overrideShown.co, basisText: `${inputBasisText('nox', c.unit, c.basis)} · ${inputBasisText('co', c.unit, c.basis)}`, labels: S.limitLabels[s.limUnit] });
   }
 
   function updateHud(f) {

@@ -1,6 +1,7 @@
 // Paket D: kalimat jujur model di sisi ID (dan kebersihan sisi ID). Aturan berbasis frasa di sisi EN, jadi otomatis
 // berlaku untuk kelompok yang dimigrasi tahap berikutnya (D4: twin/single-shaft, D5: batas dan kebijakan, dst.).
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
 import * as thermo from '../src/model/thermo.js';
 import { STR_SOURCE } from '../src/ui/strings.js';
 import { MIGRATED_GROUPS, isPair } from '../src/state/i18n.js';
@@ -150,3 +151,85 @@ describe('D4: Scene 6 (part-load), Scene 7 (kompresor), Scene 8 (emisi gabungan)
     expect(id(S8.charts.noxNote, 1, 1, 1, 11, 2.5, 15, 15)).toMatch(/@ 15 % O₂/);
   });
 });
+
+// D5a: Scene 9 (kelima tab), konten Formation, banner dan chip belum diverifikasi.
+describe('D5a: Scene 9, Formation, banner "Transcribed…" dan chip "not verified", sisi ID', () => {
+  const S9 = STR_SOURCE.scene9;
+  const id = (pair, ...a) => String(typeof pair.id === 'function' ? pair.id(...a) : pair.id);
+  const findKey = (root, key) => { for (const [k, v] of Object.entries(root ?? {})) { if (k === key && isPair(v)) return v; if (v && typeof v === 'object' && !isPair(v)) { const r = findKey(v, key); if (r) return r; } } return null; };
+  it('nama tab: "Limits" menjadi "Batas"; kelima tab disebut di tooltip tab', () => {
+    expect(['limits', 'formation', 'levers', 'C', 'B'].map((k) => id(S9.tabs[k]))).toEqual(['Batas', 'Terbentuk', 'Tuas', 'Jendela beban', 'GRK']);
+    const tip = id(S9.tips.tab);
+    for (const n of ['Batas', 'Terbentuk', 'Tuas', 'Jendela beban', 'GRK']) expect(tip).toContain(n);
+    expect(id(STR_SOURCE.regulation.scene6Link)).toMatch(/→ Batas$/);
+  });
+  it('komposisi bahan bakar tidak mengubah NOx / CO; EGR tidak tersedia; beban bukan tuas terpisah', () => {
+    expect(id(S9.fuelPanel.noEffect)).toMatch(/Komposisi tidak mengubah NOx atau CO di model ini/);
+    expect(id(S9.limitsTab.composition)).toMatch(/NOx dan CO di model ini tidak bergantung pada komposisi/);
+    expect(id(S9.leversTab.egrNA)).toBe('tidak tersedia di model ini');
+    expect(id(S9.leversTab.load)).toMatch(/^Beban bukan tuas terpisah/);
+    expect(id(S9.leversTab.turbineNote)).toMatch(/tab 4, Jendela beban/);
+  });
+  it('banner "Transcribed…" dan chip "not verified": makna sama kuat (ditranskripsi, cocokkan sebelum mengutip, belum diverifikasi)', () => {
+    const banner = findKey(STR_SOURCE.regulation, 'banner');
+    expect(banner.en).toBe('Transcribed from the published tables. Confirm against the official text before quoting.');
+    expect(banner.id).toBe('Ditranskripsi dari tabel yang dipublikasikan. Cocokkan dengan teks resmi sebelum mengutip.');
+    const chip = findKey(STR_SOURCE.regulation, 'unverified');
+    expect(chip.id).toBe('belum diverifikasi');
+    expect(id(S9.disclaimer, 'a', 'b')).toMatch(/ditranskripsi, periksa ke teks resmi sebelum mengutip/);
+    expect(id(S9.disclaimer, 'a', 'b')).toMatch(/tidak ada batas yang ditulis di kode/);
+  });
+  it('batas dan status: nilai model vs batas (indikatif), bukan hasil uji; CO turbin hanya dari nilai izin atau OEM', () => {
+    expect(id(S9.leversTab.hud.status.tip)).toBe('Nilai model vs batas (indikatif). Bukan hasil uji.');
+    expect(id(S9.leversTab.hud.nox.label)).toMatch(/indikatif/);
+    expect(id(S9.C.prompt)).toMatch(/Tabel turbin tidak punya batas CO/);
+    expect(id(S9.hud.limC.tip)).toMatch(/tabel turbin tidak punya batas CO/);
+    expect(id(S9.leversTab.caption, 'a', 'b')).toMatch(/Dikalibrasi ke nilai tipikal literatur, bukan data lapangan/);
+    expect(id(S9.C.model)).toMatch(/tebing CO setelah IGV habis/);
+    expect(id(S9.C.model)).toMatch(/jendela operasi bergeser dan menyempit/);
+    expect(id(S9.C.caption, 'a', 'b', 'c', 'd', true)).toMatch(/melampaui batas CO/);
+  });
+  it('CO₂ vs CO₂e: CO₂e = CO₂ + GWP × slip CH₄ (AR6, 100 tahun), CO₂ naik sebanding bahan bakar, bukan klaim kepastian', () => {
+    expect(id(S9.B.slipNote, 29.8)).toMatch(/CO₂e = CO₂ \+ GWP × slip CH₄/);
+    expect(id(S9.B.slipNote, 29.8)).toMatch(/IPCC AR6, 100 tahun/);
+    expect(id(S9.B.result, 3, 500, 515)).toMatch(/\(model\)\.$/);
+    expect(id(S9.B.caption, 1)).toMatch(/indikatif$/);
+    expect(id(S9.B.sub.caption)).toMatch(/indikatif$/);
+    expect(id(S9.titles.B)).toMatch(/methane slip menambah CO₂e/);
+  });
+});
+
+describe('D5a: content/emission_formation.json sisi ID', () => {
+  const form = JSON.parse(readFileSync(new URL('../content/emission_formation.json', import.meta.url), 'utf8'));
+  const pairs = [];
+  const walk = (o, p) => { if (isPair(o)) pairs.push([p, o]); else if (Array.isArray(o)) o.forEach((x, i) => walk(x, `${p}[${i}]`)); else if (o && typeof o === 'object') for (const [k, v] of Object.entries(o)) walk(v, `${p}.${k}`); };
+  walk(form.equipment, 'equipment');
+  const nums = (t) => (t.replace(/(\d)[.,](?=\d)/g, '$1').match(/\d+/g) ?? []).join(',');
+  it('angka dan rumus kimia sama dengan sisi EN (massa molar 64,07 / 32,06, 44,01 / 12,011, NO2, H2S, Permen LH 13/2009)', () => {
+    const bad = pairs.filter(([, v]) => nums(v.en) !== nums(v.id)).map(([p, v]) => `${p}: [${nums(v.en)}] vs [${nums(v.id)}]`);
+    expect(bad).toEqual([]);
+    expect(pairs.some(([, v]) => /64\.07 \/ 32\.06/.test(v.en) && /64,07 \/ 32,06/.test(v.id))).toBe(true);
+    expect(pairs.some(([, v]) => /44\.01 \/ 12\.011/.test(v.en) && /44,01 \/ 12,011/.test(v.id))).toBe(true);
+  });
+  it('tanpa klaim kepatuhan, tanpa "meledak", tanpa em dash, tanpa nama vendor', () => {
+    const idText = pairs.map(([, v]) => v.id).join('\n');
+    expect(idText).not.toMatch(/\b(lulus|patuh|compliant|memenuhi baku mutu)\b/i);
+    expect(idText).not.toMatch(/meledak|melonjak/i);
+    expect(idText).not.toMatch(/—/);
+    expect(idText).not.toMatch(/\b(Siemens|Solar Turbines|Caterpillar|Wärtsilä|Cummins|Rolls-Royce|Baker Hughes|Mitsubishi)\b/);
+  });
+  it('catatan CO turbin: tabel Permen LH 13/2009 tidak punya batas CO; batas dari izin lokasi atau jaminan OEM', () => {
+    const co = form.equipment.turbine.params.CO.formation.rateNote;
+    expect(co.id).toMatch(/Permen LH 13\/2009 tidak punya batas CO/);
+    expect(co.id).toMatch(/izin operasi unit atau jaminan OEM/);
+    expect(form.equipment.turbine.params.CO.modeled).toBe('semi-empirical');
+  });
+  it('formasi NOx diesel / mesin gas / turbin: mekanisme termal, tuas dan efek samping tetap disebut (EGR, jelaga, misfire, IGV)', () => {
+    const g = (path) => path.split('.').reduce((o, k) => o[k], form.equipment);
+    expect(g('diesel.params.NOx.levers').some((l) => /EGR/.test(l.label.id) && /Tidak tersedia di semua mesin/.test(l.consequence.id))).toBe(true);
+    expect(g('gas-engine.params.NOx.levers')[0].consequence.id).toMatch(/Misfire/);
+    expect(g('turbine.params.NOx.levers')[0].consequence.id).toMatch(/Jendela operasi menutup di kedua ujung/);
+    expect(g('turbine.params.NOx.levers')[1].consequence.id).toMatch(/fuel split premix tetap/);
+  });
+});
+

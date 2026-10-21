@@ -221,6 +221,8 @@ export function validateRegulations(j) {
  * { version: 1, equipment: { <id>: { label, params: { <param>: { modeled ∈ FORMATION_MODELED,
  *   formation: { summary, reactions[], reactionsName, rateNote (boleh kosong), refs[] }, drivers: [{ id, label, direction, why }],
  *   levers: [{ id, label, effects: { <key>: direction }, consequence, refs[] }] } } } } }.
+ * Sejak D5a teks (label, summary, reactionsName, rateNote, drivers label/why, levers label/consequence) berupa pasangan { en, id };
+ * rumus reaksi (reactions[]) dan id sumber tetap string.
  * Hanya bentuk yang diperiksa; id sumber divalidasi terhadap references.json saat tampil ("source to verify" bila hilang).
  */
 export function validateFormation(j) {
@@ -233,7 +235,7 @@ export function validateFormation(j) {
   for (const [ek, ev] of Object.entries(j.equipment)) {
     const fe = (k) => `equipment.${ek}.${k}`;
     if (!isObj(ev)) { e.push({ field: `equipment.${ek}`, code: 'notObject' }); continue; }
-    if (!isText(ev.label)) e.push({ field: fe('label'), code: 'text' });
+    if (!isPairText(ev.label)) e.push({ field: fe('label'), code: 'pair' });
     if (!isObj(ev.params) || !Object.keys(ev.params).length) { e.push({ field: fe('params'), code: 'notObject' }); continue; }
     for (const [pk, pv] of Object.entries(ev.params)) {
       const fp = (k) => `equipment.${ek}.params.${pk}.${k}`;
@@ -242,19 +244,19 @@ export function validateFormation(j) {
       const f = pv.formation;
       if (!isObj(f)) e.push({ field: fp('formation'), code: 'notObject' });
       else {
-        for (const k of ['summary', 'reactionsName']) if (!isText(f[k])) e.push({ field: fp(`formation.${k}`), code: 'text' });
-        if (typeof f.rateNote !== 'string') e.push({ field: fp('formation.rateNote'), code: 'string' }); // boleh kosong (mis. CO₂)
+        for (const k of ['summary', 'reactionsName']) if (!isPairText(f[k])) e.push({ field: fp(`formation.${k}`), code: 'pair' });
+        if (f.rateNote !== '' && !isPairText(f.rateNote)) e.push({ field: fp('formation.rateNote'), code: 'pair' }); // boleh kosong (mis. CO₂): '' atau pasangan
         if (!textArr(f.reactions)) e.push({ field: fp('formation.reactions'), code: 'textList' });
         if (!textArr(f.refs)) e.push({ field: fp('formation.refs'), code: 'textList' });
       }
       if (!Array.isArray(pv.drivers)) e.push({ field: fp('drivers'), code: 'array' });
       else pv.drivers.forEach((d, i) => {
-        if (!isObj(d) || !isText(d.id) || !isText(d.label) || !isText(d.why)) e.push({ field: fp(`drivers[${i}]`), code: 'text' });
+        if (!isObj(d) || !isText(d.id) || !isPairText(d.label) || !isPairText(d.why)) e.push({ field: fp(`drivers[${i}]`), code: 'pair' });
         else if (!FORMATION_DIRECTIONS.includes(d.direction)) e.push({ field: fp(`drivers[${i}].direction`), code: 'formDirection' });
       });
       if (!Array.isArray(pv.levers)) e.push({ field: fp('levers'), code: 'array' });
       else pv.levers.forEach((l, i) => {
-        if (!isObj(l) || !isText(l.id) || !isText(l.label) || !isText(l.consequence)) { e.push({ field: fp(`levers[${i}]`), code: 'text' }); return; }
+        if (!isObj(l) || !isText(l.id) || !isPairText(l.label) || !isPairText(l.consequence)) { e.push({ field: fp(`levers[${i}]`), code: 'pair' }); return; }
         if (!isObj(l.effects) || !Object.values(l.effects).every((v) => FORMATION_DIRECTIONS.includes(v))) e.push({ field: fp(`levers[${i}].effects`), code: 'formDirection' });
         if (!textArr(l.refs ?? [])) e.push({ field: fp(`levers[${i}].refs`), code: 'textList' });
       });
