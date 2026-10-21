@@ -101,7 +101,7 @@
               },
               "consequence": {
                 "en": "Lower peak temperature. Combustion moves later in the expansion stroke, so brake efficiency drops and exhaust temperature rises. Soot burnout gets worse.",
-                "id": "Suhu puncak lebih rendah. Pembakaran bergeser lebih lambat di langkah ekspansi, sehingga efisiensi rem turun dan suhu gas buang naik. Pembakaran jelaga makin buruk."
+                "id": "Suhu puncak lebih rendah. Pembakaran terjadi lebih akhir di langkah ekspansi, sehingga efisiensi rem turun dan suhu gas buang naik. Pembakaran jelaga makin buruk."
               },
               "refs": [
                 "heywood",
@@ -230,7 +230,7 @@
               },
               "consequence": {
                 "en": "Later burn means lower temperature during burnout.",
-                "id": "Pembakaran lebih lambat berarti suhu lebih rendah saat pembakaran tuntas."
+                "id": "Pembakaran yang tertunda berarti suhu lebih rendah saat pembakaran tuntas."
               },
               "refs": [
                 "heywood"
@@ -243,7 +243,7 @@
           "formation": {
             "summary": {
               "en": "Soot forms in fuel-rich regions of the spray, where pyrolysis and PAH growth beat oxidation. Most of it is oxidized later in the cycle. What leaves the stack is the surviving fraction, plus ash and condensed hydrocarbons.",
-              "id": "Jelaga terbentuk di daerah semprotan yang kaya bahan bakar, tempat pirolisis dan pertumbuhan PAH mengalahkan oksidasi. Sebagian besar teroksidasi kemudian dalam siklus. Yang keluar dari stack adalah fraksi yang bertahan, ditambah abu dan hidrokarbon terkondensasi."
+              "id": "Jelaga terbentuk di daerah semprotan yang kaya bahan bakar, tempat pirolisis dan pertumbuhan PAH mengalahkan oksidasi. Sebagian besar teroksidasi kemudian dalam siklus. Yang keluar dari cerobong adalah fraksi yang bertahan, ditambah abu dan hidrokarbon terkondensasi."
             },
             "reactions": [],
             "reactionsName": {
@@ -498,7 +498,7 @@
               "id": "intakeT",
               "label": {
                 "en": "Intake manifold temperature",
-                "id": "Suhu intake manifold"
+                "id": "Suhu udara masuk (manifold)"
               },
               "direction": "up",
               "why": {
@@ -563,7 +563,7 @@
               "id": "intakeT",
               "label": {
                 "en": "Lower intake temperature",
-                "id": "Suhu intake lebih rendah"
+                "id": "Suhu udara masuk lebih rendah"
               },
               "effects": {
                 "NOx": "down",
@@ -722,7 +722,7 @@
               },
               "consequence": {
                 "en": "Gives back some of the NOx benefit.",
-                "id": "Mengembalikan sebagian manfaat NOx."
+                "id": "Sebagian manfaat penurunan NOx hilang."
               },
               "refs": [
                 "heywood"
@@ -800,7 +800,7 @@
             },
             "rateNote": {
               "en": "Inert CO2 already in the fuel gas passes through and also counts at the stack.",
-              "id": "CO2 inert yang sudah ada di gas bahan bakar ikut lewat dan juga terhitung di stack."
+              "id": "CO2 inert yang sudah ada di gas bahan bakar ikut lewat dan juga terhitung di cerobong."
             },
             "refs": [
               "epa-ap42-3-2",
@@ -981,7 +981,7 @@
             },
             "rateNote": {
               "en": "The Gas Turbine table in Permen LH 13/2009 has no CO limit. A turbine CO limit comes from the site permit or the OEM guarantee.",
-              "id": "Tabel Gas Turbine di Permen LH 13/2009 tidak punya batas CO. Batas CO turbin berasal dari izin lokasi atau jaminan OEM."
+              "id": "Tabel Gas Turbine di Permen LH 13/2009 tidak punya batas CO. Batas CO turbin berasal dari izin operasi unit atau jaminan OEM."
             },
             "refs": [
               "lefebvre",

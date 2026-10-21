@@ -176,7 +176,7 @@ describe('D5a: Scene 9, Formation, banner "Transcribed…" dan chip "not verifie
     expect(banner.id).toBe('Ditranskripsi dari tabel yang dipublikasikan. Cocokkan dengan teks resmi sebelum mengutip.');
     const chip = findKey(STR_SOURCE.regulation, 'unverified');
     expect(chip.id).toBe('belum diverifikasi');
-    expect(id(S9.disclaimer, 'a', 'b')).toMatch(/ditranskripsi, cocokkan sebelum mengutip/);
+    expect(id(S9.disclaimer, 'a', 'b')).toMatch(/ditranskripsi, periksa ke teks resmi sebelum mengutip/);
     expect(id(S9.disclaimer, 'a', 'b')).toMatch(/tidak ada batas yang ditulis di kode/);
   });
   it('batas dan status: nilai model vs batas (indikatif), bukan hasil uji; CO turbin hanya dari nilai izin atau OEM', () => {
@@ -184,7 +184,7 @@ describe('D5a: Scene 9, Formation, banner "Transcribed…" dan chip "not verifie
     expect(id(S9.leversTab.hud.nox.label)).toMatch(/indikatif/);
     expect(id(S9.C.prompt)).toMatch(/Tabel turbin tidak punya batas CO/);
     expect(id(S9.hud.limC.tip)).toMatch(/tabel turbin tidak punya batas CO/);
-    expect(id(S9.leversTab.caption, 'a', 'b')).toMatch(/Dikalibrasi ke level tipikal literatur, bukan data lapangan/);
+    expect(id(S9.leversTab.caption, 'a', 'b')).toMatch(/Dikalibrasi ke nilai tipikal literatur, bukan data lapangan/);
     expect(id(S9.C.model)).toMatch(/tebing CO setelah IGV habis/);
     expect(id(S9.C.model)).toMatch(/jendela operasi bergeser dan menyempit/);
     expect(id(S9.C.caption, 'a', 'b', 'c', 'd', true)).toMatch(/melampaui batas CO/);
@@ -221,7 +221,7 @@ describe('D5a: content/emission_formation.json sisi ID', () => {
   it('catatan CO turbin: tabel Permen LH 13/2009 tidak punya batas CO; batas dari izin lokasi atau jaminan OEM', () => {
     const co = form.equipment.turbine.params.CO.formation.rateNote;
     expect(co.id).toMatch(/Permen LH 13\/2009 tidak punya batas CO/);
-    expect(co.id).toMatch(/izin lokasi atau jaminan OEM/);
+    expect(co.id).toMatch(/izin operasi unit atau jaminan OEM/);
     expect(form.equipment.turbine.params.CO.modeled).toBe('semi-empirical');
   });
   it('formasi NOx diesel / mesin gas / turbin: mekanisme termal, tuas dan efek samping tetap disebut (EGR, jelaga, misfire, IGV)', () => {

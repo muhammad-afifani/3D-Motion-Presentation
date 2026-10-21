@@ -215,7 +215,18 @@
         "surge",
         "waterfall",
         "timing",
-        "what-if"
+        "what-if",
+        "misfire",
+        "knock",
+        "liner",
+        "trade-off",
+        "premixer",
+        "boost",
+        "scavenging",
+        "valve overlap",
+        "lean blowout",
+        "override",
+        "stack"
       ]
     },
     {
