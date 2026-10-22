@@ -395,7 +395,7 @@ describe('U1: pengaturan satuan (Settings → Units), kartu bantuan, sisi ID', (
     expect(U.guide.whyO2.id).toMatch(/O₂ acuan/);
     expect(U.guide.whyVolume.en).toMatch(/expands with temperature/); expect(U.guide.whyVolume.id).toMatch(/memuai/);
     expect(U.guide.whyVolume.id).toMatch(/basis volume/);
-    expect(U.guide.differ.en).toMatch(/not a model difference[\s\S]*same basis/); expect(U.guide.differ.id).toMatch(/bukan selisih model[\s\S]*basis yang sama/);
+    expect(U.guide.differ.en).toMatch(/the gap is not a model difference[\s\S]*same basis/); expect(U.guide.differ.id).toMatch(/selisihnya bukan selisih model[\s\S]*basis yang sama/);
     expect(U.guide.what.id).toMatch(/kering/);
     expect(U.guide.how.id).toMatch(/NOx dihitung sebagai NO₂/);
   });
@@ -404,19 +404,20 @@ describe('U1: pengaturan satuan (Settings → Units), kartu bantuan, sisi ID', (
     expect(U.scope.id).toMatch(/Within \/ Above[\s\S]*basis regulasi[\s\S]*tidak bergantung pada pilihan ini/);
     expect(U.scope.en).toMatch(/Learn pages, help cards and presenter notes keep SI units/);
     expect(U.scope.id).toMatch(/tetap memakai satuan SI/);
-    expect(U.lead.en).toMatch(/limit checks do not change/); expect(U.lead.id).toMatch(/pemeriksaan batas tidak berubah/);
+    expect(U.lead.en).toMatch(/limit checks stay the same/); expect(U.lead.id).toMatch(/pemeriksaan batas tetap/);
   });
   it('tekanan dan debit: psia absolut (bukan gauge); debit aktual, bukan standar; selisih suhu tanpa offset', () => {
-    expect(U.qtyTip.pressure.en).toMatch(/absolute/); expect(U.qtyTip.pressure.id).toMatch(/absolut/);
-    expect(U.qtyTip.volumeFlow.en).toMatch(/Actual flow\. Standard flow is not modeled/); expect(U.qtyTip.volumeFlow.id).toMatch(/Debit aktual\. Debit standar tidak dimodelkan/);
-    expect(U.qtyTip.temperature.en).toMatch(/without the offset/); expect(U.qtyTip.temperature.id).toMatch(/tanpa offset/);
+    expect(U.qtyTip.pressure.en).toMatch(/absolute[\s\S]*psia, not psig/); expect(U.qtyTip.pressure.id).toMatch(/absolut[\s\S]*psia, bukan psig/);
+    expect(U.qtyTip.power.en).toMatch(/mechanical \(imperial\) horsepower[\s\S]*not metric hp/); expect(U.qtyTip.power.id).toMatch(/horsepower mekanik[\s\S]*bukan hp metrik/);
+    expect(U.qtyTip.volumeFlow.en).toMatch(/Actual flow at suction conditions\. Standard flow[\s\S]*is not modeled/); expect(U.qtyTip.volumeFlow.id).toMatch(/Laju alir aktual pada kondisi suction\. Laju alir standar[\s\S]*tidak dimodelkan/);
+    expect(U.qtyTip.temperature.en).toMatch(/with no offset/); expect(U.qtyTip.temperature.id).toMatch(/tanpa offset/);
     expect(U.qtyTip.concentration.en).toMatch(/side by side keep both/); expect(U.qtyTip.concentration.id).toMatch(/berdampingan tetap menampilkan keduanya/);
   });
   it('kartu bantuan ui.units / ui.concentration: dua bahasa, ppmvd dan mg/Nm³, basis, "bukan data unit", tanpa klaim kepatuhan', () => {
     for (const id of ['ui.units', 'ui.concentration']) expect(help[id], id).toBeTruthy();
     const c = help['ui.concentration'];
-    expect(c.how.en).toMatch(/reference O₂[\s\S]*volume basis[\s\S]*not a model difference[\s\S]*same basis/);
-    expect(c.how.id).toMatch(/O₂ acuan[\s\S]*basis volume[\s\S]*bukan selisih model[\s\S]*basis yang sama/);
+    expect(c.how.en).toMatch(/molar mass over molar volume[\s\S]*reference O₂[\s\S]*volume basis[\s\S]*not a model difference[\s\S]*same basis/);
+    expect(c.how.id).toMatch(/massa molar dibagi volume molar[\s\S]*O₂ acuan[\s\S]*basis volume[\s\S]*bukan selisih model[\s\S]*basis yang sama/);
     expect(c.how.id).toMatch(/ppmvd/); expect(c.how.id).toMatch(/mg\/Nm³/);
     expect(c.glossary).toEqual(['ppmvd', 'nm3', 'o2-correction']);
     expect(help['ui.units'].how.en).toMatch(/limit checks/); expect(help['ui.units'].how.id).toMatch(/pemeriksaan batas/);
@@ -424,7 +425,8 @@ describe('U1: pengaturan satuan (Settings → Units), kartu bantuan, sisi ID', (
   });
   it('nama preset: SI dan "US customary" tetap (daftar Tetap Inggris); "Custom" → "Kustom"; satuan preset tidak mengubah konsentrasi', () => {
     expect([U.preset.si.id, U.preset.us.id, U.preset.custom.id]).toEqual(['SI', 'US customary', 'Kustom']);
-    expect(U.presetTip.us.id).toMatch(/Konsentrasi gas tetap seperti yang ditampilkan tiap scene/);
+    expect(U.presetTip.us.id).toMatch(/Satuan US customary:[\s\S]*Konsentrasi gas tetap seperti yang ditampilkan tiap scene/);
+    expect(U.exampleLead?.id ?? U.guide.exampleLead.id(14.8, 15)).toMatch(/Turbin generator \(single-shaft\)/);
     expect(U.presetTip.si.id).toMatch(/Daya dan konsentrasi gas tetap/);
   });
 });

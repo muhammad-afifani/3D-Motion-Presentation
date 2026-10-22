@@ -1658,8 +1658,8 @@
         "id": "Pilih sistem satuan dan, bila perlu, satuan yang berbeda untuk tiap besaran."
       },
       "how": {
-        "en": "Pick SI or US customary for everything, or change one quantity in the list. This only changes how numbers are written; the model, the limit checks and the presenter notes stay the same. Your choice is remembered.",
-        "id": "Pilih SI atau US customary untuk semuanya, atau ubah satu besaran di daftar. Ini hanya mengubah cara angka ditulis; model, pemeriksaan batas, dan catatan presenter tidak berubah. Pilihan Anda diingat."
+        "en": "Pick SI or US customary for everything, or change one quantity in the list. This only changes how numbers are written; the model, the limit checks and the presenter notes stay the same. Your choice is saved in this browser.",
+        "id": "Pilih SI atau US customary untuk semuanya, atau ubah satu besaran di daftar. Ini hanya mengubah cara angka ditulis; model, pemeriksaan batas, dan catatan presenter tidak berubah. Pilihan Anda tersimpan di browser ini."
       },
       "glossary": [
         "ppmvd",
@@ -1672,8 +1672,8 @@
         "id": "Mengapa ppmvd dan mg/Nm³ memberi angka berbeda untuk gas buang yang sama."
       },
       "how": {
-        "en": "ppmvd counts molecules in the dry exhaust; mg/Nm³ weighs the pollutant in a normal cubic metre. Excess air dilutes the exhaust and gas expands with temperature, so every number needs its reference O₂ and, for mg/Nm³, its volume basis. Numbers on different bases are not a model difference, so compare them only on the same basis, which is shown beside each number.",
-        "id": "ppmvd menghitung molekul dalam gas buang kering; mg/Nm³ menimbang polutan dalam satu meter kubik normal. Udara berlebih mengencerkan gas buang dan gas memuai bila suhu naik, sehingga setiap angka butuh O₂ acuan dan, untuk mg/Nm³, basis volume. Angka pada basis berbeda bukan selisih model, jadi bandingkan hanya pada basis yang sama, yang tampil di samping tiap angka."
+        "en": "ppmvd counts molecules in the dry exhaust; mg/Nm³ weighs the pollutant in a cubic metre at a stated volume basis, so the two differ by molar mass over molar volume. Excess air dilutes the exhaust and gas expands with temperature, so every number needs its reference O₂ and, for mg/Nm³, its volume basis. A gap caused only by a different basis is not a model difference, so compare numbers only on the same basis, which is shown beside each number.",
+        "id": "ppmvd menghitung molekul dalam gas buang kering; mg/Nm³ menimbang polutan dalam satu meter kubik pada basis volume yang disebut, sehingga keduanya berbeda sebesar massa molar dibagi volume molar. Udara berlebih mengencerkan gas buang dan gas memuai bila suhu naik, sehingga setiap angka butuh O₂ acuan dan, untuk mg/Nm³, basis volume. Selisih angka karena beda basis bukan selisih model, jadi bandingkan hanya pada basis yang sama, yang tampil di samping tiap angka."
       },
       "glossary": [
         "ppmvd",
