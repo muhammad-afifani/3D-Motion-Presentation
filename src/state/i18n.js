@@ -39,6 +39,8 @@ export const MIGRATED_GROUPS = Object.freeze([
   'scene10', 'scene11',
   // D6 panel asumsi (H), kartu Basis, nama kelompok Basis; src/model/basis.js TETAP English (lihat basis.enOnly)
   'assumptions', 'basis.groups', 'basis.card', 'basis.enOnly', 'basis.levelWord',
+  // Pengaturan satuan (U1)
+  'units',
 ]);
 
 /** Pasangan dua bahasa: tepat kunci { en, id }. @param {any} v @returns {v is BiText<any>} */

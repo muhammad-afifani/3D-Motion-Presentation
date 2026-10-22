@@ -44,7 +44,31 @@
         "25 °C",
         "Gas (CH₄) [K]",
         "Diesel [K]",
-        " / "
+        " / ",
+        "kPa",
+        "MPa",
+        "psia",
+        "°F",
+        "kW",
+        "hp",
+        "Btu/lb",
+        "Btu/kWh",
+        "lb/(hp·h)",
+        "lb/MWh",
+        "g/(hp·h)",
+        "kJ/(kg·K)",
+        "Btu/(lb·°R)",
+        "m³/kg",
+        "ft³/lb",
+        "in",
+        "cm³",
+        "in³",
+        "m³/h",
+        "ft³/min",
+        "kg/h",
+        "lb/s",
+        "lb/h",
+        "lb/lbmol"
       ],
       "inline": [
         "kW",
@@ -208,7 +232,9 @@
         "Derating",
         "Heat rate",
         "Lean-burn",
-        "DLN / lean premix"
+        "DLN / lean premix",
+        "SI",
+        "US customary"
       ],
       "inline": [
         "head",
@@ -262,7 +288,8 @@
         "Preset",
         "Generator",
         "Tab",
-        "Auto"
+        "Auto",
+        "Volume"
       ]
     },
     {

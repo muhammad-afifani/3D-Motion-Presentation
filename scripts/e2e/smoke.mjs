@@ -21,6 +21,7 @@
  *  17. D5a: Scene 9 (5 tab) ID vs EN, banner "Transcribed…" dan chip "not verified" tidak hilang / melunak di ID, chip Within / Above / Not modeled, GRK (CO₂ vs CO₂e), halaman Formation dan Regulations, PNG per tab berbahasa ID.
  *  18. D5b: Scene 10–11 ID vs EN (kartu, filter, opsi diskusi, PNG berfooter ID) dan kartu bantuan hdr.switches (seluruh aplikasi) di EN / ID.
  *  19. D6: kartu Basis dan panel asumsi (H) dalam ID (catatan tetap "hanya tersedia dalam bahasa Inggris", nama tingkat, ganti bahasa saat terbuka, O₂ acuan koma / titik, #/assumptions).
+ *  21. U1: seksi Units di Settings di balik bendera UNITS_UI (?units=1): preset, per besaran, penjelasan + contoh hitung dari model, kartu bantuan, EN/ID, persistensi, jendela presenter ikut, scene tidak berubah; bendera mati → seksi tidak ada.
  *  20. Sapuan ID penuh: semua scene + tab, semua halaman penuh, 3 viewport × Dark / Light, PNG tiap scene, tanpa galat konsol / tumpang tindih / scroll horizontal.
  *  13. Bahasa ID (Paket D1): semua scene + tab di 3 viewport × 2 tema tanpa luapan (1280: chip, tab Scene 9, header), angka HUD format ID, ganti EN ↔ ID tanpa muat ulang (HUD, Limits, Regulations), isian koma / titik dan pesan galat ID.
  *  11. Settings ⚙ + Hide working notes: panel, penyimpanan, Explore / Present, catatan kerja hilang dan label kejujuran tetap, header 3 viewport tanpa tumpang tindih.
@@ -1401,6 +1402,159 @@ async function d5bInteraction(browser, url) {
  * bahasa Inggris" (hanya ID; tidak tersembunyi oleh Hide working notes), ganti bahasa saat kartu / panel terbuka, isian O₂ acuan
  * (koma / titik), halaman #/assumptions.
  */
+/**
+ * U1: seksi Units di Settings (bendera UNITS_UI). Bendera mati → seksi tidak ada. Bendera nyala (?units=1, tersimpan di
+ * etel:unitsUi): preset, per besaran, kembali ke preset, penjelasan + contoh hitung dari model (basis O₂ dan volume terlihat),
+ * kartu bantuan ⓘ, bahasa EN/ID, persistensi setelah muat ulang, jendela presenter ikut (storage), kartu di dalam layar tanpa
+ * luapan, dan SCENE TIDAK BERUBAH (U1 belum memasang satuan ke scene: teks HUD sama sebelum dan sesudah memilih US customary).
+ */
+async function unitsUiInteraction(browser, url) {
+  const fails = [];
+  const base = url.replace(/[?#].*$/, '');
+  // bendera mati
+  {
+    const p = await browser.newPage({ viewport: { width: 1366, height: 768 } });
+    const errs = [];
+    p.on('pageerror', (e) => errs.push(`pageerror: ${e.message}`));
+    await p.addInitScript(() => { try { localStorage.setItem('etel:lang', 'en'); } catch { /* */ } });
+    await p.goto(`${base}#/scene/3`);
+    await p.waitForFunction(() => window.__etelDebug?.scene() === 3 && !window.__etelDebug.loading(), null, { timeout: 30000 });
+    await p.locator('.settings-btn').click();
+    if (await p.locator('.settings-card [data-section="units"]').count()) fails.push('units: seksi Units tampil tanpa bendera UNITS_UI (build normal harus mati)');
+    if (await p.locator('.settings-card [data-section="display"]').count() !== 1) fails.push('units: seksi Display hilang');
+    for (const e of errs) fails.push(`units (bendera mati): ${e}`);
+    await p.close();
+  }
+  for (const [w, h] of VIEWPORTS) for (const theme of ['dark', 'light']) for (const lang of ['en', 'id']) {
+    const tag = `units ${w}×${h} ${theme} ${lang}`;
+    const ctx = await browser.newContext({ viewport: { width: w, height: h } });
+    const p = await ctx.newPage();
+    const errs = [];
+    p.on('pageerror', (e) => errs.push(`pageerror: ${e.message}`));
+    p.on('console', (m) => { if (m.type() === 'error') errs.push(`console: ${m.text()}`); });
+    await p.addInitScript(([l, t]) => { try { localStorage.setItem('etel:lang', l); localStorage.setItem('etel:theme', t); } catch { /* */ } }, [lang, theme]);
+    try {
+      await p.goto(`${base}?units=1#/scene/4`);
+      await p.waitForFunction(() => window.__etelDebug?.scene() === 4 && !window.__etelDebug.loading(), null, { timeout: 30000 });
+      await p.waitForTimeout(600);
+      const flag = await p.evaluate(() => { try { return localStorage.getItem('etel:unitsUi'); } catch { return 'ERR'; } });
+      if (flag !== '1') fails.push(`${tag}: ?units=1 tidak menyimpan etel:unitsUi (${flag})`);
+      const hud0 = await p.evaluate(() => document.querySelector('.hud')?.innerText ?? '');
+      await p.locator('.settings-btn').click();
+      const sec = p.locator('.settings-card [data-section="units"]');
+      if ((await sec.count()) !== 1) { fails.push(`${tag}: seksi Units tidak ada dengan ?units=1`); await ctx.close(); continue; }
+      const title = await sec.locator('.settings-card__sec-title').textContent();
+      if (title !== (lang === 'en' ? 'Units' : 'Satuan')) fails.push(`${tag}: judul seksi "${title}"`);
+      const presets = await sec.locator('.set-units__preset .theme-switch__btn').evaluateAll((bs) => bs.map((b) => ({ t: b.textContent, on: b.getAttribute('aria-checked') })));
+      const want = lang === 'en' ? ['SI', 'US customary', 'Custom'] : ['SI', 'US customary', 'Kustom'];
+      if (JSON.stringify(presets.map((x) => x.t)) !== JSON.stringify(want) || presets[0].on !== 'true') fails.push(`${tag}: tombol preset ${JSON.stringify(presets)}`);
+      // pilih US customary → tersimpan, Per quantity berisi psia / °F / hp, scene TIDAK berubah
+      await sec.locator('.set-units__preset [data-preset="us"]').click();
+      const st = await p.evaluate(() => { try { return JSON.parse(localStorage.getItem('etel:units')); } catch { return 'ERR'; } });
+      if (!st || st.preset !== 'us') fails.push(`${tag}: etel:units tidak tersimpan us (${JSON.stringify(st)})`);
+      await sec.locator('.set-units__more > summary').click();
+      const sel = await sec.locator('.set-units__select').evaluateAll((ss) => Object.fromEntries(ss.map((s) => [s.dataset.qty, s.selectedOptions[0]?.textContent])));
+      const autoLabel = lang === 'en' ? 'As in each scene' : 'Seperti di tiap scene';
+      if (sel.pressure !== 'psia' || sel.temperature !== '°F' || sel.power !== 'hp' || sel.specificEmission !== 'lb/MWh' || sel.length !== 'in' || sel.concentration !== autoLabel) fails.push(`${tag}: pilihan US ${JSON.stringify(sel)}`);
+      if (Object.keys(sel).length !== 15) fails.push(`${tag}: ${Object.keys(sel).length} besaran (harusnya 15)`);
+      const hud1 = await p.evaluate(() => document.querySelector('.hud')?.innerText ?? '');
+      if (hud1 !== hud0) fails.push(`${tag}: HUD Scene 4 berubah setelah memilih US customary (U1 tidak boleh mengubah scene)`);
+      // override satu besaran → Custom aktif, Back to preset muncul, lalu kembali
+      await sec.locator('.set-units__select[data-qty="pressure"]').selectOption('MPa');
+      let act = await sec.locator('.set-units__preset .theme-switch__btn.is-on').getAttribute('data-preset');
+      if (act !== 'custom') fails.push(`${tag}: override tidak menandai Custom (${act})`);
+      if (!(await sec.locator('.set-units__back').isVisible())) fails.push(`${tag}: tombol Back to preset tidak tampil`);
+      await sec.locator('.set-units__back').click();
+      act = await sec.locator('.set-units__preset .theme-switch__btn.is-on').getAttribute('data-preset');
+      const pSel = await sec.locator('.set-units__select[data-qty="pressure"]').inputValue();
+      if (act !== 'us' || pSel !== 'psia') fails.push(`${tag}: Back to preset tidak mengembalikan (${act} / ${pSel})`);
+      // penjelasan + contoh hitung dari model
+      await sec.locator('.set-units__guide > summary').click();
+      await sec.locator('.set-units__guide').scrollIntoViewIfNeeded();
+      const ex = await sec.evaluate((el) => ({
+        title: el.querySelector('.set-units__ex-head strong')?.textContent,
+        lead: el.querySelector('.set-units__guide-body p:nth-of-type(6)')?.textContent ?? '',
+        rows: [...el.querySelectorAll('.set-units__ex tr')].map((r) => [...r.children].map((c) => c.textContent)),
+        text: el.querySelector('.set-units__guide-body').innerText,
+        basisLine: el.querySelector('.set-units__basis')?.textContent,
+      }));
+      const num = (t) => Number(String(t).replace(lang === 'en' ? /,/g : /\./g, '').replace(',', '.'));
+      if (ex.rows.length !== 4) fails.push(`${tag}: tabel contoh ${ex.rows.length} baris`);
+      else {
+        const [a, o2, vol] = ex.rows.slice(1);
+        if (!/15 % O₂/.test(a[0]) || !/0 °C/.test(a[0]) || !(lang === 'en' ? /dry/ : /kering/).test(a[0])) fails.push(`${tag}: baris basis aktif tanpa basis O₂ / kering / suhu: ${a[0]}`);
+        if (!/3 % O₂/.test(o2[0]) || !/25 °C/.test(vol[0])) fails.push(`${tag}: baris basis lain salah: ${o2[0]} | ${vol[0]}`);
+        if (!(num(o2[1]) > num(a[1]))) fails.push(`${tag}: ppmvd pada 3 % O₂ harus lebih besar dari 15 % (${o2[1]} vs ${a[1]})`);
+        if (!(num(vol[2]) < num(a[2])) || num(vol[1]) !== num(a[1])) fails.push(`${tag}: pada 25 °C mg/Nm³ harus lebih kecil dengan ppmvd sama (${vol[1]}/${vol[2]} vs ${a[1]}/${a[2]})`);
+        const ratio = num(vol[2]) / num(a[2]);
+        if (Math.abs(ratio - 273.15 / 298.15) > 0.003) fails.push(`${tag}: rasio mg/Nm³ 25 °C / 0 °C ${ratio.toFixed(4)} ≠ 0,9162`);
+      }
+      if (!(lang === 'en' ? /Model example \(indicative\)/ : /Contoh dari model \(indikatif\)/).test(ex.title ?? '')) fails.push(`${tag}: judul contoh "${ex.title}"`);
+      if (!(lang === 'en' ? /not unit data and not a vendor figure/ : /Bukan data unit dan bukan angka vendor/).test(ex.text)) fails.push(`${tag}: catatan "bukan data unit / vendor" hilang`);
+      if (!(lang === 'en' ? /dry, 0 °C/ : /kering, 0 °C/).test(ex.basisLine ?? '')) fails.push(`${tag}: ringkasan basis gas: ${ex.basisLine}`);
+      // kartu bantuan ⓘ (ui.units dan ui.concentration)
+      for (const [sel2, re] of [['.set-units__help', lang === 'en' ? /unit system/i : /sistem satuan/i], ['.set-units__ex-head .help-btn', lang === 'en' ? /different numbers for the same exhaust/ : /angka berbeda untuk gas buang yang sama/]]) {
+        await sec.locator(sel2).click();
+        const card = await p.evaluate(() => { const c = document.querySelector('#help-card'); return c && !c.hidden ? c.innerText : null; });
+        if (!card || !re.test(card)) fails.push(`${tag}: kartu bantuan ${sel2} tidak muncul / salah: ${String(card).slice(0, 80)}`);
+        await p.keyboard.press('Escape');
+        if (!(await p.evaluate(() => window.__etelDebug.settingsOpen()))) await p.locator('.settings-btn').click();
+      }
+      // kartu di dalam layar, dapat digulir, tanpa luapan horizontal; semua elemen seksi terjangkau
+      const box = await p.evaluate(() => { const c = document.querySelector('.settings-card'); const r = c.getBoundingClientRect(); return { inside: r.left >= 0 && r.top >= 0 && r.right <= innerWidth && r.bottom <= innerHeight, hs: c.scrollWidth > c.clientWidth + 1, vs: c.scrollHeight > c.clientHeight }; });
+      if (!box.inside) fails.push(`${tag}: kartu Settings keluar layar`);
+      if (box.hs) fails.push(`${tag}: kartu Settings meluap horizontal`);
+      const over = await p.evaluate(() => [...document.querySelectorAll('.settings-card .set-units *')].filter((e) => e.scrollWidth > e.clientWidth + 2 && getComputedStyle(e).overflow !== 'visible').map((e) => e.className).slice(0, 3));
+      if (over.length) fails.push(`${tag}: teks meluber di ${over.join(', ')}`);
+      // bertahan setelah muat ulang (tanpa query)
+      await p.goto(`${base}#/scene/4`);
+      await p.reload();
+      await p.waitForFunction(() => window.__etelDebug?.scene() === 4 && !window.__etelDebug.loading(), null, { timeout: 30000 });
+      await p.locator('.settings-btn').click();
+      const act2 = await p.locator('.settings-card [data-section="units"] .set-units__preset .theme-switch__btn.is-on').getAttribute('data-preset');
+      if (act2 !== 'us') fails.push(`${tag}: preset tidak bertahan setelah muat ulang (${act2})`);
+      // ganti bahasa saat terbuka
+      if (w === 1366 && theme === 'dark') {
+        const other = lang === 'en' ? 'id' : 'en';
+        await p.evaluate((l) => window.__etelDebug.setLang(l), other); // klik di header menutup kartu (klik di luar), jadi lewat hook
+        await p.waitForTimeout(400);
+        const t2 = await p.locator('.settings-card [data-section="units"] .settings-card__sec-title').textContent();
+        if (t2 !== (other === 'en' ? 'Units' : 'Satuan')) fails.push(`${tag}: judul seksi tidak ikut bahasa (${t2})`);
+        const pr = await p.locator('.settings-card [data-section="units"] .set-units__preset [data-preset="custom"]').textContent();
+        if (pr !== (other === 'en' ? 'Custom' : 'Kustom')) fails.push(`${tag}: tombol Custom tidak ikut bahasa (${pr})`);
+        await p.evaluate((l) => window.__etelDebug.setLang(l), lang);
+        await p.waitForTimeout(300);
+      }
+      // kembali ke SI menghapus kunci
+      if (w === 1366 && theme === 'dark' && lang === 'en') {
+        await p.locator('.settings-card [data-section="units"] .set-units__preset [data-preset="si"]').click();
+        const k = await p.evaluate(() => localStorage.getItem('etel:units'));
+        if (k !== null) fails.push(`${tag}: SI tanpa override harus menghapus etel:units (${k})`);
+      }
+      // jendela presenter ikut lewat event storage
+      if (w === 1366 && theme === 'dark' && lang === 'en') {
+        await p.keyboard.press('Escape');
+        const [pop] = await Promise.all([p.waitForEvent('popup', { timeout: 15000 }), p.keyboard.press('p')]);
+        await pop.waitForLoadState();
+        await pop.waitForFunction(() => window.__etelPresenter, null, { timeout: 10000 });
+        if ((await pop.evaluate(() => window.__etelPresenter.unit('pressure'))) !== 'bar') fails.push(`${tag}: presenter awal bukan bar`);
+        await p.bringToFront();
+        await p.locator('.settings-btn').click();
+        await p.locator('.settings-card [data-section="units"] .set-units__preset [data-preset="us"]').click();
+        await pop.waitForFunction(() => window.__etelPresenter.unit('pressure') === 'psia', null, { timeout: 8000 })
+          .catch(() => fails.push(`${tag}: jendela presenter tidak ikut ke psia lewat event storage`));
+        await pop.close().catch(() => {});
+        await p.locator('.settings-card [data-section="units"] .set-units__preset [data-preset="si"]').click();
+      }
+    } catch (e) {
+      fails.push(`${tag}: ${e.message.split('\n')[0]}`);
+    }
+    for (const e of [...new Set(errs)]) fails.push(`${tag}: ${e}`);
+    await ctx.close();
+  }
+  return fails;
+}
+
 async function d6Interaction(browser, url) {
   const fails = [];
   const base = url.replace(/#.*$/, '');
@@ -2496,7 +2650,7 @@ try {
   // E2E_ONLY=learn,landing,deeplinks: hanya alur halaman tersebut (iterasi cepat); tanpa variabel = smoke penuh
   const only = process.env.E2E_ONLY ? new Set(process.env.E2E_ONLY.split(',')) : null;
   if (only) {
-    const flows = { numerr: numberErrorsInteraction, presenterlang: presenterLangInteraction, idchrome: idChromeInteraction, langid: langIdInteraction, d3: d3Interaction, d4: d4Interaction, d5a: d5aInteraction, d5b: d5bInteraction, d6: d6Interaction, idsweep: idSweepInteraction, learn: learnInteraction, chartguide: chartGuideInteraction, help: helpInteraction, helpclick: helpClickInteraction, settings: settingsInteraction, landing: landingInteraction, deeplinks: deepLinks, theme: themeInteraction };
+    const flows = { numerr: numberErrorsInteraction, presenterlang: presenterLangInteraction, idchrome: idChromeInteraction, langid: langIdInteraction, d3: d3Interaction, d4: d4Interaction, d5a: d5aInteraction, d5b: d5bInteraction, d6: d6Interaction, unitsui: unitsUiInteraction, idsweep: idSweepInteraction, learn: learnInteraction, chartguide: chartGuideInteraction, help: helpInteraction, helpclick: helpClickInteraction, settings: settingsInteraction, landing: landingInteraction, deeplinks: deepLinks, theme: themeInteraction };
     for (const k of only) if (flows[k]) failures.push(...await flows[k](chromium.browser, srv.url));
   }
   for (const [w, h] of only ? [] : VIEWPORTS) {
@@ -2556,6 +2710,7 @@ try {
     if (w === 1366) failures.push(...await d5aInteraction(chromium.browser, srv.url));
     if (w === 1366) failures.push(...await d5bInteraction(chromium.browser, srv.url));
     if (w === 1366) failures.push(...await d6Interaction(chromium.browser, srv.url));
+    if (w === 1366) failures.push(...await unitsUiInteraction(chromium.browser, srv.url));
     if (w === 1366) failures.push(...await idSweepInteraction(chromium.browser, srv.url));
     if (w === 1366) failures.push(...await presenterLangInteraction(chromium.browser, srv.url));
     if (w === 1366) failures.push(...await idChromeInteraction(chromium.browser, srv.url));

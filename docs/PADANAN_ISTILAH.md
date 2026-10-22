@@ -19,7 +19,7 @@ Sejak Paket D, UI punya sisi Indonesia (sakelar EN/ID; `src/state/i18n.js`). Ist
 
 - Alasan: Satuan SI dan simbol teknis ditulis sama di semua bahasa. Angka di sampingnya yang mengikuti bahasa (1.500,5 / 1,500.5).
 - Terhadap tabel PADANAN di bawah: tidak diatur tabel ini
-- Teks utuh (sisi id sengaja sama dengan en): `bar`, `K`, `%`, `mm`, `L`, `g/kWh`, `kJ/kg`, `kJ/kWh`, `MW`, `°C`, `mg/Nm³`, `ms`, `ATDC`, `rpm visual`, `ppm`, `% O₂`, `–`, `ppmvd`, `100-500 kW`, `500-1000 kW`, `η [%]`, `P [bar]`, `%/°C`, `kg/kmol`, `kg/s`, `m³/s`, `ppmvd (log)`, `NOx [mg/Nm³]`, `CO₂e [g/kWh]`, `H₂S [ppmv]`, `ppm @ basis`, `…`, `0 °C (Nm³)`, `25 °C`, `Gas (CH₄) [K]`, `Diesel [K]`, ` / `
+- Teks utuh (sisi id sengaja sama dengan en): `bar`, `K`, `%`, `mm`, `L`, `g/kWh`, `kJ/kg`, `kJ/kWh`, `MW`, `°C`, `mg/Nm³`, `ms`, `ATDC`, `rpm visual`, `ppm`, `% O₂`, `–`, `ppmvd`, `100-500 kW`, `500-1000 kW`, `η [%]`, `P [bar]`, `%/°C`, `kg/kmol`, `kg/s`, `m³/s`, `ppmvd (log)`, `NOx [mg/Nm³]`, `CO₂e [g/kWh]`, `H₂S [ppmv]`, `ppm @ basis`, `…`, `0 °C (Nm³)`, `25 °C`, `Gas (CH₄) [K]`, `Diesel [K]`, ` / `, `kPa`, `MPa`, `psia`, `°F`, `kW`, `hp`, `Btu/lb`, `Btu/kWh`, `lb/(hp·h)`, `lb/MWh`, `g/(hp·h)`, `kJ/(kg·K)`, `Btu/(lb·°R)`, `m³/kg`, `ft³/lb`, `in`, `cm³`, `in³`, `m³/h`, `ft³/min`, `kg/h`, `lb/s`, `lb/h`, `lb/lbmol`
 - Dipakai di dalam kalimat (hanya dicatat): `kW`, `rpm`
 
 ### Singkatan, rumus kimia, dan simbol
@@ -57,14 +57,14 @@ Sejak Paket D, UI punya sisi Indonesia (sakelar EN/ID; `src/state/i18n.js`). Ist
 
 - Alasan: Istilah yang di lapangan dan di perangkat lunak dipakai dalam bentuk Inggris. Menerjemahkannya membuat peserta mencari kata yang tidak mereka temui di dokumen vendor atau panel kontrol.
 - Terhadap tabel PADANAN di bawah: sesuai. Baris 26 (part-load dipakai apa adanya), 39 (head), 41 (methane slip), 33 (derating).
-- Teks utuh (sisi id sengaja sama dengan en): `Part-load`, `Renderer`, `Bloom`, `FPS`, `Frame [ms]`, `Thermal NOx`, `Methane slip`, `Lean premix`, `Bloom: Auto`, `Power turbine`, `Derating`, `Heat rate`, `Lean-burn`, `DLN / lean premix`
+- Teks utuh (sisi id sengaja sama dengan en): `Part-load`, `Renderer`, `Bloom`, `FPS`, `Frame [ms]`, `Thermal NOx`, `Methane slip`, `Lean premix`, `Bloom: Auto`, `Power turbine`, `Derating`, `Heat rate`, `Lean-burn`, `DLN / lean premix`, `SI`, `US customary`
 - Dipakai di dalam kalimat (hanya dicatat): `head`, `derating`, `part-load`, `methane slip`, `fuel-only`, `single-shaft`, `twin-shaft`, `lean-burn`, `lean premix`, `premix`, `fuel split`, `suction`, `discharge`, `surge`, `waterfall`, `timing`, `what-if`, `misfire`, `knock`, `liner`, `trade-off`, `premixer`, `boost`, `scavenging`, `valve overlap`, `lean blowout`, `override`, `stack`, `ammonia slip`, `VOC`
 
 ### Kata yang kebetulan sama di kedua bahasa
 
 - Alasan: Kata serapan yang ejaannya sama di Inggris dan Indonesia. Bukan terjemahan yang tertinggal.
 - Terhadap tabel PADANAN di bawah: tidak diatur tabel ini
-- Teks utuh (sisi id sengaja sama dengan en): `Ideal`, `Parameter`, `Model`, `Status`, `Timer`, `Total`, `Scene`, `Gas`, `Real`, `Piston`, `Preset`, `Generator`, `Tab`, `Auto`
+- Teks utuh (sisi id sengaja sama dengan en): `Ideal`, `Parameter`, `Model`, `Status`, `Timer`, `Total`, `Scene`, `Gas`, `Real`, `Piston`, `Preset`, `Generator`, `Tab`, `Auto`, `Volume`
 
 ### Fungsi pembentuk teks dengan sisi id identik
 
@@ -101,6 +101,7 @@ Ringkasan keputusan yang berlaku di UI Indonesia setelah D1–D6 (tabel PADANAN 
 - **Kejujuran model**: "indikatif" selalu menyertai korelasi emisi; "dikalibrasi ke nilai tipikal literatur, bukan data unit atau vendor"; "Nilai model vs batas (indikatif). Bukan hasil uji."; chip `Within` / `Above` / `Not modeled` tetap Inggris; "ditranskripsi dari tabel yang dipublikasikan, cocokkan dengan teks resmi sebelum mengutip"; "belum diverifikasi"; "source to verify" dan "to verify" tetap Inggris; "lokasi belum diverifikasi" (locator).
 - **Basis emisi**: "kering", "sebagai NO₂", "@ 15 % O₂", "0 °C (Nm³)" / "25 °C"; di tile HUD satuan [ppmvd] menempel di tile sehingga sub-label basis tanpa "(ppmvd)".
 - **Angka**: desimal koma, ribuan titik di semua teks statis ID (mis. "k = 1,4", "2.200 K", "d[NO]/dt ... 69.090/T"), nilainya sama dengan sisi EN; isian menerima koma maupun titik.
+- **Satuan (M13)**: "Units" = "Satuan"; "Unit system" = "Sistem satuan"; "SI" dan "US customary" tetap (nama sistem satuan, keduanya di daftar Tetap Inggris); "Custom" = "Kustom"; "Per quantity" = "Per besaran"; "Back to preset" = "Kembali ke preset"; "As in each scene" = "Seperti di tiap scene". Nama besaran: Tekanan, Suhu, Daya, Energi spesifik, Heat rate (tetap), Pemakaian bahan bakar spesifik, Emisi spesifik (satuan per kWh, per MWh, atau per hp·jam), Entropi dan kalor jenis, Volume spesifik, Panjang, Volume (sama di kedua bahasa, daftar kata sama), Laju alir volume (seperti Scene 7; hanya laju alir aktual pada kondisi suction), Laju massa, Massa molar, Konsentrasi gas. Simbol satuan sama di kedua bahasa (daftar Tetap Inggris); "psia" = tekanan absolut (bar dan kPa juga absolut; US ditulis psia, bukan psig); "hp" = horsepower mekanik (imperial), bukan hp metrik (PK/DK). Contoh hitung: "Turbin generator (single-shaft) pada beban penuh", baris "Basis aktif", "O₂ acuan lain", "Basis volume lain". Penjelasan: "ppmvd menghitung molekul, mg/Nm³ menimbang polutan"; "O₂ acuan"; "basis volume"; "bukan selisih model" (dua angka pada basis berbeda).
 - **Pengecualian basis.js**: derivasi, asumsi, `toVerify`, dan `knownIssue` di `src/model/basis.js` tetap English; di sisi ID kartu Basis dan panel H memberi satu catatan tetap. Panel H dan kartu Basis boleh menyebut nama fungsi/konstanta kode.
 
 ### Sisa string yang masih English dan alasannya

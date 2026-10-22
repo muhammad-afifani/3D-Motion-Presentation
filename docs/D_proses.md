@@ -45,3 +45,7 @@ Tiap tahap menambah frasa EN yang relevan bila muncul kalimat jujur model baru (
 ## 5. Laporan akhir tahap
 
 Lima baris: apa yang dibuat; hasil tes dan ukuran bundle; cara cek di browser; keterbatasan; string tersisa. Ditambah tabel EN | ID berisi 15–20 string paling berisiko (kalimat model, status, batas, kebijakan).
+
+## 6. Tahap M13 (pengaturan satuan) memakai proses yang sama
+
+U1–U3 mengikuti bagian 1–5: review mandiri agen terpisah atas pasangan EN|ID grup `units` dan item `ui.units` / `ui.concentration`, tes kalimat jujur model sisi ID (blok "U1" di `tests/honesty.test.js`: contoh berlabel indikatif, basis O₂ dan volume di samping angka, jalur regulasi tidak terpengaruh, tanpa klaim kepatuhan), smoke `unitsui` (seksi Units di balik `?units=1`, EN/ID, 3 viewport × Dark/Light, persistensi, jendela presenter, scene tidak berubah pada U1), dan laporan lima baris dengan tabel string berisiko.

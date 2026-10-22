@@ -32,6 +32,7 @@ export const UI_HELP_IDS = Object.freeze([
   'ui.tempLegend', 'ui.speciesLegend', 'ui.calibration', 'ui.basisCard', 'ui.assumptions',
   'nav.learn', 'nav.scenes', 'nav.pages', 'nav.tools', 'nav.keys',
   'hdr.switches', 'hdr.status',
+  'ui.units', 'ui.concentration',
 ]);
 
 /** Semua id yang diberi bantuan. */

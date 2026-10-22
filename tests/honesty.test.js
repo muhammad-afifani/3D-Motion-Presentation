@@ -370,3 +370,63 @@ describe('D6: panel asumsi, kartu Basis, basis.js tetap English, sisi ID', () =>
   });
 });
 
+
+describe('U1: pengaturan satuan (Settings → Units), kartu bantuan, sisi ID', () => {
+  const U = STR_SOURCE.units;
+  const help = JSON.parse(readFileSync(new URL('../content/help.json', import.meta.url), 'utf8')).items;
+  it('contoh hitung berlabel "model example, indicative" / "indikatif", bukan data unit dan bukan angka vendor', () => {
+    expect(U.guide.exampleTitle.en).toMatch(/Model example \(indicative\)/);
+    expect(U.guide.exampleTitle.id).toMatch(/Contoh dari model \(indikatif\)/);
+    expect(U.guide.exampleNote.en).toMatch(/Indicative[\s\S]*typical literature values[\s\S]*not unit data and not a vendor figure/);
+    expect(U.guide.exampleNote.id).toMatch(/indikatif[\s\S]*tipikal literatur[\s\S]*Bukan data unit dan bukan angka vendor/i);
+  });
+  it('basis O₂ dan volume selalu di samping angka contoh: baris tabel, ringkasan basis, dan kalimat pembuka', () => {
+    for (const lang of ['en', 'id']) {
+      const row = U.guide.basisOf[lang](15, 25), line = U.basisLine[lang](15, 0), lead = U.guide.exampleLead[lang](14.8, 15);
+      for (const t of [row, line, lead]) { expect(t, lang).toMatch(/15 % O₂/); }
+      expect(row).toMatch(lang === 'en' ? /dry/ : /kering/); expect(row).toMatch(/25 °C/);
+      expect(line).toMatch(lang === 'en' ? /dry/ : /kering/); expect(line).toMatch(/0 °C/);
+      expect(lead).toMatch(lang === 'en' ? /dry/ : /kering/); expect(lead).toMatch(/NO₂/); expect(lead).toMatch(/ppmvd/);
+    }
+    expect(U.guide.exampleHead.map((c) => c.id)).toEqual(['Basis', 'ppmvd', 'mg/Nm³']);
+  });
+  it('penjelasan: butuh O₂ acuan karena udara berlebih mengencerkan; butuh basis volume karena gas memuai; bandingkan hanya pada basis yang sama', () => {
+    expect(U.guide.whyO2.en).toMatch(/Excess air dilutes/); expect(U.guide.whyO2.id).toMatch(/Udara berlebih mengencerkan/);
+    expect(U.guide.whyO2.id).toMatch(/O₂ acuan/);
+    expect(U.guide.whyVolume.en).toMatch(/expands with temperature/); expect(U.guide.whyVolume.id).toMatch(/memuai/);
+    expect(U.guide.whyVolume.id).toMatch(/basis volume/);
+    expect(U.guide.differ.en).toMatch(/the gap is not a model difference[\s\S]*same basis/); expect(U.guide.differ.id).toMatch(/selisihnya bukan selisih model[\s\S]*basis yang sama/);
+    expect(U.guide.what.id).toMatch(/kering/);
+    expect(U.guide.how.id).toMatch(/NOx dihitung sebagai NO₂/);
+  });
+  it('jalur regulasi tidak terpengaruh: kalimat cakupan menyebut basis regulasi dan Within / Above; halaman Learn, kartu bantuan, catatan presenter tetap SI', () => {
+    expect(U.scope.en).toMatch(/limit checks \(Within \/ Above\) always use the regulation basis and do not depend on these choices/);
+    expect(U.scope.id).toMatch(/Within \/ Above[\s\S]*basis regulasi[\s\S]*tidak bergantung pada pilihan ini/);
+    expect(U.scope.en).toMatch(/Learn pages, help cards and presenter notes keep SI units/);
+    expect(U.scope.id).toMatch(/tetap memakai satuan SI/);
+    expect(U.lead.en).toMatch(/limit checks stay the same/); expect(U.lead.id).toMatch(/pemeriksaan batas tetap/);
+  });
+  it('tekanan dan debit: psia absolut (bukan gauge); debit aktual, bukan standar; selisih suhu tanpa offset', () => {
+    expect(U.qtyTip.pressure.en).toMatch(/absolute[\s\S]*psia, not psig/); expect(U.qtyTip.pressure.id).toMatch(/absolut[\s\S]*psia, bukan psig/);
+    expect(U.qtyTip.power.en).toMatch(/mechanical \(imperial\) horsepower[\s\S]*not metric hp/); expect(U.qtyTip.power.id).toMatch(/horsepower mekanik[\s\S]*bukan hp metrik/);
+    expect(U.qtyTip.volumeFlow.en).toMatch(/Actual flow at suction conditions\. Standard flow[\s\S]*is not modeled/); expect(U.qtyTip.volumeFlow.id).toMatch(/Laju alir aktual pada kondisi suction\. Laju alir standar[\s\S]*tidak dimodelkan/);
+    expect(U.qtyTip.temperature.en).toMatch(/with no offset/); expect(U.qtyTip.temperature.id).toMatch(/tanpa offset/);
+    expect(U.qtyTip.concentration.en).toMatch(/side by side keep both/); expect(U.qtyTip.concentration.id).toMatch(/berdampingan tetap menampilkan keduanya/);
+  });
+  it('kartu bantuan ui.units / ui.concentration: dua bahasa, ppmvd dan mg/Nm³, basis, "bukan data unit", tanpa klaim kepatuhan', () => {
+    for (const id of ['ui.units', 'ui.concentration']) expect(help[id], id).toBeTruthy();
+    const c = help['ui.concentration'];
+    expect(c.how.en).toMatch(/molar mass over molar volume[\s\S]*reference O₂[\s\S]*volume basis[\s\S]*not a model difference[\s\S]*same basis/);
+    expect(c.how.id).toMatch(/massa molar dibagi volume molar[\s\S]*O₂ acuan[\s\S]*basis volume[\s\S]*bukan selisih model[\s\S]*basis yang sama/);
+    expect(c.how.id).toMatch(/ppmvd/); expect(c.how.id).toMatch(/mg\/Nm³/);
+    expect(c.glossary).toEqual(['ppmvd', 'nm3', 'o2-correction']);
+    expect(help['ui.units'].how.en).toMatch(/limit checks/); expect(help['ui.units'].how.id).toMatch(/pemeriksaan batas/);
+    for (const it of [help['ui.units'], help['ui.concentration']]) for (const t of [it.what.id, it.how.id]) expect(t).not.toMatch(/\b(lulus|patuh|compliant|memenuhi (baku mutu|batas))\b/i);
+  });
+  it('nama preset: SI dan "US customary" tetap (daftar Tetap Inggris); "Custom" → "Kustom"; satuan preset tidak mengubah konsentrasi', () => {
+    expect([U.preset.si.id, U.preset.us.id, U.preset.custom.id]).toEqual(['SI', 'US customary', 'Kustom']);
+    expect(U.presetTip.us.id).toMatch(/Satuan US customary:[\s\S]*Konsentrasi gas tetap seperti yang ditampilkan tiap scene/);
+    expect(U.exampleLead?.id ?? U.guide.exampleLead.id(14.8, 15)).toMatch(/Turbin generator \(single-shaft\)/);
+    expect(U.presetTip.si.id).toMatch(/Daya dan konsentrasi gas tetap/);
+  });
+});

@@ -1,7 +1,8 @@
 /**
  * settingsPanel.js — panel Settings kecil (ikon gir ⚙ di header kanan, popover bukan halaman). Saat ini satu seksi
  * "Display" dengan sakelar "Hide working notes" (state/notes.js, kunci etel:hideNotes). Seksi disusun dari daftar SECTIONS
- * ({ id, title, build }) agar pengaturan lain (mis. satuan) tinggal ditambahkan. Sakelar bahasa dan tema tetap di header.
+ * ({ id, title, build, enabled? }) agar pengaturan lain tinggal ditambahkan; seksi "Units" hanya dipasang bila bendera
+ * UNITS_UI menyala (state/unitsStore.js: ?units=1 atau localStorage etel:unitsUi). Sakelar bahasa dan tema tetap di header.
  * Perilaku: non-modal, Esc (fase capture, hanya bila terbuka) dan klik di luar menutup, fokus masuk ke panel dan kembali
  * ke ikon setelah Esc, aria-expanded / aria-controls / aria-labelledby, membuka panel menutup kartu bantuan. Tersembunyi di
  * Present (CSS; main.js menutupnya) dan tidak ikut PNG (data-snap-skip). Teks dua bahasa lewat tr() dan langStore.
@@ -11,6 +12,8 @@ import { tr } from '../state/lang.js';
 import { langStore } from '../state/langStore.js';
 import { notesStore } from '../state/notes.js';
 import { closeHelp } from './helpPopover.js';
+import { unitsStore } from '../state/unitsStore.js';
+import { buildUnitsSection } from './unitsSection.js';
 
 const G = STR.bi.settings;
 const GAP = 8, EDGE = 8;
@@ -25,7 +28,7 @@ function h(tag, cls = '', text = '') {
 /**
  * Seksi panel. build(container, ctx) mengisi container dan mengembalikan fungsi paint() yang dipanggil saat bahasa atau
  * pilihan berubah. Seksi baru (satuan, dll.) cukup ditambahkan ke daftar ini.
- * @type {{id:string, title:{en:string,id:string}, build:(box:HTMLElement, ctx:{getMode:()=>'explore'|'present'})=>()=>void}[]}
+ * @type {{id:string, title:{en:string,id:string}|string, enabled?:()=>boolean, build:(box:HTMLElement, ctx:{getMode:()=>'explore'|'present', getState:()=>any})=>()=>void}[]}
  */
 export const SECTIONS = [
   {
@@ -61,10 +64,16 @@ export const SECTIONS = [
       };
     },
   },
+  {
+    id: 'units',
+    get title() { return STR.units.title; }, // kelompok dua bahasa terisi ulang di tempat; getter menjaga bahasa aktif
+    enabled: () => unitsStore.enabled,
+    build: buildUnitsSection,
+  },
 ];
 
-/** @param {{getMode:()=>'explore'|'present'}} o @returns {{el:HTMLButtonElement, close:(restoreFocus?:boolean)=>void, readonly open:boolean, dispose:()=>void}} */
-export function createSettingsPanel({ getMode }) {
+/** @param {{getMode:()=>'explore'|'present', getState?:()=>any}} o @returns {{el:HTMLButtonElement, close:(restoreFocus?:boolean)=>void, readonly open:boolean, dispose:()=>void}} */
+export function createSettingsPanel({ getMode, getState = () => ({ emRefO2: 15, emTrefC: 0 }) }) {
   const btn = h('button', 'settings-btn');
   btn.type = 'button';
   btn.dataset.snapSkip = '';
@@ -91,13 +100,14 @@ export function createSettingsPanel({ getMode }) {
 
   const paints = [];
   for (const s of SECTIONS) {
+    if (s.enabled && !s.enabled()) continue;
     const sec = h('section', 'settings-card__sec');
     sec.dataset.section = s.id;
     const hd = h('h3', 'settings-card__sec-title');
     sec.append(hd);
-    const paint = s.build(sec, { getMode });
+    const paint = s.build(sec, { getMode, getState });
     body.append(sec);
-    paints.push(() => { hd.textContent = tr(s.title, langStore.lang); paint(); });
+    paints.push(() => { hd.textContent = typeof s.title === 'string' ? s.title : tr(s.title, langStore.lang); paint(); });
   }
   const paintAll = () => {
     const lang = langStore.lang;
@@ -112,6 +122,7 @@ export function createSettingsPanel({ getMode }) {
   paintAll();
   const unsubLang = langStore.subscribe(paintAll);
   const unsubNotes = notesStore.subscribe(paintAll);
+  const unsubUnits = unitsStore.subscribe(paintAll);
 
   const place = () => {
     if (card.hidden) return;
@@ -161,6 +172,6 @@ export function createSettingsPanel({ getMode }) {
     el: btn,
     close,
     get open() { return isOpen(); },
-    dispose() { close(); unsubLang(); unsubNotes(); card.remove(); btn.remove(); },
+    dispose() { close(); unsubLang(); unsubNotes(); unsubUnits(); card.remove(); btn.remove(); },
   };
 }
