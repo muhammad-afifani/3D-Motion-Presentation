@@ -15,8 +15,8 @@ import { createBarChart } from '../charts/barChart.js';
 import { slider, button } from '../ui/controls.js';
 import { animSpeedSlider } from '../ui/animSpeed.js';
 import { createHud } from '../ui/hud.js';
-import { fmt } from '../ui/format.js';
-import { STR } from '../ui/strings.js';
+import { fmt, fq } from '../ui/format.js';
+import { STR, unitSym } from '../ui/strings.js';
 import { createHelpButton } from '../ui/helpButton.js';
 
 const S = STR.scene8, C = STR.common, U = STR.common.units, H = STR.scene8.hud;
@@ -27,9 +27,9 @@ export const meta = { id: 'emissions', number: 8, get title() { return S.title; 
 /** Item HUD (diekspor untuk tes). */
 export function hudItems() {
   return [
-    { id: 'co2d', help: 'hud.co2Diesel', label: H.co2Diesel.label, unit: U.gkWh, value: (f) => fmt(f.rows.diesel.co2, 0), tip: H.co2Diesel.tip },
-    { id: 'co2eg', help: 'hud.co2e', label: H.co2eGas.label, unit: U.gkWh, value: (f) => fmt(f.rows.gas.co2e, 0), tip: H.co2eGas.tip },
-    { id: 'co2et', help: 'hud.co2e', label: H.co2eGt.label, unit: U.gkWh, value: (f) => fmt(f.rows.turbine.co2e, 0), tip: H.co2eGt.tip },
+    { id: 'co2d', help: 'hud.co2Diesel', label: H.co2Diesel.label, unit: unitSym('specificEmission'), value: (f) => fq(f.rows.diesel.co2, 'specificEmission', { digits: 0 }), tip: H.co2Diesel.tip },
+    { id: 'co2eg', help: 'hud.co2e', label: H.co2eGas.label, unit: unitSym('specificEmission'), value: (f) => fq(f.rows.gas.co2e, 'specificEmission', { digits: 0 }), tip: H.co2eGas.tip },
+    { id: 'co2et', help: 'hud.co2e', label: H.co2eGt.label, unit: unitSym('specificEmission'), value: (f) => fq(f.rows.turbine.co2e, 'specificEmission', { digits: 0 }), tip: H.co2eGt.tip },
     { id: 'slip', help: 'hud.slip', label: H.slip.label, unit: '', value: (f) => H.slip.value(f.slip, f.rows.gas.ch4), tip: H.slip.tip },
     { id: 'inc', help: 'hud.slipToCo2e', label: H.inc.label, unit: U.pct, value: (f) => H.inc.value(f.slipIncrease), tip: H.inc.tip },
     { id: 'gwp', help: 'hud.gwp', label: H.gwp.label, unit: '', sub: H.gwp.sub, value: (f) => fmt(f.gwp, 1), tip: H.gwp.tip },

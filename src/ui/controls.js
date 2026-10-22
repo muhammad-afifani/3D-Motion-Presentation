@@ -2,16 +2,20 @@
  * controls.js — kontrol DOM murni (slider, segmented, tombol). Kontrol hanya memanggil
  * callback (yang melakukan store.set); nilai tampilan disinkronkan lewat set().
  */
-import { fmt } from './format.js';
-import { STR } from './strings.js';
+import { fmt, qtyConv } from './format.js';
+import { STR, unitSym } from './strings.js';
 import { createHelpButton } from './helpButton.js';
 
 let uid = 0;
 
 /**
  * @param {{label:string, unit?:string, min:number, max:number, step:number, value:number,
- *   digits?:number, tip?:string, help?:string, format?:(v:number)=>string, onInput:(v:number)=>void}} o
+ *   digits?:number, tip?:string, help?:string, format?:(v:number)=>string, onInput:(v:number)=>void,
+ *   qty?:string, from?:string, native?:string, kAsC?:boolean}} o
  *   help = id kartu bantuan ⓘ (content/help.json): tombol di samping label
+ *   qty + from (satuan tampilan, M13): min / max / step / value / onInput TETAP dalam satuan `from` (id satuan UNIT_DEFS, mis.
+ *   'bar', 'K', 'C', 'kgs'); kontrol menampilkan dan menggeser dalam satuan pilihan pengguna, dengan langkah bulat, dan nilai
+ *   yang dikirim ke onInput selalu dijepit ke [min, max] SI. Simbol satuan dari pilihan (o.unit diabaikan). Tanpa qty: seperti dulu.
  */
 export function slider(o) {
   const id = `ctl-${++uid}`;
@@ -27,19 +31,33 @@ export function slider(o) {
   labelEl.dataset.locked = STR.common.locked; // ditampilkan CSS saat slider terkunci
   const input = el.querySelector('input');
   const out = el.querySelector('output');
-  const show = (v) => { out.textContent = o.format ? o.format(v) : `${fmt(v, o.digits ?? 1)}${o.unit ? ` ${o.unit}` : ''}`; };
-  function setRange(r) { input.min = String(r.min); input.max = String(r.max); input.step = String(r.step); }
+  const conv = o.qty ? qtyConv(/** @type {any} */ (o.qty), o.from, { native: o.native ?? null, kAsC: !!o.kAsC }) : null;
+  const sym = conv ? unitSym(/** @type {any} */ (o.qty), o.native ?? o.from, !!o.kAsC) : o.unit;
+  const show = (v) => {
+    if (o.format) { out.textContent = o.format(v); return; }
+    out.textContent = `${fmt(conv ? conv.toDisp(v) : v, conv ? conv.digits(o.digits ?? 1) : (o.digits ?? 1))}${sym ? ` ${sym}` : ''}`;
+  };
+  let lim = { min: o.min, max: o.max };
+  function setRange(r) {
+    lim = { min: r.min, max: r.max };
+    const d = conv ? conv.range(r) : r;
+    input.min = String(d.min); input.max = String(d.max); input.step = String(d.step);
+  }
   setRange(o);
-  input.value = String(o.value);
+  input.value = String(conv ? conv.toDisp(o.value) : o.value);
   show(o.value);
-  input.addEventListener('input', () => { const v = Number(input.value); show(v); o.onInput(v); });
+  input.addEventListener('input', () => {
+    const v = conv && !conv.same ? conv.clamp(conv.fromDisp(Number(input.value)), lim.min, lim.max) : Number(input.value);
+    show(v);
+    o.onInput(v);
+  });
   // panah kiri/kanan dipakai navigasi scene; hentikan agar tidak bentrok saat slider fokus
   input.addEventListener('keydown', (e) => { if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') e.stopPropagation(); });
   return {
     el,
     input,
     /** Sinkron dari store tanpa memicu onInput. */
-    set(v) { if (Number(input.value) !== v) input.value = String(v); show(v); },
+    set(v) { const d = conv ? conv.toDisp(v) : v; if (Number(input.value) !== d) input.value = String(d); show(v); },
     setRange,
     /** Kunci/lepas slider (mis. θ saat beku). */
     setLocked(on) { input.disabled = !!on; el.classList.toggle('is-locked', !!on); },

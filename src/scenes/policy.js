@@ -29,8 +29,8 @@ import { regulationsContent, onRegulations } from '../state/regulationsStore.js'
 import { regSelection, regSelectionPatch, siteDataPatch, EQUIPMENT } from '../state/regulations.js';
 import { fuelSulfurPatch, fuelGasPatch } from '../state/deriveFuel.js';
 import { createLeversTab } from '../ui/leversTab.js';
-import { fmt, pct } from '../ui/format.js';
-import { STR } from '../ui/strings.js';
+import { fmt, pct, fq, fqFrom, fqConcReg, concUnit } from '../ui/format.js';
+import { STR, unitSym, concSym } from '../ui/strings.js';
 import { CV } from '../charts/chartBase.js';
 
 const S = STR.scene9, C = STR.common, U = STR.common.units, H = STR.scene9.hud, LV = STR.scene9.leversTab, R = STR.regulation;
@@ -61,12 +61,13 @@ export function hudItems(f) {
     const L = f.levers, HL = LV.hud, b = L.limit.basis;
     const num = (v, d) => (v == null ? HL.pending : fmt(v, d));
     const pt = (x) => (x.levers.ready ? x.levers.point : null);
+    const ppm = concUnit('mgNm3') === 'ppmvd'; // NOx: mg/Nm³ (bawaan) atau ppmvd pada basis regulasi yang sama
     return [
-      { id: 'nox', help: 'hud.noxMg', label: HL.nox.label, unit: U.mgNm3, sub: b ? C.basis.fullMg(b.refO2Pct, b.TrefC) : undefined, value: (x) => num(pt(x)?.noxMg, (pt(x)?.noxMg ?? 0) < 100 ? 1 : 0), tip: HL.nox.tip },
+      { id: 'nox', help: 'hud.noxMg', label: HL.nox.label, unit: concSym('mgNm3'), sub: b ? (ppm ? C.basis.full : C.basis.fullMg)(b.refO2Pct, b.TrefC) : undefined, value: (x) => (pt(x)?.noxMg == null ? HL.pending : fqConcReg(pt(x).noxMg, { species: 'nox', TrefC: b?.TrefC, PatmAbs: b?.PatmAbs ?? 1, digits: pt(x).noxMg < 100 ? 1 : 0 })), tip: HL.nox.tip },
       { id: 'st', help: 'hud.limitStatus', label: R.title, unit: '', sub: (x) => statusSub(x.levers), value: (x) => (pt(x) ? R.status[pt(x).status] : HL.pending), tip: HL.status.tip },
       { id: 'eta', help: 'hud.etaBrake', label: HL.eta.label, unit: U.pct, value: (x) => (pt(x) ? pct(pt(x).etaBrake, 1) : HL.pending), tip: HL.eta.tip },
-      { id: 'co2', help: 'hud.co2', label: HL.co2.label, unit: U.gkWh, value: (x) => num(pt(x)?.co2_gkWh, 0), tip: HL.co2.tip },
-      { id: 'pmax', help: 'hud.pmax', label: HL.pmax.label, unit: U.bar, value: (x) => num(pt(x)?.Pmax_bar, 1), tip: HL.pmax.tip },
+      { id: 'co2', help: 'hud.co2', label: HL.co2.label, unit: unitSym('specificEmission'), value: (x) => (pt(x)?.co2_gkWh == null ? HL.pending : fq(pt(x).co2_gkWh, 'specificEmission', { digits: 0 })), tip: HL.co2.tip },
+      { id: 'pmax', help: 'hud.pmax', label: HL.pmax.label, unit: unitSym('pressure'), value: (x) => (pt(x)?.Pmax_bar == null ? HL.pending : fqFrom(pt(x).Pmax_bar, 'pressure', 'bar', { digits: 1 })), tip: HL.pmax.tip },
       { id: 'o2', help: 'hud.exhaustO2', label: HL.o2.label, unit: U.pct, sub: HL.dry, value: (x) => fmt(x.fuel.exhaustO2[x.levers.kind], 1), tip: HL.o2.tip },
       { id: 'lam', help: 'hud.lambda', label: HL.lambda.label, unit: '', value: (x) => fmt(x.fuel.lambda[x.levers.kind], 2), tip: HL.lambda.tip },
       { id: 'ms', help: 'hud.sweepTime', label: HL.ms.label, unit: U.ms, value: (x) => (x.levers.ms == null ? HL.pending : fmt(x.levers.ms, 0)), tip: HL.ms.tip },
@@ -76,8 +77,8 @@ export function hudItems(f) {
     return [
       { id: 'pen', help: 'hud.fuelPenalty', label: H.penB.label, unit: U.pct, value: (x) => fmt(x.B.value, 1), tip: H.penB.tip },
       { id: 'slip', help: 'hud.slip', label: H.slip.label, unit: U.pct, value: (x) => fmt(x.B.slip, 1), tip: H.slip.tip },
-      ...f.B.machines.map((m, i) => ({ id: `co2${m.id}`, label: H.co2B(STR.scene8.machines[m.id]), unit: U.gkWh, value: (x) => H.before(x.B.machines[i].current.co2_0, x.B.machines[i].current.co2_1), tip: H.co2BTip })),
-      ...f.B.machines.flatMap((m, i) => (m.gasFired ? [{ id: `co2e${m.id}`, label: H.co2e(STR.scene8.machines[m.id]), unit: U.gkWh, value: (x) => H.before(x.B.machines[i].current.co2_1, x.B.machines[i].currentE.co2e), tip: H.co2eTip }] : [])),
+      ...f.B.machines.map((m, i) => ({ id: `co2${m.id}`, label: H.co2B(STR.scene8.machines[m.id]), unit: unitSym('specificEmission'), value: (x) => H.before(x.B.machines[i].current.co2_0, x.B.machines[i].current.co2_1), tip: H.co2BTip })),
+      ...f.B.machines.flatMap((m, i) => (m.gasFired ? [{ id: `co2e${m.id}`, label: H.co2e(STR.scene8.machines[m.id]), unit: unitSym('specificEmission'), value: (x) => H.before(x.B.machines[i].current.co2_1, x.B.machines[i].currentE.co2e), tip: H.co2eTip }] : [])),
       { id: 'share', help: 'hud.slipShare', label: H.share.label, unit: U.pct, value: (x) => pct(x.B.machines.find((m) => m.id === 'gas').currentE.slipShare, 1), tip: H.share.tip },
     ];
   }

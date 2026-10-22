@@ -19,7 +19,7 @@ Sejak Paket D, UI punya sisi Indonesia (sakelar EN/ID; `src/state/i18n.js`). Ist
 
 - Alasan: Satuan SI dan simbol teknis ditulis sama di semua bahasa. Angka di sampingnya yang mengikuti bahasa (1.500,5 / 1,500.5).
 - Terhadap tabel PADANAN di bawah: tidak diatur tabel ini
-- Teks utuh (sisi id sengaja sama dengan en): `bar`, `K`, `%`, `mm`, `L`, `g/kWh`, `kJ/kg`, `kJ/kWh`, `MW`, `°C`, `mg/Nm³`, `ms`, `ATDC`, `rpm visual`, `ppm`, `% O₂`, `–`, `ppmvd`, `100-500 kW`, `500-1000 kW`, `η [%]`, `P [bar]`, `%/°C`, `kg/kmol`, `kg/s`, `m³/s`, `ppmvd (log)`, `NOx [mg/Nm³]`, `CO₂e [g/kWh]`, `H₂S [ppmv]`, `ppm @ basis`, `…`, `0 °C (Nm³)`, `25 °C`, `Gas (CH₄) [K]`, `Diesel [K]`, ` / `, `kPa`, `MPa`, `psia`, `°F`, `kW`, `hp`, `Btu/lb`, `Btu/kWh`, `lb/(hp·h)`, `lb/MWh`, `g/(hp·h)`, `kJ/(kg·K)`, `Btu/(lb·°R)`, `m³/kg`, `ft³/lb`, `in`, `cm³`, `in³`, `m³/h`, `ft³/min`, `kg/h`, `lb/s`, `lb/h`, `lb/lbmol`
+- Teks utuh (sisi id sengaja sama dengan en): `bar`, `K`, `%`, `mm`, `L`, `g/kWh`, `kJ/kg`, `kJ/kWh`, `MW`, `°C`, `mg/Nm³`, `ms`, `ATDC`, `rpm visual`, `ppm`, `% O₂`, `–`, `ppmvd`, `100-500 kW`, `500-1000 kW`, `η [%]`, `P [bar]`, `kg/kmol`, `kg/s`, `m³/s`, `ppmvd (log)`, `NOx [mg/Nm³]`, `CO₂e [g/kWh]`, `H₂S [ppmv]`, `ppm @ basis`, `…`, `0 °C (Nm³)`, `25 °C`, `Gas (CH₄) [K]`, `Diesel [K]`, ` / `, `kPa`, `MPa`, `psia`, `°F`, `kW`, `hp`, `Btu/lb`, `Btu/kWh`, `lb/(hp·h)`, `lb/MWh`, `g/(hp·h)`, `kJ/(kg·K)`, `Btu/(lb·°R)`, `m³/kg`, `ft³/lb`, `in`, `cm³`, `in³`, `m³/h`, `ft³/min`, `kg/h`, `lb/s`, `lb/h`, `lb/lbmol`
 - Dipakai di dalam kalimat (hanya dicatat): `kW`, `rpm`
 
 ### Singkatan, rumus kimia, dan simbol

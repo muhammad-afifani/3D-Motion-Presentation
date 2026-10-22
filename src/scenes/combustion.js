@@ -18,8 +18,8 @@ import { createBarChart } from '../charts/barChart.js';
 import { slider, segmented, button } from '../ui/controls.js';
 import { animSpeedSlider } from '../ui/animSpeed.js';
 import { createHud } from '../ui/hud.js';
-import { fmt, pct } from '../ui/format.js';
-import { STR, signedDeg } from '../ui/strings.js';
+import { fmt, pct, fq, fqDelta } from '../ui/format.js';
+import { STR, signedDeg, unitSym, fqu } from '../ui/strings.js';
 
 const S = STR.scene3, C = STR.common, U = STR.common.units, H = STR.scene3.hud;
 
@@ -35,13 +35,13 @@ const CAM = {
 
 /** HUD per mode (label & tooltip dari STR.scene3.hud). */
 function hudItems(mode) {
-  const items = [{ id: 'tf', help: 'hud.flameT', label: H.tflame.label, unit: U.K, value: (f) => fmt(f.Tflame, 0), tip: H.tflame.tip(mode === 'diesel') }];
-  if (mode === 'diesel') items.push({ id: 'dT', help: 'hud.localDeltaT', label: H.dT.label, unit: U.K, value: (f) => `+${fmt(f.dTlocal, 0)}`, tip: H.dT.tip });
+  const items = [{ id: 'tf', help: 'hud.flameT', label: H.tflame.label, unit: unitSym('temperature'), value: (f) => fq(f.Tflame, 'temperature', { digits: 0 }), tip: H.tflame.tip(mode === 'diesel') }];
+  if (mode === 'diesel') items.push({ id: 'dT', help: 'hud.localDeltaT', label: H.dT.label, unit: unitSym('temperature'), value: (f) => `+${fqDelta(f.dTlocal, 'temperature', { digits: 0 })}`, tip: H.dT.tip });
   items.push(
     { id: 'phi', help: 'ctl.equivalence', label: S.phiLabel[mode], unit: '', value: (f) => fmt(f.phi, 2), tip: mode === 'turbine' ? H.phiTip.turbine : H.phiTip.other },
-    { id: 'tin', help: 'ctl.intakeT', label: H.tin.label, unit: U.K, value: (f) => fmt(f.Tin, 0), tip: mode === 'turbine' ? H.tin.tipTurbine : H.tin.tipPiston },
+    { id: 'tin', help: 'ctl.intakeT', label: H.tin.label, unit: unitSym('temperature'), value: (f) => fq(f.Tin, 'temperature', { digits: 0 }), tip: mode === 'turbine' ? H.tin.tipTurbine : H.tin.tipPiston },
   );
-  if (mode === 'turbine') items.push({ id: 'q', help: 'hud.qin', label: H.q.label, unit: U.kJkg, value: (f) => fmt(f.qin / 1e3, 0), tip: H.q.tip });
+  if (mode === 'turbine') items.push({ id: 'q', help: 'hud.qin', label: H.q.label, unit: unitSym('specificEnergy'), value: (f) => fq(f.qin, 'specificEnergy', { digits: 0 }), tip: H.q.tip });
   else items.push({ id: 'hr', help: 'hud.heatRelease', label: H.hr.label, unit: U.pct, value: (f) => pct(f.intensity, 0), tip: H.hr.tip });
   return items;
 }
@@ -91,7 +91,7 @@ export function createScene(ctx) {
     });
     ctl.phi = slider({ help: 'ctl.equivalence', label: S.phiLabel[s.fMode], ...FLAME_RANGES.phi, value: s.fPhi, digits: 2, onInput: (v) => store.set({ fPhi: v }) });
     ctl.phiLocal = slider({ help: 'ctl.localPhi', label: S.phiLocal, ...FLAME_RANGES.phiLocal, value: s.fPhiLocal, digits: 2, tip: S.tips.phiLocal, onInput: (v) => store.set({ fPhiLocal: v }) });
-    ctl.tin = slider({ help: 'ctl.intakeT', label: S.tin, ...FLAME_RANGES.Tin, value: 300, digits: 0, unit: U.K, tip: S.tips.tin, onInput: (v) => store.set({ fTin: v }) });
+    ctl.tin = slider({ help: 'ctl.intakeT', label: S.tin, ...FLAME_RANGES.Tin, value: 300, digits: 0, qty: 'temperature', from: 'K', tip: S.tips.tin, onInput: (v) => store.set({ fTin: v }) });
     ctl.tinModel = button({ help: 'ctl.intakeModel', label: S.tinModel, tip: S.tips.tinModel, onClick: () => store.set({ fTin: null }) });
     ctl.focus = button({ help: 'ctl.focus', label: S.focus, tip: S.tips.focus, onClick: () => store.set({ fFocus: !store.get().fFocus }) });
     ctl.theta = slider({ help: 'ctl.crankAngle', label: C.crankAngle, min: -360, max: 360, step: 0.5, value: s.theta, format: signedDeg, tip: C.tips.crankAngle, onInput: (v) => store.set(scrubPatch(store.get(), v)) });
@@ -155,9 +155,9 @@ export function createScene(ctx) {
     const O = S.overlay;
     for (const n of el.querySelectorAll('[data-k]')) {
       const k = n.dataset.k;
-      if (k === 'tf') setText(n, `${fmt(f.Tflame, 0)} ${U.K}`);
+      if (k === 'tf') setText(n, fqu(f.Tflame, 'temperature', { digits: 0 }));
       else if (k === 'mix') setText(n, f.mode === 'diesel' ? O.mixDiesel(f.phi, f.phiLocal, f.dTlocal) : f.mode === 'gas' ? O.mixGas(f.phi) : O.mixTurbine(f.phi, f.Tin));
-      else if (k === 'phase') setText(n, f.rig ? O.phasePiston(f.theta, C.phase[f.rig.phase] ?? f.rig.phase, f.intensity * 100) : O.phaseTurbine(f.qin / 1e3));
+      else if (k === 'phase') setText(n, f.rig ? O.phasePiston(f.theta, C.phase[f.rig.phase] ?? f.rig.phase, f.intensity * 100) : O.phaseTurbine(f.qin));
     }
     const notes = [];
     if (f.mode === 'turbine') notes.push(S.notes.premix(f.T3, f.phiOverall));

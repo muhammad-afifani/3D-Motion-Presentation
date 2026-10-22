@@ -10,7 +10,7 @@
  * Pesan satu baris dan pendek; yang terlalu panjang dipotong dengan elipsis dan teks lengkapnya ada di tooltip (title).
  */
 import { STR } from './strings.js';
-import { checkNumber, formatInput } from './format.js';
+import { checkNumber, checkConv, formatInput, qtyConv } from './format.js';
 
 const T = STR.input;
 let seq = 0;
@@ -20,11 +20,17 @@ const owners = new WeakMap();
 /**
  * @param {HTMLInputElement} input kotak yang sudah ada di DOM (dibungkus di tempat)
  * @param {{min?:number, max?:number, minExclusive?:boolean, allowEmpty?:boolean, errorHost?:HTMLElement, name?:string,
- *   onCommit?:(v:number|null)=>void}} [o] onCommit dipanggil saat change dengan nilai sah (null = dikosongkan bila allowEmpty);
- *   errorHost = elemen slot galat bersama (kelas .num-err); name = awalan pesan pada slot bersama
+ *   onCommit?:(v:number|null)=>void, qty?:string, from?:string, native?:string, kAsC?:boolean}} [o] onCommit dipanggil saat change dengan nilai sah (null = dikosongkan bila allowEmpty);
+ *   errorHost = elemen slot galat bersama (kelas .num-err); name = awalan pesan pada slot bersama.
+ *   qty + from (satuan tampilan, M13): min / max / set() / hasil read() / onCommit TETAP dalam satuan `from`; kotak menulis dan
+ *   membaca satuan pilihan pengguna (koma / titik seperti biasa); batas dan pesan galat ditulis dalam satuan pilihan, dan hasil
+ *   konversi balik dijepit ke [min, max] sehingga pembulatan tidak pernah keluar rentang.
  */
 export function createNumberField(input, o = {}) {
-  let range = { min: o.min ?? -Infinity, max: o.max ?? Infinity };
+  const conv = o.qty ? qtyConv(/** @type {any} */ (o.qty), o.from, { native: o.native ?? null, kAsC: !!o.kAsC }) : null;
+  const toDisp = (v) => (conv && Number.isFinite(v) ? conv.toDisp(v) : v);
+  let base = { min: o.min ?? -Infinity, max: o.max ?? Infinity };
+  let range = { min: toDisp(base.min), max: toDisp(base.max) };
   const me = {};
   let invalid = false;
   input.type = 'text';
@@ -60,7 +66,8 @@ export function createNumberField(input, o = {}) {
   }
   /** @returns {{value:number|null, ok:boolean}} */
   function read() {
-    const r = checkNumber(input.value, { ...range, minExclusive: !!o.minExclusive, allowEmpty: o.allowEmpty !== false });
+    const opts = { minExclusive: !!o.minExclusive, allowEmpty: o.allowEmpty !== false };
+    const r = conv ? checkConv(input.value, conv, { ...base, ...opts }) : checkNumber(input.value, { ...range, ...opts });
     showError(r.error ? message(r.error) : '');
     return { value: r.value, ok: !r.error };
   }
@@ -77,10 +84,10 @@ export function createNumberField(input, o = {}) {
     set(v) {
       if (document.activeElement === input || invalid) return;
       const n = typeof v === 'number' ? v : checkNumber(v).value;
-      const s = n == null ? '' : formatInput(n);
+      const s = n == null ? '' : formatInput(toDisp(n));
       if (input.value !== s) input.value = s;
     },
     /** @param {{min?:number, max?:number}} r */
-    setRange(r) { range = { min: r.min ?? -Infinity, max: r.max ?? Infinity }; },
+    setRange(r) { base = { min: r.min ?? -Infinity, max: r.max ?? Infinity }; range = { min: toDisp(base.min), max: toDisp(base.max) }; },
   };
 }

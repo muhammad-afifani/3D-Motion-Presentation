@@ -42,6 +42,7 @@ import { createSettingsPanel } from './ui/settingsPanel.js';
 import { notesStore } from './state/notes.js';
 import { createBackLessonPill } from './ui/backLessonPill.js';
 import { langStore } from './state/langStore.js';
+import { unitsStore } from './state/unitsStore.js';
 import { learnReady } from './state/learnStore.js';
 import { guideIdForTitle } from './state/chartGuide.js';
 import { backPillVisible, backTarget } from './state/learnView.js';
@@ -216,6 +217,11 @@ langSlot.id = 'lang-slot';
 const langSwitch = createLangSwitch({ value: langStore.lang, onChange: (l) => langStore.set(l) });
 langSlot.append(langSwitch.el);
 langStore.subscribe((l) => { langSwitch.set(l); themeSwitch.relabel(); backPill.refresh(); relabelChrome(); relangView(); });
+// Satuan tampilan (M13, bendera UNITS_UI): ganti satuan memasang ulang scene seperti ganti bahasa (state di store tetap, tanpa string
+// dibangun tiap frame); satuan isian batas (ppm / mg) mengikuti satuan konsentrasi pilihan. Model dan jalur regulasi tidak ikut berubah.
+const syncLimUnit = () => { const u = unitsStore.unit('concentration'); if (u !== 'auto') store.set({ limUnit: u === 'mgNm3' ? 'mg' : 'ppm' }); };
+syncLimUnit();
+unitsStore.subscribe(() => { syncLimUnit(); relangView(); });
 const settings = createSettingsPanel({ getMode: () => mode, getState: () => store.get() }); // ⚙ Settings (popover; Hide working notes)
 document.getElementById('model-badge').before(langSlot, themeSwitch.el, createHelpButton('hdr.switches', { describes: themeSwitch.el }).el, settings.el); // ⓘ kelompok sakelar, lalu ⚙
 document.getElementById('model-badge').after(createHelpButton('hdr.status', { describes: document.getElementById('model-badge') }).el); // ⓘ lencana Model OK dan chip Quality

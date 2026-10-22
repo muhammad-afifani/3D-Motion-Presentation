@@ -9,7 +9,7 @@
  * Isian angka pengguna: parseNumber / checkNumber (koma maupun titik desimal; satu kasus ambigu mengikuti bahasa, lihat parseNumber).
  */
 import { LANGS } from '../state/lang.js';
-import { UNIT_DEFS, toUnit, fromUnit, toUnitDelta, toUnitRate } from '../model/thermo.js';
+import { UNIT_DEFS, toUnit, fromUnit, toUnitDelta, toUnitRate, concentrationToUnit, mgNm3ToPpmReg, MW, CONCENTRATION_SPECIES } from '../model/thermo.js';
 import { unitsStore, QUANTITIES } from '../state/unitsStore.js';
 
 /** @typedef {'en'|'id'} NumLang */
@@ -67,13 +67,15 @@ const SI_UNIT = Object.freeze(Object.fromEntries(QUANTITIES.map((q) => [q.id, q.
 /**
  * Satuan efektif besaran. 'auto' (daya) → satuan bawaan scene yang diberikan pemanggil sebagai `native` (mis. 'MW');
  * tanpa `native`, auto jatuh ke kW. Bendera UNITS_UI mati → selalu SI bawaan.
- * @param {ConvQty} qty @param {string|null} [native] @returns {string} id satuan UNIT_DEFS
+ * kAsC: tempat yang ditulis dalam °C (ambient, acuan ISO, derating per °C): pilihan K tetap ditulis °C.
+ * @param {ConvQty} qty @param {string|null} [native] @param {boolean} [kAsC] @returns {string} id satuan UNIT_DEFS
  */
-export function qtyUnit(qty, native = null) {
-  const u = unitsStore.unit(qty);
-  if (u !== 'auto') return u;
-  const n = native ?? (qty === 'power' ? 'kW' : SI_UNIT[qty]);
-  return n;
+export function qtyUnit(qty, native = null, kAsC = false) {
+  let u = unitsStore.unit(qty);
+  if (u === 'auto') u = native ?? (qty === 'power' ? 'kW' : SI_UNIT[qty]);
+  // tempat yang ditulis dalam °C (suhu ambient, acuan ISO, laju derating per °C): K (satuan SI bawaan) tetap tampil °C
+  if (kAsC && qty === 'temperature' && u === 'K') u = 'C';
+  return u;
 }
 /** Satuan acuan penulisan digit di pemanggil: native bila ada, selain itu satuan SI bawaan. */
 const refUnit = (qty, native) => native ?? (SI_UNIT[qty] === 'auto' ? null : SI_UNIT[qty]);
@@ -93,29 +95,115 @@ export function digitsFor(qty, unit, digits, native = null) {
  * Nilai dasar → angka bertulis dalam satuan pilihan.
  * @param {number|null|undefined} x nilai dasar (Pa, K, W, J/kg, …)
  * @param {ConvQty} qty
- * @param {NumberFormatOpts & {native?:string|null, lang?:NumLang}} [o] digits = digit di satuan acuan (native atau SI bawaan)
+ * @param {NumberFormatOpts & {native?:string|null, kAsC?:boolean, scale?:number, lang?:NumLang}} [o] digits = digit di satuan acuan (native atau SI bawaan); scale = pengali setelah konversi (100 untuk persen)
  */
-export function fq(x, qty, { digits = 1, native = null, grouping = true, lang = numLang } = {}) {
+export function fq(x, qty, { digits = 1, native = null, kAsC = false, scale = 1, grouping = true, lang = numLang } = {}) {
   if (x == null || !Number.isFinite(x)) return '–';
-  const unit = qtyUnit(qty, native);
-  return formatNumber(toUnit(qty, unit, x), { digits: digitsFor(qty, unit, digits, native), grouping, lang });
+  const unit = qtyUnit(qty, native, kAsC);
+  return formatNumber(toUnit(qty, unit, x) * scale, { digits: digitsFor(qty, unit, digits, native), grouping, lang });
 }
 /** Seperti fq untuk SELISIH (tanpa offset suhu): ΔT, kenaikan T. */
-export function fqDelta(x, qty, { digits = 1, native = null, grouping = true, lang = numLang } = {}) {
+export function fqDelta(x, qty, { digits = 1, native = null, kAsC = false, scale = 1, grouping = true, lang = numLang } = {}) {
   if (x == null || !Number.isFinite(x)) return '–';
-  const unit = qtyUnit(qty, native);
-  return formatNumber(toUnitDelta(qty, unit, x), { digits: digitsFor(qty, unit, digits, native), grouping, lang });
+  const unit = qtyUnit(qty, native, kAsC);
+  return formatNumber(toUnitDelta(qty, unit, x) * scale, { digits: digitsFor(qty, unit, digits, native), grouping, lang });
 }
 /** Seperti fq untuk LAJU per satuan dasar (derating %/K → %/°F). */
-export function fqRate(x, qty, { digits = 2, native = null, grouping = true, lang = numLang } = {}) {
+export function fqRate(x, qty, { digits = 2, native = null, kAsC = false, scale = 1, grouping = true, lang = numLang } = {}) {
   if (x == null || !Number.isFinite(x)) return '–';
-  const unit = qtyUnit(qty, native);
-  return formatNumber(toUnitRate(qty, unit, x), { digits: digitsFor(qty, unit, digits, native), grouping, lang });
+  const unit = qtyUnit(qty, native, kAsC);
+  return formatNumber(toUnitRate(qty, unit, x) * scale, { digits: digitsFor(qty, unit, digits, native), grouping, lang });
+}
+/**
+ * Seperti fq untuk nilai yang disimpan dalam satuan `from` (bukan satuan dasar), mis. suhu ambient dalam °C: fqFrom(15, 'temperature', 'C').
+ * Digit ditulis relatif terhadap `from`.
+ */
+export function fqFrom(x, qty, from, o = {}) {
+  if (x == null || !Number.isFinite(x)) return '–';
+  const { digits = 1, kAsC = false, scale = 1, grouping = true, lang = numLang } = o;
+  const unit = qtyUnit(qty, from, kAsC);
+  // satuan pilihan = satuan simpanan: tulis apa adanya (tanpa bolak-balik lewat satuan dasar, supaya angka SI tidak bergeser)
+  if (unit === from) return formatNumber(x * scale, { digits, grouping, lang });
+  return fq(fromUnit(qty, from, x), qty, { ...o, native: from });
+}
+/**
+ * Satuan konsentrasi gas yang berlaku di satu tempat: 'ppmvd' | 'mgNm3'. Pilihan "As in each scene" → `native` (satuan yang ditulis
+ * tempat itu sebelum fitur satuan; bawaan 'ppmvd').
+ * @param {'ppmvd'|'mgNm3'} [native]
+ */
+export function concUnit(native = 'ppmvd') {
+  const u = unitsStore.unit('concentration');
+  return u === 'auto' ? native : u;
+}
+/**
+ * Konsentrasi gas pada basis tampilan (nilai sudah ppmvd @ refO2) → angka tertulis dalam satuan konsentrasi pilihan. Basis O₂ dan volume
+ * dibawa pemanggil (refO2, TrefC) dan harus tetap tampil di samping angka. Hanya tampilan: perbandingan ke batas tidak lewat sini.
+ * @param {number|null|undefined} ppm ppmvd pada O₂ acuan basis tampilan
+ * @param {{species?:'nox'|'co'|'so2'|'ch4', refO2:number, TrefC:number, digits?:number, native?:'ppmvd'|'mgNm3', lang?:NumLang}} o
+ */
+export function fqConc(ppm, { species = 'nox', refO2, TrefC, digits = 1, native = 'ppmvd', lang = numLang } = /** @type {any} */ ({})) {
+  if (ppm == null || !Number.isFinite(ppm)) return '–';
+  const unit = concUnit(native);
+  const v = unit === 'mgNm3' ? concentrationToUnit({ ppm, species, unit: 'mgNm3', refFrom: refO2, refO2, TrefC }) : ppm;
+  return formatNumber(v, { digits, lang });
+}
+/**
+ * Konsentrasi pada BASIS REGULASI (nilai dalam mg/Nm³ pada TrefC grup, mis. NOx mesin di tab Levers Scene 9) → angka tertulis dalam satuan
+ * konsentrasi pilihan. Pilihan ppmvd memakai mgNm3ToPpmReg (jalur regulasi: volume molar pada basis grup); O₂ acuan basis grup tetap sama
+ * (tidak ada koreksi O₂), sehingga basis tetap yang ditulis di samping angka. Perbandingan ke batas (chip, margin) tidak lewat sini.
+ * @param {number|null|undefined} mg @param {{species?:'nox'|'co'|'so2'|'ch4', TrefC:number, PatmAbs?:number, digits?:number, lang?:NumLang}} o
+ */
+export function fqConcReg(mg, { species = 'nox', TrefC, PatmAbs = 1, digits = 1, lang = numLang } = /** @type {any} */ ({})) {
+  if (mg == null || !Number.isFinite(mg)) return '–';
+  const v = concUnit('mgNm3') === 'ppmvd' ? mgNm3ToPpmReg(mg, MW[CONCENTRATION_SPECIES[species]], TrefC, PatmAbs) : mg;
+  return formatNumber(v, { digits, lang });
 }
 /** Nilai dasar → nilai angka di satuan pilihan (tanpa pemformatan), mis. data sumbu grafik. */
-export const toQty = (x, qty, native = null) => toUnit(qty, qtyUnit(qty, native), x);
+export const toQty = (x, qty, native = null, kAsC = false) => toUnit(qty, qtyUnit(qty, native, kAsC), x);
 /** Nilai angka di satuan pilihan → nilai dasar (batas slider, nilai isian). */
-export const fromQty = (x, qty, native = null) => fromUnit(qty, qtyUnit(qty, native), x);
+export const fromQty = (x, qty, native = null, kAsC = false) => fromUnit(qty, qtyUnit(qty, native, kAsC), x);
+
+/** Langkah "bulat" terdekat (1, 2, 5 × 10^k, jarak log terkecil): langkah slider di satuan tampilan (10 K → 18 °F → 20 °F). */
+export function niceStep(x) {
+  if (!(x > 0) || !Number.isFinite(x)) return x;
+  const e = Math.floor(Math.log10(x)), m = x / 10 ** e;
+  let best = 1;
+  for (const c of [1, 2, 5, 10]) if (Math.abs(Math.log10(m / c)) < Math.abs(Math.log10(m / best))) best = c;
+  return Number((best * 10 ** e).toPrecision(12));
+}
+const round12 = (x) => Number(x.toPrecision(12));
+
+/**
+ * Konversi untuk satu kontrol yang nilainya disimpan dalam satuan `from` (id satuan UNIT_DEFS: 'bar', 'K', 'C', 'kg/s' …),
+ * bukan satuan dasar. Dipakai slider dan isian: nilai di store TETAP dalam `from`; hanya tampilan, min / max / langkah, dan
+ * bacaan isian yang memakai satuan pilihan. Bila satuan pilihan = `from`, semua fungsi identitas (angka SI tidak berubah).
+ *   toDisp / fromDisp : nilai store ↔ nilai tampilan
+ *   clamp             : jepit nilai store ke [min, max] (hasil konversi balik tidak pernah di luar rentang SI)
+ *   range             : rentang tampilan dan langkah bulat; batas tampilan dibulatkan KELUAR ke kelipatan langkah, sehingga ujung
+ *                       rentang SI tetap terjangkau; nilai di luar SI dijepit oleh clamp
+ *   digits            : digit tampilan dari digit yang ditulis untuk satuan `from`
+ * @param {ConvQty} qty @param {string} from
+ * @param {{native?:string|null, kAsC?:boolean, unit?:string|null}} [o] unit = paksa satuan tampilan (tanpa membaca store)
+ */
+export function qtyConv(qty, from, { native = null, kAsC = false, unit: forced = null } = {}) {
+  const unit = forced ?? qtyUnit(qty, native ?? from, kAsC); // forced = satuan eksplisit (uji / pemakaian murni tanpa store)
+  const same = unit === from;
+  const ratio = same ? 1 : toUnitDelta(qty, unit, 1) / toUnitDelta(qty, from, 1);
+  const toDisp = same ? (v) => v : (v) => toUnit(qty, unit, fromUnit(qty, from, v));
+  const fromDisp = same ? (x) => x : (x) => toUnit(qty, from, fromUnit(qty, unit, x));
+  return {
+    qty, from, unit, same, ratio, toDisp, fromDisp,
+    clamp: (v, min, max) => Math.min(max, Math.max(min, v)),
+    digits: (d) => (same ? d : digitsFor(qty, unit, d, from)),
+    delta: (d) => d * ratio,
+    /** @param {{min:number, max:number, step:number}} r rentang dalam satuan `from` */
+    range(r) {
+      if (same) return { min: r.min, max: r.max, step: r.step };
+      const step = niceStep(r.step * ratio);
+      return { min: round12(Math.floor(round12(toDisp(r.min) / step)) * step), max: round12(Math.ceil(round12(toDisp(r.max) / step)) * step), step };
+    },
+  };
+}
 
 /**
  * Baca isian angka dalam satuan tampilan → nilai dasar (koma / titik seperti parseNumber). min / max diberikan dalam
@@ -139,6 +227,21 @@ export function checkQty(text, qty, { min = -Infinity, max = Infinity, minExclus
 export function parseQty(text, qty, o = {}) {
   const r = checkQty(text, qty, { ...o, min: -Infinity, max: Infinity });
   return r.error === 'nan' ? NaN : r.value;
+}
+
+/**
+ * Isian angka untuk kontrol berkonversi (qtyConv): koma / titik, galat 'empty' | 'nan' | 'min' | 'max' dihitung di satuan TAMPILAN
+ * (min / max dikonversi), dan nilai sah dikembalikan dalam satuan simpanan (`from`) serta dijepit ke [min, max] sehingga pembulatan
+ * tidak pernah keluar rentang. min / max dalam satuan simpanan.
+ * @param {string|number|null|undefined} text @param {ReturnType<typeof qtyConv>} conv
+ * @param {{min?:number, max?:number, minExclusive?:boolean, allowEmpty?:boolean, lang?:NumLang}} [o]
+ * @returns {{value:number|null, error:null|'empty'|'nan'|'min'|'max'}}
+ */
+export function checkConv(text, conv, { min = -Infinity, max = Infinity, minExclusive = false, allowEmpty = true, lang = numLang } = {}) {
+  const disp = (v) => (Number.isFinite(v) ? conv.toDisp(v) : v);
+  const r = checkNumber(text, { min: disp(min), max: disp(max), minExclusive, allowEmpty, lang });
+  if (r.error || r.value == null) return r;
+  return { value: conv.same ? r.value : conv.clamp(conv.fromDisp(r.value), min, max), error: null };
 }
 
 const SUP = { '-': '⁻', 0: '⁰', 1: '¹', 2: '²', 3: '³', 4: '⁴', 5: '⁵', 6: '⁶', 7: '⁷', 8: '⁸', 9: '⁹' };

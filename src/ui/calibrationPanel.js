@@ -31,7 +31,7 @@ export function createCalibrationPanel(container, cb) {
     <div class="cal-row" data-engine="${k}">
       <div class="cal-row__head"><b>${T.engines[k]}</b><span class="cal-factor num" data-v="f-${k}"></span></div>
       <div class="cal-row__dim" data-v="d-${k}"></div>
-      <label class="cal-input"><span>${T.targetEngine}</span>
+      <label class="cal-input"><span>${T.targetEngine()}</span>
         <input data-in="${k}" /></label>
       <div class="cal-row__dim" data-v="lit-${k}"></div>
       <div class="cal-actions"><button type="button" class="btn btn--sm" data-apply="${k}">${T.apply}</button><span class="cal-status" data-v="s-${k}"></span></div>
@@ -65,8 +65,9 @@ export function createCalibrationPanel(container, cb) {
   const q = (sel) => el.querySelector(sel);
   const V = (k) => q(`[data-v="${k}"]`);
   // target kalibrasi: wajib diisi, > 0 (koma / titik desimal); galat tampil di gelembung kotak isian
+  // target mesin dalam g/kWh (emisi per kWh): kotak memakai satuan pilihan, nilai ke callback tetap g/kWh; target DLN tetap ppmvd @ O₂ acuan (definisi kalibrasi)
   const fields = Object.fromEntries(['diesel', 'gas', 'dln-single', 'dln-twin'].map((k) => [k,
-    createNumberField(/** @type {HTMLInputElement} */ (q(`[data-in="${k}"]`)), { min: 0, minExclusive: true, allowEmpty: false })]));
+    createNumberField(/** @type {HTMLInputElement} */ (q(`[data-in="${k}"]`)), { min: 0, minExclusive: true, allowEmpty: false, ...(k.startsWith('dln') ? {} : { qty: 'specificEmission', from: 'gkWh' }) })]));
   const setText = (n, t) => { if (n.textContent !== t) n.textContent = t; };
   let prefilled = false;
 

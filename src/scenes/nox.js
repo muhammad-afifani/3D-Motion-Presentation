@@ -20,9 +20,9 @@ import { createTempLegend } from '../charts/legend.js';
 import { slider, segmented, button } from '../ui/controls.js';
 import { animSpeedSlider } from '../ui/animSpeed.js';
 import { createHud } from '../ui/hud.js';
-import { fmt, pct } from '../ui/format.js';
+import { fmt, pct, fq } from '../ui/format.js';
 import { createHelpButton } from '../ui/helpButton.js';
-import { STR, signedDeg, plusDeg } from '../ui/strings.js';
+import { STR, signedDeg, plusDeg, unitSym, fqu } from '../ui/strings.js';
 import { CV } from '../charts/chartBase.js';
 
 const S = STR.scene4, C = STR.common, U = STR.common.units, H = STR.scene4.hud;
@@ -42,12 +42,12 @@ export function hudItems(f) {
   const flag = f.NOx.basisDefault ? undefined : C.basis.flag;
   const items = [
     { id: 'timing', help: 'hud.timing', label: H.timing.label(diesel), unit: U.atdc, value: (x) => plusDeg(x.theta0), tip: H.timing.tip },
-    { id: 'tb', help: 'hud.burnedT', label: H.tbPeak.label, unit: U.K, value: (x) => fmt(x.TbPeak, 0), tip: H.tbPeak.tip },
-    { id: 'noxg', help: 'hud.noxG', label: H.noxG.label, unit: U.gkWh, value: (x) => fmt(x.NOx.gkWh, 2), tip: H.noxG.tip },
+    { id: 'tb', help: 'hud.burnedT', label: H.tbPeak.label, unit: unitSym('temperature'), value: (x) => fq(x.TbPeak, 'temperature', { digits: 0 }), tip: H.tbPeak.tip },
+    { id: 'noxg', help: 'hud.noxG', label: H.noxG.label, unit: unitSym('specificEmission'), value: (x) => fq(x.NOx.gkWh, 'specificEmission', { digits: 2 }), tip: H.noxG.tip },
     { id: 'noxppm', help: 'hud.noxPpm', label: H.noxPpm.label, unit: H.noxPpm.unit, sub: basis, flag, value: (x) => fmt(x.NOx.ppm, 0), tip: H.noxPpm.tip },
     { id: 'noxmg', help: 'hud.noxMg', label: H.noxMg.label, unit: H.noxMg.unit, sub: basis, flag, value: (x) => fmt(x.NOx.mgNm3, 0), tip: H.noxMg.tip },
     { id: 'eta', help: 'hud.etaBrake', label: H.eta.label, unit: U.pct, value: (x) => pct(x.eta.brake, 1), tip: H.eta.tip },
-    { id: 'co2', help: 'hud.co2', label: H.co2.label, unit: U.gkWh, value: (x) => fmt(x.CO2.gkWh, 0), tip: H.co2.tip },
+    { id: 'co2', help: 'hud.co2', label: H.co2.label, unit: unitSym('specificEmission'), value: (x) => fq(x.CO2.gkWh, 'specificEmission', { digits: 0 }), tip: H.co2.tip },
   ];
   // faktor kalibrasi tampil di HUD bila ≠ 1 (CLAUDE.md → Aturan model)
   if (f.calib !== 1) items.push({ id: 'calib', help: 'hud.noxCalib', label: H.calib.label, unit: '', sub: H.calib.sub(f.calib === f.calibDefault), value: (x) => H.calib.value(x.calib), tip: H.calib.tip });
@@ -269,8 +269,8 @@ export function createScene(ctx) {
         case 'fnote': v = S.formula.note(f.NOx.refO2); break;
         case 'phase': v = C.phase[f.phase] ?? f.phase; break;
         case 'theta': v = signedDeg(f.theta); break;
-        case 'tgas': v = `${fmt(f.T, 0)} ${U.K}`; break;
-        case 'tb': v = f.burned.visible ? `${fmt(f.burned.T, 0)} ${U.K}` : S.readout.none; break;
+        case 'tgas': v = fqu(f.T, 'temperature', { digits: 0 }); break;
+        case 'tb': v = f.burned.visible ? fqu(f.burned.T, 'temperature', { digits: 0 }) : S.readout.none; break;
         case 'noFrac': v = `${fmt(f.no.frac * 100, 0)} ${U.pct}`; break;
         default: continue;
       }

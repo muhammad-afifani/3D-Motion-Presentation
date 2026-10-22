@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import { html } from './sceneBase.js';
 import { togglePlayPatch, toggleFreezePatch, tickPatch, compInitialState, compPressurePatch } from '../state/store.js';
 import { deriveComp } from '../state/deriveComp.js';
-import { GAS_COMPRESSOR } from '../model/presets.js';
+import { GAS_COMPRESSOR, GAS_TURBINES } from '../model/presets.js';
 import { createRenderer } from '../gfx/renderer.js';
 import { createCompressorRig } from '../gfx/compressorRig.js';
 import { fitCameraToBox } from '../gfx/fitCamera.js';
@@ -18,8 +18,8 @@ import { createTempLegend } from '../charts/legend.js';
 import { slider, button } from '../ui/controls.js';
 import { animSpeedSlider } from '../ui/animSpeed.js';
 import { createHud } from '../ui/hud.js';
-import { fmt } from '../ui/format.js';
-import { STR } from '../ui/strings.js';
+import { fmt, fq, fqConc, concUnit } from '../ui/format.js';
+import { STR, unitSym, concSym } from '../ui/strings.js';
 import { CV } from '../charts/chartBase.js';
 
 const S = STR.scene7, C = STR.common, U = STR.common.units, H = STR.scene7.hud, SU = STR.scene7.units;
@@ -34,10 +34,10 @@ const WHATIF = CV.cold;
 export function compHudItems() {
   return [
     { id: 'rp', help: 'hud.pressureRatio', label: H.rp.label, unit: '', model: H.rp.model, value: (f) => fmt(f.comp.rp, 2), tip: H.rp.tip },
-    { id: 'head', help: 'hud.head', label: H.head.label, unit: SU.kJkg, model: H.head.model, value: (f) => fmt(f.comp.head / 1e3, 1), tip: H.head.tip },
-    { id: 'pw', help: 'hud.compPower', label: H.power.label, unit: U.MW, model: H.power.model, value: (f) => fmt(f.comp.power / 1e6, 2), tip: H.power.tip },
-    { id: 'tdis', help: 'hud.dischargeT', label: H.tdis.label, unit: U.K, model: H.tdis.model, value: (f) => fmt(f.comp.Tdis, 0), tip: H.tdis.tip },
-    { id: 'q', help: 'hud.suctionFlow', label: H.flow.label, unit: SU.m3s, model: H.flow.model, value: (f) => fmt(f.comp.Q, 3), tip: H.flow.tip },
+    { id: 'head', help: 'hud.head', label: H.head.label, unit: unitSym('specificEnergy'), model: H.head.model, value: (f) => fq(f.comp.head, 'specificEnergy', { digits: 1 }), tip: H.head.tip },
+    { id: 'pw', help: 'hud.compPower', label: H.power.label, unit: unitSym('power', 'MW'), model: H.power.model, value: (f) => fq(f.comp.power, 'power', { digits: 2, native: 'MW' }), tip: H.power.tip },
+    { id: 'tdis', help: 'hud.dischargeT', label: H.tdis.label, unit: unitSym('temperature'), model: H.tdis.model, value: (f) => fq(f.comp.Tdis, 'temperature', { digits: 0 }), tip: H.tdis.tip },
+    { id: 'q', help: 'hud.suctionFlow', label: H.flow.label, unit: unitSym('volumeFlow'), model: H.flow.model, value: (f) => fq(f.comp.Q, 'volumeFlow', { digits: 3 }), tip: H.flow.tip },
     { id: 'n', help: 'hud.speedRequired', label: H.nreq.label, unit: SU.pct, model: H.nreq.model, value: (f) => fmt(f.Nreq * 100, 1), tip: H.nreq.tip },
   ];
 }
@@ -46,13 +46,14 @@ export function compHudItems() {
 export function driveHudItems(f) {
   const b = f.basis;
   const flagB = b.isDefault ? undefined : C.basis.flag;
+  const mg = concUnit('ppmvd') === 'mgNm3';
   return [
-    { id: 'pt', help: 'hud.ptAvailable', label: H.pt.label, unit: U.MW, model: H.pt.model, value: (x) => fmt(x.train.ptPower / 1e6, 2), tip: H.pt.tip },
+    { id: 'pt', help: 'hud.ptAvailable', label: H.pt.label, unit: unitSym('power', 'MW'), model: H.pt.model, value: (x) => fq(x.train.ptPower, 'power', { digits: 2, native: 'MW' }), tip: H.pt.tip(GAS_TURBINES.compressorDrive.mdot) },
     { id: 'load', help: 'hud.turbineLoad', label: H.load.label, unit: SU.pct, model: H.load.model, flag: f.train.inRange ? undefined : H.outOfRange, value: (x) => fmt(x.train.loadRaw * 100, 1), tip: H.load.tip },
     { id: 'ngg', help: 'hud.nGG', label: H.ngg.label, unit: '', model: H.ngg.model, value: (x) => H.ngg.value(x.train.Ngg), tip: H.ngg.tip },
-    { id: 'tf', help: 'hud.flameT', label: H.flame.label, unit: U.K, model: H.flame.model, value: (x) => fmt(x.train.Tflame, 0), tip: H.flame.tip },
-    { id: 'nox', help: 'hud.noxPpm', label: H.nox.label, unit: H.nox.unit, sub: C.basis.tile(b.refO2, b.TrefC), flag: flagB, value: (x) => fmt(x.train.nox, x.train.nox < 10 ? 2 : 1), tip: H.nox.tip },
-    { id: 'co', help: 'hud.coPpm', label: H.co.label, unit: H.co.unit, sub: C.basis.tileCO(b.refO2, b.TrefC), flag: flagB, value: (x) => fmt(x.train.co, 1), tip: H.co.tip },
+    { id: 'tf', help: 'hud.flameT', label: H.flame.label, unit: unitSym('temperature'), model: H.flame.model, value: (x) => fq(x.train.Tflame, 'temperature', { digits: 0 }), tip: H.flame.tip },
+    { id: 'nox', help: 'hud.noxPpm', label: H.nox.label, unit: concSym('ppmvd'), sub: (mg ? C.basis.tileMg : C.basis.tile)(b.refO2, b.TrefC), flag: flagB, value: (x) => fqConc(x.train.nox, { species: 'nox', refO2: b.refO2, TrefC: b.TrefC, digits: x.train.nox < 10 ? 2 : 1 }), tip: H.nox.tip },
+    { id: 'co', help: 'hud.coPpm', label: H.co.label, unit: concSym('ppmvd'), sub: (mg ? C.basis.tileMgCO : C.basis.tileCO)(b.refO2, b.TrefC), flag: flagB, value: (x) => fqConc(x.train.co, { species: 'co', refO2: b.refO2, TrefC: b.TrefC, digits: 1 }), tip: H.co.tip },
   ];
 }
 
@@ -112,15 +113,15 @@ export function createScene(ctx) {
   function buildControls() {
     const s = store.get();
     const R = GAS_COMPRESSOR.ranges;
-    ctl.Psuc = slider({ help: 'ctl.suctionP', label: S.Psuc, ...R.Psuc, value: s.cPsuc, digits: 1, unit: SU.bar, tip: S.tips.Psuc, onInput: (v) => store.set(compPressurePatch(store.get(), { Psuc: v })) });
-    ctl.Pdis = slider({ help: 'ctl.dischargeP', label: S.Pdis, ...R.Pdis, value: s.cPdis, digits: 0, unit: SU.bar, tip: S.tips.Pdis, onInput: (v) => store.set(compPressurePatch(store.get(), { Pdis: v })) });
-    ctl.MW = slider({ help: 'ctl.gasMW', label: S.MW, ...R.MW, value: s.cMW, digits: 1, unit: SU.MW, tip: S.tips.MW, onInput: (v) => store.set({ cMW: v }) });
-    ctl.mdot = slider({ help: 'ctl.massFlow', label: S.mdot, ...R.mdot, value: s.cMdot, digits: 1, unit: SU.kgs, tip: S.tips.mdot, onInput: (v) => store.set({ cMdot: v }) });
+    ctl.Psuc = slider({ help: 'ctl.suctionP', label: S.Psuc, ...R.Psuc, value: s.cPsuc, digits: 1, qty: 'pressure', from: 'bar', tip: S.tips.Psuc, onInput: (v) => store.set(compPressurePatch(store.get(), { Psuc: v })) });
+    ctl.Pdis = slider({ help: 'ctl.dischargeP', label: S.Pdis, ...R.Pdis, value: s.cPdis, digits: 0, qty: 'pressure', from: 'bar', tip: S.tips.Pdis, onInput: (v) => store.set(compPressurePatch(store.get(), { Pdis: v })) });
+    ctl.MW = slider({ help: 'ctl.gasMW', label: S.MW, ...R.MW, value: s.cMW, digits: 1, qty: 'molarMass', from: 'kgkmol', tip: S.tips.MW, onInput: (v) => store.set({ cMW: v }) });
+    ctl.mdot = slider({ help: 'ctl.massFlow', label: S.mdot, ...R.mdot, value: s.cMdot, digits: 1, qty: 'massFlow', from: 'kgs', tip: S.tips.mdot(GAS_COMPRESSOR.design.mdot), onInput: (v) => store.set({ cMdot: v }) });
     ctl.speed = slider({ help: 'ctl.speedWhatIf', label: S.speed, ...R.speed, value: s.cSpeed, digits: 0, unit: SU.pct, tip: S.tips.speed, onInput: (v) => store.set({ cSpeed: v }) });
     ctl.rpm = animSpeedSlider(store);
     ctl.play = button({ help: 'ctl.play', label: C.pause, key: C.keySpace, tip: C.tips.play, onClick: () => store.set(togglePlayPatch(store.get())) });
     ctl.freeze = button({ help: 'ctl.freeze', label: C.freeze, key: 'F', tip: C.tips.freeze, onClick: () => store.set(toggleFreezePatch(store.get())) });
-    ctl.reset = button({ help: 'ctl.reset', label: C.reset, key: 'R', tip: S.tips.reset, onClick: () => resetParams() });
+    ctl.reset = button({ help: 'ctl.reset', label: C.reset, key: 'R', tip: S.tips.reset(GAS_COMPRESSOR.design), onClick: () => resetParams() });
     const g1 = html('<div class="ctl-group"></div>');
     g1.append(ctl.Psuc.el, ctl.Pdis.el, ctl.MW.el, ctl.mdot.el, ctl.speed.el);
     const g2 = html('<div class="ctl-group ctl-group--buttons"></div>');

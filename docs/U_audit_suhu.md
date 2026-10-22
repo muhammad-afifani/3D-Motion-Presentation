@@ -1,4 +1,4 @@
-# Audit selisih suhu dan suhu mutlak (Pengaturan satuan, tahap U1)
+# Audit selisih suhu dan suhu mutlak (Pengaturan satuan, tahap U1; status U2 di bagian bawah)
 
 Dasar untuk U2 (HUD, slider, isian, overlay) dan U3 (grafik, tabel). Suhu mutlak memakai offset (`toUnit`); SELISIH dan LAJU per
 derajat TIDAK (`toUnitDelta`, `toUnitRate`). Salah memakai offset pada selisih memberi angka seperti −459,67 °F untuk ΔT = 0.
@@ -37,3 +37,15 @@ Tes arah (bukan nilai absolut): `tests/units.test.js` ("selisih dan laju suhu");
 - Emisi spesifik dan bahan bakar: HUD g/kWh (NOx, CO₂, CO₂e, bsfc), sumbu bar emisi, kolom Scene 8.
 - Konsentrasi: tile ppmvd / mg/Nm³ Scene 4 tetap berdampingan (keputusan); sumbu "ppmvd (log)" Scene 6, "NOx [mg/Nm³]" Scene 9 mengikuti pilihan
   (di Scene 9 batas dan garis limit tetap di basis regulasi).
+
+## Status U2 (HUD, slider, isian, overlay, pesan kunci)
+
+- **Selisih / laju**: tile `dT` lokal, overlay campuran diesel, pesan Scene 4 ("+100 K" → `fqDeltaU(100, …)`), pesan Scene 6 (`twinDT`) dan Scene 7
+  (`dT` nyala), derating (`fqRate`, `scale: 100`, `kAsC`) sudah lewat jalur delta. Tes arah: `tests/unitsU2.test.js` ("SELISIH suhu", "derating %/K").
+  Yang masih U3: panah ΔT di grafik nyala (`flameChart`), caption grafik Scene 4 ("+100 K → laju NO …").
+- **Suhu ambient (°C simpanan)**: slider memakai `qtyConv('temperature', 'C', { kAsC: true })` (lewat K ke °F); teks ambient dan acuan ISO 15 / 35 °C
+  lewat `fquFrom(…, 'C', { kAsC: true })`. Memilih K tetap menulis ambient dalam °C (dicatat di tip Settings).
+- **Tuas Scene 9**: nilai slider (`Tivc` K, `Pivc` Pa) ditulis lewat `fqu`; slider tetap bergerak pada grid SI model (langkah tidak bulat di °F / psia).
+  Sumbu dan tick (`LEVER_AXIS_DISPLAY`) tetap U3.
+- **Literal suhu di strings.js**: yang berada di HUD / overlay / pesan sudah fungsi satuan; sisanya ada di grafik (U3) dan basis volume 0 / 25 °C (tetap).
+- **Tooltip statis dengan angka contoh kalibrasi** (≈ 11 / 2,5 g/kWh, `STR.scene4.hud.calib.tip`) tetap SI.

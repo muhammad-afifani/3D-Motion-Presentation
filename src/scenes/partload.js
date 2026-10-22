@@ -23,8 +23,8 @@ import { createHud } from '../ui/hud.js';
 import { createLimitsInput } from '../ui/limitsInput.js';
 import { createHelpButton } from '../ui/helpButton.js';
 import { createCalibrationPanel } from '../ui/calibrationPanel.js';
-import { fmt, pct } from '../ui/format.js';
-import { STR } from '../ui/strings.js';
+import { fmt, pct, fq, fqConc, concUnit } from '../ui/format.js';
+import { STR, unitSym, concSym } from '../ui/strings.js';
 import { CV } from '../charts/chartBase.js';
 
 const S = STR.scene6, C = STR.common, U = STR.common.units, H = STR.scene6.hud;
@@ -44,12 +44,13 @@ export function hudItems(f, cfg) {
   const flag = b.isDefault ? undefined : C.basis.flag;
   const twin = cfg === 'twin';
   const P = (x) => x[cfg];
+  const mg = concUnit('ppmvd') === 'mgNm3';
   const items = [
     { id: 'eta', help: 'hud.etaThermal', label: H.eta.label, unit: U.pct, value: (x) => pct(P(x).point.eta, 1), tip: H.eta.tip },
-    { id: 't3', help: 'hud.turbineInletT', label: H.T3.label, unit: U.K, value: (x) => fmt(P(x).point.T3, 0), tip: H.T3.tip },
-    { id: 'tf', help: 'hud.flameT', label: H.flame.label, unit: U.K, value: (x) => fmt(P(x).point.Tflame, 0), tip: H.flame.tip },
-    { id: 'nox', help: 'hud.noxPpm', label: H.nox.label, unit: H.nox.unit, sub: C.basis.tile(b.refO2, b.TrefC), flag, value: (x) => fmt(P(x).point.nox, P(x).point.nox < 10 ? 2 : 1), tip: H.nox.tip },
-    { id: 'co', help: 'hud.coPpm', label: H.co.label, unit: H.co.unit, sub: C.basis.tileCO(b.refO2, b.TrefC), flag, value: (x) => fmt(P(x).point.co, 1), tip: H.co.tip },
+    { id: 't3', help: 'hud.turbineInletT', label: H.T3.label, unit: unitSym('temperature'), value: (x) => fq(P(x).point.T3, 'temperature', { digits: 0 }), tip: H.T3.tip },
+    { id: 'tf', help: 'hud.flameT', label: H.flame.label, unit: unitSym('temperature'), value: (x) => fq(P(x).point.Tflame, 'temperature', { digits: 0 }), tip: H.flame.tip },
+    { id: 'nox', help: 'hud.noxPpm', label: H.nox.label, unit: concSym('ppmvd'), sub: (mg ? C.basis.tileMg : C.basis.tile)(b.refO2, b.TrefC), flag, value: (x) => fqConc(P(x).point.nox, { species: 'nox', refO2: b.refO2, TrefC: b.TrefC, digits: P(x).point.nox < 10 ? 2 : 1 }), tip: H.nox.tip },
+    { id: 'co', help: 'hud.coPpm', label: H.co.label, unit: concSym('ppmvd'), sub: (mg ? C.basis.tileMgCO : C.basis.tileCO)(b.refO2, b.TrefC), flag, value: (x) => fqConc(P(x).point.co, { species: 'co', refO2: b.refO2, TrefC: b.TrefC, digits: 1 }), tip: H.co.tip },
     twin
       ? { id: 'n', help: 'hud.speed', label: H.speed.label, unit: '', value: (x) => H.speed.twin(x.twin.N.gg), tip: H.speed.tipTwin }
       : { id: 'n', help: 'hud.speed', label: H.speed.label, unit: '', value: (x) => H.speed.single(x.single.N.rpm), tip: H.speed.tipSingle },

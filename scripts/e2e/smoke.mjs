@@ -1,5 +1,5 @@
 /**
- * smoke.mjs — smoke test tampilan: setiap scene (dan setiap tab Scene 9) di 1366×768, 1920×1080, dan 1280×720.
+ * smoke.mjs — smoke test tampilan (penuh; `--quick` = 1366×768 Dark saja, lihat npm run e2e:smoke:quick): setiap scene (dan setiap tab Scene 9) di 1366×768, 1920×1080, dan 1280×720.
  *   1. Setiap grafik yang tampil (.chart): canvas berukuran > 0 dan terisi ≥ MIN_FILL_PCT % piksel non-latar
  *      (gabungan lapis statis dan dinamis). Grafik yang disembunyikan aplikasi (display: none) dilewati.
  *   2. Tidak ada teks yang meluber dari kontainernya (bilah atas, kartu overlay, HUD, kontrol, judul/caption grafik).
@@ -21,6 +21,7 @@
  *  17. D5a: Scene 9 (5 tab) ID vs EN, banner "Transcribed…" dan chip "not verified" tidak hilang / melunak di ID, chip Within / Above / Not modeled, GRK (CO₂ vs CO₂e), halaman Formation dan Regulations, PNG per tab berbahasa ID.
  *  18. D5b: Scene 10–11 ID vs EN (kartu, filter, opsi diskusi, PNG berfooter ID) dan kartu bantuan hdr.switches (seluruh aplikasi) di EN / ID.
  *  19. D6: kartu Basis dan panel asumsi (H) dalam ID (catatan tetap "hanya tersedia dalam bahasa Inggris", nama tingkat, ganti bahasa saat terbuka, O₂ acuan koma / titik, #/assumptions).
+ *  22. U2: satuan pilihan di scene (Scene 1, 4, 5, 6, 7, 8, 9): SI → US → SI, HUD / slider berubah, tanpa luapan, snapshot teks SI identik dengan golden (alur `units`, `unitsnap`).
  *  21. U1: seksi Units di Settings di balik bendera UNITS_UI (?units=1): preset, per besaran, penjelasan + contoh hitung dari model, kartu bantuan, EN/ID, persistensi, jendela presenter ikut, scene tidak berubah; bendera mati → seksi tidak ada.
  *  20. Sapuan ID penuh: semua scene + tab, semua halaman penuh, 3 viewport × Dark / Light, PNG tiap scene, tanpa galat konsol / tumpang tindih / scroll horizontal.
  *  13. Bahasa ID (Paket D1): semua scene + tab di 3 viewport × 2 tema tanpa luapan (1280: chip, tab Scene 9, header), angka HUD format ID, ganti EN ↔ ID tanpa muat ulang (HUD, Limits, Regulations), isian koma / titik dan pesan galat ID.
@@ -37,8 +38,12 @@
 import { mkdirSync, readFileSync } from 'node:fs';
 import { inflateSync } from 'node:zlib';
 import { loadPlaywright, startPreview, launchers, goScene } from './lib.mjs';
+import { collectInPage, lockTheta, SELECTORS as SNAP_SELECTORS, snapshotAll, diffSnapshots } from './unitsnapLib.mjs';
 
-export const VIEWPORTS = [[1366, 768], [1920, 1080], [1280, 720]];
+/** `--quick` (npm run e2e:smoke:quick): hanya 1366×768 dan tema Dark, untuk iterasi; skenario sama persis, jangkauannya yang lebih sempit. */
+export const QUICK = process.argv.includes('--quick');
+export const VIEWPORTS = QUICK ? [[1366, 768]] : [[1366, 768], [1920, 1080], [1280, 720]];
+export const THEMES = QUICK ? ['dark'] : ['dark', 'light'];
 export const MAX_TOPBAR_PX = 140;           // tinggi bilah atas maksimum (4 baris pesan kunci)
 export const MIN_FILL_PCT = 1;            // % piksel non-transparan minimum per grafik (terukur 1,9–63 % pada tampilan normal)
 const SHOT_SCENES = new Set([7, 9]);
@@ -509,7 +514,7 @@ async function helpInteraction(browser, url) {
   const fails = [];
   const base = url.replace(/#.*$/, '');
   for (const [w, h] of VIEWPORTS) {
-    for (const theme of ['dark', 'light']) {
+    for (const theme of THEMES) {
       const tag = `${w}×${h} ${theme}`;
       const p = await browser.newPage({ viewport: { width: w, height: h } });
       const errs = [];
@@ -653,7 +658,7 @@ async function settingsInteraction(browser, url) {
   const fails = [];
   const base = url.replace(/#.*$/, '');
   for (const [w, h] of VIEWPORTS) {
-    for (const theme of ['dark', 'light']) {
+    for (const theme of THEMES) {
       const tag = `${w}×${h} ${theme}`;
       const p = await browser.newPage({ viewport: { width: w, height: h } });
       const errs = [];
@@ -819,7 +824,7 @@ async function helpClickInteraction(browser, url) {
   const kindOf = (id) => (id === 'ui.tempLegend' || id === 'ui.speciesLegend' ? 'legenda viewport 3D' : /^hud\./.test(id) ? 'HUD' : /^ctl\./.test(id) ? 'kontrol' : /^hdr\./.test(id) ? 'header' : /^nav\./.test(id) ? 'navigasi' : id === 'chart' ? 'grafik' : id === 'limits-panel' ? 'panel Limits' : 'panel / lainnya');
   const list = () => document.querySelectorAll('.help-btn, .chart__guide');
   for (const [w, h] of VIEWPORTS) {
-    for (const theme of ['dark', 'light']) {
+    for (const theme of THEMES) {
       const tag = `${w}×${h} ${theme}`;
       const p = await browser.newPage({ viewport: { width: w, height: h } });
       const errs = [];
@@ -937,7 +942,7 @@ async function langIdInteraction(browser, url) {
   const hudTexts = () => [...document.querySelectorAll('.hud__value .v')].filter((e) => e.checkVisibility?.() !== false).map((e) => e.textContent.trim());
   let states = 0, commaSeen = 0;
   for (const [w, h] of VIEWPORTS) {
-    for (const theme of ['dark', 'light']) {
+    for (const theme of THEMES) {
       const tag = `${w}×${h} ${theme} ID`;
       const p = await browser.newPage({ viewport: { width: w, height: h } });
       const errs = [];
@@ -1130,7 +1135,7 @@ async function scenesIdFlow(browser, url, cfg) {
   let compared = 0, texts = 0;
   const fresh = {};
   for (const [w, h] of VIEWPORTS) {
-    for (const theme of ['dark', 'light']) {
+    for (const theme of THEMES) {
       const res = {};
       for (const lang of ['en', 'id']) {
         const p = await browser.newPage({ viewport: { width: w, height: h } });
@@ -1259,7 +1264,7 @@ async function d5aInteraction(browser, url) {
   };
   const texts = (sel) => `[...document.querySelectorAll(${JSON.stringify(sel)})].filter((e) => e.checkVisibility?.() !== false).map((e) => e.textContent.trim())`;
   // 1) banner + chip + format ID di Scene 9 dan halaman Regulations (muat langsung ID, 3 viewport × 2 tema)
-  for (const [w, h] of VIEWPORTS) for (const theme of ['dark', 'light']) {
+  for (const [w, h] of VIEWPORTS) for (const theme of THEMES) {
     const tag = `${w}×${h} ${theme} ID`;
     const p = await mk('id', theme, w, h);
     await p.goto(`${base}#/scene/9`);
@@ -1425,7 +1430,7 @@ async function unitsUiInteraction(browser, url) {
     for (const e of errs) fails.push(`units (bendera mati): ${e}`);
     await p.close();
   }
-  for (const [w, h] of VIEWPORTS) for (const theme of ['dark', 'light']) for (const lang of ['en', 'id']) {
+  for (const [w, h] of VIEWPORTS) for (const theme of THEMES) for (const lang of ['en', 'id']) {
     const tag = `units ${w}×${h} ${theme} ${lang}`;
     const ctx = await browser.newContext({ viewport: { width: w, height: h } });
     const p = await ctx.newPage();
@@ -1551,6 +1556,122 @@ async function unitsUiInteraction(browser, url) {
     }
     for (const e of [...new Set(errs)]) fails.push(`${tag}: ${e}`);
     await ctx.close();
+  }
+  return fails;
+}
+
+/**
+ * U2: satuan pilihan di scene. Scene 1, 4, 5, 6, 7, 8, 9 (tab Levers): ganti preset SI → US customary → SI lewat Settings (?units=1);
+ * HUD dan slider berubah (simbol satuan, rentang slider), simbol SI hilang, Scene 4 tetap menampilkan ppmvd dan mg/Nm³ berdampingan,
+ * tanpa luapan teks / tumpang tindih ⓘ / scroll horizontal di semua viewport × tema × bahasa, dan SI → US → SI kembali PERSIS ke teks awal
+ * (HUD, kontrol termasuk min / max / step, overlay, pesan kunci, tooltip). Pilihan konsentrasi mg/Nm³ mengubah tile tunggal Scene 6 dan 7
+ * dengan basis O₂ dan volume tetap di samping angka. Jalur regulasi: chip Scene 6 tidak berubah.
+ */
+async function unitsSceneInteraction(browser, url) {
+  const fails = [];
+  const base = url.replace(/[?#].*$/, '');
+  const SCENES = [[1, null], [4, null], [5, null], [6, null], [7, null], [8, null], [9, '3']];
+  const EXPECT = {
+    1: { has: ['psia', 'lb/(hp·h)'], gone: ['bar', 'g/kWh'], sliders: false },
+    4: { has: ['°F', 'lb/MWh', 'ppmvd', 'mg/Nm³'], gone: ['g/kWh'], sliders: false },
+    5: { has: ['hp', '°F', 'Btu/kWh', '%/°F'], gone: ['MW', 'kJ/kWh', '%/°C'], sliders: true },
+    6: { has: ['°F', 'ppmvd'], gone: [], sliders: false },
+    7: { has: ['psia', 'lb/lbmol', 'lb/s', 'ft³/min', 'Btu/lb', 'hp'], gone: ['kg/kmol', 'kg/s', 'kJ/kg'], sliders: true },
+    8: { has: ['lb/MWh'], gone: ['g/kWh'], sliders: false },
+    9: { has: ['psia', 'lb/MWh', 'mg/Nm³'], gone: ['g/kWh'], sliders: false },
+  };
+  const hasSym = (text, sym) => text.includes(sym);
+  const goneSym = (text, sym) => !new RegExp(`(^|[\\s(/])${sym.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')}(?=$|[\\s),.;:])`).test(text);
+  for (const [w, h] of VIEWPORTS) for (const theme of THEMES) for (const lang of ['en', 'id']) {
+    const tag = `satuan scene ${w}×${h} ${theme} ${lang}`;
+    const ctx = await browser.newContext({ viewport: { width: w, height: h } });
+    const p = await ctx.newPage();
+    const errs = [];
+    p.on('pageerror', (e) => errs.push(`pageerror: ${e.message}`));
+    p.on('console', (m) => { if (m.type() === 'error') errs.push(`console: ${m.text()}`); });
+    await p.addInitScript(([l, t]) => { try { localStorage.setItem('etel:lang', l); localStorage.setItem('etel:theme', t); } catch { /* */ } }, [lang, theme]);
+    try {
+      await p.goto(`${base}?units=1#/scene/1`);
+      await p.waitForFunction(() => window.__etelDebug?.scene() != null, null, { timeout: 30000 });
+      const settle = async () => { await p.waitForFunction(() => !window.__etelDebug.loading(), null, { timeout: 30000 }); await p.waitForTimeout(900); };
+      const state = async () => { await p.evaluate(lockTheta); await p.waitForTimeout(500); return p.evaluate(collectInPage, SNAP_SELECTORS); };
+      const flat = (st, sels) => JSON.stringify(sels.map((k) => st[k] ?? null));
+      const pick = async (preset) => {
+        await p.locator('.settings-btn').click();
+        await p.locator(`.settings-card [data-section="units"] [data-preset="${preset}"]`).click();
+        await p.keyboard.press('Escape');
+        await settle();
+      };
+      const setConc = async (value) => {
+        await p.locator('.settings-btn').click();
+        const det = p.locator('.settings-card [data-section="units"] .set-units__more');
+        if (!(await det.evaluate((d) => d.open))) await det.locator('summary').click();
+        await det.locator('select[data-qty="concentration"]').selectOption(value);
+        await p.keyboard.press('Escape');
+        await settle();
+      };
+      for (const [n, tab] of SCENES) {
+        const lab = `${tag} · Scene ${n}${tab ? ` tab ${tab}` : ''}`;
+        await p.evaluate((k) => window.__etelDebug.goToScene(k), n);
+        await p.waitForFunction((k) => window.__etelDebug.scene() === k && !window.__etelDebug.loading(), n, { timeout: 30000 });
+        if (tab) await p.keyboard.press(tab);
+        await p.waitForTimeout(900);
+        const a = await state();
+        await pick('us');
+        const b = await state();
+        const E = EXPECT[n];
+        const textB = `${flat(b, ['.scene__hud', '.pl-hud__body', '.scene__controls', '.overlay'])}`;
+        for (const sym of E.has) if (!hasSym(textB, sym)) fails.push(`${lab}: simbol "${sym}" tidak tampil di HUD / kontrol / overlay setelah US customary`);
+        for (const sym of E.gone) if (!goneSym(textB, sym)) fails.push(`${lab}: simbol SI "${sym}" masih tampil setelah US customary`);
+        if (flat(a, ['.scene__hud', '.pl-hud__body']) === flat(b, ['.scene__hud', '.pl-hud__body'])) fails.push(`${lab}: HUD tidak berubah setelah US customary`);
+        if (E.sliders) {
+          const ra = JSON.stringify((a['.scene__controls'] ?? []).map((x) => x.ranges)), rb = JSON.stringify((b['.scene__controls'] ?? []).map((x) => x.ranges));
+          if (ra === rb) fails.push(`${lab}: rentang slider tidak berubah setelah US customary`);
+          if (JSON.stringify((a['.scene__controls'] ?? []).map((x) => x.text)) === JSON.stringify((b['.scene__controls'] ?? []).map((x) => x.text))) fails.push(`${lab}: nilai slider tidak berubah setelah US customary`);
+        }
+        if (n === 4 && !/ppmvd/.test(textB) || n === 4 && !/mg\/Nm³/.test(textB)) fails.push(`${lab}: Scene 4 harus tetap menampilkan ppmvd dan mg/Nm³ berdampingan`);
+        const res = await p.evaluate(inspect, { minFill: MIN_FILL_PCT });
+        if (res.hscroll) fails.push(`${lab}: scroll horizontal (US customary)`);
+        for (const o of res.overflow) fails.push(`${lab}: teks meluber di ${o.el}: ${o.reasons[0]} (US customary)`);
+        for (const o of [...new Set(res.helpOverlap)]) fails.push(`${lab}: bantuan ⓘ bertumpuk: ${o} (US customary)`);
+        if (n === 6 || n === 7) {
+          // satuan konsentrasi mg/Nm³: tile NOx / CO tunggal berubah, basis O₂ dan volume tetap di samping angka
+          const chipA = n === 6 ? await p.evaluate(() => document.querySelector('[data-k="regline"]')?.textContent ?? '') : '';
+          await setConc('mgNm3');
+          const c = await state();
+          const hud = JSON.stringify(c['.pl-hud__body'] ?? []);
+          if (!/mg\/Nm³/.test(hud)) fails.push(`${lab}: tile NOx / CO tidak menulis mg/Nm³ setelah memilih mg/Nm³`);
+          if (!/O₂/.test(hud) || !/°C/.test(hud)) fails.push(`${lab}: basis O₂ / volume hilang dari tile mg/Nm³`);
+          if (n === 6) {
+            const chipB = await p.evaluate(() => document.querySelector('[data-k="regline"]')?.textContent ?? '');
+            if (chipA.replace(/[\d.,]+/g, '#') !== chipB.replace(/[\d.,]+/g, '#')) fails.push(`${lab}: chip regulasi Scene 6 berubah karena satuan ("${chipA}" vs "${chipB}")`);
+          }
+          await setConc('auto');
+        }
+        await pick('si');
+        const d = await state();
+        const diffs = diffSnapshots({ x: a }, { x: d }, 5);
+        if (diffs.length) fails.push(`${lab}: SI → US → SI tidak kembali ke teks awal: ${diffs[0]}`);
+      }
+    } catch (e) {
+      fails.push(`${tag}: ${e.message.split('\n')[0]}`);
+    }
+    for (const e of [...new Set(errs)]) fails.push(`${tag}: ${e}`);
+    await ctx.close();
+  }
+  return fails;
+}
+
+/** U2: snapshot teks semua scene (EN dan ID) dengan bendera UNITS_UI mati DAN menyala (preset SI) identik dengan golden dari sebelum U2. */
+async function unitsSnapInteraction(browser, url) {
+  const fails = [];
+  const base = url.replace(/[?#].*$/, '');
+  const gold = JSON.parse(readFileSync('tests/snapshots/units_si_text.json', 'utf8'));
+  for (const flag of [false, true]) {
+    const snap = await snapshotAll(browser, base, { flag, choice: flag ? JSON.stringify({ v: 1, preset: 'si', overrides: {} }) : null });
+    for (const k of Object.keys(snap).filter((x) => x.startsWith('errors|'))) { fails.push(`unitsnap ${flag ? 'bendera menyala' : 'bendera mati'}: ${k} ${snap[k].join(' | ')}`); delete snap[k]; }
+    const diffs = diffSnapshots(gold, snap, 10);
+    for (const d of diffs) fails.push(`unitsnap ${flag ? 'bendera menyala + preset SI' : 'bendera mati'}: ${d}`);
   }
   return fails;
 }
@@ -1697,7 +1818,7 @@ async function idSweepInteraction(browser, url) {
     return out.slice(0, 4);
   };
   let states = 0;
-  for (const [w, h] of VIEWPORTS) for (const theme of ['dark', 'light']) {
+  for (const [w, h] of VIEWPORTS) for (const theme of THEMES) {
     const tag = `${w}×${h} ${theme} ID`;
     const p = await browser.newPage({ viewport: { width: w, height: h }, acceptDownloads: true });
     const errs = [];
@@ -1780,7 +1901,7 @@ async function d4Interaction(browser, url) {
   };
   let states = 0;
   for (const [w, h] of VIEWPORTS) {
-    for (const theme of ['dark', 'light']) {
+    for (const theme of THEMES) {
       const p = await browser.newPage({ viewport: { width: w, height: h } });
       const errs = [];
       p.on('pageerror', (e) => errs.push(`pageerror: ${e.message}`));
@@ -1891,7 +2012,7 @@ async function numberErrorsInteraction(browser, url) {
     };
   };
   for (const lang of ['en', 'id']) {
-    for (const theme of ['dark', 'light']) {
+    for (const theme of THEMES) {
       const tag = `1280×720 ${lang.toUpperCase()} ${theme}`;
       const p = await browser.newPage({ viewport: { width: 1280, height: 720 } });
       const errs = [];
@@ -2062,7 +2183,7 @@ async function idChromeInteraction(browser, url) {
     return out.slice(0, 6);
   };
   for (const [w, h] of VIEWPORTS) {
-    for (const theme of ['dark', 'light']) {
+    for (const theme of THEMES) {
       const tag = `${w}×${h} ID ${theme}`;
       const p = await browser.newPage({ viewport: { width: w, height: h } });
       const errs = [];
@@ -2313,7 +2434,7 @@ async function landingInteraction(browser, url) {
     await p.close();
   }
   // 4) screenshot landing: tiga resolusi × dua tema
-  for (const [w, h] of VIEWPORTS) for (const theme of ['dark', 'light']) {
+  for (const [w, h] of VIEWPORTS) for (const theme of THEMES) {
     const { p, errs } = await open({ viewport: { width: w, height: h } }, { fn: (t) => { try { localStorage.setItem('etel:theme', t); } catch {} }, arg: theme });
     await p.goto(base);
     await p.waitForFunction(() => window.__etelDebug?.hero?.()?.ready && document.querySelectorAll('.lcard').length === 4, null, { timeout: 30000 }).catch(() => fails.push(`landing ${w}×${h} ${theme}: hero/kartu tidak siap`));
@@ -2640,6 +2761,10 @@ const srv = await startPreview(Number(process.env.E2E_PORT ?? 4185));
 mkdirSync(SHOTS, { recursive: true });
 const failures = [];
 const report = [];
+/** Durasi tiap alur (dicetak di akhir; dasar angka durasi di README). */
+const durations = [];
+const T = async (name, fn, ...a) => { const t0 = Date.now(); try { return await fn(...a); } finally { durations.push([name, Date.now() - t0]); } };
+const T_START = Date.now();
 let leverTimes = [];
 const s6Heights = [];
 let browsers = [];
@@ -2650,7 +2775,7 @@ try {
   // E2E_ONLY=learn,landing,deeplinks: hanya alur halaman tersebut (iterasi cepat); tanpa variabel = smoke penuh
   const only = process.env.E2E_ONLY ? new Set(process.env.E2E_ONLY.split(',')) : null;
   if (only) {
-    const flows = { numerr: numberErrorsInteraction, presenterlang: presenterLangInteraction, idchrome: idChromeInteraction, langid: langIdInteraction, d3: d3Interaction, d4: d4Interaction, d5a: d5aInteraction, d5b: d5bInteraction, d6: d6Interaction, unitsui: unitsUiInteraction, idsweep: idSweepInteraction, learn: learnInteraction, chartguide: chartGuideInteraction, help: helpInteraction, helpclick: helpClickInteraction, settings: settingsInteraction, landing: landingInteraction, deeplinks: deepLinks, theme: themeInteraction };
+    const flows = { numerr: numberErrorsInteraction, presenterlang: presenterLangInteraction, idchrome: idChromeInteraction, langid: langIdInteraction, d3: d3Interaction, d4: d4Interaction, d5a: d5aInteraction, d5b: d5bInteraction, d6: d6Interaction, unitsui: unitsUiInteraction, units: unitsSceneInteraction, unitsnap: unitsSnapInteraction, idsweep: idSweepInteraction, learn: learnInteraction, chartguide: chartGuideInteraction, help: helpInteraction, helpclick: helpClickInteraction, settings: settingsInteraction, landing: landingInteraction, deeplinks: deepLinks, theme: themeInteraction };
     for (const k of only) if (flows[k]) failures.push(...await flows[k](chromium.browser, srv.url));
   }
   for (const [w, h] of only ? [] : VIEWPORTS) {
@@ -2696,25 +2821,27 @@ try {
     if (w === 1366) failures.push(...await snapshotPerTab(page));
     if (w === 1366) failures.push(...await formulaInteraction(page));
     if (w === 1366) failures.push(...await modeInteraction(page));
-    if (w === 1366) failures.push(...await themeInteraction(chromium.browser, srv.url));
-    if (w === 1366) failures.push(...await deepLinks(chromium.browser, srv.url));
-    if (w === 1366) failures.push(...await landingInteraction(chromium.browser, srv.url));
-    if (w === 1366) failures.push(...await learnInteraction(chromium.browser, srv.url));
-    if (w === 1366) failures.push(...await chartGuideInteraction(chromium.browser, srv.url));
-    if (w === 1366) failures.push(...await helpInteraction(chromium.browser, srv.url));
-    if (w === 1366) failures.push(...await settingsInteraction(chromium.browser, srv.url));
-    if (w === 1366) failures.push(...await helpClickInteraction(chromium.browser, srv.url));
-    if (w === 1366) failures.push(...await langIdInteraction(chromium.browser, srv.url));
-    if (w === 1366) failures.push(...await d3Interaction(chromium.browser, srv.url));
-    if (w === 1366) failures.push(...await d4Interaction(chromium.browser, srv.url));
-    if (w === 1366) failures.push(...await d5aInteraction(chromium.browser, srv.url));
-    if (w === 1366) failures.push(...await d5bInteraction(chromium.browser, srv.url));
-    if (w === 1366) failures.push(...await d6Interaction(chromium.browser, srv.url));
-    if (w === 1366) failures.push(...await unitsUiInteraction(chromium.browser, srv.url));
-    if (w === 1366) failures.push(...await idSweepInteraction(chromium.browser, srv.url));
-    if (w === 1366) failures.push(...await presenterLangInteraction(chromium.browser, srv.url));
-    if (w === 1366) failures.push(...await idChromeInteraction(chromium.browser, srv.url));
-    if (w === 1280) failures.push(...await numberErrorsInteraction(chromium.browser, srv.url));
+    if (w === 1366) failures.push(...await T('themeInteraction', themeInteraction, chromium.browser, srv.url));
+    if (w === 1366) failures.push(...await T('deepLinks', deepLinks, chromium.browser, srv.url));
+    if (w === 1366) failures.push(...await T('landingInteraction', landingInteraction, chromium.browser, srv.url));
+    if (w === 1366) failures.push(...await T('learnInteraction', learnInteraction, chromium.browser, srv.url));
+    if (w === 1366) failures.push(...await T('chartGuideInteraction', chartGuideInteraction, chromium.browser, srv.url));
+    if (w === 1366) failures.push(...await T('helpInteraction', helpInteraction, chromium.browser, srv.url));
+    if (w === 1366) failures.push(...await T('settingsInteraction', settingsInteraction, chromium.browser, srv.url));
+    if (w === 1366) failures.push(...await T('helpClickInteraction', helpClickInteraction, chromium.browser, srv.url));
+    if (w === 1366) failures.push(...await T('langIdInteraction', langIdInteraction, chromium.browser, srv.url));
+    if (w === 1366) failures.push(...await T('d3Interaction', d3Interaction, chromium.browser, srv.url));
+    if (w === 1366) failures.push(...await T('d4Interaction', d4Interaction, chromium.browser, srv.url));
+    if (w === 1366) failures.push(...await T('d5aInteraction', d5aInteraction, chromium.browser, srv.url));
+    if (w === 1366) failures.push(...await T('d5bInteraction', d5bInteraction, chromium.browser, srv.url));
+    if (w === 1366) failures.push(...await T('d6Interaction', d6Interaction, chromium.browser, srv.url));
+    if (w === 1366) failures.push(...await T('unitsUiInteraction', unitsUiInteraction, chromium.browser, srv.url));
+    if (w === 1366) failures.push(...await T('unitsSceneInteraction', unitsSceneInteraction, chromium.browser, srv.url));
+    if (w === 1366) failures.push(...await T('unitsSnapInteraction', unitsSnapInteraction, chromium.browser, srv.url));
+    if (w === 1366) failures.push(...await T('idSweepInteraction', idSweepInteraction, chromium.browser, srv.url));
+    if (w === 1366) failures.push(...await T('presenterLangInteraction', presenterLangInteraction, chromium.browser, srv.url));
+    if (w === 1366) failures.push(...await T('idChromeInteraction', idChromeInteraction, chromium.browser, srv.url));
+    if (w === (QUICK ? 1366 : 1280)) failures.push(...await T('numberErrorsInteraction', numberErrorsInteraction, chromium.browser, srv.url));
     for (const e of [...new Set(errs)]) failures.push(`${w}×${h}: ${e}`);
     await page.close();
   }
@@ -2724,6 +2851,7 @@ try {
 }
 
 console.log('\nSmoke test tampilan (Chromium, rendering software bila tanpa GPU)\n');
+if (durations.length) { console.log(`Durasi per alur (${QUICK ? 'quick' : 'penuh'}, total ${Math.round((Date.now() - T_START) / 1000)} s):`); for (const [k, ms] of durations.sort((a, b) => b[1] - a[1])) console.log(`  ${k.padEnd(26)} ${Math.round(ms / 1000)} s`); }
 for (const r of report) console.log(`${r.label.padEnd(30)} grafik: ${r.charts.length ? r.charts.map((p) => `${p}%`).join(' ') : '–'}${r.overflow ? `  · meluber: ${r.overflow}` : ''}`);
 if (s6Heights.length) console.log(`\nScene 6 · tinggi grafik (NOx & CO / pendamping): ${s6Heights.join(' · ')}`);
 if (leverTimes.length) {

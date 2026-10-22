@@ -17,8 +17,8 @@ import { createTempLegend } from '../charts/legend.js';
 import { slider, segmented, button } from '../ui/controls.js';
 import { animSpeedSlider } from '../ui/animSpeed.js';
 import { createHud } from '../ui/hud.js';
-import { fmt, pct, toBar, toLiter, toMm } from '../ui/format.js';
-import { STR, signedDeg, plusDeg } from '../ui/strings.js';
+import { fmt, pct, toBar, fq } from '../ui/format.js';
+import { STR, signedDeg, plusDeg, unitSym, fqu } from '../ui/strings.js';
 import { CV } from '../charts/chartBase.js';
 
 const S = STR.scene1, C = STR.common, U = STR.common.units;
@@ -154,12 +154,12 @@ export function createScene(ctx) {
   function buildHud() {
     const H = S.hud;
     hud = createHud(q('.scene__hud'), [
-      { id: 'pmax', help: 'hud.pmax', label: H.pmax.label, unit: U.bar, value: (f) => fmt(toBar(f.summary.Pmax), 1), tip: H.pmax.tip },
+      { id: 'pmax', help: 'hud.pmax', label: H.pmax.label, unit: unitSym('pressure'), value: (f) => fq(f.summary.Pmax, 'pressure', { digits: 1 }), tip: H.pmax.tip },
       { id: 'thpmax', help: 'hud.thetaPmax', label: H.thpmax.label, unit: U.atdc, value: (f) => plusDeg(f.summary.thetaPmax), tip: H.thpmax.tip },
-      { id: 'imep', help: 'hud.imep', label: H.imep.label, unit: U.bar, value: (f) => fmt(toBar(f.summary.imepG), 1), tip: H.imep.tip },
+      { id: 'imep', help: 'hud.imep', label: H.imep.label, unit: unitSym('pressure'), value: (f) => fq(f.summary.imepG, 'pressure', { digits: 1 }), tip: H.imep.tip },
       { id: 'etai', help: 'hud.etaIndicated', label: H.etai.label, unit: U.pct, value: (f) => pct(f.eta.ind, 1), tip: H.etai.tip },
       { id: 'etab', help: 'hud.etaBrake', label: H.etab.label, unit: U.pct, value: (f) => pct(f.eta.brake, 1), tip: H.etab.tip },
-      { id: 'bsfc', help: 'hud.bsfc', label: H.bsfc.label, unit: U.gkWh, value: (f) => fmt(f.summary.bsfc, 0), tip: H.bsfc.tip },
+      { id: 'bsfc', help: 'hud.bsfc', label: H.bsfc.label, unit: unitSym('specificFuel'), value: (f) => fq(f.summary.bsfc, 'specificFuel', { digits: 0 }), tip: H.bsfc.tip },
     ], { level: C.level.semiEmpirical, basis: 'engineCycle', note: H.note });
   }
 
@@ -207,15 +207,15 @@ export function createScene(ctx) {
       let v = '';
       switch (k) {
         case 'theta': v = signedDeg(f.theta); break;
-        case 'x': v = `${fmt(toMm(f.pistonPos), 1)} ${U.mm}`; break;
-        case 'V': v = `${fmt(toLiter(f.V), 3)} ${U.L}`; break;
-        case 'B': v = `${fmt(toMm(g.bore), 0)} ${U.mm}`; break;
-        case 'a': v = `${fmt(toMm(g.a), 0)} ${U.mm}`; break;
-        case 'l': v = `${fmt(toMm(g.conrod), 0)} ${U.mm}`; break;
-        case 'Vc': v = S.formula.VcVal(toLiter(g.Vc), g.r); break;
+        case 'x': v = fqu(f.pistonPos, 'length', { digits: 1 }); break;
+        case 'V': v = fqu(f.V, 'volume', { digits: 3 }); break;
+        case 'B': v = fqu(g.bore, 'length', { digits: 0 }); break;
+        case 'a': v = fqu(g.a, 'length', { digits: 0 }); break;
+        case 'l': v = fqu(g.conrod, 'length', { digits: 0 }); break;
+        case 'Vc': v = S.formula.VcVal(g.Vc, g.r); break;
         case 'phase': v = C.phase[f.phase] ?? f.phase; break;
-        case 'P': v = `${fmt(toBar(f.P), 1)} ${U.bar}`; break;
-        case 'T': v = `${fmt(f.T, 0)} ${U.K}`; break;
+        case 'P': v = fqu(f.P, 'pressure', { digits: 1 }); break;
+        case 'T': v = fqu(f.T, 'temperature', { digits: 0 }); break;
         case 'xb': v = `${fmt(f.xb * 100, 0)} ${U.pct}`; break;
         default: continue;
       }

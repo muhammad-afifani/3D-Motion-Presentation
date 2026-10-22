@@ -15,8 +15,8 @@ import { createTempLegend } from '../charts/legend.js';
 import { slider, segmented, button } from '../ui/controls.js';
 import { animSpeedSlider } from '../ui/animSpeed.js';
 import { createHud } from '../ui/hud.js';
-import { fmt, pct } from '../ui/format.js';
-import { STR } from '../ui/strings.js';
+import { fmt, pct, fq, fqRate } from '../ui/format.js';
+import { STR, unitSym, ratePerSym } from '../ui/strings.js';
 
 const S = STR.scene5, C = STR.common, U = STR.common.units, H = STR.scene5.hud;
 
@@ -30,11 +30,11 @@ function hudItems(cfg, perDegRef) {
   const twin = cfg !== 'generator';
   return [
     { id: 'eta', help: 'hud.etaThermal', label: H.eta.label, unit: U.pct, value: (f) => pct(f.eta, 1), tip: H.eta.tip },
-    { id: 'hr', help: 'hud.heatRate', label: H.heatRate.label, unit: U.kJkWh, value: (f) => fmt(f.heatRate, 0), tip: H.heatRate.tip },
-    { id: 'pw', help: 'hud.power', label: H.power.label(GAS_TURBINES[cfg].mdot), unit: U.MW, value: (f) => fmt(f.power / 1e6, 2), tip: H.power.tip },
+    { id: 'hr', help: 'hud.heatRate', label: H.heatRate.label, unit: unitSym('heatRate'), value: (f) => fq(f.heatRate, 'heatRate', { digits: 0 }), tip: H.heatRate.tip },
+    { id: 'pw', help: 'hud.power', label: H.power.label(GAS_TURBINES[cfg].mdot), unit: unitSym('power', 'MW'), value: (f) => fq(f.power, 'power', { digits: 2, native: 'MW' }), tip: H.power.tip(GAS_TURBINES[cfg].mdot) },
     { id: 'bwr', help: 'hud.bwr', label: H.bwr.label, unit: U.pct, value: (f) => pct(f.bwr, 0), tip: H.bwr.tip },
-    { id: 'tex', help: 'hud.exhaustT', label: H.texh.label(twin), unit: U.K, value: (f) => fmt(f.Texh, 0), tip: H.texh.tip },
-    { id: 'der', help: 'hud.derating', label: `${H.derate.label}${perDegRef ? H.refSuffix : ''}`, unit: H.perDegUnit, model: H.derateModel[cfg], value: (f) => fmt(f.perDegC * 100, 2), tip: H.derate.tip(perDegRef) },
+    { id: 'tex', help: 'hud.exhaustT', label: H.texh.label(twin), unit: unitSym('temperature'), value: (f) => fq(f.Texh, 'temperature', { digits: 0 }), tip: H.texh.tip },
+    { id: 'der', help: 'hud.derating', label: `${H.derate.label}${perDegRef ? H.refSuffix() : ''}`, unit: ratePerSym('%', 'temperature', { kAsC: true }), model: H.derateModel[cfg], value: (f) => fqRate(f.perDegC, 'temperature', { digits: 2, scale: 100, kAsC: true }), tip: H.derate.tip(perDegRef) },
     { id: 'iso', help: 'hud.powerIso', label: H.powerIso.label, unit: U.pct, model: H.derateModel[cfg], value: (f) => `${f.derate >= 1 ? '+' : '−'}${fmt(Math.abs(f.derate - 1) * 100, 1)}`, tip: H.powerIso.tip },
     { id: 'n', help: 'hud.speed', label: H.speed.label, unit: '', value: (f) => (f.twin ? S.speedTwin(f.N.gg, f.N.pt) : S.speedGen(f.N.rpm)), tip: twin ? H.speed.tipTwin : H.speed.tipGen },
   ];
@@ -82,12 +82,12 @@ export function createScene(ctx) {
     const s = store.get();
     ctl.cfg = segmented({ help: 'ctl.turbineConfig', label: S.config, tip: S.tips.config, options: [{ value: 'generator', label: S.configs.generator, key: '1' }, { value: 'compressorDrive', label: S.configs.compressorDrive, key: '2' }], value: s.gCfg, onChange: (v) => setCfg(v) });
     ctl.rp = slider({ help: 'ctl.pressureRatio', label: S.rp, ...GT_RANGES.rp, value: s.gRp, digits: 1, tip: S.tips.rp, onInput: (v) => store.set({ gRp: v }) });
-    ctl.T3 = slider({ help: 'ctl.turbineInletT', label: S.T3, ...GT_RANGES.T3, value: s.gT3, digits: 0, unit: U.K, tip: S.tips.T3, onInput: (v) => store.set({ gT3: v }) });
+    ctl.T3 = slider({ help: 'ctl.turbineInletT', label: S.T3, ...GT_RANGES.T3, value: s.gT3, digits: 0, qty: 'temperature', from: 'K', tip: S.tips.T3, onInput: (v) => store.set({ gT3: v }) });
     ctl.etaC = slider({ help: 'ctl.etaC', label: S.etaC, ...GT_RANGES.etaC, value: s.gEtaC, digits: 3, tip: S.tips.etaC, onInput: (v) => store.set({ gEtaC: v }) });
     ctl.etaT = slider({ help: 'ctl.etaT', label: S.etaT, ...GT_RANGES.etaT, value: s.gEtaT, digits: 3, tip: S.tips.etaT, onInput: (v) => store.set({ gEtaT: v }) });
     ctl.etaGG = slider({ help: 'ctl.etaGG', label: S.etaGG, ...GT_RANGES.etaT, value: s.gEtaGG, digits: 3, tip: S.tips.etaGG, onInput: (v) => store.set({ gEtaGG: v }) });
     ctl.etaPT = slider({ help: 'ctl.etaPT', label: S.etaPT, ...GT_RANGES.etaT, value: s.gEtaPT, digits: 3, tip: S.tips.etaPT, onInput: (v) => store.set({ gEtaPT: v }) });
-    ctl.Tamb = slider({ help: 'ctl.ambientT', label: S.Tamb, ...GT_RANGES.Tamb, value: s.gTamb, digits: 0, unit: U.degC, tip: S.tips.Tamb, onInput: (v) => store.set({ gTamb: v }) });
+    ctl.Tamb = slider({ help: 'ctl.ambientT', label: S.Tamb, ...GT_RANGES.Tamb, value: s.gTamb, digits: 0, qty: 'temperature', from: 'C', kAsC: true, tip: S.tips.Tamb, onInput: (v) => store.set({ gTamb: v }) });
     ctl.rpm = animSpeedSlider(store);
     ctl.play = button({ help: 'ctl.play', label: C.pause, key: C.keySpace, tip: C.tips.play, onClick: () => store.set(togglePlayPatch(store.get())) });
     ctl.freeze = button({ help: 'ctl.freeze', label: C.freeze, key: 'F', tip: C.tips.freeze, onClick: () => store.set(toggleFreezePatch(store.get())) });

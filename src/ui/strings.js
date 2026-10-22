@@ -11,13 +11,28 @@
  * Parameterised text is a small function. `\n` in a tooltip = line break.
  * Style: short sentences, number and unit first, no filler, no code identifiers in captions/tooltips.
  */
-import { fmt } from './format.js';
+import { fmt, fq, fqFrom, fqDelta, fqRate, qtyUnit, concUnit } from './format.js';
 import { createStrings } from '../state/i18n.js';
 
 /** Signed angle: −4.0° */
 export const signedDeg = (v) => `${v < 0 ? '−' : ''}${fmt(Math.abs(v), 1)}°`;
 /** Angle with + / − sign: +3.5° */
 export const plusDeg = (v) => `${v < 0 ? '−' : '+'}${fmt(Math.abs(v), 1)}°`;
+
+// Display units (Settings → Units; numbers come from the frame in base units, see ui/format.js). Symbols are language-free
+// (STR.units.sym); STR is read when a function is called, never at load.
+/** Symbol of the unit now chosen for a quantity. native = unit a scene writes when the choice is "As in each scene"; kAsC = this place is written in °C when K is chosen. */
+export const unitSym = (qty, native = null, kAsC = false) => STR.units.sym[qtyUnit(qty, native, kAsC)];
+/** "112.4 bar": number and unit in the chosen unit. Value in the base unit of the quantity. */
+export const fqu = (x, qty, o = {}) => `${fq(x, qty, o)} ${unitSym(qty, o.native, o.kAsC)}`;
+/** Symbol of the gas-concentration unit now chosen ('ppmvd' | 'mg/Nm³'); native = what the place writes when the choice is "As in each scene". */
+export const concSym = (native = 'ppmvd') => STR.units.sym[concUnit(native)];
+/** Same for a value kept in unit `from` (not the base unit), e.g. ambient temperature in °C: fquFrom(15, 'temperature', 'C', { kAsC: true }). */
+export const fquFrom = (x, qty, from, o = {}) => `${fqFrom(x, qty, from, o)} ${unitSym(qty, from, o.kAsC)}`;
+/** Same for a DIFFERENCE (no offset): ΔT 100 K = 180 °F. */
+export const fqDeltaU = (x, qty, o = {}) => `${fqDelta(x, qty, o)} ${unitSym(qty, o.native, o.kAsC)}`;
+/** Per-degree rate "%/°F": the rate is per base unit (per K). Prefix is the text before the slash (e.g. '%'). */
+export const ratePerSym = (prefix, qty = 'temperature', o = {}) => `${prefix}/${unitSym(qty, o.native, o.kAsC)}`;
 
 const SRC = {
   // ─────────────────────────── common (used by all scenes) ───────────────────────────
@@ -43,7 +58,9 @@ const SRC = {
       fullCO: { en: (refO2, TrefC) => `as CO, dry (ppmvd), @ ${fmt(refO2, Number.isInteger(refO2) ? 0 : 1)} % O₂, ${fmt(TrefC, 0)} °C`, id: (refO2, TrefC) => `sebagai CO, kering (ppmvd), @ ${fmt(refO2, Number.isInteger(refO2) ? 0 : 1)} % O₂, ${fmt(TrefC, 0)} °C` },
       /** Sub-label of HUD tiles: the unit (ppmvd) already sits next to the value; the ID side drops it so the tile keeps two lines. */
       tile: { en: (refO2, TrefC) => `as NO₂, dry (ppmvd), @ ${fmt(refO2, Number.isInteger(refO2) ? 0 : 1)} % O₂, ${fmt(TrefC, 0)} °C`, id: (refO2, TrefC) => `sebagai NO₂, kering, @ ${fmt(refO2, Number.isInteger(refO2) ? 0 : 1)} % O₂, ${fmt(TrefC, 0)} °C` },
+      tileMg: { en: (refO2, TrefC) => `as NO₂, dry, @ ${fmt(refO2, Number.isInteger(refO2) ? 0 : 1)} % O₂, ${fmt(TrefC, 0)} °C`, id: (refO2, TrefC) => `sebagai NO₂, kering, @ ${fmt(refO2, Number.isInteger(refO2) ? 0 : 1)} % O₂, ${fmt(TrefC, 0)} °C` },
       tileCO: { en: (refO2, TrefC) => `as CO, dry (ppmvd), @ ${fmt(refO2, Number.isInteger(refO2) ? 0 : 1)} % O₂, ${fmt(TrefC, 0)} °C`, id: (refO2, TrefC) => `sebagai CO, kering, @ ${fmt(refO2, Number.isInteger(refO2) ? 0 : 1)} % O₂, ${fmt(TrefC, 0)} °C` },
+      tileMgCO: { en: (refO2, TrefC) => `as CO, dry, @ ${fmt(refO2, Number.isInteger(refO2) ? 0 : 1)} % O₂, ${fmt(TrefC, 0)} °C`, id: (refO2, TrefC) => `sebagai CO, kering, @ ${fmt(refO2, Number.isInteger(refO2) ? 0 : 1)} % O₂, ${fmt(TrefC, 0)} °C` },
       fullMg: { en: (refO2, TrefC) => `as NO₂, dry, @ ${fmt(refO2, Number.isInteger(refO2) ? 0 : 1)} % O₂, ${fmt(TrefC, 0)} °C (mg/Nm³)`, id: (refO2, TrefC) => `sebagai NO₂, kering, @ ${fmt(refO2, Number.isInteger(refO2) ? 0 : 1)} % O₂, ${fmt(TrefC, 0)} °C (mg/Nm³)` },
       fullMgCO: { en: (refO2, TrefC) => `as CO, dry, @ ${fmt(refO2, Number.isInteger(refO2) ? 0 : 1)} % O₂, ${fmt(TrefC, 0)} °C (mg/Nm³)`, id: (refO2, TrefC) => `sebagai CO, kering, @ ${fmt(refO2, Number.isInteger(refO2) ? 0 : 1)} % O₂, ${fmt(TrefC, 0)} °C (mg/Nm³)` },
       short: { en: (refO2, TrefC) => `@ ${fmt(refO2, Number.isInteger(refO2) ? 0 : 1)} % O₂ dry, ${fmt(TrefC, 0)} °C`, id: (refO2, TrefC) => `@ ${fmt(refO2, Number.isInteger(refO2) ? 0 : 1)} % O₂ kering, ${fmt(TrefC, 0)} °C` },
@@ -401,7 +418,7 @@ const SRC = {
       V: { en: '<span class="fv v-V">V(<span class="v-theta">θ</span>)</span> = <span class="fv v-vc">V<sub>c</sub></span> + (πB²/4)·(l + a − s(<span class="v-theta">θ</span>))', id: '<span class="fv v-V">V(<span class="v-theta">θ</span>)</span> = <span class="fv v-vc">V<sub>c</sub></span> + (πB²/4)·(l + a − s(<span class="v-theta">θ</span>))' },
       theta: { en: '<span class="v-theta">θ</span> = ', id: '<span class="v-theta">θ</span> = ' }, x: { en: 'l + a − s = ', id: 'l + a − s = ' }, Vnow: { en: 'V = ', id: 'V = ' }, B: { en: 'B = ', id: 'B = ' }, a: { en: 'a = ', id: 'a = ' }, l: { en: 'l = ', id: 'l = ' },
       Vc: { en: 'V<sub>c</sub> = V<sub>d</sub>/(r−1) = ', id: 'V<sub>c</sub> = V<sub>d</sub>/(r−1) = ' },
-      VcVal: { en: (vcL, r) => `${fmt(vcL, 3)} L (r = ${fmt(r, 1)})`, id: (vcL, r) => `${fmt(vcL, 3)} L (r = ${fmt(r, 1)})` },
+      VcVal: { en: (vc, r) => `${fqu(vc, 'volume', { digits: 3 })} (r = ${fmt(r, 1)})`, id: (vc, r) => `${fqu(vc, 'volume', { digits: 3 })} (r = ${fmt(r, 1)})` },
     },
     readout: { P: { en: 'P', id: 'P' }, T: { en: 'T', id: 'T' }, xb: { en: 'x<sub>b</sub>', id: 'x<sub>b</sub>' } },
     hud: {
@@ -518,7 +535,7 @@ const SRC = {
     phiLabel: { diesel: { en: 'Global φ (mean)', id: 'φ global (rata-rata)' }, gas: { en: 'Mixture φ (homogeneous)', id: 'φ campuran (homogen)' }, turbine: { en: 'Premix-zone φ', id: 'φ zona premix' } },
     phiLocal: { en: 'Local φ (flame zone)', id: 'φ lokal (zona nyala)' },
     tin: { en: 'Inlet mixture T', id: 'T_in campuran' },
-    tinValue: { en: (Tin, manual) => `${fmt(Tin, 0)} K ${manual ? '(manual)' : '(model)'}`, id: (Tin, manual) => `${fmt(Tin, 0)} K ${manual ? '(manual)' : '(model)'}` },
+    tinValue: { en: (Tin, manual) => `${fqu(Tin, 'temperature', { digits: 0 })} ${manual ? '(manual)' : '(model)'}`, id: (Tin, manual) => `${fqu(Tin, 'temperature', { digits: 0 })} ${manual ? '(manual)' : '(model)'}` },
     tinModel: { en: 'T_in from model', id: 'T_in dari model' },
     focus: { en: 'Combustion window focus', id: 'Fokus pembakaran' },
     bloom: { auto: { en: 'Bloom: Auto', id: 'Bloom: Auto' }, on: { en: 'Bloom: On', id: 'Bloom: Aktif' }, off: { en: 'Bloom: Off', id: 'Bloom: Mati' } },
@@ -541,15 +558,15 @@ const SRC = {
     },
     overlay: {
       tflameLabel: { en: 'Adiabatic flame temperature while burning:', id: 'Suhu nyala adiabatik saat terbakar:' },
-      mixDiesel: { en: (phi, phiLocal, dT) => `Non-homogeneous mixture: mean φ ${fmt(phi, 2)}, flame zone φ ${fmt(phiLocal, 2)} (ΔT +${fmt(dT, 0)} K)`, id: (phi, phiLocal, dT) => `Campuran tidak homogen: φ rata-rata ${fmt(phi, 2)}, φ zona nyala ${fmt(phiLocal, 2)} (ΔT +${fmt(dT, 0)} K)` },
+      mixDiesel: { en: (phi, phiLocal, dT) => `Non-homogeneous mixture: mean φ ${fmt(phi, 2)}, flame zone φ ${fmt(phiLocal, 2)} (ΔT +${fqDeltaU(dT, 'temperature', { digits: 0 })})`, id: (phi, phiLocal, dT) => `Campuran tidak homogen: φ rata-rata ${fmt(phi, 2)}, φ zona nyala ${fmt(phiLocal, 2)} (ΔT +${fqDeltaU(dT, 'temperature', { digits: 0 })})` },
       mixGas: { en: (phi) => `Homogeneous mixture: whole charge φ ${fmt(phi, 2)} → cooler flame`, id: (phi) => `Campuran homogen: seluruh muatan φ ${fmt(phi, 2)} → nyala lebih dingin` },
-      mixTurbine: { en: (phi, Tin) => `Lean premix: premix-zone φ ${fmt(phi, 2)}, T_in = T₂ ${fmt(Tin, 0)} K`, id: (phi, Tin) => `Premix miskin: φ zona premix ${fmt(phi, 2)}, T_in = T₂ ${fmt(Tin, 0)} K` },
+      mixTurbine: { en: (phi, Tin) => `Lean premix: premix-zone φ ${fmt(phi, 2)}, T_in = T₂ ${fqu(Tin, 'temperature', { digits: 0 })}`, id: (phi, Tin) => `Premix miskin: φ zona premix ${fmt(phi, 2)}, T_in = T₂ ${fqu(Tin, 'temperature', { digits: 0 })}` },
       phasePiston: { en: (theta, phase, pctHr) => `θ = ${signedDeg(theta)} · ${phase} · heat release rate ${fmt(pctHr, 0)}% (relative)`, id: (theta, phase, pctHr) => `θ = ${signedDeg(theta)} · ${phase} · laju pelepasan panas ${fmt(pctHr, 0)}% (relatif)` },
-      phaseTurbine: { en: (qKJ) => `Premix-zone q_in ${fmt(qKJ, 0)} kJ/kg air · flame size ∝ q_in`, id: (qKJ) => `q_in zona premix ${fmt(qKJ, 0)} kJ/kg udara · ukuran nyala ∝ q_in` },
+      phaseTurbine: { en: (q) => `Premix-zone q_in ${fqu(q, 'specificEnergy', { digits: 0 })} air · flame size ∝ q_in`, id: (q) => `q_in zona premix ${fqu(q, 'specificEnergy', { digits: 0 })} udara · ukuran nyala ∝ q_in` },
     },
     notes: {
-      premix: { en: (T3, phiOverall) => `Premix-zone φ, not the overall turbine φ (T₃ ${fmt(T3, 0)} K ≈ ${fmt(phiOverall, 2)})`, id: (T3, phiOverall) => `φ zona premix, bukan φ turbin keseluruhan (T₃ ${fmt(T3, 0)} K ≈ ${fmt(phiOverall, 2)})` },
-      tinManual: { en: (TinModel) => `Manual T_in (model: ${fmt(TinModel, 0)} K)`, id: (TinModel) => `T_in manual (model: ${fmt(TinModel, 0)} K)` },
+      premix: { en: (T3, phiOverall) => `Premix-zone φ, not the overall turbine φ (T₃ ${fqu(T3, 'temperature', { digits: 0 })} ≈ ${fmt(phiOverall, 2)})`, id: (T3, phiOverall) => `φ zona premix, bukan φ turbin keseluruhan (T₃ ${fqu(T3, 'temperature', { digits: 0 })} ≈ ${fmt(phiOverall, 2)})` },
+      tinManual: { en: (TinModel) => `Manual T_in (model: ${fqu(TinModel, 'temperature', { digits: 0 })})`, id: (TinModel) => `T_in manual (model: ${fqu(TinModel, 'temperature', { digits: 0 })})` },
     },
     status: {
       bloom: { en: (on, autoOff) => `Bloom ${on ? 'on' : 'off'}${autoOff ? ' (auto: low fps)' : ''}`, id: (on, autoOff) => `Bloom ${on ? 'aktif' : 'mati'}${autoOff ? ' (otomatis: fps rendah)' : ''}` },
@@ -571,8 +588,8 @@ const SRC = {
     title: { en: 'NOx: why temperature matters so much', id: 'NOx: mengapa suhu sangat menentukan' },
     message: { en: 'NOx does not rise linearly with temperature. It rises exponentially.', id: 'NOx tidak naik secara linear terhadap suhu. NOx naik secara eksponensial.' },
     messageWithNumbers: { en: (ratio, Tref) =>
-      `NOx rises exponentially with temperature: +100 K at ${fmt(Tref, 0)} K ≈ ×${fmt(ratio, 1)} NO formation rate (Zeldovich model).`, id: (ratio, Tref) =>
-      `NOx naik secara eksponensial terhadap suhu: +100 K pada ${fmt(Tref, 0)} K ≈ ×${fmt(ratio, 1)} laju pembentukan NO (model Zeldovich).` },
+      `NOx rises exponentially with temperature: +${fqDeltaU(100, 'temperature', { digits: 0 })} at ${fqu(Tref, 'temperature', { digits: 0 })} ≈ ×${fmt(ratio, 1)} NO formation rate (Zeldovich model).`, id: (ratio, Tref) =>
+      `NOx naik secara eksponensial terhadap suhu: +${fqDeltaU(100, 'temperature', { digits: 0 })} pada ${fqu(Tref, 'temperature', { digits: 0 })} ≈ ×${fmt(ratio, 1)} laju pembentukan NO (model Zeldovich).` },
     engine: { en: 'Engine', id: 'Mesin' },
     engines: { diesel: { en: 'Diesel', id: 'Diesel' }, gas: { en: 'Gas lean-burn', id: 'Mesin gas lean-burn' } },
     timing: { diesel: { en: 'Injection timing θ₀', id: 'Timing injeksi θ₀' }, gas: { en: 'Spark timing θ₀', id: 'Timing percikan θ₀' } },
@@ -650,8 +667,8 @@ const SRC = {
       engines: { diesel: { en: 'Diesel', id: 'Diesel' }, gas: { en: 'Gas lean-burn', id: 'Mesin gas lean-burn' } },
       factor: { en: 'Factor', id: 'Faktor' },
       defaultEngine: { en: (c) => `default ×${fmt(c, c < 1 ? 3 : 2)} (typical-literature calibration)`, id: (c) => `bawaan ×${fmt(c, c < 1 ? 3 : 2)} (kalibrasi literatur tipikal)` },
-      targetEngine: { en: 'Target NOx at preset timing [g/kWh]', id: 'Target NOx pada timing pembakaran preset [g/kWh]' },
-      litEngine: { en: (v) => `typical literature ≈ ${fmt(v, 1)} g/kWh`, id: (v) => `literatur tipikal ≈ ${fmt(v, 1)} g/kWh` },
+      targetEngine: { en: () => `Target NOx at preset timing [${unitSym('specificEmission')}]`, id: () => `Target NOx pada timing pembakaran preset [${unitSym('specificEmission')}]` },
+      litEngine: { en: (v) => `typical literature ≈ ${fqu(v, 'specificEmission', { digits: 1 })}`, id: (v) => `literatur tipikal ≈ ${fqu(v, 'specificEmission', { digits: 1 })}` },
       dlnTitle: { en: 'DLN combustor (design point per configuration)', id: 'Ruang bakar DLN (titik desain per konfigurasi)' },
       dlnRows: { single: { en: 'Generator (single-shaft)', id: 'Turbin generator (single-shaft)' }, twin: { en: 'Compressor drive (twin-shaft)', id: 'Turbin kompresor (twin-shaft)' } },
       defaultDln: { en: (c, ppm, ref) => `default ×${fmt(c, 2)} (${fmt(ppm, 0)} ppmvd @ ${fmt(ref, 0)} % O₂)`, id: (c, ppm, ref) => `bawaan ×${fmt(c, 2)} (${fmt(ppm, 0)} ppmvd @ ${fmt(ref, 0)} % O₂)` },
@@ -661,9 +678,9 @@ const SRC = {
       reset: { en: 'Reset to default', id: 'Kembalikan ke bawaan' },
       close: { en: 'Close', id: 'Tutup' },
       computing: { en: 'Computing…', id: 'Menghitung…' },
-      doneEngine: { en: (got, it) => `Done: ${fmt(got, 2)} g/kWh at preset timing (${it} iterations)`, id: (got, it) => `Selesai: ${fmt(got, 2)} g/kWh pada timing pembakaran preset (${it} iterasi)` },
+      doneEngine: { en: (got, it) => `Done: ${fqu(got, 'specificEmission', { digits: 2 })} at preset timing (${it} iterations)`, id: (got, it) => `Selesai: ${fqu(got, 'specificEmission', { digits: 2 })} pada timing pembakaran preset (${it} iterasi)` },
       notConverged: { en: 'Did not converge. Check the target.', id: 'Tidak konvergen. Periksa targetnya.' },
-      doneDln: { en: (ppm, Tf) => `Done: ${fmt(ppm, 1)} ppmvd at design flame T ${fmt(Tf, 0)} K`, id: (ppm, Tf) => `Selesai: ${fmt(ppm, 1)} ppmvd pada T nyala desain ${fmt(Tf, 0)} K` },
+      doneDln: { en: (ppm, Tf) => `Done: ${fmt(ppm, 1)} ppmvd at design flame T ${fqu(Tf, 'temperature', { digits: 0 })}`, id: (ppm, Tf) => `Selesai: ${fmt(ppm, 1)} ppmvd pada T nyala desain ${fqu(Tf, 'temperature', { digits: 0 })}` },
       resetDone: { en: 'Calibration reset to default', id: 'Kalibrasi dikembalikan ke bawaan' },
     },
   },
@@ -673,8 +690,8 @@ const SRC = {
     title: { en: 'Gas turbine: a closer look at the Brayton cycle', id: 'Turbin gas: melihat siklus Brayton lebih dekat' },
     message: { en: 'The compressor consumes a large share of the turbine work. A hot ambient cuts power right away.', id: 'Kompresor memakai sebagian besar kerja turbin. Ambient panas langsung memangkas daya.' },
     messageWithNumbers: { en: (bwr, perDegC) =>
-      `The compressor consumes ±${fmt(bwr * 100, 0)}% of the turbine work. A hot ambient cuts power by ±${fmt(perDegC * 100, 2)}%/°C (model).`, id: (bwr, perDegC) =>
-      `Kompresor memakai ±${fmt(bwr * 100, 0)}% kerja turbin. Ambient panas memangkas daya ±${fmt(perDegC * 100, 2)}%/°C (model).` },
+      `The compressor consumes ±${fmt(bwr * 100, 0)}% of the turbine work. A hot ambient cuts power by ±${fqRate(perDegC, 'temperature', { digits: 2, scale: 100, kAsC: true })}%/${unitSym('temperature', null, true)} (model).`, id: (bwr, perDegC) =>
+      `Kompresor memakai ±${fmt(bwr * 100, 0)}% kerja turbin. Ambient panas memangkas daya ±${fqRate(perDegC, 'temperature', { digits: 2, scale: 100, kAsC: true })}%/${unitSym('temperature', null, true)} (model).` },
     config: { en: 'Configuration', id: 'Konfigurasi' },
     configs: { generator: { en: 'Generator', id: 'Turbin generator' }, compressorDrive: { en: 'Compressor drive', id: 'Turbin kompresor' } },
     rp: { en: 'Pressure ratio r_p', id: 'Rasio tekanan r_p' }, T3: { en: 'Turbine inlet T₃', id: 'T₃ masuk turbin' }, etaC: { en: 'Compressor η_c', id: 'η kompresor η_c' }, etaT: { en: 'Turbine η_t', id: 'η turbin η_t' },
@@ -693,23 +710,23 @@ const SRC = {
     hud: {
       eta: { label: { en: 'Thermal η', id: 'η termal' }, tip: { en: 'η = w_net / q_in.', id: 'η = w_net / q_in (kerja bersih per kalor masuk).' } },
       heatRate: { label: { en: 'Heat rate', id: 'Heat rate' }, tip: { en: 'Heat rate = 3600 / η (kJ of fuel per kWh of electric or shaft output). Lower is better.', id: 'Heat rate = 3600 / η (kJ bahan bakar per kWh keluaran listrik atau poros). Makin rendah makin baik.' } },
-      power: { label: { en: (mdot) => `Power (ṁ = ${fmt(mdot, 0)} kg/s)`, id: (mdot) => `Daya (ṁ = ${fmt(mdot, 0)} kg/s)` }, tip: { en: 'Shaft power = ṁ · w_net. ṁ = 20 kg/s is an example size (generic industrial class), not unit data.', id: 'Daya poros = ṁ · w_net. ṁ = 20 kg/s hanya ukuran contoh (kelas industri umum), bukan data unit.' } },
+      power: { label: { en: (mdot) => `Power (ṁ = ${fqu(mdot, 'massFlow', { digits: 0 })})`, id: (mdot) => `Daya (ṁ = ${fqu(mdot, 'massFlow', { digits: 0 })})` }, tip: { en: (mdot) => `Shaft power = ṁ · w_net. ṁ = ${fqu(mdot, 'massFlow', { digits: 0 })} is an example size (generic industrial class), not unit data.`, id: (mdot) => `Daya poros = ṁ · w_net. ṁ = ${fqu(mdot, 'massFlow', { digits: 0 })} hanya ukuran contoh (kelas industri umum), bukan data unit.` } },
       bwr: { label: { en: 'Back-work ratio', id: 'Rasio kerja balik' }, tip: { en: 'Compressor work / total turbine work. About half of the turbine work goes to driving the compressor.', id: 'Kerja kompresor / total kerja turbin. Sekitar setengah kerja turbin dipakai menggerakkan kompresor.' } },
       texh: { label: { en: (twin) => (twin ? 'Exhaust T₅' : 'Exhaust T₄'), id: (twin) => (twin ? 'T buang T₅' : 'T buang T₄') }, tip: { en: 'Exhaust gas temperature (to the stack or HRSG).', id: 'Suhu gas buang (ke stack atau HRSG).' } },
-      derate: { label: { en: 'Derating', id: 'Derating' }, tip: { en: (ref) => `Power loss per °C above ISO 15 °C.${ref ? '\nAt 15 °C it is computed at the 35 °C reference.' : ''}`, id: (ref) => `Kehilangan daya per °C di atas ISO 15 °C.${ref ? '\nPada 15 °C dihitung di acuan 35 °C.' : ''}` } },
+      derate: { label: { en: 'Derating', id: 'Derating' }, tip: { en: (ref) => `Power loss per ${unitSym('temperature', null, true)} above ISO ${fquFrom(15, 'temperature', 'C', { digits: 0, kAsC: true })}.${ref ? `\nAt ${fquFrom(15, 'temperature', 'C', { digits: 0, kAsC: true })} it is computed at the ${fquFrom(35, 'temperature', 'C', { digits: 0, kAsC: true })} reference.` : ''}`, id: (ref) => `Kehilangan daya per ${unitSym('temperature', null, true)} di atas ISO ${fquFrom(15, 'temperature', 'C', { digits: 0, kAsC: true })}.${ref ? `\nPada ${fquFrom(15, 'temperature', 'C', { digits: 0, kAsC: true })} dihitung di acuan ${fquFrom(35, 'temperature', 'C', { digits: 0, kAsC: true })}.` : ''}` } },
       powerIso: { label: { en: 'Power vs ISO', id: 'Daya vs ISO' }, tip: { en: 'Power relative to ISO conditions (15 °C, 1 atm).', id: 'Daya relatif terhadap kondisi ISO (15 °C, 1 atm).' } },
       /** Model label under the derating numbers (Derating & Power vs ISO tiles). */
       derateModel: { generator: { en: 'Generator model', id: 'Model generator' }, compressorDrive: { en: 'Compressor-drive model', id: 'Model kompresor' } },
       speed: { label: { en: 'Shaft speed', id: 'Putaran poros' }, tipGen: { en: 'Synchronous generator: fixed N (3,000 rpm for 50 Hz). When the load drops, fuel and IGV are adjusted, not N (see Scene 6).', id: 'Generator sinkron: N tetap (3.000 rpm untuk 50 Hz). Saat beban turun, bahan bakar dan IGV diatur, bukan N (lihat Scene 6).' }, tipTwin: { en: 'N_GG = gas generator, N_PT = power turbine. In a compressor drive, N_PT follows the process demand (Scenes 6–7).', id: 'N_GG = gas generator, N_PT = power turbine. Pada turbin kompresor, N_PT mengikuti kebutuhan proses (Scene 6–7).' } },
-      perDegUnit: { en: '%/°C', id: '%/°C' }, refSuffix: { en: ' (ref 35 °C)', id: ' (acuan 35 °C)' },
+      refSuffix: { en: () => ` (ref ${fquFrom(35, 'temperature', 'C', { digits: 0, kAsC: true })})`, id: () => ` (acuan ${fquFrom(35, 'temperature', 'C', { digits: 0, kAsC: true })})` },
       note: { en: 'Model: component efficiencies (η_c, η_t), combustor ΔP 4 %, mechanical loss 1 %. Derating: ṁ ∝ P/T at fixed pressure ratio (indicative).', id: 'Model: efisiensi komponen (η_c, η_t), ΔP ruang bakar 4 %, rugi mekanis 1 %. Derating: ṁ ∝ P/T pada rasio tekanan tetap (indikatif).' },
     },
     speedGen: { en: (rpm) => `${fmt(rpm, 0)} rpm`, id: (rpm) => `${fmt(rpm, 0)} rpm` },
     speedTwin: { en: (gg, pt) => `${fmt(gg * 100, 0)}% / ${fmt(pt * 100, 0)}%`, id: (gg, pt) => `${fmt(gg * 100, 0)}% / ${fmt(pt * 100, 0)}%` },
     overlay: {
       bwr: { en: (bwr) => `The compressor takes ${fmt(bwr * 100, 0)}% of the turbine work`, id: (bwr) => `Kompresor memakai ${fmt(bwr * 100, 0)}% kerja turbin` },
-      ambient: { en: (Tamb, derate) => `Ambient ${fmt(Tamb, 0)} °C → power ${derate >= 1 ? '+' : '−'}${fmt(Math.abs(derate - 1) * 100, 1)}% vs ISO`, id: (Tamb, derate) => `Ambient ${fmt(Tamb, 0)} °C → daya ${derate >= 1 ? '+' : '−'}${fmt(Math.abs(derate - 1) * 100, 1)}% vs ISO` },
-      t45: { en: (T45) => `T₄.₅ (between the GG turbine and the power turbine) = ${fmt(T45, 0)} K`, id: (T45) => `T₄.₅ (antara turbin GG dan power turbine) = ${fmt(T45, 0)} K` },
+      ambient: { en: (Tamb, derate) => `Ambient ${fquFrom(Tamb, 'temperature', 'C', { digits: 0, kAsC: true })} → power ${derate >= 1 ? '+' : '−'}${fmt(Math.abs(derate - 1) * 100, 1)}% vs ISO`, id: (Tamb, derate) => `Ambient ${fquFrom(Tamb, 'temperature', 'C', { digits: 0, kAsC: true })} → daya ${derate >= 1 ? '+' : '−'}${fmt(Math.abs(derate - 1) * 100, 1)}% vs ISO` },
+      t45: { en: (T45) => `T₄.₅ (between the GG turbine and the power turbine) = ${fqu(T45, 'temperature', { digits: 0 })}`, id: (T45) => `T₄.₅ (antara turbin GG dan power turbine) = ${fqu(T45, 'temperature', { digits: 0 })}` },
     },
     labels3d: {
       compressor: { en: 'Axial compressor', id: 'Kompresor aksial' }, combustor: { en: 'Combustor', id: 'Ruang bakar' }, turbine: { en: 'Turbine', id: 'Turbin' }, ggTurbine: { en: 'GG turbine', id: 'Turbin GG' },
@@ -726,8 +743,8 @@ const SRC = {
     title: { en: 'Part-load: generator vs compressor drive', id: 'Part-load: turbin generator vs turbin kompresor' },
     message: { en: 'The generator has a fixed sweet spot. The compressor-drive turbine keeps moving with the process load.', id: 'Turbin generator punya titik operasi favorit yang tetap. Turbin kompresor terus bergeser mengikuti beban proses.' },
     messageCurves: { en: (f) =>
-      `Generator: flame T holds at ${fmt(f.holdT, 0)} K down to ${fmt(f.holdLoad, 0)} % load, then CO rises ×${fmt(f.coRatio, 0)} at ${fmt(f.nextLoad, 0)} %. Compressor drive: flame T falls gradually by ${fmt(f.twinDT, 0)} K (100→50 %), NOx ×${fmt(f.twinNoxRatio, 2)}, CO ×${fmt(f.twinCoRatio, 1)} (model).`, id: (f) =>
-      `Generator: T nyala tetap ${fmt(f.holdT, 0)} K sampai beban ${fmt(f.holdLoad, 0)} %, lalu CO naik ×${fmt(f.coRatio, 0)} pada ${fmt(f.nextLoad, 0)} %. Kompresor: T nyala turun bertahap sebesar ${fmt(f.twinDT, 0)} K (100→50 %), NOx ×${fmt(f.twinNoxRatio, 2)}, CO ×${fmt(f.twinCoRatio, 1)} (model).` },
+      `Generator: flame T holds at ${fqu(f.holdT, 'temperature', { digits: 0 })} down to ${fmt(f.holdLoad, 0)} % load, then CO rises ×${fmt(f.coRatio, 0)} at ${fmt(f.nextLoad, 0)} %. Compressor drive: flame T falls gradually by ${fqDeltaU(f.twinDT, 'temperature', { digits: 0 })} (100→50 %), NOx ×${fmt(f.twinNoxRatio, 2)}, CO ×${fmt(f.twinCoRatio, 1)} (model).`, id: (f) =>
+      `Generator: T nyala tetap ${fqu(f.holdT, 'temperature', { digits: 0 })} sampai beban ${fmt(f.holdLoad, 0)} %, lalu CO naik ×${fmt(f.coRatio, 0)} pada ${fmt(f.nextLoad, 0)} %. Kompresor: T nyala turun bertahap sebesar ${fqDeltaU(f.twinDT, 'temperature', { digits: 0 })} (100→50 %), NOx ×${fmt(f.twinNoxRatio, 2)}, CO ×${fmt(f.twinCoRatio, 1)} (model).` },
     messageWindow: { en: (nox, co, basis, single, twin) =>
       `At limits of NOx ${fmt(nox, 1)} and CO ${fmt(co, 1)} ppmvd ${basis}: load window Generator = ${single}, Compressor drive = ${twin} (model).`, id: (nox, co, basis, single, twin) =>
       `Pada batas NOx ${fmt(nox, 1)} dan CO ${fmt(co, 1)} ppmvd ${basis}: jendela beban Generator = ${single}, Kompresor = ${twin} (model).` },
@@ -790,22 +807,22 @@ const SRC = {
     title: { en: 'Gas compressor and the affinity laws', id: 'Kompresor gas dan hukum affinitas' },
     message: { en: 'The compressor-drive turbine follows the process, not the other way round.', id: 'Turbin kompresor mengikuti proses, bukan sebaliknya.' },
     messageDesign: { en: (N, L, Tf) =>
-      `Demo case: speed ${fmt(N * 100, 0)} %, turbine load ${fmt(L * 100, 1)} %, premix-zone flame T ${fmt(Tf, 0)} K (model). Change pressure, MW, or ṁ to see the shift.`, id: (N, L, Tf) =>
-      `Kasus demo: kecepatan ${fmt(N * 100, 0)} %, beban turbin ${fmt(L * 100, 1)} %, T nyala zona premix ${fmt(Tf, 0)} K (model). Ubah tekanan, BM gas, atau ṁ untuk melihat pergeserannya.` },
+      `Demo case: speed ${fmt(N * 100, 0)} %, turbine load ${fmt(L * 100, 1)} %, premix-zone flame T ${fqu(Tf, 'temperature', { digits: 0 })} (model). Change pressure, MW, or ṁ to see the shift.`, id: (N, L, Tf) =>
+      `Kasus demo: kecepatan ${fmt(N * 100, 0)} %, beban turbin ${fmt(L * 100, 1)} %, T nyala zona premix ${fqu(Tf, 'temperature', { digits: 0 })} (model). Ubah tekanan, BM gas, atau ṁ untuk melihat pergeserannya.` },
     messageShift: { en: (N, dN, L, dL, dT) =>
-      `This process condition: required speed ${fmt(N * 100, 1)} % (${dN >= 0 ? '+' : '−'}${fmt(Math.abs(dN) * 100, 1)} pp), turbine load ${fmt(L * 100, 1)} % (${dL >= 0 ? '+' : '−'}${fmt(Math.abs(dL) * 100, 1)} pp), premix-zone flame T ${dT >= 0 ? '+' : '−'}${fmt(Math.abs(dT), 0)} K versus the demo case (model).`, id: (N, dN, L, dL, dT) =>
-      `Kondisi proses ini: kecepatan dibutuhkan ${fmt(N * 100, 1)} % (${dN >= 0 ? '+' : '−'}${fmt(Math.abs(dN) * 100, 1)} poin %), beban turbin ${fmt(L * 100, 1)} % (${dL >= 0 ? '+' : '−'}${fmt(Math.abs(dL) * 100, 1)} poin %), T nyala zona premix ${dT >= 0 ? '+' : '−'}${fmt(Math.abs(dT), 0)} K dibanding kasus demo (model).` },
+      `This process condition: required speed ${fmt(N * 100, 1)} % (${dN >= 0 ? '+' : '−'}${fmt(Math.abs(dN) * 100, 1)} pp), turbine load ${fmt(L * 100, 1)} % (${dL >= 0 ? '+' : '−'}${fmt(Math.abs(dL) * 100, 1)} pp), premix-zone flame T ${dT >= 0 ? '+' : '−'}${fqDeltaU(Math.abs(dT), 'temperature', { digits: 0 })} versus the demo case (model).`, id: (N, dN, L, dL, dT) =>
+      `Kondisi proses ini: kecepatan dibutuhkan ${fmt(N * 100, 1)} % (${dN >= 0 ? '+' : '−'}${fmt(Math.abs(dN) * 100, 1)} poin %), beban turbin ${fmt(L * 100, 1)} % (${dL >= 0 ? '+' : '−'}${fmt(Math.abs(dL) * 100, 1)} poin %), T nyala zona premix ${dT >= 0 ? '+' : '−'}${fqDeltaU(Math.abs(dT), 'temperature', { digits: 0 })} dibanding kasus demo (model).` },
     Psuc: { en: 'Suction pressure', id: 'Tekanan suction' }, Pdis: { en: 'Discharge pressure', id: 'Tekanan discharge' }, MW: { en: 'Gas MW', id: 'BM gas' }, mdot: { en: 'Mass flow ṁ', id: 'Laju massa ṁ' }, speed: { en: 'Speed (what-if)', id: 'Kecepatan (what-if)' },
     units: { bar: { en: 'bar', id: 'bar' }, MW: { en: 'kg/kmol', id: 'kg/kmol' }, kgs: { en: 'kg/s', id: 'kg/s' }, pct: { en: '%', id: '%' }, m3s: { en: 'm³/s', id: 'm³/s' }, kJkg: { en: 'kJ/kg', id: 'kJ/kg' } },
     tips: {
       Psuc: { en: 'Suction pressure (e.g. well or separator pressure). Lower → higher pressure ratio and head → higher speed and power.', id: 'Tekanan suction (mis. tekanan sumur atau separator). Makin rendah → rasio tekanan dan head makin tinggi → kecepatan dan daya makin tinggi.' },
       Pdis: { en: 'Discharge pressure (pipeline or injection). Always ≥ 1.05 × suction.', id: 'Tekanan discharge (pipa atau injeksi). Selalu ≥ 1,05 × suction.' },
       MW: { en: 'Gas molecular weight (kg/kmol). Lighter gas → more head per pressure ratio.', id: 'Berat molekul gas (kg/kmol). Gas lebih ringan → head per rasio tekanan lebih besar.' },
-      mdot: { en: 'Gas mass flow (demo case 20 kg/s). The turbine load depends directly on this ṁ.', id: 'Laju massa gas (kasus demo 20 kg/s). Beban turbin bergantung langsung pada ṁ ini.' },
+      mdot: { en: (m) => `Gas mass flow (demo case ${fqu(m, 'massFlow', { digits: 0 })}). The turbine load depends directly on this ṁ.`, id: (m) => `Laju massa gas (kasus demo ${fqu(m, 'massFlow', { digits: 0 })}). Beban turbin bergantung langsung pada ṁ ini.` },
       speed: { en: 'What-if: affinity laws from the process point to this speed (Q ∝ N, H ∝ N², P ∝ N³). The rig keeps spinning at the speed the process needs.', id: 'What-if: hukum affinitas dari titik proses ke kecepatan ini (Q ∝ N, H ∝ N², P ∝ N³). Rig tetap berputar pada kecepatan yang dibutuhkan proses.' },
-      reset: { en: 'Return to the demo case (20 → 60 bar, MW 18, ṁ 20 kg/s, speed 100 %)', id: 'Kembali ke kasus demo (20 → 60 bar, BM 18, ṁ 20 kg/s, kecepatan 100 %)' },
+      reset: { en: (d) => `Return to the demo case (${fq(d.Psuc, 'pressure', { digits: 0 })} → ${fqu(d.Pdis, 'pressure', { digits: 0 })}, MW ${fmt(d.MWgas, 0)}, ṁ ${fqu(d.mdot, 'massFlow', { digits: 0 })}, speed 100 %)`, id: (d) => `Kembali ke kasus demo (${fq(d.Psuc, 'pressure', { digits: 0 })} → ${fqu(d.Pdis, 'pressure', { digits: 0 })}, BM ${fmt(d.MWgas, 0)}, ṁ ${fqu(d.mdot, 'massFlow', { digits: 0 })}, kecepatan 100 %)` },
     },
-    demoCase: { en: (mdot) => `Demo case (ṁ = ${fmt(mdot, 1)} kg/s)`, id: (mdot) => `Kasus demo (ṁ = ${fmt(mdot, 1)} kg/s)` },
+    demoCase: { en: (mdot) => `Demo case (ṁ = ${fqu(mdot, 'massFlow', { digits: 1 })})`, id: (mdot) => `Kasus demo (ṁ = ${fqu(mdot, 'massFlow', { digits: 1 })})` },
     driveRow: { en: 'Compressor drive (Scene 5/6)', id: 'Turbin kompresor (Scene 5/6)' },
     hud: {
       rp: { label: { en: 'Pressure ratio', id: 'Rasio tekanan' }, model: { en: 'compressor model', id: 'model kompresor' }, tip: { en: 'r_p = P_discharge / P_suction.', id: 'r_p = P_discharge / P_suction.' } },
@@ -814,7 +831,7 @@ const SRC = {
       tdis: { label: { en: 'Discharge T', id: 'T discharge' }, model: { en: 'compressor model', id: 'model kompresor' }, tip: { en: 'T₂ = T₁·r_p^m. Suction T is fixed at 308 K.', id: 'T₂ = T₁·r_p^m. T suction tetap 308 K.' } },
       flow: { label: { en: 'Suction flow Q', id: 'Laju alir suction Q' }, model: { en: 'actual flow at suction', id: 'aliran aktual di suction' }, tip: { en: 'Actual volumetric flow at suction: Q = ṁ·Z·R·T/(P·MW). The affinity laws apply to Q, not ṁ.', id: 'Laju alir volumetrik aktual di suction: Q = ṁ·Z·R·T/(P·MW). Hukum affinitas berlaku untuk Q, bukan ṁ.' } },
       nreq: { label: { en: 'Speed required', id: 'Kecepatan dibutuhkan' }, model: { en: 'from head alone', id: 'dari head saja' }, tip: { en: 'N = N_design·√(H/H_design), from head alone. Flow–speed matching, the compressor map, and speed limits are not modeled.', id: 'N = N_desain·√(H/H_desain), dari head saja. Pencocokan aliran–kecepatan, peta kompresor, dan batas kecepatan tidak dimodelkan.' } },
-      pt: { label: { en: 'Power turbine available', id: 'Power turbine tersedia' }, model: { en: 'Scene 5 design point', id: 'titik desain Scene 5' }, tip: { en: 'Power-turbine power of the compressor drive at the Scene 5 design point (air ṁ 20 kg/s).', id: 'Daya power turbine pada turbin kompresor di titik desain Scene 5 (udara ṁ 20 kg/s).' } },
+      pt: { label: { en: 'Power turbine available', id: 'Power turbine tersedia' }, model: { en: 'Scene 5 design point', id: 'titik desain Scene 5' }, tip: { en: (m) => `Power-turbine power of the compressor drive at the Scene 5 design point (air ṁ ${fqu(m, 'massFlow', { digits: 0 })}).`, id: (m) => `Daya power turbine pada turbin kompresor di titik desain Scene 5 (udara ṁ ${fqu(m, 'massFlow', { digits: 0 })}).` } },
       load: { label: { en: 'Turbine load', id: 'Beban turbin' }, model: { en: 'compressor-to-turbine link', id: 'kaitan kompresor–turbin' }, tip: { en: 'Load = compressor power / design power-turbine power, clamped to the Scene 6 range (40–100 %). Not a claim about the load of a real unit.', id: 'Beban = daya kompresor / daya power turbine desain, dibatasi ke rentang Scene 6 (40–100 %). Bukan klaim tentang beban unit sungguhan.' } },
       ngg: { label: { en: 'N_GG', id: 'N_GG' }, value: { en: (n) => `${fmt(n * 100, 0)} %`, id: (n) => `${fmt(n * 100, 0)} %` }, model: { en: 'Scene 6 model', id: 'model Scene 6' }, tip: { en: 'Gas-generator speed at that load (Scene 6 model).', id: 'Kecepatan gas generator pada beban itu (model Scene 6).' } },
       flame: { label: { en: 'Premix-zone flame T', id: 'T nyala premix' }, model: { en: 'DLN model', id: 'model DLN' }, tip: { en: 'Premix-zone flame T of the compressor drive at that load (fixed premix fuel split).', id: 'T nyala zona premix turbin kompresor pada beban itu (fuel split premix tetap).' } },
@@ -861,15 +878,15 @@ const SRC = {
       sub: { en: (eta, co2, ch4) => `η ${fmt(eta * 100, 1)} % · CO₂ ${fmt(co2, 0)}${ch4 > 0 ? ` + CH₄ ${fmt(ch4, 2)} g` : ''}`, id: (eta, co2, ch4) => `η ${fmt(eta * 100, 1)} % · CO₂ ${fmt(co2, 0)}${ch4 > 0 ? ` + CH₄ ${fmt(ch4, 2)} g` : ''}` },
       subTurbine: { en: (ppm, basis) => `${fmt(ppm, 1)} ppmvd ${basis}`, id: (ppm, basis) => `${fmt(ppm, 1)} ppmvd ${basis}` },
       noxNote: { en: (eng, gas, dln, litD, litG, litDln, ref) =>
-        `NOx is calibrated to typical literature values, not to unit or vendor data · engine ×${fmt(eng, eng < 1 ? 3 : 2)} (diesel) / ×${fmt(gas, gas < 1 ? 3 : 2)} (gas), target ≈ ${fmt(litD, 0)} / ${fmt(litG, 1)} g/kWh · DLN ×${fmt(dln, 2)}, target ${fmt(litDln, 0)} ppmvd @ ${fmt(ref, 0)} % O₂`, id: (eng, gas, dln, litD, litG, litDln, ref) =>
-        `NOx dikalibrasi ke nilai tipikal literatur, bukan data unit atau vendor · mesin ×${fmt(eng, eng < 1 ? 3 : 2)} (diesel) / ×${fmt(gas, gas < 1 ? 3 : 2)} (gas), target ≈ ${fmt(litD, 0)} / ${fmt(litG, 1)} g/kWh · DLN ×${fmt(dln, 2)}, target ${fmt(litDln, 0)} ppmvd @ ${fmt(ref, 0)} % O₂` },
+        `NOx is calibrated to typical literature values, not to unit or vendor data · engine ×${fmt(eng, eng < 1 ? 3 : 2)} (diesel) / ×${fmt(gas, gas < 1 ? 3 : 2)} (gas), target ≈ ${fq(litD, 'specificEmission', { digits: 0 })} / ${fqu(litG, 'specificEmission', { digits: 1 })} · DLN ×${fmt(dln, 2)}, target ${fmt(litDln, 0)} ppmvd @ ${fmt(ref, 0)} % O₂`, id: (eng, gas, dln, litD, litG, litDln, ref) =>
+        `NOx dikalibrasi ke nilai tipikal literatur, bukan data unit atau vendor · mesin ×${fmt(eng, eng < 1 ? 3 : 2)} (diesel) / ×${fmt(gas, gas < 1 ? 3 : 2)} (gas), target ≈ ${fq(litD, 'specificEmission', { digits: 0 })} / ${fqu(litG, 'specificEmission', { digits: 1 })} · DLN ×${fmt(dln, 2)}, target ${fmt(litDln, 0)} ppmvd @ ${fmt(ref, 0)} % O₂` },
     },
     pm: { label: { en: 'PM', id: 'PM' }, value: { en: 'qualitative', id: 'kualitatif' }, sub: { en: 'qualitative, not modeled', id: 'kualitatif, tidak dimodelkan' }, levels: { high: { en: 'high', id: 'tinggi' }, low: { en: 'low', id: 'rendah' }, veryLow: { en: 'very low', id: 'sangat rendah' } }, tip: { en: 'Particulate matter is not modeled. The dark-gray 3D particles only show a fixed qualitative level: diesel high, gas engine low, turbine very low.', id: 'Partikulat (PM) tidak dimodelkan. Partikel 3D abu-abu tua hanya menunjukkan tingkat kualitatif tetap: diesel tinggi, mesin gas rendah, turbin sangat rendah.' } },
     hud: {
       co2Diesel: { label: { en: 'CO₂ · Diesel engine', id: 'CO₂ · Mesin diesel' }, tip: { en: 'Specific CO₂ from the diesel preset brake efficiency. No slip.', id: 'CO₂ spesifik dari η rem preset diesel. Tanpa slip.' } },
       co2eGas: { label: { en: 'CO₂e · Gas engine', id: 'CO₂e · Mesin gas' }, tip: { en: 'CO₂e from the gas-engine preset brake efficiency and the slip: CO₂ + GWP × CH₄.', id: 'CO₂e dari η rem preset mesin gas dan slip: CO₂ + GWP × CH₄.' } },
       co2eGt: { label: { en: 'CO₂e · Gas turbine', id: 'CO₂e · Turbin gas' }, tip: { en: 'CO₂e from the design-point turbine efficiency and the slip.', id: 'CO₂e dari η termal turbin gas di titik desain dan slip.' } },
-      slip: { label: { en: 'CH₄ slip', id: 'Slip CH₄' }, value: { en: (slip, ch4) => `${fmt(slip * 100, 1)} % · ${fmt(ch4, 2)} g/kWh`, id: (slip, ch4) => `${fmt(slip * 100, 1)} % · ${fmt(ch4, 2)} g/kWh` }, tip: { en: 'Fraction of fuel that escapes; CH₄ in g/kWh for the gas engine.', id: 'Fraksi bahan bakar yang lolos; CH₄ dalam g/kWh untuk mesin gas.' } },
+      slip: { label: { en: 'CH₄ slip', id: 'Slip CH₄' }, value: { en: (slip, ch4) => `${fmt(slip * 100, 1)} % · ${fqu(ch4, 'specificEmission', { digits: 2 })}`, id: (slip, ch4) => `${fmt(slip * 100, 1)} % · ${fqu(ch4, 'specificEmission', { digits: 2 })}` }, tip: { en: 'Fraction of fuel that escapes; CH₄ in g/kWh for the gas engine.', id: 'Fraksi bahan bakar yang lolos; CH₄ dalam g/kWh untuk mesin gas.' } },
       inc: { label: { en: 'Slip → CO₂e', id: 'Slip → CO₂e' }, value: { en: (inc) => `+${fmt(inc * 100, 1)}`, id: (inc) => `+${fmt(inc * 100, 1)}` }, tip: { en: 'CO₂e increase caused by slip (the same for the gas engine and the turbine, because it does not depend on η).', id: 'Kenaikan CO₂e akibat slip (sama untuk mesin gas dan turbin, karena tidak bergantung pada η).' } },
       gwp: { label: { en: 'GWP CH₄', id: 'GWP CH₄' }, sub: { en: 'AR6 · 100-year horizon · fossil', id: 'AR6 · horizon 100 tahun · fosil' }, tip: { en: 'A different time horizon gives a different result (see panel H).', id: 'Horizon waktu lain memberi hasil lain (lihat panel H).' } },
       calib: { label: { en: 'NOx calib', id: 'Kalibrasi NOx' }, value: { en: (eng, dln) => `×${fmt(eng, eng < 1 ? 3 : 2)} / ×${fmt(dln, 2)}`, id: (eng, dln) => `×${fmt(eng, eng < 1 ? 3 : 2)} / ×${fmt(dln, 2)}` }, sub: { en: 'engine (diesel) / DLN', id: 'mesin (diesel) / DLN' }, tip: { en: 'Active calibration factors. Targets: engine ≈ 11 (diesel) / 2.5 (gas) g/kWh, DLN 15 ppmvd @ 15 % O₂. Not unit or vendor data.', id: 'Faktor kalibrasi aktif. Target: mesin ≈ 11 (diesel) / 2,5 (gas) g/kWh, DLN 15 ppmvd @ 15 % O₂. Bukan data unit atau vendor.' } },
@@ -896,7 +913,7 @@ const SRC = {
       axes: { theta0: { en: 'Timing', id: 'Timing θ₀' }, phi: { en: 'φ', id: 'φ' }, Tivc: { en: 'Intake T', id: 'T masuk' }, Pivc: { en: 'Boost', id: 'P boost' }, N: { en: 'Speed', id: 'Putaran' } },
       labels: { theta0: { diesel: { en: 'Injection timing θ₀', id: 'Timing injeksi θ₀' }, gas: { en: 'Spark timing θ₀', id: 'Timing percikan θ₀' } }, phi: { en: 'Fuel-air equivalence φ', id: 'Campuran bahan bakar-udara φ' }, Tivc: { en: 'Intake temperature', id: 'Suhu udara masuk' }, Pivc: { en: 'Boost pressure', id: 'Tekanan boost' }, N: { en: 'Engine speed', id: 'Putaran mesin' } },
       xLabels: { theta0: { en: 'Timing θ₀ [° ATDC]', id: 'Timing θ₀ [° ATDC]' }, phi: { en: 'Fuel-air equivalence φ [-]', id: 'Campuran bahan bakar-udara φ [-]' }, Tivc: { en: 'Intake temperature [K]', id: 'Suhu udara masuk [K]' }, Pivc: { en: 'Boost pressure [bar]', id: 'Tekanan boost [bar]' }, N: { en: 'Engine speed [rpm]', id: 'Putaran mesin [rpm]' } },
-      value: { phi: { en: (v) => fmt(v, 2), id: (v) => fmt(v, 2) }, Tivc: { en: (v) => `${fmt(v, 0)} K`, id: (v) => `${fmt(v, 0)} K` }, Pivc: { en: (v) => `${fmt(v / 1e5, 1)} bar`, id: (v) => `${fmt(v / 1e5, 1)} bar` }, N: { en: (v) => `${fmt(v, 0)} rpm`, id: (v) => `${fmt(v, 0)} rpm` } },
+      value: { phi: { en: (v) => fmt(v, 2), id: (v) => fmt(v, 2) }, Tivc: { en: (v) => fqu(v, 'temperature', { digits: 0 }), id: (v) => fqu(v, 'temperature', { digits: 0 }) }, Pivc: { en: (v) => fqu(v, 'pressure', { digits: 1 }), id: (v) => fqu(v, 'pressure', { digits: 1 }) }, N: { en: (v) => `${fmt(v, 0)} rpm`, id: (v) => `${fmt(v, 0)} rpm` } },
       egr: { en: 'EGR', id: 'EGR' }, egrNA: { en: 'not available in this model', id: 'tidak tersedia di model ini' },
       load: { en: 'Load is not a separate lever: the diesel uses fuel-air equivalence as the load proxy; the gas engine uses boost.', id: 'Beban bukan tuas terpisah: diesel memakai campuran bahan bakar-udara sebagai proksi beban; mesin gas memakai boost.' },
       loadSweep: { en: 'Sweeping fuel-air equivalence or boost also changes engine load.', id: 'Memvariasikan campuran bahan bakar-udara atau boost juga mengubah beban mesin.' },
@@ -983,7 +1000,7 @@ const SRC = {
       main: { title: { en: 'Specific CO₂ and CO₂e vs fuel penalty', id: 'CO₂ spesifik dan CO₂e vs penalti bahan bakar' }, xLabel: { en: 'Fuel penalty [%]', id: 'Penalti bahan bakar [%]' }, yLabel: { en: 'g/kWh', id: 'g/kWh' } },
       caption: { en: (slip) => `Solid = CO₂; dashed = CO₂e with ${fmt(slip, 1)} % methane slip (gas-fired only). Diesel engine (gray), gas engine (blue), gas turbine (orange) · indicative`, id: (slip) => `Garis tegas = CO₂; putus-putus = CO₂e dengan methane slip ${fmt(slip, 1)} % (hanya berbahan bakar gas). Mesin diesel (abu-abu), mesin gas (biru), turbin gas (oranye) · indikatif` },
       sub: { title: { en: 'CO₂e vs methane slip (at this fuel penalty)', id: 'CO₂e vs methane slip (pada penalti ini)' }, xLabel: { en: 'Methane slip [% of fuel gas]', id: 'Methane slip [% gas bahan bakar]' }, yLabel: { en: 'CO₂e [g/kWh]', id: 'CO₂e [g/kWh]' }, caption: { en: 'Gas engine (blue), gas turbine (orange). Dotted = plain CO₂ (no slip) · indicative', id: 'Mesin gas (biru), turbin gas (oranye). Titik-titik = CO₂ biasa (tanpa slip) · indikatif' } },
-      result: { en: (p, a, b) => `Penalty ${fmt(p, 1)} %: gas-engine CO₂ ${fmt(a, 0)} → ${fmt(b, 0)} g/kWh (+${fmt(p, 1)} %). CO₂ scales directly with fuel (model).`, id: (p, a, b) => `Penalti ${fmt(p, 1)} %: CO₂ mesin gas ${fmt(a, 0)} → ${fmt(b, 0)} g/kWh (+${fmt(p, 1)} %). CO₂ berbanding lurus dengan bahan bakar (model).` },
+      result: { en: (p, a, b) => `Penalty ${fmt(p, 1)} %: gas-engine CO₂ ${fq(a, 'specificEmission', { digits: 0 })} → ${fqu(b, 'specificEmission', { digits: 0 })} (+${fmt(p, 1)} %). CO₂ scales directly with fuel (model).`, id: (p, a, b) => `Penalti ${fmt(p, 1)} %: CO₂ mesin gas ${fq(a, 'specificEmission', { digits: 0 })} → ${fqu(b, 'specificEmission', { digits: 0 })} (+${fmt(p, 1)} %). CO₂ berbanding lurus dengan bahan bakar (model).` },
       slipNote: { en: (gwp) => `Methane slip is not in plain CO₂. CO₂e = CO₂ + GWP × CH₄ slip, with GWP ${fmt(gwp, 1)} (IPCC AR6, 100-year).`, id: (gwp) => `Methane slip tidak termasuk dalam CO₂ biasa. CO₂e = CO₂ + GWP × slip CH₄, dengan GWP ${fmt(gwp, 1)} (IPCC AR6, 100 tahun).` },
       source: { en: 'Source', id: 'Sumber' },
     },
@@ -997,7 +1014,7 @@ const SRC = {
       strategy: { en: (st) => `Generator strategy from Scene 6: ${st === 'fuelOnly' ? 'Fuel-only' : 'IGV'}`, id: (st) => `Strategi turbin generator dari Scene 6: ${st === 'fuelOnly' ? 'Tanpa IGV (fuel-only)' : 'IGV'}` },
       model: { en: 'Model: Generator (single-shaft) shows a CO "cliff" once the IGV runs out. Compressor drive (twin-shaft): the operating window shifts and narrows. The CO line appears only when a permit or OEM CO value is entered.', id: 'Model: turbin generator (single-shaft) menunjukkan tebing CO setelah IGV habis. Turbin kompresor (twin-shaft): jendela operasi bergeser dan menyempit. Garis CO muncul hanya bila nilai izin atau OEM untuk CO diisi.' },
     },
-    messageB: { en: (p, a, b) => `A ${fmt(p, 1)} % fuel penalty raises specific CO₂ by ${fmt(p, 1)} %: gas engine ${fmt(a, 0)} → ${fmt(b, 0)} g/kWh (model).`, id: (p, a, b) => `Penalti bahan bakar ${fmt(p, 1)} % menaikkan CO₂ spesifik ${fmt(p, 1)} %: mesin gas ${fmt(a, 0)} → ${fmt(b, 0)} g/kWh (model).` },
+    messageB: { en: (p, a, b) => `A ${fmt(p, 1)} % fuel penalty raises specific CO₂ by ${fmt(p, 1)} %: gas engine ${fq(a, 'specificEmission', { digits: 0 })} → ${fqu(b, 'specificEmission', { digits: 0 })} (model).`, id: (p, a, b) => `Penalti bahan bakar ${fmt(p, 1)} % menaikkan CO₂ spesifik ${fmt(p, 1)} %: mesin gas ${fq(a, 'specificEmission', { digits: 0 })} → ${fqu(b, 'specificEmission', { digits: 0 })} (model).` },
     messageC: { en: 'Enter a permit or OEM CO value to see the load windows of both configurations under one limit (the regulation table has no turbine CO limit).', id: 'Isi nilai izin atau OEM untuk CO agar jendela beban kedua konfigurasi muncul di bawah satu batas (tabel regulasi tidak punya batas CO turbin).' },
     messageCSet: { en: (nox, co, unit, basis, single, twin) => `One limit (NOx ${fmt(nox, 1)}, CO ${fmt(co, 1)} ${unit} ${basis}): load window Generator ${single}, Compressor drive ${twin} (model).`, id: (nox, co, unit, basis, single, twin) => `Satu batas (NOx ${fmt(nox, 1)}, CO ${fmt(co, 1)} ${unit} ${basis}): jendela beban turbin generator ${single}, turbin kompresor ${twin} (model).` },
     hud: {
@@ -1008,7 +1025,7 @@ const SRC = {
       co2e: { en: (m) => `CO₂e · ${m}`, id: (m) => `CO₂e · ${m}` },
       co2eTip: { en: 'Plain CO₂ → CO₂e with methane slip, after the fuel penalty.', id: 'CO₂ biasa → CO₂e dengan methane slip, setelah penalti bahan bakar.' },
       share: { label: { en: 'Slip share of CO₂e · gas engine', id: 'Porsi slip dalam CO₂e · mesin gas' }, tip: { en: 'Part of the gas-engine CO₂e that comes from methane slip.', id: 'Bagian CO₂e mesin gas yang berasal dari methane slip.' } },
-      before: { en: (a, b) => `${fmt(a, 0)} → ${fmt(b, 0)}`, id: (a, b) => `${fmt(a, 0)} → ${fmt(b, 0)}` },
+      before: { en: (a, b) => `${fq(a, 'specificEmission', { digits: 0 })} → ${fq(b, 'specificEmission', { digits: 0 })}`, id: (a, b) => `${fq(a, 'specificEmission', { digits: 0 })} → ${fq(b, 'specificEmission', { digits: 0 })}` },
       limN: { label: { en: 'NOx limit', id: 'Batas NOx' }, tip: { en: 'From content/regulations.json unless the presenter typed an override; the basis and the source are shown under the number.', id: 'Dari content/regulations.json kecuali presenter mengetik override; basis dan sumber tampil di bawah angka.' } },
       limC: { label: { en: 'CO limit', id: 'Batas CO' }, tip: { en: 'Permit or OEM value typed by the presenter (the turbine table has no CO limit); the basis is shown under the number.', id: 'Nilai izin atau OEM yang diketik presenter (tabel turbin tidak punya batas CO); basis tampil di bawah angka.' } },
       winS: { label: { en: 'Window · Generator', id: 'Jendela · turbin generator' }, tip: { en: 'Load range that meets both limits.', id: 'Rentang beban dengan nilai model di bawah kedua batas.' } },
@@ -1225,7 +1242,7 @@ const SRC = {
     },
     qtyTip: {
       pressure: { en: 'Every pressure in the model is absolute, in bar and kPa too. In US units it is psia, not psig.', id: 'Semua tekanan di model absolut, termasuk bar dan kPa. Dalam satuan AS ditulis psia, bukan psig.' },
-      temperature: { en: 'Temperature differences (a rise or drop) convert by degree size only, with no offset: 1 K = 1 °C = 1.8 °F.', id: 'Selisih suhu (kenaikan atau penurunan) dikonversi hanya dengan ukuran derajat, tanpa offset: 1 K = 1 °C = 1,8 °F.' },
+      temperature: { en: 'Temperature differences (a rise or drop) convert by degree size only, with no offset: 1 K = 1 °C = 1.8 °F. Ambient temperatures are written in °C when K is chosen.', id: 'Selisih suhu (kenaikan atau penurunan) dikonversi hanya dengan ukuran derajat, tanpa offset: 1 K = 1 °C = 1,8 °F. Suhu ambient ditulis dalam °C bila K dipilih.' },
       power: { en: 'hp is mechanical (imperial) horsepower, 1 hp = 745.7 W, not metric hp (PS). "As in each scene" keeps kW or MW where a scene shows them.', id: 'hp adalah horsepower mekanik (imperial), 1 hp = 745,7 W, bukan hp metrik (PK/DK). "Seperti di tiap scene" mempertahankan kW atau MW di scene yang menampilkannya.' },
       volumeFlow: { en: 'Actual flow at suction conditions. Standard flow (Sm³, MMSCFD) is not modeled.', id: 'Laju alir aktual pada kondisi suction. Laju alir standar (Sm³, MMSCFD) tidak dimodelkan.' },
       concentration: { en: 'Applies where a scene shows a concentration in one unit only. Scenes that show ppmvd and mg/Nm³ side by side keep both.', id: 'Berlaku di tempat yang menampilkan konsentrasi dalam satu satuan saja. Scene yang menampilkan ppmvd dan mg/Nm³ berdampingan tetap menampilkan keduanya.' },
@@ -1441,7 +1458,7 @@ const SRC = {
       title: { en: 'Calibration factors', id: 'Faktor kalibrasi' },
       head: [{ en: 'Factor', id: 'Faktor' }, { en: 'Active', id: 'Aktif' }, { en: 'Default', id: 'Bawaan' }, { en: 'Literature target', id: 'Target literatur' }],
       rows: { diesel: { en: 'Engine NOx · Diesel', id: 'NOx mesin · Diesel' }, gas: { en: 'Engine NOx · Gas lean-burn', id: 'NOx mesin · Gas lean-burn' }, single: { en: 'DLN NOx · Generator (single-shaft)', id: 'NOx DLN · Turbin generator (single-shaft)' }, twin: { en: 'DLN NOx · Compressor drive (twin-shaft)', id: 'NOx DLN · Turbin kompresor (twin-shaft)' } },
-      targetEngine: { en: (v) => `≈ ${fmt(v, 1)} g/kWh`, id: (v) => `≈ ${fmt(v, 1)} g/kWh` },
+      targetEngine: { en: (v) => `≈ ${fqu(v, 'specificEmission', { digits: 1 })}`, id: (v) => `≈ ${fqu(v, 'specificEmission', { digits: 1 })}` },
       targetDln: { en: (ppm, ref) => `${fmt(ppm, 0)} ppmvd @ ${fmt(ref, 0)} % O₂ (design)`, id: (ppm, ref) => `${fmt(ppm, 0)} ppmvd @ ${fmt(ref, 0)} % O₂ (desain)` },
       factor: { en: (c) => `×${fmt(c, 2)}`, id: (c) => `×${fmt(c, 2)}` },
       notUnit: { en: 'Not unit or vendor data. Replace with CEMS/OEM data before an official presentation.', id: 'Bukan data unit atau vendor. Ganti dengan data CEMS/OEM sebelum presentasi resmi.' },

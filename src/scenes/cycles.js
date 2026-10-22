@@ -22,8 +22,8 @@ import { createTempLegend } from '../charts/legend.js';
 import { slider, segmented, button } from '../ui/controls.js';
 import { animSpeedSlider } from '../ui/animSpeed.js';
 import { createHud } from '../ui/hud.js';
-import { fmt, pct } from '../ui/format.js';
-import { STR, signedDeg } from '../ui/strings.js';
+import { fmt, pct, fq } from '../ui/format.js';
+import { STR, signedDeg, unitSym, fqu } from '../ui/strings.js';
 
 const S = STR.scene2, C = STR.common, U = STR.common.units, H = STR.scene2.hud, HT = STR.scene2.hud.tips;
 
@@ -42,9 +42,9 @@ function hudItems(kind, mode) {
     return [
       { id: 'eta', help: 'hud.etaIdeal', label: H.etaIdeal, unit: U.pct, value: (f) => pct(f.eta.ideal, 1), tip: HT.etaIdeal(F, kind) },
       ...(kind !== 'otto' ? [{ id: 'otto', help: 'hud.sameR', label: H.ottoSameR, unit: U.pct, value: (f) => pct(f.eta.ottoSameR, 1), tip: HT.ottoSameR }] : []),
-      { id: 'mep', help: 'hud.imep', label: H.mep, unit: U.bar, value: (f) => fmt(f.eta.mep / 1e5, 1), tip: HT.mep },
-      { id: 'tmax', help: 'hud.tmax', label: H.tmax, unit: U.K, value: (f) => fmt(f.eta.Tmax, 0), tip: HT.tmax },
-      { id: 'pmax', help: 'hud.pmax', label: H.pmax, unit: U.bar, value: (f) => fmt(f.eta.Pmax / 1e5, 1), tip: HT.pmax },
+      { id: 'mep', help: 'hud.imep', label: H.mep, unit: unitSym('pressure'), value: (f) => fq(f.eta.mep, 'pressure', { digits: 1 }), tip: HT.mep },
+      { id: 'tmax', help: 'hud.tmax', label: H.tmax, unit: unitSym('temperature'), value: (f) => fq(f.eta.Tmax, 'temperature', { digits: 0 }), tip: HT.tmax },
+      { id: 'pmax', help: 'hud.pmax', label: H.pmax, unit: unitSym('pressure'), value: (f) => fq(f.eta.Pmax, 'pressure', { digits: 1 }), tip: HT.pmax },
     ];
   }
   if (piston) {
@@ -55,16 +55,16 @@ function hudItems(kind, mode) {
       { id: 'ind', help: 'hud.etaIndicated', label: H.etaInd, unit: U.pct, value: (f) => pct(f.eta.ind, 1), tip: HT.etaInd },
       { id: 'brake', help: 'hud.etaBrake', label: H.etaBrake, unit: U.pct, value: (f) => pct(f.eta.brake, 1), tip: HT.etaBrake },
       { id: 'gap', help: 'hud.gap', label: H.gapBrake, unit: U.pp, value: (f) => pp(f.eta.gap), tip: HT.gapBrake },
-      { id: 'pmax', help: 'hud.pmax', label: H.pmaxReal, unit: U.bar, value: (f) => fmt(f.eta.Pmax / 1e5, 1), tip: HT.pmaxReal },
+      { id: 'pmax', help: 'hud.pmax', label: H.pmaxReal, unit: unitSym('pressure'), value: (f) => fq(f.eta.Pmax, 'pressure', { digits: 1 }), tip: HT.pmaxReal },
     ];
   }
   if (mode === 'ideal') {
     return [
       { id: 'eta', help: 'hud.etaIdeal', label: H.etaIdeal, unit: U.pct, value: (f) => pct(f.eta.ideal, 1), tip: HT.etaIdealBrayton(F) },
       { id: 'bwr', help: 'hud.bwr', label: H.bwr, unit: U.pct, value: (f) => pct(f.eta.bwr, 0), tip: HT.bwrIdeal },
-      { id: 'w', help: 'hud.wnet', label: H.wnet, unit: U.kJkg, value: (f) => fmt(f.eta.wnet / 1e3, 0), tip: HT.wnet },
-      { id: 't2', help: 'hud.compOutT', label: H.t2, unit: U.K, value: (f) => fmt(f.eta.T2, 0), tip: HT.t2 },
-      { id: 't4', help: 'hud.exhaustT', label: H.t4, unit: U.K, value: (f) => fmt(f.eta.T4, 0), tip: HT.t4 },
+      { id: 'w', help: 'hud.wnet', label: H.wnet, unit: unitSym('specificEnergy'), value: (f) => fq(f.eta.wnet, 'specificEnergy', { digits: 0 }), tip: HT.wnet },
+      { id: 't2', help: 'hud.compOutT', label: H.t2, unit: unitSym('temperature'), value: (f) => fq(f.eta.T2, 'temperature', { digits: 0 }), tip: HT.t2 },
+      { id: 't4', help: 'hud.exhaustT', label: H.t4, unit: unitSym('temperature'), value: (f) => fq(f.eta.T4, 'temperature', { digits: 0 }), tip: HT.t4 },
     ];
   }
   return [
@@ -72,7 +72,7 @@ function hudItems(kind, mode) {
     { id: 'real', help: 'hud.etaThermal', label: H.etaReal, unit: U.pct, value: (f) => pct(f.eta.real, 1), tip: HT.etaReal },
     { id: 'gap', help: 'hud.gap', label: H.gapReal, unit: U.pp, value: (f) => pp(f.eta.gap), tip: HT.gapReal },
     { id: 'bwr', help: 'hud.bwr', label: H.bwr, unit: U.pct, value: (f) => pct(f.eta.bwr, 0), tip: HT.bwrReal },
-    { id: 't4', help: 'hud.exhaustT', label: H.t4, unit: U.K, value: (f) => fmt(f.eta.T4, 0), tip: HT.t4 },
+    { id: 't4', help: 'hud.exhaustT', label: H.t4, unit: unitSym('temperature'), value: (f) => fq(f.eta.T4, 'temperature', { digits: 0 }), tip: HT.t4 },
   ];
 }
 
@@ -141,7 +141,7 @@ export function createScene(ctx) {
     ctl.rc = slider({ help: 'ctl.cutoffRatio', label: S.rc, ...CYCLES.diesel.ranges.rc, value: s.cRc, digits: 2, tip: S.tips.rc, onInput: (v) => store.set({ cRc: v }) });
     ctl.rp = slider({ help: 'ctl.dualPressureRatio', label: S.rp, ...CYCLES.dual.ranges.rp, value: s.cRp, digits: 2, onInput: (v) => store.set({ cRp: v }) });
     ctl.rpB = slider({ help: 'ctl.pressureRatio', label: S.rpB, ...CYCLES.brayton.ranges.rpB, value: s.cRpB, digits: 1, onInput: (v) => store.set({ cRpB: v }) });
-    ctl.T3 = slider({ help: 'ctl.turbineInletT', label: S.T3, ...CYCLES.brayton.ranges.T3, value: s.cT3, digits: 0, unit: U.K, onInput: (v) => store.set({ cT3: v }) });
+    ctl.T3 = slider({ help: 'ctl.turbineInletT', label: S.T3, ...CYCLES.brayton.ranges.T3, value: s.cT3, digits: 0, qty: 'temperature', from: 'K', onInput: (v) => store.set({ cT3: v }) });
     ctl.theta = slider({ help: 'ctl.crankAngle', label: S.theta, min: -360, max: 360, step: 0.5, value: s.theta, format: signedDeg, tip: S.tips.theta, onInput: (v) => store.set(scrubPatch(store.get(), v)) });
     ctl.rpm = animSpeedSlider(store);
     ctl.play = button({ help: 'ctl.play', label: C.pause, key: C.keySpace, tip: C.tips.play, onClick: () => store.set(togglePlayPatch(store.get())) });
@@ -235,8 +235,8 @@ export function createScene(ctx) {
       let v;
       if (k === 'formula') v = S.formula[f.kind];
       else if (k === 'proc') v = pointLabel(f);
-      else if (k === 'T') v = f.point.visible ? `${fmt(f.point.T, 0)} ${U.K}` : '–';
-      else if (k === 'P') v = f.point.visible ? `${fmt(f.point.P / 1e5, 2)} ${U.bar}` : '–';
+      else if (k === 'T') v = f.point.visible ? fqu(f.point.T, 'temperature', { digits: 0 }) : '–';
+      else if (k === 'P') v = f.point.visible ? fqu(f.point.P, 'pressure', { digits: 2 }) : '–';
       else if (k === 'level') { v = `${STR.basis.tag} · ${C.level[f.modelLevel]}`; n.dataset.basis = f.basis; }
       else continue;
       setText(n, v);
