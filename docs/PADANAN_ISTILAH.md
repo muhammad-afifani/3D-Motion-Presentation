@@ -19,7 +19,7 @@ Sejak Paket D, UI punya sisi Indonesia (sakelar EN/ID; `src/state/i18n.js`). Ist
 
 - Alasan: Satuan SI dan simbol teknis ditulis sama di semua bahasa. Angka di sampingnya yang mengikuti bahasa (1.500,5 / 1,500.5).
 - Terhadap tabel PADANAN di bawah: tidak diatur tabel ini
-- Teks utuh (sisi id sengaja sama dengan en): `bar`, `K`, `%`, `mm`, `L`, `g/kWh`, `kJ/kg`, `kJ/kWh`, `MW`, `°C`, `mg/Nm³`, `ms`, `ATDC`, `rpm visual`, `ppm`, `% O₂`, `–`, `ppmvd`, `100-500 kW`, `500-1000 kW`, `η [%]`, `P [bar]`, `%/°C`, `kg/kmol`, `kg/s`, `m³/s`, `ppmvd (log)`, `NOx [mg/Nm³]`, `CO₂e [g/kWh]`, `H₂S [ppmv]`, `ppm @ basis`, `…`
+- Teks utuh (sisi id sengaja sama dengan en): `bar`, `K`, `%`, `mm`, `L`, `g/kWh`, `kJ/kg`, `kJ/kWh`, `MW`, `°C`, `mg/Nm³`, `ms`, `ATDC`, `rpm visual`, `ppm`, `% O₂`, `–`, `ppmvd`, `100-500 kW`, `500-1000 kW`, `η [%]`, `P [bar]`, `%/°C`, `kg/kmol`, `kg/s`, `m³/s`, `ppmvd (log)`, `NOx [mg/Nm³]`, `CO₂e [g/kWh]`, `H₂S [ppmv]`, `ppm @ basis`, `…`, `0 °C (Nm³)`, `25 °C`, `Gas (CH₄) [K]`, `Diesel [K]`, ` / `
 - Dipakai di dalam kalimat (hanya dicatat): `kW`, `rpm`
 
 ### Singkatan, rumus kimia, dan simbol
@@ -33,13 +33,13 @@ Sejak Paket D, UI punya sisi Indonesia (sakelar EN/ID; `src/state/i18n.js`). Ist
 
 - Alasan: Huruf pada tombol keyboard sama di semua bahasa. Tombol Space ditulis Spasi di ID (bukan entri daftar ini).
 - Terhadap tabel PADANAN di bawah: tidak diatur tabel ini
-- Teks utuh (sisi id sengaja sama dengan en): `S`, `P`, `G`, `?`, `H`, `M`, `M: Explore`, `C`, `Esc`
+- Teks utuh (sisi id sengaja sama dengan en): `S`, `P`, `G`, `?`, `H`, `M`, `M: Explore`, `C`, `Esc`, `H / Esc`, `Q / B`
 
 ### Nama halaman, mode, dan produk
 
 - Alasan: Nama halaman dan mode sudah menjadi nama produk (Learn, Chart guide, Glossary, References, About, Start, Explore, Presenter, Basis, Assumptions) dan dipakai sama di ID, supaya tombol, tautan, dan naskah presenter menyebut hal yang sama. Nama aplikasi tidak diterjemahkan.
 - Terhadap tabel PADANAN di bawah: sesuai. Baris 67 (Explore), 69 (Presenter), 70 (References), 72 (Basis). Present menjadi 'Mode Present' (baris 68); Regulations dan Emission formation DITERJEMAHKAN (Baku mutu, Pembentukan emisi), jadi tidak ada di daftar ini.
-- Teks utuh (sisi id sengaja sama dengan en): `Start`, `Learn`, `Chart guide`, `About`, `References`, `Glossary`, `Assumptions`, `Explore`, `Presenter`, `Basis`, `Start here`, `Engine & Turbine Emission Lab`, `Presenter · Engine & Turbine Emission Lab`
+- Teks utuh (sisi id sengaja sama dengan en): `Start`, `Learn`, `Chart guide`, `About`, `References`, `Glossary`, `Assumptions`, `Explore`, `Presenter`, `Basis`, `Start here`, `Engine & Turbine Emission Lab`, `Presenter · Engine & Turbine Emission Lab`, `source to verify`, `Source to verify`
 
 ### Kode singkat navigasi yang dilipat
 
@@ -64,13 +64,13 @@ Sejak Paket D, UI punya sisi Indonesia (sakelar EN/ID; `src/state/i18n.js`). Ist
 
 - Alasan: Kata serapan yang ejaannya sama di Inggris dan Indonesia. Bukan terjemahan yang tertinggal.
 - Terhadap tabel PADANAN di bawah: tidak diatur tabel ini
-- Teks utuh (sisi id sengaja sama dengan en): `Ideal`, `Parameter`, `Model`, `Status`, `Timer`, `Total`, `Scene`, `Gas`, `Real`, `Piston`, `Preset`, `Generator`, `Tab`
+- Teks utuh (sisi id sengaja sama dengan en): `Ideal`, `Parameter`, `Model`, `Status`, `Timer`, `Total`, `Scene`, `Gas`, `Real`, `Piston`, `Preset`, `Generator`, `Tab`, `Auto`
 
 ### Fungsi pembentuk teks dengan sisi id identik
 
 - Alasan: Teks yang hanya terdiri atas nama tetap, angka, dan satuan (mis. 'Scene 3 · Judul', 'Model OK · 19/19', 'margin +4,2 %'). Tidak ada kata yang bisa diterjemahkan; angkanya sudah mengikuti bahasa lewat format angka.
 - Terhadap tabel PADANAN di bawah: sesuai. Mengikuti kelompok halaman_produk dan status_chip.
-- Fungsi teks: `common.animSpeedValue`, `app.sceneTag`, `app.docTitle`, `app.toast.bloom`, `app.badge.ok`, `app.badge.fail`, `nav.sceneTip`, `content.item`, `debug.gpu`, `presenter.current`, `presenter.target`, `presenter.nextLine`, `regulation.margin`, `regulation.mg`, `regulation.pct`, `regulation.scene6Row`, `regulation.scene6Item`, `regulation.scene6Margin`, `regulation.page.group`, `charts.flame.dT`, `charts.flame.point`, `scene3.tinValue`, `scene3.bars.sub`, `scene4.tradeoff.point`, `scene4.tradeoff.now`, `scene4.hud.calib.value`, `scene2.hud.tips.etaIdealBrayton`, `scene1.formula.VcVal`, `scene1.ptheta.pmax`, `scene5.speedGen`, `scene5.speedTwin`, `scene6.windowText`, `scene6.hud.speed.single`, `scene6.hud.speed.twin`, `scene6.hud.igv.value`, `scene6.hud.calib.value`, `scene7.hud.ngg.value`, `scene7.affinity.head`, `scene8.charts.sub`, `scene8.charts.subTurbine`, `scene8.hud.slip.value`, `scene8.hud.inc.value`, `scene8.hud.calib.value`, `scene9.leversTab.value.Tivc`, `scene9.leversTab.value.Pivc`, `scene9.leversTab.value.N`, `scene9.formationTab.sourceToVerify`, `scene9.hud.co2B`, `scene9.hud.co2e`, `scene9.hud.before`, `scene10.goScene`
+- Fungsi teks: `common.animSpeedValue`, `app.sceneTag`, `app.docTitle`, `app.toast.bloom`, `app.badge.ok`, `app.badge.fail`, `nav.sceneTip`, `content.item`, `debug.gpu`, `presenter.current`, `presenter.target`, `presenter.nextLine`, `regulation.margin`, `regulation.mg`, `regulation.pct`, `regulation.scene6Row`, `regulation.scene6Item`, `regulation.scene6Margin`, `regulation.page.group`, `charts.flame.dT`, `charts.flame.point`, `scene3.tinValue`, `scene3.bars.sub`, `scene4.tradeoff.point`, `scene4.tradeoff.now`, `scene4.hud.calib.value`, `scene2.hud.tips.etaIdealBrayton`, `scene1.formula.VcVal`, `scene1.ptheta.pmax`, `scene5.speedGen`, `scene5.speedTwin`, `scene6.windowText`, `scene6.hud.speed.single`, `scene6.hud.speed.twin`, `scene6.hud.igv.value`, `scene6.hud.calib.value`, `scene7.hud.ngg.value`, `scene7.affinity.head`, `scene8.charts.sub`, `scene8.charts.subTurbine`, `scene8.hud.slip.value`, `scene8.hud.inc.value`, `scene8.hud.calib.value`, `scene9.leversTab.value.Tivc`, `scene9.leversTab.value.Pivc`, `scene9.leversTab.value.N`, `scene9.formationTab.sourceToVerify`, `scene9.hud.co2B`, `scene9.hud.co2e`, `scene9.hud.before`, `scene10.goScene`, `assumptions.zeldovich.formula`, `assumptions.calib.targetEngine`, `assumptions.calib.factor`
 
 ### Nama siklus dan komponen yang berupa nama diri
 
@@ -86,6 +86,34 @@ Sejak Paket D, UI punya sisi Indonesia (sakelar EN/ID; `src/state/i18n.js`). Ist
 - Fungsi teks: `scene1.formula.s`, `scene1.formula.V`, `scene1.formula.theta`, `scene1.formula.Vc`, `scene2.formula.otto`, `scene2.formula.diesel`, `scene2.formula.dual`, `scene2.formula.brayton`
 
 <!-- tetap-inggris:selesai -->
+
+## Keputusan istilah akhir Paket D (sisi ID)
+
+Ringkasan keputusan yang berlaku di UI Indonesia setelah D1–D6 (tabel PADANAN di bawah tetap sumber istilah naskah; bagian ini mencatat pilihan label layar yang tidak muat di tabel).
+
+- **Batas**: "limit" = "batas" (tab Scene 9 "Limits" = "Batas"; "limit: user override" = "override pengguna"; CO turbin hanya dari "nilai izin/OEM"). "Site data" = "Data lapangan".
+- **Tab Scene 9**: Batas · Terbentuk (Formation; halaman penuh: "Pembentukan emisi") · Tuas (Levers) · Jendela beban (Load window) · GRK (GHG, gas rumah kaca).
+- **Timing vs durasi**: "timing" (injeksi, percikan, katup) = saat mulai; "waktu pembakaran" = durasi pembakaran (langkah waterfall "Waktu pembakaran terbatas").
+- **Konfigurasi turbin**: nama lengkap "Turbin generator (single-shaft)" dan "Turbin kompresor (twin-shaft)"; bentuk pendek "Generator" / "Kompresor" hanya di pesan header dan label sempit yang akan melipat.
+- **Peralatan**: "Jenis penggerak" (mesin diesel, mesin gas, turbin gas; pemilih Scene 9 dan filter Scene 10); "Penggerak" tidak dipakai sendirian.
+- **Besaran**: "η rem" (brake η), "η termal", "T nyala" / "suhu nyala", "putaran poros" (shaft speed), "BM gas" (berat molekul; "MW" hanya untuk megawatt), "Heat rate" tetap Inggris ("laju kalor" berarti laju aliran kalor), "Derating", "Power turbine".
+- **Tingkat model** (kata di kartu Basis dan tabel fungsi, `STR.basis.levelWord`): Ideal · Real · Semi-empiris · Data lapangan; di tag grafik: Ideal · Real (efisiensi komponen) · Semi-empiris · Data lapangan.
+- **Kejujuran model**: "indikatif" selalu menyertai korelasi emisi; "dikalibrasi ke nilai tipikal literatur, bukan data unit atau vendor"; "Nilai model vs batas (indikatif). Bukan hasil uji."; chip `Within` / `Above` / `Not modeled` tetap Inggris; "ditranskripsi dari tabel yang dipublikasikan, cocokkan dengan teks resmi sebelum mengutip"; "belum diverifikasi"; "source to verify" dan "to verify" tetap Inggris; "lokasi belum diverifikasi" (locator).
+- **Basis emisi**: "kering", "sebagai NO₂", "@ 15 % O₂", "0 °C (Nm³)" / "25 °C"; di tile HUD satuan [ppmvd] menempel di tile sehingga sub-label basis tanpa "(ppmvd)".
+- **Angka**: desimal koma, ribuan titik di semua teks statis ID (mis. "k = 1,4", "2.200 K", "d[NO]/dt ... 69.090/T"), nilainya sama dengan sisi EN; isian menerima koma maupun titik.
+- **Pengecualian basis.js**: derivasi, asumsi, `toVerify`, dan `knownIssue` di `src/model/basis.js` tetap English; di sisi ID kartu Basis dan panel H memberi satu catatan tetap. Panel H dan kartu Basis boleh menyebut nama fungsi/konstanta kode.
+
+### Sisa string yang masih English dan alasannya
+
+| Kelompok | Alasan |
+|---|---|
+| `src/model/basis.js` (derivasi, asumsi, penyimpangan, `toVerify`; 468 string) | Keputusan pemilik proyek (opsi B): uraian teknis panjang tetap sumber English; catatan tetap di sisi ID. |
+| Nama fungsi / konstanta kode di panel H dan kartu Basis | Aturan Konvensi: hanya di dua tempat itu, nama harus persis. |
+| `content/references.json` (`cite`, `locator`, judul sumber) | Judul karya dan lokasi bab/persamaan berbahasa Inggris; terjemahannya bukan kutipan. |
+| Daftar `docs/tetap_inggris.json` | Satuan, singkatan, rumus, chip status, nama halaman/produk, istilah lapangan (alasan tiap kelompok di bagian atas). |
+| `content/learn.json` sisi ID | Salinan seed, tidak ditulis ulang; masih menyebut "tab Limits" dan "Site data". |
+| (Indonesia saja) `content/presenter.json`, nama resmi regulasi | Naskah lisan dan nama dokumen hukum, bukan terjemahan. |
+
 
 | No | Istilah Indonesia | Dipakai di | Label English di UI | Sumber | Catatan |
 |---|---|---|---|---|---|

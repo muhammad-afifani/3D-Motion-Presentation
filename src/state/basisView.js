@@ -8,6 +8,9 @@ import { BASIS, BASIS_GROUPS, UTILITY } from '../model/basis.js';
 import { REFERENCE_TYPES } from './content.js';
 
 export const REFERENCES_HASH = '#/references';
+/** Nama tingkat di basis.js (English, sumber data) → kunci STR.basis.levelWord; UI menampilkan kata tingkat sesuai bahasa. */
+const LEVEL_KEYS = { Ideal: 'ideal', Real: 'real', 'Real (component efficiency)': 'real', 'Semi-empirical': 'semiEmpirical', 'Site data': 'siteData' };
+export const levelKey = (name) => LEVEL_KEYS[name] ?? null;
 /** true when a location hash opens the References page ("#/references", optionally with a trailing slash/query). */
 export const isReferencesHash = (hash) => /^#\/references(\/[^?#/]*)?\/?(\?.*)?$/.test(hash ?? '');
 /** Id sumber di alamat #/references/<id> (null bila tidak ada). */
@@ -45,7 +48,8 @@ export function cardData(spec, refsData) {
       knownIssue: b.knownIssue ?? null,
     };
   });
-  return { id, entries, levels: [...new Set(entries.map((x) => x.level))] };
+  const levels = [...new Set(entries.map((x) => x.level))];
+  return { id, entries, levels, levelKeys: levels.map(levelKey) };
 }
 
 /** Names of the entries (and utilities) that cite each reference id. */

@@ -228,7 +228,8 @@ function relangView() {
   if (index >= 0) { if (loading) relangPending = true; else goTo(index, true); }
   // halaman penuh: judul dan isi dirender ulang; halaman Learn / About / Chart guide memakai langganan learnHost sendiri
   for (const p of OVERLAYS) { const api = PAGE_API[p]; if (api.refresh) api.refresh(); }
-  if (assumptions.open) assumptions.render();
+  assumptions.relabel(); // D6: isi panel H dibangun ulang dalam bahasa baru
+  basisCard.relabel();
 }
 /** Komponen header dan navigasi yang dibuat sekali: ambil teks ulang dari STR (sudah berbahasa baru). */
 function relabelChrome() {

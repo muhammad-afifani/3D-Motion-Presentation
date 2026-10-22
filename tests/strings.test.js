@@ -126,11 +126,13 @@ describe('Teks UI terpusat di src/ui/strings.js', () => {
 });
 
 describe('strings.js: isi', () => {
+  /** D6: satu daun kosong dengan sengaja di sisi English (catatan hanya di sisi ID; lihat tests/i18n.test.js EN_EMPTY_BY_DESIGN). */
+  const EMPTY_BY_DESIGN = new Set(['STR.basis.enOnly']);
   /** Telusuri semua daun: string tidak kosong; fungsi menghasilkan string tidak kosong. */
   function walk(o, path, bad) {
     for (const [k, v] of Object.entries(o)) {
       const p = `${path}.${k}`;
-      if (typeof v === 'string') { if (!v.trim()) bad.push(p); } else if (typeof v === 'function') {
+      if (typeof v === 'string') { if (!v.trim() && !EMPTY_BY_DESIGN.has(p)) bad.push(p); } else if (typeof v === 'function') {
         const r = v(1, 2, 3, 4, 5, 6);
         if (typeof r !== 'string' || !r.trim()) bad.push(p);
       } else if (Array.isArray(v)) v.forEach((x, i) => { if (typeof x !== 'string' || !x.trim()) bad.push(`${p}[${i}]`); });

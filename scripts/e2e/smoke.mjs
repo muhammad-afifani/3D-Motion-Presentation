@@ -20,6 +20,8 @@
  *  16. D4: Scene 5–8 ID vs EN (teks kanvas, panduan ⓘ, label 3D, PNG), panel kontrol tanpa tumpang tindih di ID (3 viewport × 2 tema), Scene 6: ganti bahasa saat chip dan garis batas tampil, isian koma / titik.
  *  17. D5a: Scene 9 (5 tab) ID vs EN, banner "Transcribed…" dan chip "not verified" tidak hilang / melunak di ID, chip Within / Above / Not modeled, GRK (CO₂ vs CO₂e), halaman Formation dan Regulations, PNG per tab berbahasa ID.
  *  18. D5b: Scene 10–11 ID vs EN (kartu, filter, opsi diskusi, PNG berfooter ID) dan kartu bantuan hdr.switches (seluruh aplikasi) di EN / ID.
+ *  19. D6: kartu Basis dan panel asumsi (H) dalam ID (catatan tetap "hanya tersedia dalam bahasa Inggris", nama tingkat, ganti bahasa saat terbuka, O₂ acuan koma / titik, #/assumptions).
+ *  20. Sapuan ID penuh: semua scene + tab, semua halaman penuh, 3 viewport × Dark / Light, PNG tiap scene, tanpa galat konsol / tumpang tindih / scroll horizontal.
  *  13. Bahasa ID (Paket D1): semua scene + tab di 3 viewport × 2 tema tanpa luapan (1280: chip, tab Scene 9, header), angka HUD format ID, ganti EN ↔ ID tanpa muat ulang (HUD, Limits, Regulations), isian koma / titik dan pesan galat ID.
  *  11. Settings ⚙ + Hide working notes: panel, penyimpanan, Explore / Present, catatan kerja hilang dan label kejujuran tetap, header 3 viewport tanpa tumpang tindih.
  *  10. Bagian C: bantuan ⓘ (kartu di HUD, slider, navigasi; Glossary / Lesson; Present; PNG; ID) di 3 viewport × 2 tema; tumpang tindih ⓘ semua scene.
@@ -1395,6 +1397,210 @@ async function d5bInteraction(browser, url) {
 }
 
 /**
+ * D6: kartu Basis dan panel asumsi (H) dalam ID: label terjemahan, nama tingkat sesuai bahasa, catatan tetap "hanya tersedia dalam
+ * bahasa Inggris" (hanya ID; tidak tersembunyi oleh Hide working notes), ganti bahasa saat kartu / panel terbuka, isian O₂ acuan
+ * (koma / titik), halaman #/assumptions.
+ */
+async function d6Interaction(browser, url) {
+  const fails = [];
+  const base = url.replace(/#.*$/, '');
+  const mk = async (lang, { hide = false, w = 1366, h = 768 } = {}) => {
+    const p = await browser.newPage({ viewport: { width: w, height: h } });
+    p.errs = [];
+    p.on('pageerror', (e) => p.errs.push(`pageerror: ${e.message}`));
+    p.on('console', (m) => { if (m.type() === 'error') p.errs.push(`console: ${m.text()}`); });
+    await p.addInitScript(([l, hd]) => { try { localStorage.setItem('etel:lang', l); localStorage.setItem('etel:theme', 'dark'); if (hd) localStorage.setItem('etel:hideNotes', 'hide'); } catch { /* */ } }, [lang, hide]);
+    await p.goto(`${base}#/scene/3`);
+    await p.waitForFunction(() => window.__etelDebug?.scene() === 3 && !window.__etelDebug.loading(), null, { timeout: 30000 });
+    await p.waitForTimeout(800);
+    return p;
+  };
+  const cardState = (p) => p.evaluate(() => {
+    const card = document.querySelector('.bcard:not([hidden])');
+    if (!card) return null;
+    const note = card.querySelector('[data-en-only]');
+    const vis = (e) => !!e && e.checkVisibility?.() !== false;
+    return {
+      text: card.innerText, note: note ? note.textContent.trim() : null, noteVisible: vis(note), noteIsWorkingNote: !!note?.closest('[data-note]') || note?.hasAttribute('data-note'),
+      chips: [...card.querySelectorAll('.bcard__levels .bcard__chip')].map((e) => e.textContent.trim()),
+      warnVisible: [...card.querySelectorAll('.bcard__chip--warn[data-note]')].some(vis), warnCount: card.querySelectorAll('.bcard__chip--warn[data-note]').length,
+    };
+  });
+  const openCard = async (p) => { await p.click('[data-basis]:not(.bcard [data-basis])'); await p.waitForFunction(() => window.__etelDebug.basisCardOpen(), null, { timeout: 5000 }); await p.waitForTimeout(500); };
+  // 1) kartu Basis: EN (tanpa catatan) dan ID (catatan tetap), juga saat Hide working notes aktif
+  for (const [lang, hide] of [['en', false], ['id', false], ['id', true], ['en', true]]) {
+    const tag = `kartu Basis (${lang}${hide ? ', Hide working notes' : ''})`;
+    const p = await mk(lang, { hide });
+    await openCard(p);
+    const c = await cardState(p);
+    if (!c) { fails.push(`${tag}: kartu tidak terbuka`); await p.close(); continue; }
+    if (lang === 'id') {
+      if (!c.note || !/hanya tersedia dalam bahasa Inggris/.test(c.note)) fails.push(`${tag}: catatan "hanya tersedia dalam bahasa Inggris" tidak ada: ${c.note}`);
+      if (!c.noteVisible) fails.push(`${tag}: catatan tetap tersembunyi`);
+      if (c.noteIsWorkingNote) fails.push(`${tag}: catatan tetap diberi tanda catatan kerja (data-note)`);
+      for (const t of ['Tingkat model', 'Diturunkan dari', 'Sumber', 'Asumsi', 'Semua referensi', 'Tutup']) if (!c.text.includes(t)) fails.push(`${tag}: label "${t}" tidak tampil`);
+      if (c.chips.some((x) => /Semi-empirical|Real \(component|Site data/.test(x))) fails.push(`${tag}: nama tingkat masih English: ${JSON.stringify(c.chips)}`);
+      if (!c.chips.length || !c.chips.every((x) => /^(Ideal|Real|Semi-empiris|Data lapangan)$/.test(x))) fails.push(`${tag}: nama tingkat bukan ID: ${JSON.stringify(c.chips)}`);
+      if (/Model level|Derived from|Assumptions:/.test(c.text)) fails.push(`${tag}: label kartu masih English`);
+    } else {
+      if (c.note) fails.push(`${tag}: catatan "hanya tersedia dalam bahasa Inggris" tidak boleh tampil di EN`);
+      for (const t of ['Model level', 'Derived from', 'Sources']) if (!c.text.includes(t)) fails.push(`${tag}: label "${t}" tidak tampil`);
+    }
+    if (hide && c.warnCount && c.warnVisible) fails.push(`${tag}: "lokasi belum diverifikasi" (catatan kerja) masih tampil padahal disembunyikan`);
+    for (const e of [...new Set(p.errs)]) fails.push(`${tag}: ${e}`);
+    await p.close();
+  }
+  // 2) ganti bahasa saat kartu Basis terbuka
+  {
+    const p = await mk('en');
+    await openCard(p);
+    for (const l of ['id', 'en', 'id']) {
+      await p.evaluate((x) => window.__etelDebug.setLang(x), l); await p.waitForTimeout(900);
+      const c = await cardState(p);
+      if (!c) { fails.push(`kartu Basis: tertutup saat ganti bahasa ke ${l}`); break; }
+      if ((l === 'id') !== !!c.note) fails.push(`kartu Basis: catatan ${c.note ? 'tampil' : 'hilang'} setelah ganti ke ${l}`);
+      if (l === 'id' && !c.text.includes('Diturunkan dari')) fails.push('kartu Basis: label tidak ikut bahasa ID saat terbuka');
+      if (l === 'en' && !c.text.includes('Derived from')) fails.push('kartu Basis: label tidak kembali ke EN saat terbuka');
+    }
+    for (const e of [...new Set(p.errs)]) fails.push(`kartu Basis ganti bahasa: ${e}`);
+    await p.close();
+  }
+  // 3) panel asumsi (H) dan halaman #/assumptions
+  const panel = (p) => p.evaluate(() => {
+    const el = document.querySelector('.asm:not([hidden])');
+    if (!el) return null;
+    const notes = [...el.querySelectorAll('[data-en-only]')];
+    return { text: el.innerText, notes: notes.length, notesVisible: notes.every((e) => e.checkVisibility?.() !== false), notesWorking: notes.some((e) => e.closest('[data-note]') || e.hasAttribute('data-note')), h3: [...el.querySelectorAll('h3')].map((e) => e.textContent.trim()), fnLevels: [...el.querySelectorAll('[data-v="functions"] tr.asm-fn td:nth-child(2)')].map((e) => e.textContent.trim()) };
+  });
+  for (const [lang, mode] of [['en', 'H'], ['id', 'H'], ['id', 'page']]) {
+    const tag = `panel asumsi (${lang}, ${mode})`;
+    const p = await mk(lang, { hide: lang === 'id' });
+    if (mode === 'H') await p.keyboard.press('h'); else await p.goto(`${base}#/assumptions`);
+    await p.waitForFunction(() => document.querySelector('.asm:not([hidden])'), null, { timeout: 8000 }).catch(() => fails.push(`${tag}: panel tidak terbuka`));
+    await p.waitForTimeout(600);
+    const c = await panel(p);
+    if (!c) { await p.close(); continue; }
+    if (lang === 'id') {
+      for (const t of ['Asumsi model', 'Tampilan', 'Basis emisi', 'Tuas mesin', 'Faktor kalibrasi', 'Tingkat model per grafik', 'Dasar teori per fungsi model', 'Penyimpangan model yang diketahui', 'Pengaturan tersimpan']) if (!c.h3.some((x) => x.includes(t)) && !c.text.includes(t)) fails.push(`${tag}: judul "${t}" tidak tampil`);
+      if (c.notes !== 2 || !c.notesVisible || c.notesWorking) fails.push(`${tag}: catatan tetap harus 2 (fungsi, penyimpangan), tampil, bukan catatan kerja (ada ${c.notes}, tampil ${c.notesVisible}, kerja ${c.notesWorking})`);
+      if (c.fnLevels.some((x) => /Semi-empirical|Site data|Real \(component/.test(x))) fails.push(`${tag}: tingkat di tabel fungsi masih English: ${[...new Set(c.fnLevels)].join(' | ')}`);
+      if (!c.fnLevels.some((x) => /Semi-empiris/.test(x))) fails.push(`${tag}: tabel fungsi tanpa "Semi-empiris" (${[...new Set(c.fnLevels)].join(' | ')})`);
+      if (/Model assumptions|Emission basis|Calibration factors|Known model deviations/.test(c.text)) fails.push(`${tag}: judul masih English`);
+      if (/\b\d+\.\d{1,2}\b/.test(c.text.replace(/\d{1,3}(\.\d{3})+/g, ''))) fails.push(`${tag}: angka desimal bertitik di panel ID`);
+    } else {
+      if (c.notes) fails.push(`${tag}: catatan "hanya tersedia dalam bahasa Inggris" tidak boleh tampil di EN`);
+      for (const t of ['Model assumptions', 'Emission basis', 'Calibration factors']) if (!c.text.includes(t)) fails.push(`${tag}: judul "${t}" tidak tampil`);
+    }
+    for (const e of [...new Set(p.errs)]) fails.push(`${tag}: ${e}`);
+    await p.close();
+  }
+  // 4) ganti bahasa saat panel H terbuka + isian O₂ acuan koma / titik
+  {
+    const p = await mk('en');
+    await p.keyboard.press('h'); await p.waitForTimeout(600);
+    await p.evaluate(() => { window.__noReload = 1; });
+    await p.evaluate(() => window.__etelDebug.setLang('id')); await p.waitForTimeout(900);
+    let c = await panel(p);
+    if (!c) fails.push('panel H: tertutup saat ganti bahasa');
+    else {
+      if (!c.text.includes('Asumsi model') || c.notes !== 2) fails.push(`panel H: tidak ikut bahasa ID saat terbuka (catatan ${c.notes})`);
+      const set = async (t) => { await p.click('[data-o2]', { clickCount: 3 }); await p.keyboard.press('Control+A'); await p.keyboard.press('Backspace'); await p.keyboard.type(t); await p.keyboard.press('Tab'); await p.waitForTimeout(400); return p.evaluate(() => ({ v: window.__etelDebug.limits().refO2, shown: document.querySelector('[data-o2]').value })); };
+      let r = await set('12,5');
+      if (r.v !== 12.5 || r.shown !== '12,5') fails.push(`panel H ID: O₂ acuan "12,5" → ${JSON.stringify(r)}`);
+      await p.evaluate(() => window.__etelDebug.setLang('en')); await p.waitForTimeout(900);
+      c = await panel(p);
+      if (!c || c.notes !== 0 || !c.text.includes('Model assumptions')) fails.push('panel H: tidak kembali ke EN saat terbuka');
+      r = await p.evaluate(() => ({ v: window.__etelDebug.limits().refO2, shown: document.querySelector('[data-o2]')?.value }));
+      if (r.v !== 12.5 || r.shown !== '12.5') fails.push(`panel H EN: O₂ acuan tampil "${r.shown}" (harusnya 12.5; nilai ${r.v})`);
+      r = await set('15');
+      if (r.v !== 15) fails.push(`panel H EN: O₂ acuan dikembalikan ke 15 gagal (${JSON.stringify(r)})`);
+      if ((await p.evaluate(() => window.__noReload)) !== 1) fails.push('panel H: halaman dimuat ulang saat ganti bahasa');
+    }
+    for (const e of [...new Set(p.errs)]) fails.push(`panel H ganti bahasa: ${e}`);
+    await p.close();
+  }
+  console.log('\nD6: kartu Basis dan panel asumsi (H) dalam EN dan ID');
+  return fails;
+}
+
+/**
+ * Sapuan penuh bahasa ID (penutupan Paket D): setiap scene (+ tab Scene 9), setiap halaman penuh, 3 viewport × Dark / Light:
+ * tanpa galat konsol / halaman, tanpa scroll horizontal, header tanpa tumpang tindih, teks tidak meluber (inspect), elemen tidak keluar layar;
+ * ekspor PNG (S) setiap scene berfooter "indikatif". Jendela presenter dan kerangka: alur presenterlang / idchrome.
+ */
+async function idSweepInteraction(browser, url) {
+  const fails = [];
+  const base = url.replace(/#.*$/, '');
+  const PAGES = ['#/regulations', '#/formation', '#/references', '#/glossary', '#/assumptions', '#/learn', '#/learn/charts', '#/about', '#/'];
+  const offscreen = () => {
+    const out = [];
+    for (const el of document.querySelectorAll('body *')) {
+      if (el.checkVisibility?.() === false || el.closest('canvas, svg, [hidden], .help-card')) continue;
+      const r = el.getBoundingClientRect();
+      if (!r.width || !r.height) continue;
+      if (el.children.length === 0 && el.textContent.trim() && (r.right > innerWidth + 1 || r.left < -1)) out.push(`${el.className?.toString().slice(0, 30) || el.tagName} "${el.textContent.trim().slice(0, 28)}"`);
+    }
+    return out.slice(0, 4);
+  };
+  let states = 0;
+  for (const [w, h] of VIEWPORTS) for (const theme of ['dark', 'light']) {
+    const tag = `${w}×${h} ${theme} ID`;
+    const p = await browser.newPage({ viewport: { width: w, height: h }, acceptDownloads: true });
+    const errs = [];
+    p.on('pageerror', (e) => errs.push(`pageerror: ${e.message}`));
+    p.on('console', (m) => { if (m.type() === 'error') errs.push(`console: ${m.text()}`); });
+    await p.addInitScript(([t]) => {
+      try { localStorage.setItem('etel:lang', 'id'); localStorage.setItem('etel:theme', t); } catch { /* */ }
+      window.__ft = [];
+      const ft = CanvasRenderingContext2D.prototype.fillText;
+      CanvasRenderingContext2D.prototype.fillText = function (tx, x, y, mw) { window.__ft.push(String(tx)); return ft.call(this, tx, x, y, mw); };
+    }, [theme]);
+    await p.goto(`${base}#/scene/1`);
+    await p.waitForFunction(() => window.__etelDebug?.scene() === 1 && !window.__etelDebug.loading(), null, { timeout: 30000 });
+    for (let n = 1; n <= 11; n++) {
+      await goScene(p, n, 500);
+      for (const tab of n === 9 ? ['1', '2', '3', '4', '5'] : [null]) {
+        if (tab) { await p.keyboard.press(tab); await p.waitForTimeout(500); }
+        const where = `${tag} Scene ${n}${tab ? ` tab ${tab}` : ''}`;
+        let res = null;
+        for (let t = 0; t <= TIMEOUT_MS; t += POLL_MS) { res = await p.evaluate(inspect, { minFill: MIN_FILL_PCT }); if (res.charts.every((c) => c.ok)) break; await p.waitForTimeout(POLL_MS); }
+        states++;
+        if (res.hscroll) fails.push(`${where}: scroll horizontal`);
+        for (const c of res.charts) if (!c.ok) fails.push(`${where}: grafik "${c.title}" kosong / tanpa tag / ⓘ`);
+        for (const o of res.overflow) fails.push(`${where}: teks meluber di ${o.el}: ${o.reasons[0]}`);
+        for (const o of [...new Set(res.helpOverlap)]) fails.push(`${where}: bantuan ⓘ bertumpuk: ${o}`);
+        for (const o of await p.evaluate(headerOverlap)) fails.push(`${where}: header tumpang tindih: ${o}`);
+        for (const o of await p.evaluate(offscreen)) fails.push(`${where}: teks keluar layar: ${o}`);
+      }
+      if (n === 9) { await p.keyboard.press('1'); await p.waitForTimeout(200); }
+      if (w === 1366) { // ekspor PNG setiap scene dalam ID: footer berbahasa Indonesia
+        await p.evaluate(() => { window.__ft.length = 0; document.activeElement?.blur?.(); });
+        try {
+          await Promise.all([p.waitForEvent('download', { timeout: 30000 }), p.keyboard.press('s')]);
+          await p.waitForTimeout(500);
+          const foot = await p.evaluate(() => window.__ft.filter((t) => /Emission Lab/.test(t)));
+          if (!foot.some((t) => /indikatif/.test(t))) fails.push(`${tag} Scene ${n}: footer PNG tanpa "indikatif" (${foot.join(' | ').slice(0, 100) || 'tidak terekam'})`);
+        } catch { fails.push(`${tag} Scene ${n}: ekspor PNG (S) tidak menghasilkan unduhan`); }
+      }
+    }
+    for (const hash of PAGES) {
+      await p.goto(`${base}${hash}`); await p.waitForTimeout(900);
+      states++;
+      const where = `${tag} ${hash}`;
+      const info = await p.evaluate(() => ({ hs: document.documentElement.scrollWidth > innerWidth + 1, len: document.body.innerText.length }));
+      if (info.hs) fails.push(`${where}: scroll horizontal`);
+      if (info.len < 100) fails.push(`${where}: halaman hampir kosong`);
+      for (const o of await p.evaluate(headerOverlap)) fails.push(`${where}: header tumpang tindih: ${o}`);
+      for (const o of await p.evaluate(offscreen)) fails.push(`${where}: teks keluar layar: ${o}`);
+    }
+    for (const e of [...new Set(errs)]) fails.push(`${tag}: ${e}`);
+    await p.close();
+  }
+  console.log(`\nSapuan ID penuh: ${states} keadaan (11 scene + 5 tab Scene 9 + ${PAGES.length} halaman, 3 viewport × 2 tema), PNG tiap scene di 1366`);
+  return fails;
+}
+
+/**
  * D4: Scene 5–8 (teks kanvas ID vs EN, judul → panduan ⓘ, label 3D, PNG, bolak-balik bahasa) + panel kontrol yang padat
  * tanpa tumpang tindih di ID (3 viewport × 2 tema) + Scene 6: ganti bahasa saat chip dan garis batas tampil (isian koma / titik,
  * label garis batas di kanvas, chip tetap Within / Above / Not modeled).
@@ -2290,7 +2496,7 @@ try {
   // E2E_ONLY=learn,landing,deeplinks: hanya alur halaman tersebut (iterasi cepat); tanpa variabel = smoke penuh
   const only = process.env.E2E_ONLY ? new Set(process.env.E2E_ONLY.split(',')) : null;
   if (only) {
-    const flows = { numerr: numberErrorsInteraction, presenterlang: presenterLangInteraction, idchrome: idChromeInteraction, langid: langIdInteraction, d3: d3Interaction, d4: d4Interaction, d5a: d5aInteraction, d5b: d5bInteraction, learn: learnInteraction, chartguide: chartGuideInteraction, help: helpInteraction, helpclick: helpClickInteraction, settings: settingsInteraction, landing: landingInteraction, deeplinks: deepLinks, theme: themeInteraction };
+    const flows = { numerr: numberErrorsInteraction, presenterlang: presenterLangInteraction, idchrome: idChromeInteraction, langid: langIdInteraction, d3: d3Interaction, d4: d4Interaction, d5a: d5aInteraction, d5b: d5bInteraction, d6: d6Interaction, idsweep: idSweepInteraction, learn: learnInteraction, chartguide: chartGuideInteraction, help: helpInteraction, helpclick: helpClickInteraction, settings: settingsInteraction, landing: landingInteraction, deeplinks: deepLinks, theme: themeInteraction };
     for (const k of only) if (flows[k]) failures.push(...await flows[k](chromium.browser, srv.url));
   }
   for (const [w, h] of only ? [] : VIEWPORTS) {
@@ -2349,6 +2555,8 @@ try {
     if (w === 1366) failures.push(...await d4Interaction(chromium.browser, srv.url));
     if (w === 1366) failures.push(...await d5aInteraction(chromium.browser, srv.url));
     if (w === 1366) failures.push(...await d5bInteraction(chromium.browser, srv.url));
+    if (w === 1366) failures.push(...await d6Interaction(chromium.browser, srv.url));
+    if (w === 1366) failures.push(...await idSweepInteraction(chromium.browser, srv.url));
     if (w === 1366) failures.push(...await presenterLangInteraction(chromium.browser, srv.url));
     if (w === 1366) failures.push(...await idChromeInteraction(chromium.browser, srv.url));
     if (w === 1280) failures.push(...await numberErrorsInteraction(chromium.browser, srv.url));
