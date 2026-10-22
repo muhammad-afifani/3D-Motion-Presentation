@@ -9,6 +9,8 @@ import {
   retardSweep, noxCoTradeoff, emissionAtBasis, ZELDOVICH, MW, loadSweep,
   suctionFlow, compressorTrain, affinity, speedForHead,
   co2eWithSlip, ghgPenalty, dryFlueNm3PerKg, ppmToGkWh, mgNm3ToPpm, ppmToMgNm3, fuelPerKWh,
+  UNIT_DEFS, toUnit, fromUnit, toUnitDelta, fromUnitDelta, toUnitRate, fromUnitRate,
+  CONCENTRATION_SPECIES, concentrationToUnit, concentrationFromUnit,
 } from '../src/model/thermo.js';
 
 /** |got − want| ≤ tol */
@@ -403,5 +405,129 @@ describe('selfTest', () => {
     const r = selfTest();
     expect(r.failed, JSON.stringify(r.results.filter((x) => !x.ok))).toBe(0);
     expect(r.passed).toBe(19); // M9 Step 04: 14 → 19 (dual, CH4 LHV & AFR, SO2 solar, O2 dari λ)
+  });
+});
+
+describe('Satuan tampilan (toUnit dkk.): golden dan bolak-balik', () => {
+  it('tekanan: 1 bar = 14,5038 psia = 100 kPa = 0,1 MPa; 1 atm = 14,6959 psia', () => {
+    near(toUnit('pressure', 'psia', 1e5), 14.5038, 1e-4);
+    near(toUnit('pressure', 'kPa', 1e5), 100, 1e-9);
+    near(toUnit('pressure', 'MPa', 1e5), 0.1, 1e-12);
+    near(toUnit('pressure', 'psia', 101325), 14.6959, 1e-4);
+    near(toUnit('pressure', 'psia', 112.4e5), 1630.2, 0.1); // Pmax preset diesel
+  });
+  it('suhu: 300 K = 26,85 °C = 80,33 °F; 0 °C = 32 °F; 100 °C = 212 °F; 0 K = −459,67 °F', () => {
+    near(toUnit('temperature', 'C', 300), 26.85, 1e-9);
+    near(toUnit('temperature', 'F', 300), 80.33, 1e-9);
+    near(toUnit('temperature', 'F', 273.15), 32, 1e-9);
+    near(toUnit('temperature', 'F', 373.15), 212, 1e-9);
+    near(toUnit('temperature', 'F', 0), -459.67, 1e-9);
+    near(fromUnit('temperature', 'F', 80.33), 300, 1e-9);
+  });
+  it('daya: 1 kW = 1,3410 hp; 1 hp = 745,70 W; 25 MW = 33.526 hp', () => {
+    near(toUnit('power', 'hp', 1000), 1.34102, 1e-5);
+    near(fromUnit('power', 'hp', 1), 745.69987, 1e-4);
+    near(toUnit('power', 'hp', 25e6), 33525.55, 0.02);
+    near(toUnit('power', 'MW', 25e6), 25, 1e-12);
+    near(toUnit('power', 'kW', 25e6), 25000, 1e-9);
+  });
+  it('energi, heat rate, bahan bakar, emisi spesifik', () => {
+    near(toUnit('specificEnergy', 'kJkg', 1500e3), 1500, 1e-9);
+    near(toUnit('specificEnergy', 'Btulb', 1000e3), 429.923, 1e-3);          // 1 kJ/kg = 0,429923 Btu/lb
+    near(toUnit('heatRate', 'BtukWh', 10000), 9478.17, 0.01);                 // 10.000 kJ/kWh
+    near(toUnit('specificEmission', 'lbMWh', 1), 2.204623, 1e-6);             // 1 g/kWh = 2,2046 lb/MWh
+    near(toUnit('specificEmission', 'ghph', 1), 0.745700, 1e-6);              // 1 g/kWh = 0,7457 g/(hp·h)
+    near(toUnit('specificFuel', 'lbhph', 200), 0.328797, 1e-5);               // 200 g/kWh = 0,3288 lb/(hp·h)
+    near(toUnit('specificHeat', 'BtulbR', 1005), 0.240032, 1e-5);             // cp udara 1005 J/(kg·K) = 0,240 Btu/(lb·°R)
+    near(toUnit('specificVolume', 'ft3lb', 0.8), 12.8148, 1e-3);
+  });
+  it('panjang, volume, debit, laju massa, massa molar', () => {
+    near(toUnit('length', 'mm', 0.2), 200, 1e-9);
+    near(toUnit('length', 'in', 0.2), 7.87402, 1e-5);
+    near(toUnit('volume', 'L', 1), 1000, 1e-9);
+    near(toUnit('volume', 'cm3', 1), 1e6, 1e-6);
+    near(toUnit('volume', 'in3', 1), 61023.74, 0.01);
+    near(toUnit('volumeFlow', 'cfm', 1), 2118.88, 0.01);
+    near(toUnit('volumeFlow', 'm3h', 1), 3600, 1e-9);
+    near(toUnit('massFlow', 'kgh', 1), 3600, 1e-9);
+    near(toUnit('massFlow', 'lbs', 1), 2.204623, 1e-6);
+    near(toUnit('massFlow', 'lbh', 1), 7936.64, 0.01);
+    near(toUnit('molarMass', 'lblbmol', 18.015), 18.015, 1e-12);
+  });
+  it('bolak-balik: fromUnit(toUnit(x)) = x untuk semua besaran, satuan, dan nilai (nol, negatif, besar)', () => {
+    const samples = [0, 1e-6, 0.37, 1, 300, 1.5e5, -42.5, 7.7e8];
+    let n = 0;
+    for (const [qty, def] of Object.entries(UNIT_DEFS)) {
+      for (const unit of Object.keys(def.units)) {
+        for (const x of samples) {
+          const back = fromUnit(qty, unit, toUnit(qty, unit, x));
+          near(back, x, 1e-9 * Math.max(1, Math.abs(x)));
+          near(fromUnitDelta(qty, unit, toUnitDelta(qty, unit, x)), x, 1e-9 * Math.max(1, Math.abs(x)));
+          near(fromUnitRate(qty, unit, toUnitRate(qty, unit, x)), x, 1e-9 * Math.max(1, Math.abs(x)));
+          n++;
+        }
+      }
+    }
+    expect(n).toBeGreaterThan(150);
+  });
+  it('selisih suhu tanpa offset: 10 K = 10 °C = 18 °F; nol tetap nol; laju per derajat dibagi faktor', () => {
+    near(toUnitDelta('temperature', 'K', 10), 10, 1e-12);
+    near(toUnitDelta('temperature', 'C', 10), 10, 1e-12);
+    near(toUnitDelta('temperature', 'F', 10), 18, 1e-12);
+    near(toUnitDelta('temperature', 'F', 0), 0, 1e-12);          // bukan −459,67
+    near(toUnitRate('temperature', 'F', 0.009), 0.005, 1e-12);   // 0,9 %/K = 0,5 %/°F
+    near(toUnitRate('temperature', 'C', 0.009), 0.009, 1e-12);
+  });
+  it('satuan tidak dikenal melempar galat (bug pemrogram, bukan input pengguna)', () => {
+    expect(() => toUnit('pressure', 'atm', 1)).toThrow();
+    expect(() => toUnit('speed', 'kmh', 1)).toThrow();
+  });
+});
+
+describe('Konsentrasi ppmvd ↔ mg/Nm³ (concentrationToUnit / FromUnit)', () => {
+  it('NOx sebagai NO₂: 25 ppmvd @15 % O₂ = 51,3 mg/Nm³ pada 0 °C dan 47,0 pada 25 °C (golden docs/ALUR_SLIDE)', () => {
+    near(concentrationToUnit({ ppm: 25, unit: 'mgNm3', TrefC: 0 }), 51.31, 0.05);
+    near(concentrationToUnit({ ppm: 25, unit: 'mgNm3', TrefC: 25 }), 47.01, 0.05);
+    near(concentrationToUnit({ ppm: 25, unit: 'ppmvd' }), 25, 1e-12);
+  });
+  it('sama persis dengan emissionAtBasis (satu jalur tampilan)', () => {
+    for (const [refO2, TrefC] of [[15, 0], [15, 25], [12, 0], [3, 25], [18.5, 0]]) {
+      const ref = emissionAtBasis({ ppm: 31.7, refFrom: 15, refO2, TrefK: 273.15 + TrefC, MWspecies: MW.NO2 });
+      near(concentrationToUnit({ ppm: 31.7, unit: 'mgNm3', refFrom: 15, refO2, TrefC }), ref.mgNm3, 1e-9);
+      near(concentrationToUnit({ ppm: 31.7, unit: 'ppmvd', refFrom: 15, refO2, TrefC }), ref.ppm, 1e-9);
+    }
+  });
+  it('massa molar per spesies: CO, SO₂, CH₄ (hitung tangan ppm·M/V)', () => {
+    near(concentrationToUnit({ ppm: 25, species: 'co', unit: 'mgNm3', TrefC: 0 }), 31.24, 0.01);   // 25·28,010/22,414
+    near(concentrationToUnit({ ppm: 10, species: 'so2', unit: 'mgNm3', TrefC: 0 }), 28.58, 0.01);  // 10·64,066/22,414
+    near(concentrationToUnit({ ppm: 100, species: 'ch4', unit: 'mgNm3', TrefC: 0 }), 71.57, 0.01); // 100·16,043/22,414
+    expect(Object.keys(CONCENTRATION_SPECIES)).toEqual(['nox', 'co', 'so2', 'ch4']);
+  });
+  it('koreksi O₂: 20 ppmvd @15 % → @3 % = 60,68 (faktor (20,9−3)/(20,9−15))', () => {
+    near(concentrationToUnit({ ppm: 20, unit: 'ppmvd', refFrom: 15, refO2: 3 }), 60.678, 0.001);
+  });
+  it('0 °C selalu lebih besar dari 25 °C untuk gas yang sama (V membesar), rasio = V25/V0', () => {
+    const a = concentrationToUnit({ ppm: 40, unit: 'mgNm3', TrefC: 0 }), b = concentrationToUnit({ ppm: 40, unit: 'mgNm3', TrefC: 25 });
+    expect(a).toBeGreaterThan(b);
+    near(b / a, 22.414 / (22.414 * 298.15 / 273.15), 1e-12);
+  });
+  it('bolak-balik kembali ke nilai awal: semua spesies, satuan, basis O₂ dan volume (0 dan 25 °C)', () => {
+    let n = 0;
+    for (const species of Object.keys(CONCENTRATION_SPECIES)) for (const unit of ['ppmvd', 'mgNm3']) {
+      for (const TrefC of [0, 25]) for (const refO2 of [3, 12, 15, 18.5]) for (const ppm of [0.5, 25, 168, 730]) {
+        const v = concentrationToUnit({ ppm, species, unit, refFrom: 15, refO2, TrefC });
+        near(concentrationFromUnit({ value: v, species, unit, refO2, refTo: 15, TrefC }), ppm, 1e-9 * ppm);
+        n++;
+      }
+    }
+    expect(n).toBe(4 * 2 * 2 * 4 * 4);
+    // mg/Nm³ → ppmvd → mg/Nm³ juga kembali
+    const mg = 320, ppm = concentrationFromUnit({ value: mg, species: 'nox', unit: 'mgNm3', refO2: 15, refTo: 15, TrefC: 25 });
+    near(concentrationToUnit({ ppm, species: 'nox', unit: 'mgNm3', refFrom: 15, refO2: 15, TrefC: 25 }), mg, 1e-9);
+  });
+  it('spesies atau satuan tidak dikenal melempar galat', () => {
+    expect(() => concentrationToUnit({ ppm: 1, species: 'pm', unit: 'mgNm3' })).toThrow();
+    expect(() => concentrationToUnit({ ppm: 1, unit: 'gm3' })).toThrow();
+    expect(() => concentrationFromUnit({ value: 1, unit: 'gm3' })).toThrow();
   });
 });

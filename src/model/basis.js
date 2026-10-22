@@ -188,6 +188,20 @@ export const BASIS = Object.freeze({
   emissionAtBasis: e('Ideal', ['epa-method-19', 'iso-11042'], 'Converts a ppm value to the display basis: reference O₂ first, then mg/Nm³ at the chosen volume basis.', ['Dry basis; basis values are inputs from the presenter.']),
   massRateKgH: e('Ideal', [], 'Mass emission rate = concentration × volumetric flow.', ['Flow and concentration on the same basis.']),
   exhaustFlowNm3h: e('Real', [], 'Flue-gas flow in Nm³/h from air plus fuel mass flow at a fixed density of 1.30 kg/Nm³.', ['Fixed density; water vapour not separated.'], ['Source of the 1.30 kg/Nm³ density: not in the reference list.']),
+  // ───────────────────────────── display units (units setting; display layer only) ─────────────────────────────
+  UNIT_DEFS: e('Ideal', [], 'Table of exact conversion factors from the base unit of the model to each display unit: shown = base·factor + offset (only temperature has an offset).',
+    ['Display only: the model, the store and the frames keep the base units, and limit comparisons never use this table.', 'hp is the mechanical horsepower (745.7 W); psia is absolute pressure, as every pressure in the model is absolute; Btu is the International Table Btu.', 'Volume flow is actual flow; standard flow is not modeled.'],
+    ['Source of the conversion factors (for example NIST SP 811): not in the reference list.']),
+  toUnit: e('Ideal', [], 'Base value to display value with the factor and offset of the unit (300 K is 80.33 °F).', ['Display only.'], ['Source of the conversion factors: not in the reference list.']),
+  fromUnit: e('Ideal', [], 'Inverse of toUnit: a number typed in a display unit back to the base unit.', ['Display only.'], ['Source of the conversion factors: not in the reference list.']),
+  toUnitDelta: e('Ideal', [], 'A difference in the base unit to a difference in the display unit: factor only, no offset (10 K is 10 °C is 18 °F).', ['Used for temperature rises and differences; applying the offset to a difference would be wrong.'], ['Source of the conversion factors: not in the reference list.']),
+  fromUnitDelta: e('Ideal', [], 'Inverse of toUnitDelta.', ['Display only.'], ['Source of the conversion factors: not in the reference list.']),
+  toUnitRate: e('Ideal', [], 'A rate per base unit to a rate per display unit: divide by the factor (0.5 %/K is 0.28 %/°F).', ['Used for per-degree quantities such as derating.'], ['Source of the conversion factors: not in the reference list.']),
+  fromUnitRate: e('Ideal', [], 'Inverse of toUnitRate.', ['Display only.'], ['Source of the conversion factors: not in the reference list.']),
+  CONCENTRATION_SPECIES: e('Ideal', ['nist-webbook'], 'Which species can be written as ppmvd or mg/Nm³, and the molar mass used for each (NOx as NO₂).', ['NOx is always expressed as NO₂ for the mass concentration.']),
+  concentrationToUnit: e('Ideal', ['epa-method-19', 'iso-11042'], 'ppmvd at one reference O₂ to the display basis: O₂ correction first, then mg/Nm³ = ppm·M/V at the chosen volume basis.',
+    ['Dry basis; display path (20.9 % for O₂ in dry air).', 'Limit comparisons never use this function; they use toRegulationBasis.', 'The same exhaust gas gives different numbers on a different O₂ or volume basis; that is a change of basis, not of the gas.']),
+  concentrationFromUnit: e('Ideal', ['epa-method-19', 'iso-11042'], 'Inverse of concentrationToUnit: a value on the display basis back to ppmvd at a reference O₂.', ['Dry basis; display path; the volume basis must match the one used to write the number.']),
 
   // ───────────────────────────── CO₂, GHG, policy ─────────────────────────────
   qinPerKgAir: e('Ideal', ['turns'], 'Heat released per kg of air: q = φ·LHV·ηcomb / AFRst.', ['Complete energy balance; fixed AFRst and LHV.']),
@@ -219,6 +233,7 @@ export const BASIS_GROUPS = Object.freeze({
   partLoad: ['loadSweep', 'singleShaftLoad', 'twinShaftForLoad', 'dlnFromResult', 'dlnEmissions', 'coDLN', 'calibrateDLN'],
   compressor: ['gasCompressor', 'suctionFlow', 'affinity', 'speedForHead', 'compressorTrain'],
   emissions: ['ppmToGkWh', 'emissionAtBasis', 'dryFlueNm3PerKg', 'co2Specific', 'co2eWithSlip', 'GWP_CH4', 'cylinderSim', 'dlnEmissions'],
+  units: ['concentrationToUnit', 'concentrationFromUnit', 'CONCENTRATION_SPECIES', 'correctToRefO2', 'ppmToMgNm3', 'mgNm3ToPpm', 'molarVolume', 'UNIT_DEFS', 'toUnit', 'fromUnit', 'toUnitDelta', 'toUnitRate'],
   policy: ['leverSweep', 'cylinderSim', 'toRegulationBasis', 'fuelGasProps', 'exhaustO2FromLambda', 'ghgPenalty', 'co2eWithSlip', 'emissionAtBasis', 'loadSweep'],
 });
 

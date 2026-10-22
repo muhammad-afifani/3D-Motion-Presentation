@@ -13,6 +13,7 @@ import { loadContent, fallbackContent } from './state/content.js';
 import { openChannel, createPresenterLink } from './state/presenterSync.js';
 import { SCENE_NUMBERS } from './state/scenes.js';
 import { THEME_KEY, themeStorage, readThemeChoice, applyTheme } from './state/theme.js';
+import { UNITS_KEY, unitsStore } from './state/unitsStore.js';
 
 // bahasa teks dan format angka ikut jendela utama (etel:lang; tanpa pilihan: bahasa browser / English). Berganti lewat event
 // storage tanpa memuat ulang: teks kerangka (judul, tombol, label) dan format angka berubah, catatan presenter tetap Indonesia.
@@ -28,7 +29,9 @@ const syncLang = () => {
 window.addEventListener('storage', (e) => { if (e.key === LANG_KEY || e.key === null) syncLang(); });
 document.title = STR.presenter.docTitle;
 // hook uji (smoke): bahasa angka aktif dan contoh format di jendela ini
-window.__etelPresenter = { numLang: () => numberLang(), sample: () => fmt(1500.5, 1) };
+window.__etelPresenter = { numLang: () => numberLang(), sample: () => fmt(1500.5, 1), unit: (q) => unitsStore.unit(q) };
+// satuan tampilan ikut jendela utama lewat event storage (etel:units), seperti bahasa dan tema; belum ada angka berunit di jendela ini
+window.addEventListener('storage', (e) => { if (e.key === UNITS_KEY || e.key === null) unitsStore.reload(); });
 // tema ikut jendela utama hanya bila storage terbaca (pilihan tersimpan); selain itu tetap Dark
 const syncTheme = () => { const c = readThemeChoice(themeStorage()); applyTheme(c.stored ? c.theme : 'dark'); };
 syncTheme();

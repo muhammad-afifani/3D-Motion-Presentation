@@ -1192,6 +1192,117 @@ const SRC = {
     },
   },
 
+  // ─────────────────────────── units setting (Settings → Units; display layer only) ───────────────────────────
+  units: {
+    title: { en: 'Units', id: 'Satuan' },
+    lead: { en: 'Choose how numbers are written. The model, the charts\' data and the limit checks do not change.', id: 'Pilih cara angka ditulis. Model, data grafik, dan pemeriksaan batas tidak berubah.' },
+    system: { en: 'Unit system', id: 'Sistem satuan' },
+    preset: { si: { en: 'SI', id: 'SI' }, us: { en: 'US customary', id: 'US customary' }, custom: { en: 'Custom', id: 'Kustom' } },
+    presetTip: {
+      si: { en: 'SI units: bar, K, g/kWh, kJ/kg. Power and gas concentration stay as each scene shows them.', id: 'Satuan SI: bar, K, g/kWh, kJ/kg. Daya dan konsentrasi gas tetap seperti yang ditampilkan tiap scene.' },
+      us: { en: 'US customary units: psia, °F, hp, Btu, lb. Gas concentration stays as each scene shows it.', id: 'Satuan AS (US customary): psia, °F, hp, Btu, lb. Konsentrasi gas tetap seperti yang ditampilkan tiap scene.' },
+      custom: { en: 'At least one quantity uses a unit other than the preset. Pick SI or US customary to reset all of them.', id: 'Minimal satu besaran memakai satuan di luar preset. Pilih SI atau US customary untuk mengatur ulang semuanya.' },
+    },
+    perQuantity: { en: 'Per quantity', id: 'Per besaran' },
+    backToPreset: { en: 'Back to preset', id: 'Kembali ke preset' },
+    auto: { en: 'As in each scene', id: 'Seperti di tiap scene' },
+    qty: {
+      pressure: { en: 'Pressure', id: 'Tekanan' },
+      temperature: { en: 'Temperature', id: 'Suhu' },
+      power: { en: 'Power', id: 'Daya' },
+      specificEnergy: { en: 'Specific energy', id: 'Energi spesifik' },
+      heatRate: { en: 'Heat rate', id: 'Heat rate' },
+      specificFuel: { en: 'Fuel use per kWh', id: 'Pemakaian bahan bakar per kWh' },
+      specificEmission: { en: 'Emission per kWh', id: 'Emisi per kWh' },
+      specificHeat: { en: 'Entropy and specific heat', id: 'Entropi dan kalor jenis' },
+      specificVolume: { en: 'Specific volume', id: 'Volume spesifik' },
+      length: { en: 'Length', id: 'Panjang' },
+      volume: { en: 'Volume', id: 'Volume' },
+      volumeFlow: { en: 'Volume flow', id: 'Debit volume' },
+      massFlow: { en: 'Mass flow', id: 'Laju massa' },
+      molarMass: { en: 'Molar mass', id: 'Massa molar' },
+      concentration: { en: 'Gas concentration', id: 'Konsentrasi gas' },
+    },
+    qtyTip: {
+      pressure: { en: 'Every pressure in the model is absolute, so psia, not gauge.', id: 'Semua tekanan di model adalah tekanan absolut, jadi psia, bukan gauge.' },
+      temperature: { en: 'Temperature differences (a rise, a gap) use the size of the degree without the offset.', id: 'Selisih suhu (kenaikan, jarak) memakai ukuran derajat tanpa offset.' },
+      power: { en: 'hp is the mechanical horsepower. "As in each scene" keeps kW or MW where a scene shows them.', id: 'hp adalah daya kuda mekanik. "Seperti di tiap scene" mempertahankan kW atau MW di scene yang menampilkannya.' },
+      volumeFlow: { en: 'Actual flow. Standard flow is not modeled.', id: 'Debit aktual. Debit standar tidak dimodelkan.' },
+      concentration: { en: 'Applies where a scene shows one value. Scenes that show ppmvd and mg/Nm³ side by side keep both.', id: 'Berlaku di tempat yang menampilkan satu nilai. Scene yang menampilkan ppmvd dan mg/Nm³ berdampingan tetap menampilkan keduanya.' },
+    },
+    /** Unit symbols (same in both languages; listed in docs/tetap_inggris.json). */
+    sym: {
+      bar: { en: 'bar', id: 'bar' }, kPa: { en: 'kPa', id: 'kPa' }, MPa: { en: 'MPa', id: 'MPa' }, psia: { en: 'psia', id: 'psia' },
+      K: { en: 'K', id: 'K' }, C: { en: '°C', id: '°C' }, F: { en: '°F', id: '°F' },
+      kW: { en: 'kW', id: 'kW' }, MW: { en: 'MW', id: 'MW' }, hp: { en: 'hp', id: 'hp' },
+      kJkg: { en: 'kJ/kg', id: 'kJ/kg' }, Btulb: { en: 'Btu/lb', id: 'Btu/lb' },
+      kJkWh: { en: 'kJ/kWh', id: 'kJ/kWh' }, BtukWh: { en: 'Btu/kWh', id: 'Btu/kWh' },
+      gkWh: { en: 'g/kWh', id: 'g/kWh' }, lbhph: { en: 'lb/(hp·h)', id: 'lb/(hp·h)' }, lbMWh: { en: 'lb/MWh', id: 'lb/MWh' }, ghph: { en: 'g/(hp·h)', id: 'g/(hp·h)' },
+      kJkgK: { en: 'kJ/(kg·K)', id: 'kJ/(kg·K)' }, BtulbR: { en: 'Btu/(lb·°R)', id: 'Btu/(lb·°R)' },
+      m3kg: { en: 'm³/kg', id: 'm³/kg' }, ft3lb: { en: 'ft³/lb', id: 'ft³/lb' },
+      mm: { en: 'mm', id: 'mm' }, in: { en: 'in', id: 'in' },
+      L: { en: 'L', id: 'L' }, cm3: { en: 'cm³', id: 'cm³' }, in3: { en: 'in³', id: 'in³' },
+      m3s: { en: 'm³/s', id: 'm³/s' }, m3h: { en: 'm³/h', id: 'm³/h' }, cfm: { en: 'ft³/min', id: 'ft³/min' },
+      kgs: { en: 'kg/s', id: 'kg/s' }, kgh: { en: 'kg/h', id: 'kg/h' }, lbs: { en: 'lb/s', id: 'lb/s' }, lbh: { en: 'lb/h', id: 'lb/h' },
+      kgkmol: { en: 'kg/kmol', id: 'kg/kmol' }, lblbmol: { en: 'lb/lbmol', id: 'lb/lbmol' },
+      ppmvd: { en: 'ppmvd', id: 'ppmvd' }, mgNm3: { en: 'mg/Nm³', id: 'mg/Nm³' },
+    },
+    basisLine: {
+      en: (refO2, TrefC) => `Gas basis now: ${fmt(refO2, Number.isInteger(refO2) ? 0 : 1)} % O₂, dry, ${fmt(TrefC, 0)} °C. Change it in the assumptions panel (key H).`,
+      id: (refO2, TrefC) => `Basis gas sekarang: ${fmt(refO2, Number.isInteger(refO2) ? 0 : 1)} % O₂, kering, ${fmt(TrefC, 0)} °C. Ubah di panel asumsi (tombol H).`,
+    },
+    scope: {
+      en: 'The limit checks (Within / Above) always use the regulation basis and do not depend on these choices. Learn pages, help cards and presenter notes keep SI units.',
+      id: 'Pemeriksaan batas (Within / Above) selalu memakai basis regulasi dan tidak bergantung pada pilihan ini. Halaman Learn, kartu bantuan, dan catatan presenter tetap memakai satuan SI.',
+    },
+    guide: {
+      summary: { en: 'ppmvd or mg/Nm³: what is the difference?', id: 'ppmvd atau mg/Nm³: apa bedanya?' },
+      what: {
+        en: 'ppmvd counts molecules: parts per million of the dry exhaust by volume. mg/Nm³ weighs the pollutant: milligrams in one normal cubic metre of dry exhaust.',
+        id: 'ppmvd menghitung molekul: bagian per juta gas buang kering menurut volume. mg/Nm³ menimbang polutan: miligram dalam satu meter kubik normal gas buang kering.',
+      },
+      whyO2: {
+        en: 'Excess air dilutes the exhaust. More air gives a lower ppm for the same amount of pollutant. A value therefore needs its reference O₂ (for example 15 % O₂) to mean anything.',
+        id: 'Udara berlebih mengencerkan gas buang. Udara lebih banyak memberi ppm lebih rendah untuk jumlah polutan yang sama. Karena itu sebuah nilai baru bermakna bila disertai O₂ acuannya (misalnya 15 % O₂).',
+      },
+      whyVolume: {
+        en: 'Gas expands with temperature. mg/Nm³ therefore also needs its volume basis, 0 °C or 25 °C. The same exhaust gives a smaller mg/Nm³ at 25 °C than at 0 °C.',
+        id: 'Gas memuai bila suhu naik. Karena itu mg/Nm³ juga butuh basis volume, 0 °C atau 25 °C. Gas buang yang sama memberi mg/Nm³ lebih kecil pada 25 °C daripada pada 0 °C.',
+      },
+      how: {
+        en: 'Conversion: first correct ppmvd to the reference O₂, then mg/Nm³ = ppmvd × M ÷ V. M is the molar mass (NOx counts as NO₂) and V is the molar volume at the volume basis.',
+        id: 'Konversi: koreksi ppmvd ke O₂ acuan, lalu mg/Nm³ = ppmvd × M ÷ V. M adalah massa molar (NOx dihitung sebagai NO₂) dan V adalah volume molar pada basis volume.',
+      },
+      differ: {
+        en: 'Two numbers for the same exhaust are not a model difference when their basis differs. Compare numbers only on the same basis.',
+        id: 'Dua angka untuk gas buang yang sama bukan selisih model bila basisnya berbeda. Bandingkan angka hanya pada basis yang sama.',
+      },
+      exampleTitle: { en: 'Model example (indicative)', id: 'Contoh dari model (indikatif)' },
+      exampleLead: {
+        en: (ppm, refFrom) => `Gas turbine at full load, NOx as NO₂: the model gives ${fmt(ppm, 1)} ppmvd @ ${fmt(refFrom, Number.isInteger(refFrom) ? 0 : 1)} % O₂, dry. The same exhaust on other bases:`,
+        id: (ppm, refFrom) => `Turbin gas pada beban penuh, NOx sebagai NO₂: model memberi ${fmt(ppm, 1)} ppmvd @ ${fmt(refFrom, Number.isInteger(refFrom) ? 0 : 1)} % O₂, kering. Gas buang yang sama pada basis lain:`,
+      },
+      exampleHead: [{ en: 'Basis', id: 'Basis' }, { en: 'ppmvd', id: 'ppmvd' }, { en: 'mg/Nm³', id: 'mg/Nm³' }],
+      exampleRow: {
+        active: { en: 'Active basis', id: 'Basis aktif' },
+        o2: { en: 'Other O₂', id: 'O₂ lain' },
+        volume: { en: 'Other volume', id: 'Volume lain' },
+      },
+      basisOf: {
+        en: (refO2, TrefC) => `${fmt(refO2, Number.isInteger(refO2) ? 0 : 1)} % O₂, dry, ${fmt(TrefC, 0)} °C`,
+        id: (refO2, TrefC) => `${fmt(refO2, Number.isInteger(refO2) ? 0 : 1)} % O₂, kering, ${fmt(TrefC, 0)} °C`,
+      },
+      exampleMV: {
+        en: (M, V0, V25) => `M = ${fmt(M, 2)} g/mol (NO₂). V = ${fmt(V0, 2)} L/mol at 0 °C and ${fmt(V25, 2)} L/mol at 25 °C.`,
+        id: (M, V0, V25) => `M = ${fmt(M, 2)} g/mol (NO₂). V = ${fmt(V0, 2)} L/mol pada 0 °C dan ${fmt(V25, 2)} L/mol pada 25 °C.`,
+      },
+      exampleNote: {
+        en: 'Indicative model value, calibrated to typical literature values. It is not unit data and not a vendor figure.',
+        id: 'Nilai model indikatif, dikalibrasi ke nilai tipikal literatur. Bukan data unit dan bukan angka vendor.',
+      },
+    },
+  },
+
   // ─────────────────────────── basis (Basis tag, card, References page) ───────────────────────────
   basis: {
     tag: { en: 'Basis', id: 'Basis' },
@@ -1206,6 +1317,7 @@ const SRC = {
       lossWaterfall: { en: 'Efficiency loss steps', id: 'Langkah rugi efisiensi' }, flame: { en: 'Flame temperature and combustion', id: 'Suhu nyala dan pembakaran' }, noxCo: { en: 'NOx and CO of a lean-premix combustor', id: 'NOx dan CO ruang bakar lean-premix' },
       zeldovich: { en: 'Thermal NO (Zeldovich)', id: 'NO termal (Zeldovich)' }, engineNox: { en: 'Engine NOx', id: 'NOx mesin' }, partLoad: { en: 'Part-load and DLN emissions', id: 'Emisi part-load dan DLN' }, compressor: { en: 'Gas compressor', id: 'Kompresor gas' },
       emissions: { en: 'Emissions and CO₂ per kWh', id: 'Emisi dan CO₂ per kWh' }, policy: { en: 'Policy trade-off', id: 'Trade-off kebijakan' },
+      units: { en: 'Units and conversions', id: 'Satuan dan konversi' },
     },
     card: {
       title: { en: 'Basis', id: 'Basis' }, custom: { en: 'Basis of this view', id: 'Basis tampilan ini' }, close: { en: 'Close', id: 'Tutup' },

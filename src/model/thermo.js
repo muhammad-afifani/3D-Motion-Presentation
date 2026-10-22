@@ -782,6 +782,88 @@ export const massRateKgH = (C_mgNm3, Q_Nm3h) => C_mgNm3 * Q_Nm3h * 1e-6;
 /** Aliran flue gas (Nm³/h, 0 °C) dari laju massa udara+bahan bakar (kg/s); ρ ≈ 1,30 kg/Nm³. */
 export const exhaustFlowNm3h = (mAir, mFuel) => ((mAir + mFuel) * 3600) / 1.30;
 
+// ───────────── Satuan tampilan (Pengaturan satuan) ─────────────
+// Model, store, dan frame TETAP memakai satuan dasar (kolom `base`); hanya lapisan tampilan mengonversi, dan hanya lewat
+// fungsi di bawah ini. Jalur regulasi (complianceCheck, toRegulationBasis) tidak memanggilnya.
+
+const LB_KG = 0.45359237;           // pon (avoirdupois) → kg, eksak
+const BTU_J = 1055.05585262;        // Btu_IT → J
+const HP_W = 745.69987158227;       // hp mekanik (550 ft·lbf/s) → W
+const PSI_PA = 6894.757293168;      // psi → Pa
+const IN_M = 0.0254, FT_M = 0.3048; // eksak
+const u = (factor, offset = 0) => Object.freeze({ factor, offset });
+
+/**
+ * Tabel konversi: nilai tampilan = nilai dasar · factor + offset. `base` = satuan dasar nilai di model / store / frame.
+ * Hanya suhu punya offset. Besaran konsentrasi gas (ppmvd ↔ mg/Nm³) tidak di sini karena butuh spesies dan basis:
+ * lihat concentrationToUnit.
+ */
+export const UNIT_DEFS = Object.freeze({
+  pressure: Object.freeze({ base: 'Pa', units: Object.freeze({ bar: u(1e-5), kPa: u(1e-3), MPa: u(1e-6), psia: u(1 / PSI_PA) }) }),
+  temperature: Object.freeze({ base: 'K', units: Object.freeze({ K: u(1), C: u(1, -273.15), F: u(1.8, -459.67) }) }),
+  power: Object.freeze({ base: 'W', units: Object.freeze({ kW: u(1e-3), MW: u(1e-6), hp: u(1 / HP_W) }) }),
+  specificEnergy: Object.freeze({ base: 'J/kg', units: Object.freeze({ kJkg: u(1e-3), Btulb: u(LB_KG / BTU_J) }) }),
+  heatRate: Object.freeze({ base: 'kJ/kWh', units: Object.freeze({ kJkWh: u(1), BtukWh: u(1000 / BTU_J) }) }),
+  specificFuel: Object.freeze({ base: 'g/kWh', units: Object.freeze({ gkWh: u(1), lbhph: u(HP_W / (LB_KG * 1e6)) }) }),
+  specificEmission: Object.freeze({ base: 'g/kWh', units: Object.freeze({ gkWh: u(1), lbMWh: u(1 / LB_KG), ghph: u(HP_W / 1000) }) }),
+  specificHeat: Object.freeze({ base: 'J/(kg·K)', units: Object.freeze({ kJkgK: u(1e-3), BtulbR: u(LB_KG / (BTU_J * 1.8)) }) }),
+  specificVolume: Object.freeze({ base: 'm³/kg', units: Object.freeze({ m3kg: u(1), ft3lb: u(LB_KG / FT_M ** 3) }) }),
+  length: Object.freeze({ base: 'm', units: Object.freeze({ mm: u(1e3), in: u(1 / IN_M) }) }),
+  volume: Object.freeze({ base: 'm³', units: Object.freeze({ L: u(1e3), cm3: u(1e6), in3: u(1 / IN_M ** 3) }) }),
+  volumeFlow: Object.freeze({ base: 'm³/s', units: Object.freeze({ m3s: u(1), m3h: u(3600), cfm: u(60 / FT_M ** 3) }) }),
+  massFlow: Object.freeze({ base: 'kg/s', units: Object.freeze({ kgs: u(1), kgh: u(3600), lbs: u(1 / LB_KG), lbh: u(3600 / LB_KG) }) }),
+  molarMass: Object.freeze({ base: 'kg/kmol', units: Object.freeze({ kgkmol: u(1), lblbmol: u(1) }) }),
+});
+
+function unitDef(qty, unit) {
+  const d = UNIT_DEFS[qty]?.units[unit];
+  if (!d) throw new Error(`unit tidak dikenal: ${qty}/${unit}`);
+  return d;
+}
+/** Nilai dasar → nilai tampilan (suhu memakai offset: 300 K → 80,33 °F). */
+export const toUnit = (qty, unit, valueBase) => { const d = unitDef(qty, unit); return valueBase * d.factor + d.offset; };
+/** Kebalikan toUnit: nilai tampilan → nilai dasar (isian pengguna, batas slider). */
+export const fromUnit = (qty, unit, value) => { const d = unitDef(qty, unit); return (value - d.offset) / d.factor; };
+/** SELISIH dalam satuan dasar → selisih tampilan: tanpa offset (ΔT 10 K = 10 °C = 18 °F). Untuk dT, kenaikan T, selisih T. */
+export const toUnitDelta = (qty, unit, deltaBase) => deltaBase * unitDef(qty, unit).factor;
+/** Kebalikan toUnitDelta. */
+export const fromUnitDelta = (qty, unit, delta) => delta / unitDef(qty, unit).factor;
+/** Laju per satuan dasar → laju per satuan tampilan (derating 0,5 %/K = 0,278 %/°F). */
+export const toUnitRate = (qty, unit, ratePerBase) => ratePerBase / unitDef(qty, unit).factor;
+/** Kebalikan toUnitRate. */
+export const fromUnitRate = (qty, unit, rate) => rate * unitDef(qty, unit).factor;
+
+/** Spesies gas buang yang bisa ditulis ppmvd atau mg/Nm³ → kunci massa molar di MW (NOx dihitung sebagai NO₂). */
+export const CONCENTRATION_SPECIES = Object.freeze({ nox: 'NO2', co: 'CO', so2: 'SO2', ch4: 'CH4' });
+function speciesMW(species) {
+  const k = CONCENTRATION_SPECIES[species];
+  if (!k) throw new Error(`spesies tidak dikenal: ${species}`);
+  return MW[k];
+}
+/**
+ * ppmvd @ refFrom % O₂ → nilai pada basis tampilan dalam satuan `unit` ('ppmvd' | 'mgNm3'): koreksi O₂ ke refO2
+ * (jalur tampilan, correctToRefO2), lalu untuk mg/Nm³ ppm·M/V pada basis volume TrefC (°C, 1 atm). Kering. Hanya untuk
+ * tampilan: perbandingan dengan baku mutu tetap lewat toRegulationBasis.
+ * @param {{ppm:number, species?:'nox'|'co'|'so2'|'ch4', unit:'ppmvd'|'mgNm3', refFrom?:number, refO2?:number, TrefC?:number}} o
+ */
+export function concentrationToUnit({ ppm, species = 'nox', unit, refFrom = 15, refO2 = 15, TrefC = 0 }) {
+  const ppmB = correctToRefO2(ppm, refFrom, refO2);
+  if (unit === 'ppmvd') return ppmB;
+  if (unit === 'mgNm3') return ppmToMgNm3(ppmB, speciesMW(species), TrefC + 273.15);
+  throw new Error(`satuan konsentrasi tidak dikenal: ${unit}`);
+}
+/**
+ * Kebalikan concentrationToUnit: nilai pada basis tampilan (refO2, TrefC) dalam `unit` → ppmvd @ refTo % O₂.
+ * @param {{value:number, species?:'nox'|'co'|'so2'|'ch4', unit:'ppmvd'|'mgNm3', refO2?:number, refTo?:number, TrefC?:number}} o
+ */
+export function concentrationFromUnit({ value, species = 'nox', unit, refO2 = 15, refTo = 15, TrefC = 0 }) {
+  let ppmB;
+  if (unit === 'ppmvd') ppmB = value;
+  else if (unit === 'mgNm3') ppmB = mgNm3ToPpm(value, speciesMW(species), TrefC + 273.15);
+  else throw new Error(`satuan konsentrasi tidak dikenal: ${unit}`);
+  return correctToRefO2(ppmB, refO2, refTo);
+}
+
 /** CO DLN vs suhu nyala: jendela lean-premix. BENTUK ilustratif; ganti dengan kurva OEM via lookup1D. */
 export function coDLN(Tflame, { co0 = 5, amp = 600, Tc = 1650, w = 40 } = {}) {
   return co0 + amp / (1 + Math.exp((Tflame - Tc) / w));

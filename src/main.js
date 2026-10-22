@@ -216,7 +216,7 @@ langSlot.id = 'lang-slot';
 const langSwitch = createLangSwitch({ value: langStore.lang, onChange: (l) => langStore.set(l) });
 langSlot.append(langSwitch.el);
 langStore.subscribe((l) => { langSwitch.set(l); themeSwitch.relabel(); backPill.refresh(); relabelChrome(); relangView(); });
-const settings = createSettingsPanel({ getMode: () => mode }); // ⚙ Settings (popover; Hide working notes)
+const settings = createSettingsPanel({ getMode: () => mode, getState: () => store.get() }); // ⚙ Settings (popover; Hide working notes)
 document.getElementById('model-badge').before(langSlot, themeSwitch.el, createHelpButton('hdr.switches', { describes: themeSwitch.el }).el, settings.el); // ⓘ kelompok sakelar, lalu ⚙
 document.getElementById('model-badge').after(createHelpButton('hdr.status', { describes: document.getElementById('model-badge') }).el); // ⓘ lencana Model OK dan chip Quality
 /**
